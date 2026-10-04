@@ -1,0 +1,23 @@
+{
+  "name": "lounge-architecture-base",
+  "ok": true,
+  "sourceSHA256": "3dddb6a7981fc01aa6ef886eb883a0a337c623fb67bd3625c6ed1d5a5f427693",
+  "outputSHA256": "2d49848e3f3820a49a5bf40a7161f74a9d721a7a2cb7e89d8449721e1b835c00",
+  "bytes": 1059325,
+  "sourcePNGBytes": 1416616,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "sRGB",
+  "mipFilter": "Linear-light box, then sRGB encode",
+  "orientation": "rd",
+  "seconds": 20.393,
+  "quality": {
+    "rgbPSNR": 67.31126519444827,
+    "maxChannelError": 7,
+    "alphaMaxError": 0
+  }
+}

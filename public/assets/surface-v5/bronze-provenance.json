@@ -1,0 +1,38 @@
+{
+  "source": "Satin bronze",
+  "sourceShader": "Cycles 3D normalized FBM Noise",
+  "sourceScale": {
+    "W": 0.0,
+    "Scale": 3.0,
+    "Detail": 2.0,
+    "Roughness": 0.5,
+    "Lacunarity": 2.0,
+    "Offset": 0.0,
+    "Gain": 1.0,
+    "Distortion": 0.0
+  },
+  "sourceObjectMapping": [
+    120,
+    120,
+    4
+  ],
+  "sourceBaseColorLinear": [
+    0.23,
+    0.16,
+    0.09
+  ],
+  "sourceMetallic": 0.82,
+  "sourceRoughnessRange": [
+    0.24,
+    0.36
+  ],
+  "sourceHeightMeters": 6e-06,
+  "sourceAnisotropy": 0.2,
+  "size": [
+    2048,
+    2048
+  ],
+  "wrap": "mirrored repeat",
+  "note": "Source noise evaluated independently of undersampled unique atlas; runtime uses world-metre brushing at door scale. Geometry and GI unchanged.",
+  "sha256": "be12443b883b7b4e496165519c714991eac9c900f0cc8f182a5519b359922edf"
+}

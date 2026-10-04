@@ -1,0 +1,23 @@
+{
+  "name": "founder-detail-base",
+  "ok": true,
+  "sourceSHA256": "7242d0a2930a609276eb0d8218058015104de8bd8653edb8ded4b7bfeef9794b",
+  "outputSHA256": "6a8e067b37ce565232de58bc5e353d1c9faf2a66f4cf237885e671b9e75a39c5",
+  "bytes": 3089634,
+  "sourcePNGBytes": 3576397,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "sRGB",
+  "mipFilter": "Linear-light box, then sRGB encode",
+  "orientation": "rd",
+  "seconds": 49.986,
+  "quality": {
+    "rgbPSNR": 62.28817290973826,
+    "maxChannelError": 12,
+    "alphaMaxError": 0
+  }
+}

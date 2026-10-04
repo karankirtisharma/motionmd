@@ -1,0 +1,358 @@
+{
+  "version": 4,
+  "sourceSHA256": "a39d1652ddc41c241fb689eefd8ba7facedec388cb6c57e597494a065e138895",
+  "sun": {
+    "position": [
+      -64.27367401123047,
+      16.6329345703125,
+      -44.63451385498047
+    ],
+    "positionIsDirection": true,
+    "target": [
+      10,
+      0,
+      -16
+    ],
+    "color": [
+      1.0,
+      0.64,
+      0.36
+    ],
+    "intensity": 3.6,
+    "angle": 0.017453292519943295,
+    "altitudeDegrees": 12
+  },
+  "lightmaps": [
+    {
+      "atlas": "entrance-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "2b7c0e1d8128b66054a2aabbd94cec8a0b13dc2c43a2056a2c78002ec93538c6",
+      "outputSHA256": "7644b2ffaa65ee7070e8d0dafdfe37254ae33c4802c5dab5ea4a2b7cc6b8d160",
+      "outputBytes": 9047732,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0012850880555084548,
+        -4.370432566197053e-05,
+        0.00040329710631689295
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "entrance-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "9b8190fd7722df936cecd15554adf66418aefbe326031280992c8518a8dd9c81",
+      "outputSHA256": "cf5b83f90c433c29dd1bf78e5fd057ca649aabae4a79575b21da1f5589bcb2be",
+      "outputBytes": 7948598,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0032390572910987094,
+        0.0022484338969663703,
+        -0.0007755774458463722
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "founder-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "8375f0a33d227780ec7897aae682308b24938f80712b654fc945440f6e18daae",
+      "outputSHA256": "92cd805a0e4f02c0c52e588db39b9ce9c2499545788c35fcb18596287132fb45",
+      "outputBytes": 7502007,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.007775168182449091,
+        0.004952518457493147,
+        0.0019337938769178665
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "founder-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "b1a1625e058f0fa4d1b0109ef47a7d48001fc063163d5738c45b551edf825005",
+      "outputSHA256": "caf5134a11af4ca6f049ea51438310d37d7ca5f6110360055590995e0d602189",
+      "outputBytes": 3494794,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0012570630665625462,
+        0.0010115731543047929,
+        0.0011993586370610686
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "founder-hero",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "7b26467a08344c358c6e68c7d327ff2afe657c9f9046667e3720209b6e3dcd79",
+      "outputSHA256": "fd8e0bf92fb5f0199a19a3182d71cc83a5e9a9955b8aa7035ea66ac161726783",
+      "outputBytes": 6010941,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0018304711578806811,
+        0.0004805021267739038,
+        0.0037891038425699377
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "gallery-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "b3976feb40b80066426167e724767fd0545a62f0e0c32b61264b0ffe05dd1704",
+      "outputSHA256": "377fd765834f294215ff3ad24e5f47c25cf48a8e427099fd757bae8f66b6937c",
+      "outputBytes": 11385004,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.002628673361188267,
+        0.0009744067795675028,
+        0.0005091790690898734
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "gallery-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "3fd63dcf0258f9c360f62816ccb110b9e88de792d0f270c1f9a60b7d9a46e088",
+      "outputSHA256": "29ea618f332b11707aad5252ef250c27a3f248d535294f442ccac6e8573e0d37",
+      "outputBytes": 7109112,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        -0.01531001757621,
+        -0.012471440065803594,
+        -0.006494831859605837
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "lounge-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "f65e0814257786f9a156f6ab1d7b18660a2698bed80b8b3ad22bfbe271afdcc1",
+      "outputSHA256": "aae9b5dac99d3bb00646677f8290ccd97cd60c15e033588b4df0357d3c9469bd",
+      "outputBytes": 2397894,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.005198703664533698,
+        0.0014715776862344624,
+        0.0022806224783813063
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "lounge-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "7945ff874a8fce4122d1da60d6bf5784f5bf4bbedc136b54fd28914aa0823345",
+      "outputSHA256": "40528e6f61c7dd9eb7a7dd94217a2118acde4d7347ba166ef3afc98e53d0bbbc",
+      "outputBytes": 6815270,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0054062909084760385,
+        0.0024881407466421914,
+        0.0023630611267378954
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "lounge-hero",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "53faadc807f05a75e8f9f9825db27bc5712faaed4b195a4923ced271b1b63fd2",
+      "outputSHA256": "e3f986794db9cf4b5a512210cf42b5bfb10697e4272964e8f21c760c6577f4f5",
+      "outputBytes": 4247710,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0018398389985388782,
+        0.001894229860033632,
+        0.000931126817258298
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "shell-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "91ee120c618a4cd5d76784db90ef8c0de4c5a8e2943058df75eec561176f9ede",
+      "outputSHA256": "fc61318ca884ca897de83da5b5a2b59ff3423cec115c5279f61854738e97aa1a",
+      "outputBytes": 7580244,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        0.0018186335318215203,
+        0.0013268843896498894,
+        0.0010374139717236359
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "shell-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "547d55cc7373eebbad1905b55f5f36d7cb13fba76c5c7e525cfd190a5df1c059",
+      "outputSHA256": "c08aaa6db8e28945b0c7a63a71830cebf39958a31dea246348ff0a2266c8ae15",
+      "outputBytes": 7675379,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        -0.0005306077019987846,
+        -0.00029955140473518304,
+        -0.004362541658128199
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "studio-architecture",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "29cb910f6e43ab32d67e039a7704205be37b7eafa74650e38974c36d3f562ba9",
+      "outputSHA256": "fa7fd97519eebe3e36840291fcc7619840683e8638fa8a7a9706e15ad3115715",
+      "outputBytes": 6658371,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        -0.000741165292880179,
+        -0.0006487252251336803,
+        -0.00011362415454093541
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "studio-detail",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "366d638f9ac34a427036aad849527fc911afe6b8fd6d955eb25640668b6a1f7c",
+      "outputSHA256": "6ef51c38aab39bf1656c754d997d06d01b39e718d37598694f50ffbcd5463e8e",
+      "outputBytes": 7268734,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        -0.004256626515133868,
+        -0.0015924560414813463,
+        -0.0014062289977169516
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    },
+    {
+      "atlas": "studio-hero",
+      "ok": true,
+      "samples": 256,
+      "rawSHA256": "9e3b0944dddf16f0128c51e718759f2c9cfe303d21e2e21f6142bd4c4dad78a5",
+      "outputSHA256": "39f3712eca9f35d4fc2d5323fd4c5a6f328258be84d7f9f0e01130ea1d3a5b76",
+      "outputBytes": 8729331,
+      "guardWithinHalfULP": true,
+      "interiorRelativeMeanChange": [
+        7.1644486733319245e-06,
+        0.0014922400523000529,
+        0.0024241038851505066
+      ],
+      "format": "linear RGB half-float OpenEXR ZIP",
+      "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+      "visualReviewRequired": true
+    }
+  ],
+  "reflections": [
+    {
+      "id": "lounge",
+      "position": [
+        11.6,
+        1.6,
+        -6.2
+      ],
+      "samples": 128,
+      "seconds": 21.417033433914185,
+      "sha256": "9dae05d14c18eb7585793bfbf4f2789a0614fdf4efd6066a6f5de38626e81196",
+      "bytes": 5716838
+    },
+    {
+      "id": "entrance",
+      "position": [
+        1.6,
+        2,
+        -17.5
+      ],
+      "samples": 128,
+      "seconds": 18.05287766456604,
+      "sha256": "e959b2b8fceaeaad731a99c9dfd6c873fe51780e13fe02315bb6283f2283233f",
+      "bytes": 6960578
+    },
+    {
+      "id": "studio",
+      "position": [
+        12.5,
+        1.6,
+        -28
+      ],
+      "samples": 128,
+      "seconds": 15.356086730957031,
+      "sha256": "1b0b72260c7351f296df7daaf32e695830b485cb9ef6321c1912d83480a1c678",
+      "bytes": 7018026
+    },
+    {
+      "id": "founder",
+      "position": [
+        12.5,
+        5.9,
+        -6
+      ],
+      "samples": 128,
+      "seconds": 16.24467444419861,
+      "sha256": "c3c4786d0c582209c6e0f014e95125ee3e8a36529b22a99401ec82e0369980ad",
+      "bytes": 6525925
+    },
+    {
+      "id": "exterior",
+      "position": [
+        -8,
+        3,
+        -18
+      ],
+      "samples": 128,
+      "seconds": 8.788723230361938,
+      "sha256": "ee7f39bf1f9e0a2cf25e83da7eab62c195a79770821d533ec09cd2148dd3f73f",
+      "bytes": 3035941
+    }
+  ],
+  "geometrySHA256Unchanged": {
+    "/assets/precision-v3/geometry/lounge.glb": "5f610ed1e1cc6a62334613bfec9b2835a35d06d121cb1bc1f44b9e308226dcb6",
+    "/assets/precision-v3/geometry/entrance.glb": "095936f80e5493306b7c737a42be437d86a7400bad699c98f99316fb7b292649",
+    "/assets/precision-v3/geometry/shell.glb": "956cf3d43f441fee34c4f594bc770feacea331508ca1c34e2b1009e5a9e1b03e",
+    "/assets/precision-v3/geometry/gallery.glb": "ad9e889ab148deb953388de29a574bf1872cbe2ed8b9a1072c87a4ff1a9b103e",
+    "/assets/precision-v3/geometry/founder.glb": "27a25b2d5c5d182bfaa5dcea63ba1ae2fa486de3be7aacde21ff8c2bf6009c18",
+    "/assets/precision-v3/geometry/studio.glb": "0139bdc34693cf97f536c45b1eac5af51da25b7dc6c11b5a5dd7fa9ee83ecacb"
+  },
+  "sourceMaterialGraphsPreserved": true,
+  "visualReviewPending": false,
+  "visualReview": {
+    "scope": "Representative desktop views; client approval still pending",
+    "report": "visual-review.json"
+  }
+}

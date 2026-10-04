@@ -1,0 +1,58 @@
+{
+  "updated": "2026-10-04T17:01:37.724000+00:00",
+  "status": "Warm sunset release and temporal rendering verified in representative desktop views",
+  "local_url": "http://127.0.0.1:3000/",
+  "browser": "Codex in-app Chromium: new temporal/specular pipeline compiled and rendered on WebGPU and forced WebGL in isolated development preview; final sunset production visual pass selected WebGL 2.",
+  "production_build": "passed",
+  "typecheck": "passed",
+  "automated_tests": {
+    "passed": 28,
+    "failed": 0,
+    "suites": {
+      "interactions": 11,
+      "avatar": 6,
+      "controller": 1,
+      "environment": 2,
+      "cinematic": 2,
+      "runtime": 5,
+      "rendering": 1
+    }
+  },
+  "asset_delivery": {
+    "checked_runtime_resources": 99,
+    "http_200": 99,
+    "all_content_lengths_match_disk": true,
+    "active_architectural_chunks": 6,
+    "triangles": 10452798,
+    "GI_material_bindings": 112
+  },
+  "observations": [
+    "All fifteen 256-sample sunset GI atlases passed half-float border preservation and interior energy-change gates after CPU denoising.",
+    "Five matching 2048x1024 reflection captures passed finite/nonblack HDR validation.",
+    "Original Blender file SHA256 remains unchanged; all six full-precision geometry SHA256 values remain unchanged.",
+    "Production reload reaches Explore / Cinematic after the complete preload.",
+    "Cinematic exterior motion shows the new warm sun and coherent reflections. Studio, founder and lounge reference views were inspected and saved.",
+    "Reference camera cuts and material diagnostic changes resolve without retained previous-frame trails in the observed settled views.",
+    "V switches into body view; a mouse drag turns across the stone and polished floor with no new shader/device errors.",
+    "The pipeline now uses velocity-aware temporal reconstruction, normal-variance specular filtering, a fixed tightly fitted sun shadow map and a 10 cm camera near plane."
+  ],
+  "console": {
+    "new_texture_or_shader_errors_after_final_server_restart": 0,
+    "resolved_during_setup": "New public assets initially returned 404 from the already-running Next server; restarting after activation fixed all 99 asset URLs."
+  },
+  "screenshots": [
+    "browser-previews/sunset-cinematic-moving.jpg",
+    "browser-previews/sunset-studio-final.jpg",
+    "browser-previews/sunset-founder-final.jpg",
+    "browser-previews/sunset-lounge-final.jpg",
+    "browser-previews/sunset-body-turn.jpg"
+  ],
+  "limits": [
+    "Representative frame and motion checks do not quantify flicker across every surface; temporal reconstruction can soften fine lines or ghost during disocclusion.",
+    "Some narrow baked seams and fine trim retain visible artifacts. This release reduces motion aliasing; it is not a claim of an artifact-free Cycles match.",
+    "Final sunset assets were visually reviewed in WebGL 2; WebGPU validation of the same rendering code occurred before activating the new lighting data.",
+    "No sustained GPU benchmark, mobile qualification or new manual test of all four chairs was performed in this lighting revision. Prior interaction review is archived separately.",
+    "The full detailed asset set remains resident. Reflections are static captures and GI is ray traced offline, not browser hardware ray tracing.",
+    "Vercel deployment and domain connection remain unconfigured."
+  ]
+}

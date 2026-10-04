@@ -1,0 +1,161 @@
+{
+  "ok": true,
+  "reports": [
+    {
+      "zone": "lounge",
+      "triangles": 643488,
+      "materials": 20,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": true,
+      "maxPreviousLocalPositionError": 0.0078125,
+      "correctedCoordinateValues": 3158980,
+      "positionValues": 3176115,
+      "bytes": 24882384,
+      "sha256": "5f610ed1e1cc6a62334613bfec9b2835a35d06d121cb1bc1f44b9e308226dcb6",
+      "losslessFloatGeometry": true
+    },
+    {
+      "zone": "shell",
+      "triangles": 49250,
+      "materials": 13,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": true,
+      "maxPreviousLocalPositionError": 0.01250457763671875,
+      "correctedCoordinateValues": 290256,
+      "positionValues": 291012,
+      "bytes": 2305624,
+      "sha256": "956cf3d43f441fee34c4f594bc770feacea331508ca1c34e2b1009e5a9e1b03e",
+      "losslessFloatGeometry": true
+    },
+    {
+      "zone": "entrance",
+      "triangles": 317970,
+      "materials": 26,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": true,
+      "maxPreviousLocalPositionError": 0.0078125,
+      "correctedCoordinateValues": 1088881,
+      "positionValues": 1088928,
+      "bytes": 13461752,
+      "sha256": "095936f80e5493306b7c737a42be437d86a7400bad699c98f99316fb7b292649",
+      "losslessFloatGeometry": true
+    },
+    {
+      "zone": "gallery",
+      "triangles": 11100,
+      "materials": 7,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": true,
+      "maxPreviousLocalPositionError": 0.007808685302734375,
+      "correctedCoordinateValues": 63369,
+      "positionValues": 63603,
+      "bytes": 527236,
+      "sha256": "ad9e889ab148deb953388de29a574bf1872cbe2ed8b9a1072c87a4ff1a9b103e",
+      "losslessFloatGeometry": true
+    },
+    {
+      "zone": "founder",
+      "triangles": 2852124,
+      "materials": 71,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": false,
+      "maxPreviousLocalPositionError": 0.00390625,
+      "correctedCoordinateValues": 12739693,
+      "positionValues": 12741327,
+      "bytes": 98834832,
+      "sha256": "27a25b2d5c5d182bfaa5dcea63ba1ae2fa486de3be7aacde21ff8c2bf6009c18",
+      "losslessFloatGeometry": true,
+      "preSourceMaterialPatchSHA256": "f5e462ee654f0388ec7712471e0cfa4a5627a26f2a41f9c899a545ad605cc1d1",
+      "originalPrecisionExportMaterialsJSONUnchanged": true,
+      "sourceMaterialPatch": "Original FC91 leather maps on SourceUV0; existing GI UV1 retained",
+      "geometryBinaryUnchangedByMaterialPatch": true
+    },
+    {
+      "zone": "studio",
+      "triangles": 6578866,
+      "materials": 72,
+      "UVsByteIdentical": true,
+      "indicesByteIdentical": true,
+      "nodeTransformsUnchanged": true,
+      "materialsJSONUnchanged": true,
+      "maxPreviousLocalPositionError": 0.0078125,
+      "correctedCoordinateValues": 24238965,
+      "positionValues": 24246345,
+      "bytes": 218401920,
+      "sha256": "0139bdc34693cf97f536c45b1eac5af51da25b7dc6c11b5a5dd7fa9ee83ecacb",
+      "losslessFloatGeometry": true
+    }
+  ],
+  "probeChanges": [
+    {
+      "id": "entrance",
+      "before": {
+        "min": [
+          -4,
+          -0.1,
+          -24
+        ],
+        "max": [
+          8,
+          8.5,
+          -10
+        ]
+      },
+      "after": {
+        "min": [
+          -9.5,
+          -0.1,
+          -24
+        ],
+        "max": [
+          21.9,
+          8.5,
+          -10
+        ]
+      }
+    },
+    {
+      "id": "studio",
+      "before": {
+        "min": [
+          3.6,
+          -0.1,
+          -36.1
+        ],
+        "max": [
+          21.6,
+          4.2,
+          -22
+        ]
+      },
+      "after": {
+        "min": [
+          3.6,
+          -0.1,
+          -36.1
+        ],
+        "max": [
+          21.6,
+          8.7,
+          -22
+        ]
+      }
+    }
+  ],
+  "totalBytes": 358413748,
+  "purpose": "Restore source bevels, thin display offsets and smooth normals; extend original room reflections to the actual gold sculptures.",
+  "limitations": [
+    "Room reflections are static captures and omit the moving visitor.",
+    "Unique baked texture detail still depends on texel allocation."
+  ]
+}

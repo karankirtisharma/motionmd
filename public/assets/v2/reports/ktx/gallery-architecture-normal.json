@@ -1,0 +1,26 @@
+{
+  "name": "gallery-architecture-normal",
+  "ok": true,
+  "sourceSHA256": "f2a011788050619255c6ebb01164486cdde81b2c2acd8d6d28ab4174df09d6e4",
+  "outputSHA256": "843c64d43b0710cb91af4d61779750fe68fb78aa21ffde56d51bfe29a057927f",
+  "bytes": 360395,
+  "sourcePNGBytes": 533651,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 7.047,
+  "quality": {
+    "rgbPSNR": 75.34204755140595,
+    "maxChannelError": 8,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16777216,
+    "normalMeanDegrees": 0.0016948802859220334,
+    "normal99PercentileDegrees": 0.1
+  }
+}

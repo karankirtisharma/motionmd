@@ -1,0 +1,23 @@
+{
+  "name": "entrance-detail-orm",
+  "ok": true,
+  "sourceSHA256": "e816f5123ef43a54e58eb12c88761c914dfc92ae95ea6fa1f09979d91a63d1b3",
+  "outputSHA256": "8ee47942f8cd8c1a5f049fa3ccfac00879d464324349fd8623a37678028a71f1",
+  "bytes": 45842,
+  "sourcePNGBytes": 261186,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "Linear box",
+  "orientation": "rd",
+  "seconds": 3.15,
+  "quality": {
+    "rgbPSNR": 999,
+    "maxChannelError": 0,
+    "alphaMaxError": 0
+  }
+}

@@ -1,0 +1,733 @@
+{
+  "method": "Blender 5.2 OpenImageDenoise CPU HDR/high, source base-color albedo guide",
+  "geometryChanged": false,
+  "normalOrPBRMapsChanged": false,
+  "chartProtection": "Original padding + first two chart pixels unchanged; six-pixel fade to denoised interiors.",
+  "entries": [
+    {
+      "sourceSHA256": "b4ac48632c6c98ecfa5ef59034bec7178741303f2df25f7fa9c094a867cde11c",
+      "guideSHA256": "e3c219e8c53d8a8a437479141937475ff1161f8f4627dbd2dc796d9ec22975fe",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 4096,
+      "height": 4096,
+      "seconds": 32.78769850730896,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 2227635,
+        "meanAbsRGBDifference": 0.06059126928448677,
+        "rmsRGBDifference": 0.22375249862670898,
+        "maxAbsRGBDifference": 97.64910125732422,
+        "meanRGBBefore": [
+          0.28102779388427734,
+          0.2385367751121521,
+          0.20268112421035767
+        ],
+        "meanRGBAfter": [
+          0.28193581104278564,
+          0.23800070583820343,
+          0.20245447754859924
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 2227635,
+        "meanAbsRGBDifference": 0.06059126928448677,
+        "rmsRGBDifference": 0.22375249862670898,
+        "maxAbsRGBDifference": 97.64910125732422,
+        "meanRGBBefore": [
+          0.28102779388427734,
+          0.2385367751121521,
+          0.20268112421035767
+        ],
+        "meanRGBAfter": [
+          0.28193581104278564,
+          0.23800070583820343,
+          0.20245447754859924
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 433371,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.3453957736492157,
+          0.2652566730976105,
+          0.20253953337669373
+        ],
+        "meanRGBAfter": [
+          0.3453957736492157,
+          0.2652566730976105,
+          0.20253953337669373
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 13508443,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.09898775815963745,
+          0.06831581890583038,
+          0.047474902123212814
+        ],
+        "meanRGBAfter": [
+          0.09898775815963745,
+          0.06831581890583038,
+          0.047474902123212814
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "highFrequencyDiagnostic": {
+        "before": {
+          "meanAbsLaplacian": 0.29781657457351685,
+          "rmsLaplacian": 1.0070220232009888
+        },
+        "after": {
+          "meanAbsLaplacian": 0.01397289615124464,
+          "rmsLaplacian": 0.0663270652294159
+        },
+        "caveat": "Laplacian decreases for both unwanted noise and useful fine lighting detail; this is not proof of fidelity."
+      },
+      "savedEXRProtectedPaddingMaxAbsDifference": 0,
+      "savedEXRProtectedBorderMaxAbsDifference": 0,
+      "zone": "entrance",
+      "adoptedAt": "2026-10-04T12:51:26.911Z",
+      "outputSHA256": "4b38e4302c30a880e2ef3c2876cfe0e122950de51f0cd2b285666c100eead3a1",
+      "outputBytes": 19618835,
+      "interiorMeanRelativeShift": [
+        0.0032310582023150616,
+        -0.00224732338942969,
+        -0.001118242572619599
+      ]
+    },
+    {
+      "zone": "lounge",
+      "sourceSHA256": "8a52eaa8884f2a6009a63df13f853e3a3d6c13115621bcbbc931e876121fb8d1",
+      "guideSHA256": "632d4a6c21e07b73f686ff6a13419af1fd863a6aa5d5ef64c92637b2c0791356",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 4096,
+      "height": 4096,
+      "seconds": 52.368592977523804,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 1120142,
+        "meanAbsRGBDifference": 0.014014018699526787,
+        "rmsRGBDifference": 0.06645868718624115,
+        "maxAbsRGBDifference": 24.85800552368164,
+        "meanRGBBefore": [
+          0.17025145888328552,
+          0.12372741848230362,
+          0.0786254033446312
+        ],
+        "meanRGBAfter": [
+          0.17031975090503693,
+          0.12346244603395462,
+          0.07868397980928421
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 1120142,
+        "meanAbsRGBDifference": 0.014014018699526787,
+        "rmsRGBDifference": 0.06645868718624115,
+        "maxAbsRGBDifference": 24.85800552368164,
+        "meanRGBBefore": [
+          0.17025145888328552,
+          0.12372741848230362,
+          0.0786254033446312
+        ],
+        "meanRGBAfter": [
+          0.17031975090503693,
+          0.12346244603395462,
+          0.07868397980928421
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 356402,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.15705715119838715,
+          0.10631662607192993,
+          0.06345802545547485
+        ],
+        "meanRGBAfter": [
+          0.15705715119838715,
+          0.10631662607192993,
+          0.06345802545547485
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 14990876,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.0421418659389019,
+          0.02784123085439205,
+          0.016305044293403625
+        ],
+        "meanRGBAfter": [
+          0.0421418659389019,
+          0.02784123085439205,
+          0.016305044293403625
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "sourceBake": {
+        "samples": 256,
+        "sourceMaterialSlotsRestored": 190,
+        "exactDeliveryUVs": true,
+        "doorPose": "open-source-frame180",
+        "passes": "Diffuse indirect + direct practicals, no albedo or direct sun",
+        "seconds": 326.6832072734833,
+        "sourceBlendUnmodified": true
+      },
+      "adoptedAt": "2026-10-04T13:17:12.308Z",
+      "outputSHA256": "fe2d728f15d034dfbaff8c5d3cd9f776451f396dcb202afa47ccbf9f3e44afff",
+      "outputBytes": 10367798,
+      "interiorMeanRelativeShift": [
+        0.00040112444380415466,
+        -0.002141582291130541,
+        0.0007450068573418
+      ],
+      "savedEXRProtectedPaddingMaxAbsDifference": 0.003887176513671875,
+      "savedEXRProtectedBorderMaxAbsDifference": 0.0050411224365234375,
+      "savedEXRProtectedPaddingHalfFloatReferenceMaxDifference": 0,
+      "savedEXRProtectedBorderHalfFloatReferenceMaxDifference": 0,
+      "protectedEncoding": "Unfiltered chart padding/borders preserved, then converted to nearest representable half-float. Exact comparison against quantized source passed.",
+      "previousOutputSHA256": "e4f084dd39fa83494c803d6775bfc4da87c4b4187388bea21e9301f77fcf46db",
+      "previousSourceBakeSamples": 32,
+      "rejectedVariant": {
+        "method": "Same-connected-chart edge extension and padding regeneration",
+        "reason": "Visible stepped streaks and lost thin bright lighting details.",
+        "adopted": false
+      },
+      "highFrequencyDiagnostic": {
+        "Current32sampleProtected": {
+          "coverageMeanRGB": [
+            0.17044372856616974,
+            0.12078459560871124,
+            0.0757266953587532
+          ],
+          "interiorMeanRGB": [
+            0.170395165681839,
+            0.12296979129314423,
+            0.07843422144651413
+          ],
+          "interiorMeanAbsLaplacian": 0.016182860359549522,
+          "interiorRMSLaplacian": 0.1291046142578125
+        },
+        "New256sampleRaw": {
+          "coverageMeanRGB": [
+            0.17065326869487762,
+            0.12157206237316132,
+            0.0760141983628273
+          ],
+          "interiorMeanRGB": [
+            0.17025145888328552,
+            0.12372741848230362,
+            0.0786254033446312
+          ],
+          "interiorMeanAbsLaplacian": 0.08012667298316956,
+          "interiorRMSLaplacian": 0.33350685238838196
+        },
+        "New256sampleProtected": {
+          "coverageMeanRGB": [
+            0.1705707460641861,
+            0.12131258100271225,
+            0.07601027935743332
+          ],
+          "interiorMeanRGB": [
+            0.17031927406787872,
+            0.12346260994672775,
+            0.07868357747793198
+          ],
+          "interiorMeanAbsLaplacian": 0.01634402573108673,
+          "interiorRMSLaplacian": 0.1451723724603653
+        },
+        "New256sampleEdgeVariant": {
+          "coverageMeanRGB": [
+            0.16573616862297058,
+            0.11858374625444412,
+            0.07466160506010056
+          ],
+          "interiorMeanRGB": [
+            0.17031927406787872,
+            0.12346260994672775,
+            0.07868357747793198
+          ],
+          "interiorMeanAbsLaplacian": 0.01629572920501232,
+          "interiorRMSLaplacian": 0.14526678621768951
+        },
+        "savedProtectedPaddingMaxDifference": 0.003887176513671875,
+        "savedProtectedBorderMaxDifference": 0.0050411224365234375,
+        "savedProtectedPaddingHalfFloatReferenceMaxDifference": 0,
+        "savedProtectedBorderHalfFloatReferenceMaxDifference": 0,
+        "columnOrder": [
+          "Current32sampleProtected",
+          "New256sampleRaw",
+          "New256sampleProtected",
+          "New256sampleEdgeVariant"
+        ],
+        "caveat": "Laplacian is a noise/detail diagnostic, not proof of accuracy. Source256 is a distinct original-material re-bake; compare source scene views."
+      }
+    },
+    {
+      "zone": "shell",
+      "sourceSHA256": "69efddf3e1c41caed06b69d79bb81fc9c61e1560909169c8531db6b72e5c3d8f",
+      "guideSHA256": "65d244a600419188cb27b837f6ba8b53d2434f18d18054588f346a876d574948",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 4096,
+      "height": 4096,
+      "seconds": 16.308061599731445,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 8894726,
+        "meanAbsRGBDifference": 0.02036532200872898,
+        "rmsRGBDifference": 0.07508107274770737,
+        "maxAbsRGBDifference": 7.203388690948486,
+        "meanRGBBefore": [
+          0.36584532260894775,
+          0.35959362983703613,
+          0.35712817311286926
+        ],
+        "meanRGBAfter": [
+          0.3651008903980255,
+          0.3570002317428589,
+          0.3516031503677368
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 8894726,
+        "meanAbsRGBDifference": 0.02036532200872898,
+        "rmsRGBDifference": 0.07508107274770737,
+        "maxAbsRGBDifference": 7.203388690948486,
+        "meanRGBBefore": [
+          0.36584532260894775,
+          0.35959362983703613,
+          0.35712817311286926
+        ],
+        "meanRGBAfter": [
+          0.3651008903980255,
+          0.3570002317428589,
+          0.3516031503677368
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 438903,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.4055745601654053,
+          0.37140557169914246,
+          0.3338823914527893
+        ],
+        "meanRGBAfter": [
+          0.4055745601654053,
+          0.37140557169914246,
+          0.3338823914527893
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 7036622,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.16631434857845306,
+          0.1492464691400528,
+          0.1299775093793869
+        ],
+        "meanRGBAfter": [
+          0.16631434857845306,
+          0.1492464691400528,
+          0.1299775093793869
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "highFrequencyDiagnostic": {
+        "before": {
+          "meanAbsLaplacian": 0.1031683087348938,
+          "rmsLaplacian": 0.350023090839386
+        },
+        "after": {
+          "meanAbsLaplacian": 0.00467384047806263,
+          "rmsLaplacian": 0.07174491137266159
+        },
+        "caveat": "Laplacian decreases for both unwanted noise and useful fine lighting detail; this is not proof of fidelity."
+      },
+      "savedEXRProtectedPaddingMaxAbsDifference": 0,
+      "savedEXRProtectedBorderMaxAbsDifference": 0,
+      "adoptedAt": "2026-10-04T12:53:00.133Z",
+      "outputSHA256": "daa23979b1f62d00424cca9f33b219168d4235b2da85398476d15810c473d376",
+      "outputBytes": 21951757,
+      "interiorMeanRelativeShift": [
+        -0.0020348277398040296,
+        -0.007212024571604746,
+        -0.015470699768584988
+      ]
+    },
+    {
+      "zone": "gallery",
+      "sourceSHA256": "e295d3d9419b5f08562b1e334b5c2f59cacf8a07f1b9b5cc0b6f2d0681950aab",
+      "guideSHA256": "07efd9b79fea8feb0e17d9f71103d88dec996f4ede061d178a62937815a8d28f",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 2048,
+      "height": 2048,
+      "seconds": 2.1447482109069824,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 1365185,
+        "meanAbsRGBDifference": 0.07537863403558731,
+        "rmsRGBDifference": 0.16733697056770325,
+        "maxAbsRGBDifference": 14.123970031738281,
+        "meanRGBBefore": [
+          0.32544267177581787,
+          0.2565380930900574,
+          0.19956740736961365
+        ],
+        "meanRGBAfter": [
+          0.32742902636528015,
+          0.25527676939964294,
+          0.1992807537317276
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 1365185,
+        "meanAbsRGBDifference": 0.07537863403558731,
+        "rmsRGBDifference": 0.16733697056770325,
+        "maxAbsRGBDifference": 14.123970031738281,
+        "meanRGBBefore": [
+          0.32544267177581787,
+          0.2565380930900574,
+          0.19956740736961365
+        ],
+        "meanRGBAfter": [
+          0.32742902636528015,
+          0.25527676939964294,
+          0.1992807537317276
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 265592,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.32579895853996277,
+          0.2503891885280609,
+          0.18373309075832367
+        ],
+        "meanRGBAfter": [
+          0.32579895853996277,
+          0.2503891885280609,
+          0.18373309075832367
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 2104477,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.29549849033355713,
+          0.20507864654064178,
+          0.13885843753814697
+        ],
+        "meanRGBAfter": [
+          0.29549849033355713,
+          0.20507864654064178,
+          0.13885843753814697
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "highFrequencyDiagnostic": {
+        "before": {
+          "meanAbsLaplacian": 0.36714935302734375,
+          "rmsLaplacian": 0.7791976928710938
+        },
+        "after": {
+          "meanAbsLaplacian": 0.019197480753064156,
+          "rmsLaplacian": 0.14257587492465973
+        },
+        "caveat": "Laplacian decreases for both unwanted noise and useful fine lighting detail; this is not proof of fidelity."
+      },
+      "savedEXRProtectedPaddingMaxAbsDifference": 0,
+      "savedEXRProtectedBorderMaxAbsDifference": 0,
+      "adoptedAt": "2026-10-04T12:53:00.183Z",
+      "outputSHA256": "dd87e21670be13c49b1a0e9e0c7d89c5dcf798895051ce538d3feeb29365d8f5",
+      "outputBytes": 12503504,
+      "interiorMeanRelativeShift": [
+        0.006103546835525571,
+        -0.004916711102127209,
+        -0.001436375015661468
+      ]
+    },
+    {
+      "zone": "founder",
+      "sourceSHA256": "76c429985901d1cb52accd4f49796acc55d2a18cc4b95bf3e315826be4860a00",
+      "guideSHA256": "8bbdabd9d2de2ae16ac1edb3abe5477b7e5b2de8b9349a93ea5c645a5175115e",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 4096,
+      "height": 4096,
+      "seconds": 26.494550228118896,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 92763,
+        "meanAbsRGBDifference": 0.05987997725605965,
+        "rmsRGBDifference": 0.2195122092962265,
+        "maxAbsRGBDifference": 15.557662010192871,
+        "meanRGBBefore": [
+          0.4112791419029236,
+          0.32648295164108276,
+          0.2348896861076355
+        ],
+        "meanRGBAfter": [
+          0.4154575765132904,
+          0.32685309648513794,
+          0.23487642407417297
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 92763,
+        "meanAbsRGBDifference": 0.05987997725605965,
+        "rmsRGBDifference": 0.2195122092962265,
+        "maxAbsRGBDifference": 15.557662010192871,
+        "meanRGBBefore": [
+          0.4112791419029236,
+          0.32648295164108276,
+          0.2348896861076355
+        ],
+        "meanRGBAfter": [
+          0.4154575765132904,
+          0.32685309648513794,
+          0.23487642407417297
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 76976,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.26856228709220886,
+          0.20758585631847382,
+          0.14840352535247803
+        ],
+        "meanRGBAfter": [
+          0.26856228709220886,
+          0.20758585631847382,
+          0.14840352535247803
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 16551564,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.015993207693099976,
+          0.01207220833748579,
+          0.00847559329122305
+        ],
+        "meanRGBAfter": [
+          0.015993207693099976,
+          0.01207220833748579,
+          0.00847559329122305
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "highFrequencyDiagnostic": {
+        "before": {
+          "meanAbsLaplacian": 0.339446097612381,
+          "rmsLaplacian": 1.1598106622695923
+        },
+        "after": {
+          "meanAbsLaplacian": 0.08241966366767883,
+          "rmsLaplacian": 0.4212923049926758
+        },
+        "caveat": "Laplacian decreases for both unwanted noise and useful fine lighting detail; this is not proof of fidelity."
+      },
+      "savedEXRProtectedPaddingMaxAbsDifference": 0,
+      "savedEXRProtectedBorderMaxAbsDifference": 0,
+      "adoptedAt": "2026-10-04T12:53:00.195Z",
+      "outputSHA256": "c7b542990a3177192a14631c5dc52ddb1f414c06bcdbbc014ace402f88ef3348",
+      "outputBytes": 2329110,
+      "interiorMeanRelativeShift": [
+        0.010159607392278306,
+        0.0011337340654224803,
+        -0.00005646068876965181
+      ]
+    },
+    {
+      "zone": "studio",
+      "sourceSHA256": "363dce7497bd2ef4829c0a6314112f2d5fc6460a10720079251e21e414102ebe",
+      "guideSHA256": "0b73726929bd16c97d8e8f7b0462605e22d049a8a411af8ddd13feb8a69560bb",
+      "sourceUnmodified": true,
+      "blender": "5.2.0 LTS",
+      "device": "CPU",
+      "denoiser": "OpenImageDenoise / Blender CompositorDenoise HDR high",
+      "albedoGuide": "Source base-color atlas, sRGB decoded by Blender compositor into scene-linear",
+      "normalGuide": null,
+      "guideCaveat": "Base color is not a true Cycles Denoising Albedo pass; this illumination atlas omits albedo, so guide usefulness requires visual comparison.",
+      "width": 2048,
+      "height": 2048,
+      "seconds": 8.179794073104858,
+      "chartMask": "Rasterized exact exported BakeUV triangle coverage, GLTF v converted to Blender bottom-up",
+      "paddingStrategy": "Original padding and first 2 chart pixels unchanged; crossfade to denoised result over next 6 pixels.",
+      "rawInterior": {
+        "pixels": 432,
+        "meanAbsRGBDifference": 0.04918094351887703,
+        "rmsRGBDifference": 0.11241722851991653,
+        "maxAbsRGBDifference": 1.0697782039642334,
+        "meanRGBBefore": [
+          0.4203358292579651,
+          0.34872862696647644,
+          0.2676810324192047
+        ],
+        "meanRGBAfter": [
+          0.4196430742740631,
+          0.3488887548446655,
+          0.2681012749671936
+        ]
+      },
+      "protectedInterior": {
+        "pixels": 432,
+        "meanAbsRGBDifference": 0.04918094351887703,
+        "rmsRGBDifference": 0.11241722851991653,
+        "maxAbsRGBDifference": 1.0697782039642334,
+        "meanRGBBefore": [
+          0.4203358292579651,
+          0.34872862696647644,
+          0.2676810324192047
+        ],
+        "meanRGBAfter": [
+          0.4196430742740631,
+          0.3488887548446655,
+          0.2681012749671936
+        ]
+      },
+      "protectedBorder": {
+        "pixels": 4653,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.3326319754123688,
+          0.26779451966285706,
+          0.20245462656021118
+        ],
+        "meanRGBAfter": [
+          0.3326319754123688,
+          0.26779451966285706,
+          0.20245462656021118
+        ]
+      },
+      "protectedPadding": {
+        "pixels": 4187387,
+        "meanAbsRGBDifference": 0,
+        "rmsRGBDifference": 0,
+        "maxAbsRGBDifference": 0,
+        "meanRGBBefore": [
+          0.009413446299731731,
+          0.0068512666039168835,
+          0.005144315771758556
+        ],
+        "meanRGBAfter": [
+          0.009413446299731731,
+          0.0068512666039168835,
+          0.005144315771758556
+        ]
+      },
+      "visualReviewComplete": false,
+      "limitations": [
+        "A camera-image denoiser is not UV-chart-aware; the retained chart-edge band prevents replacing padding but cannot prove no nearby-chart influence in interiors.",
+        "Remaining noise on preserved border pixels can remain visible at grazing angles; evaluate in the live scene before adoption.",
+        "No true world-normal or denoising-albedo guides were available."
+      ],
+      "highFrequencyDiagnostic": {
+        "before": {
+          "meanAbsLaplacian": 0.4323602616786957,
+          "rmsLaplacian": 0.8809366226196289
+        },
+        "after": {
+          "meanAbsLaplacian": 0.2172560840845108,
+          "rmsLaplacian": 0.4673454165458679
+        },
+        "caveat": "Laplacian decreases for both unwanted noise and useful fine lighting detail; this is not proof of fidelity."
+      },
+      "savedEXRProtectedPaddingMaxAbsDifference": 0,
+      "savedEXRProtectedBorderMaxAbsDifference": 0,
+      "adoptedAt": "2026-10-04T12:53:00.200Z",
+      "outputSHA256": "35107e72ffba60fb3021213168c0c886a482a04439d612c0d7c51e36077fc609",
+      "outputBytes": 454830,
+      "interiorMeanRelativeShift": [
+        -0.0016480988192820118,
+        0.0004591761782851287,
+        0.0015699377135200462
+      ]
+    }
+  ]
+}

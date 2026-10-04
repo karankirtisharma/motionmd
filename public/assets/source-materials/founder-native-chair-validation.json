@@ -1,0 +1,122 @@
+{
+  "liveFilesModified": true,
+  "sourceFile": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\md-lounge-web\\public\\assets\\precision-v3\\geometry\\founder.glb",
+  "sourceURL": "/assets/precision-v3/geometry/founder.glb",
+  "manifestSHA256AtPreparation": "1ca9890e4bd0e1a422f001eb396996ca80b185653ac67396210f3e684ed1cf88",
+  "sourceSHA256": "f5e462ee654f0388ec7712471e0cfa4a5627a26f2a41f9c899a545ad605cc1d1",
+  "outputSHA256": "27a25b2d5c5d182bfaa5dcea63ba1ae2fa486de3be7aacde21ff8c2bf6009c18",
+  "geometryBinaryUnchanged": true,
+  "binarySHA256": "2a3d28f27ad6149b92ffd6d6dd5530729d322a5e1a5741af6f99c83614eb0d34",
+  "sourceMaterial": "FC91 | fine ivory leather.003",
+  "browserMaterial": "founder__FC91 | fine ivory leather.003",
+  "before": {
+    "doubleSided": true,
+    "extensions": {
+      "KHR_materials_clearcoat": {
+        "clearcoatFactor": 0.05000000074505806,
+        "clearcoatRoughnessFactor": 0.41999998688697815
+      },
+      "KHR_materials_sheen": {
+        "sheenColorFactor": [
+          1,
+          1,
+          1
+        ],
+        "sheenRoughnessFactor": 0.5
+      }
+    },
+    "name": "founder__FC91 | fine ivory leather.003",
+    "normalTexture": {
+      "index": 97,
+      "texCoord": 1
+    },
+    "pbrMetallicRoughness": {
+      "baseColorTexture": {
+        "index": 98,
+        "texCoord": 1
+      },
+      "metallicRoughnessTexture": {
+        "index": 99,
+        "texCoord": 1
+      }
+    }
+  },
+  "after": {
+    "doubleSided": true,
+    "extensions": {
+      "KHR_materials_clearcoat": {
+        "clearcoatFactor": 0.05000000074505806,
+        "clearcoatRoughnessFactor": 0.41999998688697815
+      },
+      "KHR_materials_sheen": {
+        "sheenColorFactor": [
+          1,
+          1,
+          1
+        ],
+        "sheenRoughnessFactor": 0.5
+      }
+    },
+    "name": "founder__FC91 | fine ivory leather.003",
+    "normalTexture": {
+      "index": 150,
+      "texCoord": 0,
+      "scale": 0.6499999761581421
+    },
+    "pbrMetallicRoughness": {
+      "baseColorTexture": {
+        "index": 148,
+        "texCoord": 0
+      },
+      "metallicRoughnessTexture": {
+        "index": 149,
+        "texCoord": 0
+      },
+      "metallicFactor": 0,
+      "roughnessFactor": 1,
+      "baseColorFactor": [
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "sourceImages": [
+    {
+      "name": "ivory_leather_BaseColor.002",
+      "file": "founder-native-chair-base.png",
+      "url": "/assets/source-materials/founder-native-chair-base.png",
+      "sha256": "7a7fc6b578573e3e48e2112b2d55dfe357f5a82b00a6267cb73d60930d4243bf",
+      "bytes": 2621408,
+      "uvChannel": 0
+    },
+    {
+      "name": "ivory_leather_Roughness.002",
+      "file": "founder-native-chair-orm.png",
+      "url": "/assets/source-materials/founder-native-chair-orm.png",
+      "sha256": "aa5051fd676cef3ea5c680ab2aab96ed16263a0bc46aca155fdaac508bebe8fd",
+      "bytes": 2626683,
+      "uvChannel": 0
+    },
+    {
+      "name": "ivory_leather_Normal.002",
+      "file": "founder-native-chair-normal.png",
+      "url": "/assets/source-materials/founder-native-chair-normal.png",
+      "sha256": "e36e4369f1eac9816f7312cd0214ccc1b12b255f906a6322a2f126cf7a799b1c",
+      "bytes": 4600224,
+      "uvChannel": 0
+    }
+  ],
+  "lighting": "Existing separate founder-hero BakeUV1 lightmap retained; original source maps use SourceUV0.",
+  "normalStrength": 0.6499999761581421,
+  "metallicMultiplier": 0,
+  "uses": 1,
+  "verifiedOriginalSourceUV": 0,
+  "retainedLightMapUV": 1,
+  "precisionGeometryBinaryByteIdentical": true,
+  "mode": "native-source-images-with-GI",
+  "limitations": [
+    "Blender and glTF sheen BRDFs differ; authored weight/tint/roughness are preserved."
+  ]
+}

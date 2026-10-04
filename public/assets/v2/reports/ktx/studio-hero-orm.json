@@ -1,0 +1,23 @@
+{
+  "name": "studio-hero-orm",
+  "ok": true,
+  "sourceSHA256": "543066afae05addd4c4fa8b787c02230b62ed66654eaa85c0fe139d002166b75",
+  "outputSHA256": "36098202523013278bba76a481e33d89bfc5b96992da828154c43f98e2872984",
+  "bytes": 5622167,
+  "sourcePNGBytes": 6444463,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "Linear box",
+  "orientation": "rd",
+  "seconds": 64.01,
+  "quality": {
+    "rgbPSNR": 68.57173634968112,
+    "maxChannelError": 8,
+    "alphaMaxError": 0
+  }
+}

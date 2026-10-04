@@ -1,0 +1,28 @@
+{
+  "atlas": "founder-hero",
+  "ok": true,
+  "rawSHA256": "832d881d28625d478c3c55041be2ad144318248bc5659f955578cf1525522c76",
+  "outputSHA256": "73091aff1cd1ad216e85600d2fa4f9a1b847f5ccc14c3c7f2e5f3eb63a402760",
+  "protectedPixels": 2277607,
+  "guardWithinHalfULP": true,
+  "protectedHalfQuantizationMaxError": 0.0,
+  "interiorMeanBefore": [
+    1.0441656652370226,
+    0.8239894855716329,
+    0.5953686792526713
+  ],
+  "interiorMeanAfter": [
+    1.0461701541861346,
+    0.8244307301626345,
+    0.59760669739731
+  ],
+  "interiorRelativeMeanChange": [
+    0.0019197039472246666,
+    0.0005354978415719469,
+    0.003759045819218917
+  ],
+  "outputBytes": 5988809,
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "liveFilesModified": false,
+  "visualReviewRequired": true
+}

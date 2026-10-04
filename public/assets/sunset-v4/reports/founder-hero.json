@@ -1,0 +1,17 @@
+{
+  "atlas": "founder-hero",
+  "ok": true,
+  "samples": 256,
+  "rawSHA256": "7b26467a08344c358c6e68c7d327ff2afe657c9f9046667e3720209b6e3dcd79",
+  "outputSHA256": "fd8e0bf92fb5f0199a19a3182d71cc83a5e9a9955b8aa7035ea66ac161726783",
+  "outputBytes": 6010941,
+  "guardWithinHalfULP": true,
+  "interiorRelativeMeanChange": [
+    0.0018304711578806811,
+    0.0004805021267739038,
+    0.0037891038425699377
+  ],
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+  "visualReviewRequired": true
+}

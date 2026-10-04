@@ -1,0 +1,92 @@
+{
+  "name": "Microsoft Rocketbox Business_Male_01",
+  "author": "Microsoft / Rocketbox",
+  "license": "MIT",
+  "licenseFile": "Rocketbox-MIT-LICENSE.txt",
+  "licenseURL": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/LICENSE.md",
+  "repository": "https://github.com/microsoft/Microsoft-Rocketbox",
+  "retrieved": "2026-10-04",
+  "gitTreeSHA1": "0943055db6ec570bcef9f2c8b41c9e5467c808f9",
+  "sources": [
+    {
+      "file": "Business_Male_01.fbx",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Export/Business_Male_01.fbx",
+      "gitBlobSHA1": "705ee1b9ce18c3ddb3e4e5850d9272f2e8607738",
+      "bytes": 520704,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Export/Business_Male_01.fbx"
+    },
+    {
+      "file": "m_idle_breathe_01.max.fbx",
+      "path": "Assets/Animations/all_animations_max_motextr_static/m_idle_breathe_01.max.fbx",
+      "gitBlobSHA1": "735b406c2f19cf233f042bfe0424c2a15c053c95",
+      "bytes": 1397280,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_static/m_idle_breathe_01.max.fbx"
+    },
+    {
+      "file": "m_walk_neutral.max.fbx",
+      "path": "Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral.max.fbx",
+      "gitBlobSHA1": "f8816638330d02fb31920d46851188b920d66ab1",
+      "bytes": 958512,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_xy/m_walk_neutral.max.fbx"
+    },
+    {
+      "file": "m_run_neutral.max.fbx",
+      "path": "Assets/Animations/all_animations_max_motextr_xy/m_run_neutral.max.fbx",
+      "gitBlobSHA1": "f6346c68a30da9b89b4d561de885818c0e2f4080",
+      "bytes": 877760,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_xy/m_run_neutral.max.fbx"
+    },
+    {
+      "file": "m_sit_chair_breathe_01.max.fbx",
+      "path": "Assets/Animations/all_animations_max_motextr_static/m_sit_chair_breathe_01.max.fbx",
+      "gitBlobSHA1": "791c2dd6b07d1d9b871d454d9868cff6d233624d",
+      "bytes": 2537504,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Animations/all_animations_max_motextr_static/m_sit_chair_breathe_01.max.fbx"
+    },
+    {
+      "file": "m005_body_color.tga",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Textures/m005_body_color.tga",
+      "gitBlobSHA1": "3ae157b9ee900809770d4754cc7fd5ccefbbe106",
+      "bytes": 12582956,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Textures/m005_body_color.tga"
+    },
+    {
+      "file": "m005_body_normal.tga",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Textures/m005_body_normal.tga",
+      "gitBlobSHA1": "ea909bede4186c54d2dbd96ddd6534f0ea4d564c",
+      "bytes": 12582956,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Textures/m005_body_normal.tga"
+    },
+    {
+      "file": "m005_head_color.tga",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Textures/m005_head_color.tga",
+      "gitBlobSHA1": "25473b6a8daf5b92f13be239ac6c758c41e9b466",
+      "bytes": 12582956,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Textures/m005_head_color.tga"
+    },
+    {
+      "file": "m005_head_normal.tga",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Textures/m005_head_normal.tga",
+      "gitBlobSHA1": "bfe21707c2f4393bbe7a629191b232722077b2f3",
+      "bytes": 12582956,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Textures/m005_head_normal.tga"
+    },
+    {
+      "file": "m005_opacity_color.tga",
+      "path": "Assets/Avatars/Professions/Business_Male_01/Textures/m005_opacity_color.tga",
+      "gitBlobSHA1": "85521bcee9b307ca431fdad86926e997ce7d3e0a",
+      "bytes": 4194348,
+      "url": "https://github.com/microsoft/Microsoft-Rocketbox/blob/master/Assets/Avatars/Professions/Business_Male_01/Textures/m005_opacity_color.tga"
+    }
+  ],
+  "conversion": [
+    "Original geometry, UVs and skin weights imported from official FBX.",
+    "Source body/head color and normal maps plus hair alpha preserved at original resolution.",
+    "Legacy materials reconstructed as dielectric PBR; roughness chosen for cloth, skin and hair rather than treating legacy specular color as metallic.",
+    "Original compatible Idle, Walk, Run and Sit clips retargeted in world space onto the source rig.",
+    "Linear horizontal locomotion root drift removed for the physics controller.",
+    "Runtime scales standing height to 1.76 m, blends motion clips, aligns pelvis to each cushion and plants seated feet with two-bone IK."
+  ],
+  "quality": "Realistic textured human with authored source motion; lower-detail real-time asset, not a modern scanned cinematic character.",
+  "architectureModified": false
+}

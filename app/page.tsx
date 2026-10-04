@@ -1,0 +1,150 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
+import type { SceneRuntime } from '@/runtime/SceneRuntime';
+import type { DiagnosticMode } from '@/runtime/rendering/diagnostics';
+import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats } from '@/types';
+
+export default function Home() {
+  const viewport = useRef<HTMLDivElement>(null);
+  const runtime = useRef<SceneRuntime | null>(null);
+  const modeRef = useRef<RuntimeMode>('loading');
+  const menuRef = useRef(false);
+  const transitionRef = useRef(false);
+  const welcomeRef = useRef(true);
+  const touch = useRef({ x: 0, y: 0, sprint: false });
+  const [generation, setGeneration] = useState(0);
+  const [mode, setMode] = useState<RuntimeMode>('loading');
+  const [menu, setMenu] = useState(false);
+  const [loading, setLoading] = useState<LoadingProgress>({ phase: 'Preparing your visit' });
+  const [progress, setProgress] = useState(0);
+  const [hint, setHint] = useState<RuntimeHint | null>(null);
+  const [error, setError] = useState('');
+  const [quality, setQuality] = useState<Quality>('auto');
+  const [stats, setStats] = useState<RuntimeStats | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [screenActive, setScreenActive] = useState(false);
+  const [debug, setDebug] = useState(false);
+  const [referenceCameras, setReferenceCameras] = useState<string[]>([]);
+  const [referenceCamera, setReferenceCamera] = useState('');
+  const [diagnosticMode, setDiagnosticMode] = useState<DiagnosticMode>('full');
+  const [transitioning, setTransitioning] = useState(false);
+  const [welcome, setWelcome] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const [duration, setDuration] = useState(58);
+  const [cameraView, setCameraView] = useState<'thirdPerson' | 'bodyCam'>('thirdPerson');
+
+  useEffect(() => {
+    let cancelled = false;
+    setMode('loading'); setLoading({ phase: 'Preparing your visit' }); setError(''); setProgress(0);
+    setReferenceCameras([]); setReferenceCamera(''); setDiagnosticMode('full');
+    transitionRef.current = false; setTransitioning(false);
+    welcomeRef.current = true; setWelcome(true); setPlaying(false);
+    menuRef.current = false; setMenu(false);
+    modeRef.current = 'loading';
+    const preferredReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setReducedMotion(preferredReduced);
+    setDebug(new URLSearchParams(window.location.search).get('debug') === '1');
+    import('@/runtime/SceneRuntime').then(async ({ SceneRuntime }) => {
+      if (cancelled || !viewport.current) return;
+      const instance = new SceneRuntime(viewport.current, {
+        onProgress: value => { if (!cancelled) setLoading(value); },
+        onReady: () => { if (!cancelled) { setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
+        onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { menuRef.current = false; setMenu(false); } } },
+        onTourProgress: value => { if (!cancelled) setProgress(value); },
+        onHint: value => { if (!cancelled) setHint(value); },
+        onStats: value => { if (!cancelled) setStats(value); },
+        onError: value => { if (!cancelled) setError(value); },
+        onScreenMode: value => { if (!cancelled) setScreenActive(value); },
+        onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
+        onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
+        onCameraViewChange: value => { if (!cancelled) setCameraView(value); },
+      });
+      runtime.current = instance;
+      instance.setQuality(quality);
+      instance.setReducedMotion(preferredReduced);
+      await instance.init();
+      if (cancelled) instance.dispose();
+    }).catch(reason => { if (!cancelled) { setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
+    return () => { cancelled = true; runtime.current?.dispose(); runtime.current = null; };
+  }, [generation]);
+
+  const openMenu = useCallback(() => {
+    if (modeRef.current === 'loading' || modeRef.current === 'error' || transitionRef.current || welcomeRef.current) return;
+    menuRef.current = true; setMenu(true); runtime.current?.setPaused(true);
+    if (document.pointerLockElement) document.exitPointerLock();
+  }, []);
+  const resume = useCallback(() => { menuRef.current = false; setMenu(false); runtime.current?.setPaused(false); }, []);
+
+  useEffect(() => {
+    const isField = (target: EventTarget | null) => target instanceof HTMLElement && !!target.closest('input, textarea, select, button, [role="dialog"], [contenteditable="true"]');
+    const keydown = (event: KeyboardEvent) => {
+      if (transitionRef.current || welcomeRef.current) return;
+      if (event.key === 'Escape') {
+        if (menuRef.current || isField(event.target)) return;
+        openMenu(); return;
+      }
+      if (isField(event.target) || menuRef.current || modeRef.current !== 'tour') return;
+      if (event.key === ' ' && !event.repeat) { event.preventDefault(); runtime.current?.toggleCinematicPlayback(); }
+    };
+    const unlock = () => {
+      if (!document.pointerLockElement && runtime.current?.consumeIntentionalUnlock()) return;
+      if (!document.pointerLockElement && modeRef.current === 'explore') openMenu();
+    };
+    window.addEventListener('keydown', keydown);
+    document.addEventListener('pointerlockchange', unlock);
+    return () => { window.removeEventListener('keydown', keydown); document.removeEventListener('pointerlockchange', unlock); };
+  }, [openMenu]);
+
+  const dismissWelcome = useCallback(() => { welcomeRef.current = false; setWelcome(false); setReferenceCamera(''); }, []);
+  const tour = useCallback(() => { dismissWelcome(); resume(); runtime.current?.startCinematic(); }, [dismissWelcome, resume]);
+  const explore = useCallback(() => { dismissWelcome(); resume(); runtime.current?.explore(); }, [dismissWelcome, resume]);
+  const exploreDirect = useCallback(() => { dismissWelcome(); resume(); runtime.current?.exploreDirectly(); }, [dismissWelcome, resume]);
+  const changeQuality = (value: Quality) => { setQuality(value); runtime.current?.setQuality(value); };
+  const sendTouch = (lookX = 0, lookY = 0) => runtime.current?.setVirtualInput(touch.current.x, touch.current.y, lookX, lookY, touch.current.sprint);
+  const uiMode: LoungeMode = menu ? 'menu' : mode === 'tour' ? (welcome ? 'welcome' : progress === 1 ? 'handoff' : 'cinematic') : mode;
+  const qualityLabel = debug && stats ? `${stats.renderer} · ${quality === 'auto' ? 'Adaptive' : quality === 'high' ? 'High detail' : 'Balanced'}` : undefined;
+
+  return <main className="lounge-experience" data-mode={mode} data-screen-active={screenActive}>
+    <div ref={viewport} className="scene-viewport" />
+    <div hidden={transitioning}><LoungeInterface mode={uiMode} loading={loading} progress={progress} playing={playing} duration={duration}
+      onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
+      cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
+      onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}
+      onRestart={tour}
+      onExploreDirect={exploreDirect}
+      onRetry={() => { resume(); setGeneration(value => value + 1); }}
+      onInteract={() => runtime.current?.interact()} onLeaveSeat={() => runtime.current?.stand()}
+      interactionLabel={hint?.text} seatedChair={mode === 'seated' ? hint?.target : undefined}
+      error={error} quality={quality} qualityLabel={qualityLabel} onQualityChange={changeQuality}
+      reducedMotion={reducedMotion} onReducedMotionChange={value => { setReducedMotion(value); runtime.current?.setReducedMotion(value); }}
+      onToggleFullscreen={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void document.documentElement.requestFullscreen?.(); }}
+      onTouchMove={value => { touch.current.x = value.x; touch.current.y = value.y; sendTouch(); }}
+      onTouchLook={value => sendTouch(value.x, value.y)}
+      onTouchSprint={value => { touch.current.sprint = value; sendTouch(); }} onTouchExit={openMenu}
+    /></div>
+    <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
+    {debug && <aside aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
+      <div>Render diagnostics</div>
+      <div>Phase: {mode}</div>
+      <div>Renderer: {stats?.renderer ?? 'Preparing'}</div>
+      <div>FPS: {stats?.fps ?? '—'} · Draw calls: {stats?.drawCalls ?? '—'}</div>
+      <div>Triangles: {stats?.triangles.toLocaleString() ?? '—'}</div>
+      <div>Resolution: {stats ? `${Math.round(stats.resolutionScale * 100)}%` : '—'} · Quality: {quality}</div>
+      <div>Camera: {(progress * 100).toFixed(1)}%</div>
+      <label style={{ display: 'block', marginTop: 8 }}>Reference camera
+        <select aria-label="Reference camera" value={referenceCamera} disabled={!referenceCameras.length} onChange={event => { dismissWelcome(); setReferenceCamera(event.target.value); runtime.current?.setReferenceCamera(event.target.value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%', maxWidth: 290 }}>
+          <option value="">Tour</option>
+          {referenceCameras.map(id => <option key={id} value={id}>{id}</option>)}
+        </select>
+      </label>
+      <label style={{ display: 'block', marginTop: 6 }}>Material diagnostic
+        <select aria-label="Material diagnostic" value={diagnosticMode} disabled={!referenceCameras.length} onChange={event => { const value = event.target.value as DiagnosticMode; setDiagnosticMode(value); runtime.current?.setDiagnosticMode(value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%' }}>
+          <option value="full">Full</option><option value="albedo">Albedo — unlit base</option><option value="baked">Baked diffuse only</option><option value="no-normals">Normals disabled</option>
+        </select>
+      </label>
+      {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
+    </aside>}
+  </main>;
+}

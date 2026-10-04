@@ -1,0 +1,60 @@
+{
+  "source": "MD_Presentation_Lounge.blend",
+  "sourceSHA256": "a39d1652ddc41c241fb689eefd8ba7facedec388cb6c57e597494a065e138895",
+  "sourceMaterial": "EH54 | scanned cream limestone panels",
+  "scope": "Every exported instance of this authored limestone material, including walls and piers in all six scene chunks",
+  "images": [
+    {
+      "file": "cream-stone-original.png",
+      "sourceExtract": "00_cream_stone_reference_albedo.png_0.png",
+      "sha256": "a48198b45cfa76d4474d4a2fc32029d27d7df954aaf15e2f7257445223bd43a8",
+      "byteIdentical": true
+    },
+    {
+      "file": "stone-roughness-original.jpg",
+      "sourceExtract": "31_marble_01_rough_4k.jpg_0.jpg",
+      "sha256": "519e24e673323b0f09f6591e6339c95f9c6aedad3798e4a46d43b34bf335d649",
+      "byteIdentical": true
+    },
+    {
+      "file": "stone-height-original.jpg",
+      "sourceExtract": "30_marble_01_disp_4k.jpg_0.jpg",
+      "sha256": "930642512b1d5d7db8954233113b9a0fc60cf8827a660c48bf118847947aa11d",
+      "byteIdentical": true
+    }
+  ],
+  "mapping": {
+    "method": "Authored world-aligned triplanar mapping",
+    "blenderCoordinates": "(three.x, -three.z, three.y)",
+    "normalBlendExponent": 4,
+    "albedoTileMetres": 4.8,
+    "detailTileMetres": 4.2,
+    "panelSpacingMetres": 1.2,
+    "jointWidthMetres": 0.00312,
+    "bumpDistanceMetres": 0.00014,
+    "bumpStrength": 0.38,
+    "roughnessRange": [
+      0.32,
+      0.41
+    ]
+  },
+  "differences": [
+    "Analytic pixel coverage replaces the hard joint-mask threshold to reduce subpixel flicker.",
+    "Bump uses a derivative surface gradient in the browser; it is not Cycles shader bytecode.",
+    "Damaged legacy /assets/lighting/ wall lightmaps use the existing room-probe diffuse fallback. Repaired /assets/v2 lightmaps keep their baked GI."
+  ],
+  "checks": [
+    "Original image bytes verified by SHA256",
+    "TypeScript typecheck passed",
+    "Original-image wall shader rendered without errors in WebGPU and WebGL",
+    "Full live website WebGPU check: six material instances restored across six loaded meshes; no shader errors; columns visually clear of the old blotches",
+    "Full live website WebGL2 check: original lounge interior reverse view inspected; no shader errors; matching clean columns"
+  ],
+  "pending": [
+    "Full revised scene visual verification after the main asset bake is published"
+  ],
+  "screenshots": [
+    "browser-previews/wall-repair-live-webgpu.jpg",
+    "browser-previews/wall-repair-live-webgl.jpg"
+  ]
+}

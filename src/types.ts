@@ -1,0 +1,55 @@
+export type Vec3 = [number, number, number];
+export type Quat = [number, number, number, number];
+export type RuntimeMode = 'loading' | 'tour' | 'explore' | 'seated' | 'error';
+export type Quality = 'auto' | 'high' | 'balanced';
+export type Bounds = { min: Vec3; max: Vec3 };
+export type TourFrame = { id?: string; frame?: number; sourceFrame?: number; position: Vec3; target: Vec3; fov: number; time?: number };
+export type ChairDefinition = {
+  id: string; position: Vec3; quaternion: Quat; seatHeight: number;
+  approachPosition?: Vec3; objectName?: string; label?: string;
+};
+export type SceneManifest = {
+  version: string;
+  source: string | { filename: string; sha256?: string; [key: string]: unknown };
+  units: 'meters'; coordinateSystem: 'three-y-up';
+  chunks: Array<{ id: string; url: string; bytes: number; bounds?: Bounds; priority?: number }>;
+  cameras: Array<{ id: string; position: Vec3; target: Vec3; fov: number; time?: number }>;
+  tour?: TourFrame[];
+  sun?: { position: Vec3; positionIsDirection?: boolean; target?: Vec3; color: Vec3 | string; intensity: number };
+  environment?: { url?: string; faces?: string[]; intensity?: number; rotation?: number; background?: boolean };
+  reflectionProbes?: Array<{ id: string; url: string; bounds: Bounds; position?: Vec3; intensity?: number }>;
+  lights?: Array<{ id: string; type: 'point' | 'spot' | 'directional' | 'area'; position: Vec3; target?: Vec3; quaternion?: Quat; color: Vec3 | string; intensity: number; range?: number; angle?: number; decay?: number; size?: number; sizeY?: number }>;
+  chairs: ChairDefinition[];
+  screen?: { objectName: string; materialName?: string; width?: number; height?: number };
+  spawn: { position: Vec3; yaw: number };
+  collisions?: { url: string; additionalUrls?: string[] };
+  explorationBounds?: { minX: number; maxX: number; minZ: number; maxZ: number; height?: number };
+  exposure?: number;
+  baking?: { mode: 'none' | 'indirect' | 'combined'; description?: string; bakedPracticals?: boolean };
+  character?: { url: string; scale?: number };
+  colorPipeline?: { url: string; rawURL?: string; compression?: 'gzip'; size: number; format: 'rgba16f-le'; minEV: number; maxEV: number; output: 'display-linear-srgb'; validated: boolean };
+  materials?: Array<{
+    name: string; objectNames?: string[]; lightMap?: string; lightMapIntensity?: number;
+    lightMapMode?: 'indirect' | 'combined'; uvChannel?: number;
+    map?: string; normalMap?: string; roughnessMap?: string; metalnessMap?: string;
+    aoMap?: string; emissiveMap?: string;
+    sourcePBR?: { uvChannel: number; map?: string; normalMap?: string; roughnessMap?: string; metalnessMap?: string; roughness?: number; metalness?: number; normalScale?: [number, number]; clearcoat?: number; clearcoatRoughness?: number; ior?: number; doubleSided?: boolean; alphaTest?: number; opacity?: number; lighting: 'probe' };
+    regionOverrides?: Array<{ space: 'world'; axis: 'x'|'y'|'z'; operator: 'greaterThan'|'lessThan'; threshold: number; roughness?: number; clearcoat?: number; clearcoatRoughness?: number }>;
+  }>;
+};
+export type LoadingProgress = { phase: string; progress?: number; detail?: string };
+export type RuntimeHint = { text: string; target?: string };
+export type RuntimeStats = { fps: number; drawCalls: number; triangles: number; renderer: string; quality: Quality; resolutionScale: number };
+export type RuntimeCallbacks = {
+  onProgress?: (progress: LoadingProgress) => void;
+  onReady?: () => void;
+  onModeChange?: (mode: RuntimeMode) => void;
+  onTourProgress?: (progress: number) => void;
+  onHint?: (hint: RuntimeHint | null) => void;
+  onError?: (message: string) => void;
+  onStats?: (stats: RuntimeStats) => void;
+  onScreenMode?: (active: boolean) => void;
+  onTransition?: (active: boolean) => void;
+  onPlaybackChange?: (playing: boolean) => void;
+  onCameraViewChange?: (view: 'thirdPerson' | 'bodyCam') => void;
+};

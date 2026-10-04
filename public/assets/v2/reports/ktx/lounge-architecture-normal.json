@@ -1,0 +1,26 @@
+{
+  "name": "lounge-architecture-normal",
+  "ok": true,
+  "sourceSHA256": "d4328ac77563a85fd634b00805283aa18054e42695a8f90dd177e2c2465bc664",
+  "outputSHA256": "f6d2d0cdc0543dba9c117acab781165973324a1772f3a08bc30b2b68b874290d",
+  "bytes": 1121619,
+  "sourcePNGBytes": 1355707,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 15.232,
+  "quality": {
+    "rgbPSNR": 70.77086950959404,
+    "maxChannelError": 4,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16777216,
+    "normalMeanDegrees": 0.005181150461460607,
+    "normal99PercentileDegrees": 0.5
+  }
+}

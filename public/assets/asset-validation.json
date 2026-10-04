@@ -1,0 +1,960 @@
+{
+  "version": 1,
+  "checkedAt": "2026-10-04T16:52:46.707Z",
+  "scope": "complete export",
+  "geometryModified": false,
+  "manifestWritten": false,
+  "errors": [],
+  "warnings": [],
+  "repairs": [],
+  "chunks": [
+    {
+      "id": "lounge",
+      "bytes": 24882384,
+      "triangles": 643488,
+      "activeNodes": 6,
+      "primitives": 38
+    },
+    {
+      "id": "entrance",
+      "bytes": 13461752,
+      "triangles": 317970,
+      "activeNodes": 1,
+      "primitives": 26
+    },
+    {
+      "id": "shell",
+      "bytes": 2305624,
+      "triangles": 49250,
+      "activeNodes": 1,
+      "primitives": 13
+    },
+    {
+      "id": "gallery",
+      "bytes": 527236,
+      "triangles": 11100,
+      "activeNodes": 1,
+      "primitives": 7
+    },
+    {
+      "id": "founder",
+      "bytes": 98834832,
+      "triangles": 2852124,
+      "activeNodes": 1,
+      "primitives": 71
+    },
+    {
+      "id": "studio",
+      "bytes": 218401920,
+      "triangles": 6578866,
+      "activeNodes": 1,
+      "primitives": 72
+    }
+  ],
+  "materials": [
+    {
+      "name": "lounge__PL78 | brushed champagne bronze",
+      "uses": 5,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL86 | satin architectural bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL78 | smoked polished tabletop",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL78 | ivory aniline upholstery",
+      "uses": 4,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL78 | circular hand woven wool",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL86 | ground wing polished existing marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL86 | satin warm bronze wall panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "lounge__PL86 | brushed champagne ceiling panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/lounge-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__MD68 | champagne gold | machined satin",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__MD68 | ivory calcite | fine diagonal tooling",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__MD68 | smoked bronze stone | fine diamond incision",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__EH54 | polished warm-grey cloud marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__Dark stone | plinth and tables",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "entrance__Satin bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/entrance-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__EH54 | polished warm-grey cloud marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__Dark stone | plinth and tables",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__PL86 | ground wing polished existing marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "shell__Tree bark",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/shell-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "gallery__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/gallery-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "gallery__Satin bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "gallery__MF reference | bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "gallery__EH54 | polished warm-grey cloud marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/gallery-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "gallery__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | petrol cloth binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | satin champagne bronze.001",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | FR83 natural taupe wool",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | oiled walnut miniature timber",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | charcoal basalt",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | antique bronze hand knotted rug",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | warm ivory ceiling lacquer",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | charcoal powder coat",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | warm porcelain glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR74 | brushed dark bronze wall panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | FR83 dark walnut cabinet veneer",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | espresso leather",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | honed ivory limestone",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | olive woven binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__F73 | blackened bronze cabinet interiors",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | charcoal library binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR83 | refined honed ivory wall panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | miniature saddle leather",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__Satin bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__EH54 | polished warm-grey cloud marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | directional satin champagne alloy",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | warm porcelain satin glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | organic dark potting soil",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | unglazed terracotta",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR82 | polished ivory large format stone",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | ivory individual paper leaves",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | fine natural clay aggregate",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | muted celadon glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | ivory mineral composite satin coat",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | charcoal buckram",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | warm grey linen",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | warm taupe fine woven cushions",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | fine mineral ivory ceiling",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR84 | honed polished table stone",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | ivory mineral composite satin coat",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | warm cut paper fibres",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | directional satin champagne alloy",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__HF89 | ivory wool boucle upholstery",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FC91 | fine ivory leather.003",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | warm grey buckram",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | bone linen binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | oxblood bookcloth",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__PR94 | satin champagne bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "founder__FR79 | patinated dark bronze wall panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/founder-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | honed ivory limestone",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | espresso limestone marble cut slabs",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | cloth book 0",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | charcoal powder coat",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | muted celadon glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | cloth book 4",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | charcoal basalt",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | warm porcelain glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | unglazed terracotta",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | petrol cloth binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | smoked brown ceramic glaze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | warm taupe fine woven cushions",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__Blackened bronze.001",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | dry potting soil",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | blackened bronze cabinet interiors",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | directional satin champagne alloy",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | organic dark potting soil",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__Blackened bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | ivory wool boucle upholstery",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | fine natural clay aggregate",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | honed charcoal planter basalt",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__F73 | patinated umber bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__Satin bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__EH54 | scanned cream limestone panels",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__WS72 | soft charcoal semi-aniline leather",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__HF89 | display black ceramic bezel",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | warm cut paper fibres",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | satin champagne bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__MF reference | bronze",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | olive woven binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | charcoal library binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PHOTO76 | studio ash brown loop pile",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__EH54 | polished warm-grey cloud marble",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | bone linen binding",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | warm grey buckram",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | oiled walnut miniature timber",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    },
+    {
+      "name": "studio__PR94 | oxblood bookcloth",
+      "uses": 1,
+      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "uvChannel": 1,
+      "lightMapIntensity": 3.141592653589793
+    }
+  ],
+  "interactions": {
+    "chairs": [
+      {
+        "id": "chair-01",
+        "nodes": [
+          "lounge/WEB_lounge_chair-01"
+        ]
+      },
+      {
+        "id": "chair-02",
+        "nodes": [
+          "lounge/WEB_lounge_chair-02"
+        ]
+      },
+      {
+        "id": "chair-03",
+        "nodes": [
+          "lounge/WEB_lounge_chair-03"
+        ]
+      },
+      {
+        "id": "chair-04",
+        "nodes": [
+          "lounge/WEB_lounge_chair-04"
+        ]
+      }
+    ],
+    "screen": [
+      "lounge/WEB_PL78 | curved LED pixel surface"
+    ]
+  },
+  "provenance": {
+    "expectedTriangles": 10452798,
+    "exportedTriangles": 10452798,
+    "expectedObjects": 8782,
+    "exportedSourceNames": 8782,
+    "missing": [],
+    "unexpected": []
+  },
+  "source": {
+    "filename": "MD_Presentation_Lounge.blend",
+    "manifestSHA256": "a39d1652ddc41c241fb689eefd8ba7facedec388cb6c57e597494a065e138895",
+    "actualSHA256": "a39d1652ddc41c241fb689eefd8ba7facedec388cb6c57e597494a065e138895",
+    "matches": true
+  },
+  "foliageAlpha": [
+    {
+      "material": "potted_plant_01_leaves",
+      "sourceImage": "potted_plant_01_leaves_diff.png",
+      "extractedFile": "43_potted_plant_01_leaves_diff.png_0.jpg",
+      "actualJPEG": true,
+      "action": "No cutout texture added: original image alpha is uniformly opaque."
+    },
+    {
+      "material": "shrub_01",
+      "sourceImage": "shrub_01_diff",
+      "extractedFile": "51_shrub_01_diff_0.jpg",
+      "actualJPEG": true,
+      "action": "No cutout texture added: original image alpha is uniformly opaque."
+    }
+  ],
+  "tour": {
+    "sourceInspectionKeyframes": 100,
+    "existingPresentationPreserved": true,
+    "samples": 12001,
+    "collisionFailures": 0,
+    "cameraClearanceMeters": 0.16,
+    "minimumTargetDistance": 2.4322608852557237,
+    "collisionSource": [
+      "geometry/collision.glb",
+      "geometry/furniture-collision.glb",
+      "geometry/circulation-collision.glb"
+    ],
+    "timing": {
+      "durationSeconds": 269.32617406828564,
+      "nominalSpeedMetersPerSecond": 0.85,
+      "framesPerSecond": 30
+    },
+    "geometricClearanceVerified": true,
+    "visualReviewComplete": false,
+    "limitations": [
+      "All camera splines require visual review after geometric collision checks.",
+      "Only source collider subset tested; decorative furniture beyond lounge may not be present in physics."
+    ]
+  },
+  "nativeSourcePreservation": [
+    {
+      "name": "founder__FC91 | fine ivory leather.003",
+      "sourceImages": [
+        {
+          "name": "ivory_leather_BaseColor.002",
+          "file": "founder-native-chair-base.png",
+          "url": "/assets/source-materials/founder-native-chair-base.png",
+          "sha256": "7a7fc6b578573e3e48e2112b2d55dfe357f5a82b00a6267cb73d60930d4243bf",
+          "bytes": 2621408,
+          "uvChannel": 0
+        },
+        {
+          "name": "ivory_leather_Roughness.002",
+          "file": "founder-native-chair-orm.png",
+          "url": "/assets/source-materials/founder-native-chair-orm.png",
+          "sha256": "aa5051fd676cef3ea5c680ab2aab96ed16263a0bc46aca155fdaac508bebe8fd",
+          "bytes": 2626683,
+          "uvChannel": 0
+        },
+        {
+          "name": "ivory_leather_Normal.002",
+          "file": "founder-native-chair-normal.png",
+          "url": "/assets/source-materials/founder-native-chair-normal.png",
+          "sha256": "e36e4369f1eac9816f7312cd0214ccc1b12b255f906a6322a2f126cf7a799b1c",
+          "bytes": 4600224,
+          "uvChannel": 0
+        }
+      ],
+      "PBRUV": 0,
+      "GIUV": 1,
+      "geometryBinaryUnchanged": true
+    }
+  ],
+  "ok": true
+}
