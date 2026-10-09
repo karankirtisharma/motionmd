@@ -1,0 +1,13 @@
+{
+  "zone": "studio",
+  "samples": 512,
+  "prepared": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\scene-repair-v6\\MD_Lounge_Sunset_Repaired.blend",
+  "geometryExported": false,
+  "sourceUnmodified": true,
+  "atlases": [
+    "studio-hero",
+    "studio-architecture",
+    "studio-detail"
+  ],
+  "seconds": 301.42536640167236
+}

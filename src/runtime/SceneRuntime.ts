@@ -52,6 +52,7 @@ export class SceneRuntime {
   private resolutionScale = 1;
   private statsFrames = 0;
   private statsTime = 0;
+  private frameSamples: number[] = [];
   private slowWindows = 0;
   private fastWindows = 0;
   private renderErrorReported = false;
@@ -282,12 +283,17 @@ export class SceneRuntime {
     try { if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
     this.statsFrames++; this.statsTime += elapsed;
+    if (this.inspectionEnabled) this.frameSamples.push(elapsed * 1000);
     if (this.statsTime > 2) {
       try { this.shaderValidation?.assertCompiled(); }
       catch { return; }
       const fps = this.statsFrames / this.statsTime;
       if (this.quality === 'auto' && !this.paused) this.adaptResolution(fps);
-      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: this.renderer.backend.constructor.name.includes('WebGPU') ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale });
+      const samples = this.frameSamples.sort((a, b) => a - b);
+      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: this.renderer.backend.constructor.name.includes('WebGPU') ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
+        frameP50Ms: samples[Math.floor(samples.length * .5)], frameP95Ms: samples[Math.floor(samples.length * .95)],
+        resourceMiB: (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 });
+      this.frameSamples.length = 0;
       this.statsFrames = 0; this.statsTime = 0;
     }
   };
@@ -307,7 +313,7 @@ export class SceneRuntime {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap) * this.resolutionScale);
     this.renderer.setSize(width, height);
   }
-  private onVisibility = () => { this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.slowWindows = this.fastWindows = 0; };
+  private onVisibility = () => { this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
   private setMode(mode: RuntimeMode) { if (!this.disposed) { this.mode = mode; this.callbacks.onModeChange?.(mode); } }
   private fail(message: string) {
     if (this.disposed || this.mode === 'error') return;
@@ -365,6 +371,16 @@ export class SceneRuntime {
     this.camera.position.fromArray(frame.position);
     this.camera.lookAt(new Vector3().fromArray(frame.target));
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
+    if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
+  }
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift') {
+    if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
+    const spawn = { position: (location === 'entrance' ? [-8, -.355, -17.1] : location === 'founder-lift' ? [13.35, .035, -3.35] : [16.4, .03, -30.7]) as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : -Math.PI / 2 };
+    this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
+    this.controls.exitExplore(); this.paused = false;
+    this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));
+    this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
+    this.controls.enterExplore(undefined, spawn); this.setMode('explore'); this.temporal?.reset();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
   setPaused(value: boolean) { this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }

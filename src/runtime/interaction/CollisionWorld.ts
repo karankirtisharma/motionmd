@@ -3,6 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 
+// Preserve the calibrated full-body capsule and stable stair/contact behavior.
 export const PLAYER_RADIUS = 0.25;
 export const PLAYER_HALF_SEGMENT = 0.60;
 export const PLAYER_HALF_HEIGHT = PLAYER_HALF_SEGMENT + PLAYER_RADIUS;
@@ -62,17 +63,30 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       // Do not accidentally upload millions of decorative triangles into physics.
       if (mesh.geometry.attributes.position.count > 30000) return;
     }
-    const vertices: number[] = [], triangles: number[] = [];
     const position = mesh.geometry.attributes.position;
+    const vertices = new Float32Array(position.count * 3);
     for (let i = 0; i < position.count; i++) {
       point.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
-      vertices.push(point.x, point.y, point.z);
+      vertices[i * 3] = point.x; vertices[i * 3 + 1] = point.y; vertices[i * 3 + 2] = point.z;
     }
     const index = mesh.geometry.index;
-    if (index) for (let i = 0; i < index.count; i++) triangles.push(index.getX(i));
-    else for (let i = 0; i < position.count; i++) triangles.push(i);
+    const triangles = new Uint32Array(index?.count ?? position.count);
+    for (let i = 0; i < triangles.length; i++) triangles[i] = index ? index.getX(i) : i;
     if (triangles.length < 3) return;
-    const obstacle = world.createCollider(RAPIER.ColliderDesc.trimesh(new Float32Array(vertices), new Uint32Array(triangles), RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES).setFriction(0.6));
+    let descriptor = mesh.userData.collisionShape === 'convexHull'
+      ? RAPIER.ColliderDesc.convexMesh(vertices, triangles)
+      : RAPIER.ColliderDesc.trimesh(vertices, triangles, RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES);
+    // These two source treads are axis-aligned solid blocks. A box avoids
+    // capsule contacts against the bevel triangles of their narrow risers.
+    if (/^EXT77 \| entry stair (lower|upper)$/.test(String(mesh.userData.sourceName ?? ''))) {
+      const box = new THREE.Box3().setFromBufferAttribute(new THREE.BufferAttribute(vertices, 3));
+      const size = box.getSize(new THREE.Vector3()).multiplyScalar(0.5), center = box.getCenter(new THREE.Vector3());
+      descriptor = RAPIER.ColliderDesc.cuboid(size.x, size.y, size.z).setTranslation(center.x, center.y, center.z);
+    }
+    if (!descriptor) throw new Error(`Invalid collision envelope: ${mesh.name}`);
+    let obstacle: RAPIER.Collider;
+    try { obstacle = world.createCollider(descriptor.setFriction(0.6)); }
+    catch (error) { throw new Error(`Invalid collision geometry ${mesh.userData.sourceName ?? mesh.name}: ${String(error)}`); }
     colliderNames.set(obstacle.handle, String(mesh.userData.sourceName ?? mesh.name));
     triangleCount += triangles.length / 3;
     meshCount++;
@@ -117,6 +131,9 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   function cast(origin: THREE.Vector3, direction: THREE.Vector3, distance: number) {
     return world.castRay(new RAPIER.Ray(origin, direction), distance, true, undefined, undefined, capsule, body);
   }
+  const cameraShape = new RAPIER.Ball(0.19);
+  const cameraDirection = new THREE.Vector3();
+  const identityRotation = { x: 0, y: 0, z: 0, w: 1 };
   return {
     meshCount, triangleCount, perimeterColliders,
     world, capsule, body, controller, place, colliderNames,
@@ -147,17 +164,13 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       return !hit;
     },
     cameraDistance(pivot: THREE.Vector3, camera: THREE.Vector3, clearance = 0.19) {
-      const direction = camera.clone().sub(pivot), length = direction.length();
+      const direction = cameraDirection.subVectors(camera, pivot), length = direction.length();
       if (length < 0.001) return 0;
       direction.multiplyScalar(1 / length);
-      const right = new THREE.Vector3().crossVectors(direction, new THREE.Vector3(0, 1, 0)).normalize().multiplyScalar(clearance);
-      const up = new THREE.Vector3(0, clearance, 0);
-      let distance = length;
-      for (const offset of [new THREE.Vector3(), right, right.clone().negate(), up, up.clone().negate()]) {
-        const hit = cast(pivot.clone().add(offset), direction, length);
-        if (hit) distance = Math.min(distance, Math.max(0.18, hit.timeOfImpact - clearance));
-      }
-      return distance;
+      cameraShape.radius = clearance;
+      // Sweep the entire camera volume, including corners missed by five rays.
+      const hit = world.castShape(pivot, identityRotation, direction, cameraShape, 0.01, length, true, undefined, undefined, capsule, body);
+      return hit ? Math.max(0.18, hit.time_of_impact - 0.01) : length;
     },
     dispose() {
       world.free();

@@ -8,6 +8,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createCollisionWorld } from '../src/runtime/interaction/CollisionWorld.ts';
 
 const manifest = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url), 'utf8'));
+delete manifest.lift; // This fixture isolates existing avatar/camera tests; lift has its own integration suite.
 const dataModule = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const transpile = relative => ts.transpileModule(fs.readFileSync(new URL(relative, import.meta.url), 'utf8'), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
@@ -42,11 +43,58 @@ const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
+  .replace("from './GlassLift'", `from ${JSON.stringify(new URL('../src/runtime/interaction/GlassLift.ts', import.meta.url).href)}`)
   .replace("from './CollisionWorld'", `from ${JSON.stringify(dataModule(`export const createCollisionWorld=async()=>globalThis.${fixtureKey}.physics;`))}`)
   .replace("from './Avatar'", `from ${JSON.stringify(dataModule(`export const loadAvatar=async()=>globalThis.${fixtureKey}.avatar;`))}`)
   .replace("from '../presentation/PresentationScreen'", `from ${JSON.stringify(dataModule(`export const createPresentationScreen=()=>globalThis.${fixtureKey}.screen;`))}`)
   .replace("from '../rendering/assets'", `from ${JSON.stringify(new URL('../src/runtime/rendering/assets.ts', import.meta.url).href)}`);
 const { createInteractionController } = await import(dataModule(controllerSource));
+
+test('actual controller carries and renders the visitor with the cabin, then allows disembarking', async () => {
+  const actual = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url)));
+  const saved = { document: globalThis.document, window: globalThis.window, matchMedia: globalThis.matchMedia };
+  try {
+    for (const hz of [60, 90, 144, 165]) {
+      globalThis.document=saved.document; globalThis.window=saved.window; globalThis.matchMedia=saved.matchMedia;
+      const root=new THREE.Group(); for(const url of [actual.collisions.url,...actual.collisions.additionalUrls])root.add((await load(url)).scene);
+      const scene=(await load(actual.chunks.find(c=>c.id==='founder-lift').url,true)).scene;
+      scene.add((await load(actual.chunks.find(c=>c.id==='shell').url,true)).scene);
+      const physics=await createCollisionWorld(scene,undefined,root,[],actual.explorationBounds);
+      globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
+      globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
+      const avatar={root:new THREE.Group(),view:{eyeHeight:1.64,seatedEyeOffset:.82},animations:[],update(){},setBodyView(){},dispose(){}};
+      globalThis[fixtureKey]={physics,avatar};
+      const camera=new THREE.PerspectiveCamera(54,16/9,.1,1800);camera.position.set(13.35,1.8,-5);camera.lookAt(13.35,1.4,-3);
+      const controller=await createInteractionController({scene,camera,canvas:{addEventListener(){},removeEventListener(){},focus(){}},manifest:{...actual,screen:undefined,chairs:[]}});
+      try {
+        controller.enterExplore(undefined,{position:[13.35,.035,-3.35],yaw:Math.PI});for(let i=0;i<hz*2;i++)controller.update(1/hz);controller.setVirtualInput(0,1);
+        for(let i=0;i<hz*3.3;i++)controller.update(1/hz);
+        controller.setVirtualInput(0,0);for(let i=0;i<hz/2;i++)controller.update(1/hz);
+        controller.handleInteract(); assert.equal(controller.diagnostics.lift.riding,true);
+        let cabin;scene.traverse(o=>{if(o.userData.liftRole==='cabin')cabin=o;});
+        const offset=controller.player.position.y-.035;let maxError=0;
+        // Held movement must not push the passenger out of a travelling cabin.
+        controller.setVirtualInput(0,1);
+        for(let i=0;i<hz*10;i++) {
+          controller.update(1/hz);
+          if(i===hz*3) {
+            controller.setEnabled(false);const held=controller.diagnostics.lift.height;
+            for(let pause=0;pause<hz;pause++)controller.update(1/hz);
+            assert.equal(controller.diagnostics.lift.height,held,'pause freezes cabin and passenger together');
+            controller.setEnabled(true);controller.setVirtualInput(0,1);
+          }
+          maxError=Math.max(maxError,Math.abs(controller.player.position.y-(.035+cabin.position.y)-offset));
+        }
+        assert.ok(maxError<.002,`${hz} Hz cabin/passenger interpolation mismatch ${maxError}`);
+        controller.setVirtualInput(0,0);for(let i=0;i<hz;i++)controller.update(1/hz);
+        assert.equal(controller.diagnostics.lift.floor,1);assert.equal(controller.diagnostics.lift.phase,'idle');
+        controller.setVirtualInput(0,-1);for(let i=0;i<hz*2.3;i++)controller.update(1/hz);
+        assert.ok(controller.player.position.z<-.8,'walk out into founder room');assert.ok(Math.abs(controller.player.position.y-4.23)<.035);
+        controller.exitExplore();assert.equal(controller.diagnostics.lift.height,0);
+      } finally { controller.dispose(); }
+    }
+  } finally { Object.assign(globalThis,saved);delete globalThis[fixtureKey]; }
+});
 
 test('fixed-step locomotion renders uniformly at 60, 90, 144 and 165 Hz', async context => {
   const priorDocument=globalThis.document, priorWindow=globalThis.window, priorMatchMedia=globalThis.matchMedia;

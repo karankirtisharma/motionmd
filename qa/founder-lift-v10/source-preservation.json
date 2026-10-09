@@ -1,0 +1,18 @@
+{
+  "originalObjects": 17604,
+  "preservedObjects": 17602,
+  "intentionallyRemoved": [
+    "Side curtain wall pane.030",
+    "Side curtain wall pane.042"
+  ],
+  "changedExistingObjects": [
+    "FR80 | right paved foundation apron"
+  ],
+  "checks": [
+    "object transforms",
+    "mesh positions",
+    "topology indices",
+    "all UV channels",
+    "material slot identities"
+  ]
+}

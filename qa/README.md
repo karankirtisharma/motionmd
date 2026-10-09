@@ -10,12 +10,20 @@ npm run test:environment
 npm run test:cinematic
 npm run test:runtime
 npm run test:rendering
+npm run test:scene-repair
 npm run typecheck
 ```
 
 The tests read the delivered assets and execute the actual interaction math, Rapier collision module and Rocketbox avatar module. They need no Blender installation, running website, network access, external workspace files or production build. The test commands do not change files. The avatar test transpiles the two relevant TypeScript modules in memory with the already installed TypeScript dependency.
 
 ## Interaction checks
+
+The v6 repair adds actual-asset regressions for six workstation desks, 18 monitor envelopes,
+structural piers, five sprint approaches and the cleared workstation-04 aisle. Entrance tests
+check the two tread elevations, terrace, threshold and interior finish, then traverse the
+entire route in both directions at walk and sprint speeds. Run `npm run benchmark:collision`
+for a local CPU baseline; this is not a GPU benchmark. See [the repair record](scene-repair-v6/README.md)
+for source preservation, failed experiments, measured results and remaining limitations.
 
 1. All four source chairs have distinct IDs and a clear approach corner; the source table blocks standing and the tour handoff remains clear.
 2. The exported upper bridge, deck and founder approach provide their source floor elevations; the authored open entrance doors admit a line of sight.
@@ -80,3 +88,8 @@ Character source and permissions are recorded beside the GLB in `Rocketbox-PROVE
 The full automated suite now contains 30 passing checks. The additional controller regression executes Rapier and the actual controller at 60, 90, 144 and 165 Hz. After settling, every walking and body-camera displacement stays within 3% of its expected per-frame distance. It catches repeated zero-step frames, doubled steps and flat-floor contact snags. This is a deterministic translation test, not a measurement of real GPU frame pacing.
 
 The second rendering check partitions a dense transformed mesh, verifies every oriented triangle occurs exactly once, checks each cell's bounds and world transform, and requires identical shared vertex attributes and material references. The separate full-source visibility audit retains all 10,452,798 triangles. Visual inspection is still needed for material appearance, moving reflections, occlusion and every target device.
+# Compact glass lift v8
+
+The stair version is superseded by the glass lift. Run `node --test qa/glass-lift.test.mjs` for the actual collider route, both floor calls, interlocks, obstruction reopening, hydraulic ratio and cinematic clearance. `qa/controller-camera.test.mjs` also runs the actual controller/lift together at 60, 90, 144 and 165 Hz, including pause/resume and passenger interpolation. The complete suite has 38 passing checks.
+
+Source preservation, geometry/asset measurements and the delivery report are in `qa/founder-lift-v8/`. The original v7 report is retained in `qa/founder-stair-v7/` as historical evidence; its superseded test is archived at the workspace sibling `outputs/founder-stair-v7/founder-stair.test.mjs.archived` and is not part of the active suite. Editable Blender sources and browser screenshots are in sibling `outputs/founder-lift-v8/`.

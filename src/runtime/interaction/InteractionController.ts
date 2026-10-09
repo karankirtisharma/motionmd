@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { ChairDefinition, SceneManifest, RuntimeHint } from '../../types';
 import { createCollisionWorld } from './CollisionWorld';
+import { createGlassLift } from './GlassLift';
 import { loadAvatar } from './Avatar';
 import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smootherStep, smoothAngle } from './movement';
 import type { CameraView } from './movement';
@@ -39,6 +40,7 @@ export async function createInteractionController(options: Options) {
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
   scene.add(avatar.root); avatar.root.visible = false;
+  const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
   const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName }) : undefined;
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
@@ -171,6 +173,7 @@ export async function createInteractionController(options: Options) {
     if (!enabled) return;
     if (mode === 'seated') { leaveSeat(); return; }
     if (mode !== 'explore') return;
+    if (lift?.interact(feet)) return;
     const chair = nearestChair(); if (chair) beginSit(chair);
   }
   function leaveSeat() {
@@ -180,6 +183,9 @@ export async function createInteractionController(options: Options) {
     prompt({ text: 'Standing up', target: selected.id });
   }
   function simulate() {
+    if (lift?.step(STEP, feet)) {
+      velocity.set(0, 0, 0); verticalVelocity = 0; grounded = true; physics.place(feet); return;
+    }
     let moveX = 0, moveY = 0, speed = 0;
     if (mode === 'explore') {
       moveX = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) + virtual.x;
@@ -198,7 +204,7 @@ export async function createInteractionController(options: Options) {
       }
       if (approachTime > 7) { mode = 'explore'; selected = undefined; prompt({ text: 'Move closer to the front of the chair' }); return; }
       displacement.multiplyScalar(Math.min(1.0, distance * 2.5) / distance);
-    } else return;
+    } else { if (lift) physics.world.step(); return; }
     velocity.x = THREE.MathUtils.lerp(velocity.x, displacement.x, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
     velocity.z = THREE.MathUtils.lerp(velocity.z, displacement.z, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
     // A gentle downward component keeps ground snapping active without defeating autostep.
@@ -229,7 +235,7 @@ export async function createInteractionController(options: Options) {
       desiredCamera.copy(pivot).addScaledVector(viewDirection, -1.25).addScaledVector(up, 0.46);
       lookTarget.copy(screenPosition).lerp(pivot.clone().addScaledVector(up, 0.35), 0.12);
     } else {
-      const distance = 2.45;
+      const distance = lift?.inside(renderFeet) ? 1.05 : 2.45;
       desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * distance, Math.sin(pitch) * distance + 0.10, Math.cos(yaw) * Math.cos(pitch) * distance).add(pivot);
       lookTarget.copy(pivot).addScaledVector(up, 0.03);
     }
@@ -261,7 +267,7 @@ export async function createInteractionController(options: Options) {
     // Proximity also restores it safely when returning to third person.
     avatar.setBodyView(camera.position.distanceTo(eyePosition) < 0.45);
     camera.updateMatrixWorld();
-    const targetFov = firstPerson ? 68 : selected ? 51 : 54;
+    const targetFov = firstPerson ? 68 : selected ? 51 : lift?.inside(renderFeet) ? 68 : 54;
     if (camera.fov !== targetFov) {
       camera.fov = Math.abs(camera.fov - targetFov) < 0.0001 ? targetFov : THREE.MathUtils.lerp(camera.fov, targetFov, damping(8, dt));
       camera.updateProjectionMatrix();
@@ -300,7 +306,7 @@ export async function createInteractionController(options: Options) {
         if (!feet.equals(nearestSamplePosition)) {
           nearest = nearestChair(); nearestSamplePosition.copy(feet);
         }
-        prompt(nearest ? { text: pointerLockUnavailable ? 'E — Sit · Drag to look' : 'E — Sit', target: nearest.id } : document.pointerLockElement === canvas ? null : { text: pointerLockUnavailable ? 'Drag to look · V — Change view' : 'L — Lock mouse · Drag to look · V — Change view' });
+        prompt(lift?.hint(feet) ?? (nearest ? { text: pointerLockUnavailable ? 'E — Sit · Drag to look' : 'E — Sit', target: nearest.id } : document.pointerLockElement === canvas ? null : { text: pointerLockUnavailable ? 'Drag to look · V — Change view' : 'L — Lock mouse · Drag to look · V — Change view' }));
       }
     }
     if (fixedStepPose) {
@@ -313,21 +319,22 @@ export async function createInteractionController(options: Options) {
       previousFeet.copy(feet); renderFeet.copy(feet);
       previousBodyYaw = renderBodyYaw = bodyYaw; accumulator = 0;
     }
+    lift?.render(fixedStepPose ? THREE.MathUtils.clamp(accumulator / STEP, 0, 1) : 1);
     avatar.root.position.copy(renderFeet); avatar.root.rotation.y = renderBodyYaw;
     avatar.update(delta, mode === 'explore' || mode === 'approach' ? Math.hypot(velocity.x, velocity.z) : 0, seatWeight, selected?.height ?? 0.55);
     updateCamera(delta); display?.update();
     return true;
   }
-  function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }) {
+  function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
     cameraBlend = 0; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
-    feet.fromArray(manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
+    feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
     physics.place(feet); velocity.set(0, 0, 0); verticalVelocity = 0; accumulator = 0; grounded = false;
     cameraFloor = feet.y;
     const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cameraStartQuaternion);
-    yaw = Math.atan2(-direction.x, -direction.z); pitch = 0.16; bodyYaw = yaw + Math.PI;
+    yaw = inspectionSpawn?.yaw ?? Math.atan2(-direction.x, -direction.z); pitch = 0.16; bodyYaw = yaw + Math.PI;
     previousFeet.copy(feet); renderFeet.copy(feet); previousBodyYaw = renderBodyYaw = bodyYaw;
     avatar.root.position.copy(feet); avatar.root.rotation.y = bodyYaw; avatar.root.visible = true;
     enabled = true; resetInput(); display?.setActive(false); options.onStateChange?.('explore');
@@ -335,7 +342,7 @@ export async function createInteractionController(options: Options) {
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
   function exitExplore() {
-    enabled = false; releaseCursor(); avatar.root.visible = false;
+    enabled = false; releaseCursor(); avatar.root.visible = false; lift?.reset();
     avatar.setBodyView(false);
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
   }
@@ -352,13 +359,13 @@ export async function createInteractionController(options: Options) {
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },
-    diagnostics: { collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
+    diagnostics: { get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
     dispose() {
       if (disposed) return; exitExplore(); disposed = true;
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       canvas.removeEventListener('pointerdown', pointerDown); window.removeEventListener('pointerup', pointerUp); window.removeEventListener('pointermove', pointerMove);
       document.removeEventListener('pointerlockerror', pointerLockFallback);
-      avatar.root.removeFromParent(); avatar.dispose(); physics.dispose(); display?.dispose();
+      avatar.root.removeFromParent(); avatar.dispose(); lift?.dispose(); physics.dispose(); display?.dispose();
     },
   };
 }

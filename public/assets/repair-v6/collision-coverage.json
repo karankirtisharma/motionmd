@@ -1,0 +1,1938 @@
+{
+  "source": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\scene-repair-v6\\MD_Presentation_Lounge_Repaired.blend",
+  "objects": [
+    {
+      "name": "Perimeter limestone pier",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.001",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.002",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.003",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.004",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.005",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.006",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.007",
+      "sourceVertices": 96,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011083856158080607,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.008",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Perimeter limestone pier.009",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "EH40 entrance stone pier",
+      "sourceVertices": 96,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010102957809579038,
+      "presentation": false
+    },
+    {
+      "name": "EH40 entrance stone pier.001",
+      "sourceVertices": 96,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010102957809596802,
+      "presentation": false
+    },
+    {
+      "name": "EH52 vestibule ground finish",
+      "sourceVertices": 8,
+      "proxyVertices": 8,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "EH52 relocated arrival terrace",
+      "sourceVertices": 8,
+      "proxyVertices": 8,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "Studio rear table",
+      "sourceVertices": 96,
+      "proxyVertices": 93,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001299266537036381,
+      "presentation": false
+    },
+    {
+      "name": "R9 library stone side pier",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "R9 library stone side pier.001",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 01 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 127,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00038495564183582687,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 01 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002628511199780359,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 01 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002628511199780359,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 01 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00015633226924194332,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 02 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 128,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00037467462859552825,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 02 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0001874043685656801,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 02 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018740436856479192,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 02 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0001965680226312383,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 03 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 128,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00037467462859552825,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 03 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018752272279343174,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 03 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018752272279431992,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 03 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.000196652293231514,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 04 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 127,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00037467462859552825,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 04 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0001957888698933541,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 04 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0001957888698933541,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 04 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018852750343612001,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 05 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 126,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0003746746285953062,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 05 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00019570459929285633,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 05 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00019570459929307837,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 05 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018852750343612001,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 06 stone bronze desktop",
+      "sourceVertices": 152,
+      "proxyVertices": 128,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00025727034240929925,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 06 closed waterfall end",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018752272279431992,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 06 closed waterfall end.001",
+      "sourceVertices": 152,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00018752272279431992,
+      "presentation": false
+    },
+    {
+      "name": "MF bench 06 full bronze front",
+      "sourceVertices": 152,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0001885275034370082,
+      "presentation": false
+    },
+    {
+      "name": "R9 limestone gallery pier.001",
+      "sourceVertices": 96,
+      "proxyVertices": 94,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0009495567436133001,
+      "presentation": false
+    },
+    {
+      "name": "R9 limestone gallery pier.002",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576237094924384,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005023956530834539,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010497833295062264,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001053142932228468,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010497833295097792,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010531429322320207,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576237094924384,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.001",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005023956530834539,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010497833295062264,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001053142932228468,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 01-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576236769412988,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.002",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024688776034125,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817614454,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817623336,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290682415436425,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.003",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007063350279075564,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817623336,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817623336,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290682415438646,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.004",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007063350279075564,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817614454,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817614454,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 02-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290682415436425,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.005",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007063350279075564,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817632217,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817632217,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290682415438646,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.006",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00706335027908267,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817632217,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817632217,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290682415438646,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.007",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00706335027908267,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011811969817614454,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 104,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011817840165004867,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 03-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 190,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035290675905210733,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.008",
+      "sourceVertices": 2810,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00706335027908267,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010531429322320207,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308709,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576236769412988,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.009",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024322653433444,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001053142932228468,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308709,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576236769412988,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.010",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024322653433444,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308673472,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308637945,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 04-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035762367694132102,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.011",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024322653433444,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010531429322320207,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308673472,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035762370949241618,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.012",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024322653433444,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010531429322320207,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308673472,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035762370949241618,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.013",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005024322653433444,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010531429322320207,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 102,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0010514631308709,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 05-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 188,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003576237094924384,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.014",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00502432265343522,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-1 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115822031,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-1 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115822031,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-1 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 199,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003575790496645803,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.015",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006581180326906022,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-2 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115822031,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-2 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115822031,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-2 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 199,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003575790496645803,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.016",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006581180326906022,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-3 leather armrest -1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115804268,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-3 leather armrest 1",
+      "sourceVertices": 354,
+      "proxyVertices": 100,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0008023455115822031,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | Chair 06-3 saddle seat",
+      "sourceVertices": 914,
+      "proxyVertices": 199,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003575790496645803,
+      "presentation": false
+    },
+    {
+      "name": "WS72 | ergonomic continuous back upholstery.017",
+      "sourceVertices": 2810,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006581180326906022,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 01 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.908624353016648e-05,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 02 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.908624354437734e-05,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 03 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.908624353727191e-05,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 04 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.719894701731846e-05,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 05 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.719894701376575e-05,
+      "presentation": false
+    },
+    {
+      "name": "F73 | MF bench 06 stone bronze desktop underside cable tray",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 9.719894701731846e-05,
+      "presentation": false
+    },
+    {
+      "name": "PL78 | contoured padded backrest",
+      "sourceVertices": 2522,
+      "proxyVertices": 246,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006425576078278539,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | contoured padded backrest.001",
+      "sourceVertices": 2522,
+      "proxyVertices": 249,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005098282955293243,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | contoured padded backrest.002",
+      "sourceVertices": 2522,
+      "proxyVertices": 249,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0076195203877222895,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | contoured padded backrest.003",
+      "sourceVertices": 2522,
+      "proxyVertices": 241,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.005381350334944024,
+      "presentation": true
+    },
+    {
+      "name": "FR80 | continuous stone clad outer column",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00022993897831002919,
+      "presentation": false
+    },
+    {
+      "name": "FR80 | continuous stone clad outer column.001",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00022993897831025123,
+      "presentation": false
+    },
+    {
+      "name": "FR80 | continuous stone clad outer column.002",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00022993897831025123,
+      "presentation": false
+    },
+    {
+      "name": "FR80 | continuous stone clad outer column.003",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00022983317321090269,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | floating ivory mineral desktop",
+      "sourceVertices": 336,
+      "proxyVertices": 228,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014168500495106429,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | desktop fine champagne undercut",
+      "sourceVertices": 336,
+      "proxyVertices": 228,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0013610847434026851,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa upholstered base",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.016985462507052462,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa rounded continuous arm",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00797316249131974,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa rounded continuous arm.001",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00797316249131974,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa continuous upholstered back",
+      "sourceVertices": 5714,
+      "proxyVertices": 256,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.014296444136752129,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa feather back 0",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006113362894203611,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa feather back 1",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006113362894203611,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | sofa feather back 2",
+      "sourceVertices": 5714,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006113362894203611,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014661501044184178,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.001",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001466150104419306,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.002",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014661501044184178,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.003",
+      "sourceVertices": 2052,
+      "proxyVertices": 150,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001372335365122268,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.004",
+      "sourceVertices": 2052,
+      "proxyVertices": 150,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0013723353651258208,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.005",
+      "sourceVertices": 2052,
+      "proxyVertices": 150,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0013723353651258208,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.006",
+      "sourceVertices": 2052,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001368667231584908,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.007",
+      "sourceVertices": 2052,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0013686672315813553,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.008",
+      "sourceVertices": 2052,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0013686672315813553,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.009",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014670553556168642,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.010",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014670553556186405,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.011",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0014652448532253004,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.012",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001466150104419306,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.013",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001466150104419306,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.014",
+      "sourceVertices": 2052,
+      "proxyVertices": 145,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001466150104419306,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.015",
+      "sourceVertices": 2052,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011065167673365295,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.016",
+      "sourceVertices": 2052,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011065167673365295,
+      "presentation": false
+    },
+    {
+      "name": "HF89 | continuous curved aluminium display housing.017",
+      "sourceVertices": 2052,
+      "proxyVertices": 147,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0011065167673347531,
+      "presentation": false
+    },
+    {
+      "name": "FC91 Installed | continuous waterfall seat cushion.001",
+      "sourceVertices": 10690,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.009038327270870283,
+      "presentation": false
+    },
+    {
+      "name": "FC91 Installed | gold armrest supporting rim.002",
+      "sourceVertices": 10704,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0015246103158634838,
+      "presentation": false
+    },
+    {
+      "name": "FC91 Installed | gold armrest supporting rim.003",
+      "sourceVertices": 10704,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0015246103158634838,
+      "presentation": false
+    },
+    {
+      "name": "FC91 Installed | leather padded wide armrest.002",
+      "sourceVertices": 10695,
+      "proxyVertices": 256,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0021849750936659973,
+      "presentation": false
+    },
+    {
+      "name": "FC91 Installed | leather padded wide armrest.003",
+      "sourceVertices": 10695,
+      "proxyVertices": 256,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0021849750936659973,
+      "presentation": false
+    },
+    {
+      "name": "EN98 | flush beveled threshold",
+      "sourceVertices": 152,
+      "proxyVertices": 151,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00019631164182953853,
+      "presentation": false
+    },
+    {
+      "name": "PL78 | cast bronze outer shell",
+      "sourceVertices": 6947,
+      "proxyVertices": 137,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.008307807796946065,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372124777,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.001",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002876241347427033,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.002",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372124777,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.003",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002877111524142162,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap",
+      "sourceVertices": 1106,
+      "proxyVertices": 210,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.002874769785474296,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.001",
+      "sourceVertices": 1106,
+      "proxyVertices": 209,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003510384215763107,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | plump tailored seat",
+      "sourceVertices": 2522,
+      "proxyVertices": 252,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007546241848956026,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel bearing",
+      "sourceVertices": 384,
+      "proxyVertices": 229,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0004331536672523839,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel hub",
+      "sourceVertices": 320,
+      "proxyVertices": 163,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0006805729698911023,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tailored upholstered inset",
+      "sourceVertices": 6811,
+      "proxyVertices": 148,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.008618364040300364,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot",
+      "sourceVertices": 112,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0007326134597658296,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.001",
+      "sourceVertices": 112,
+      "proxyVertices": 97,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0005338122355871278,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.002",
+      "sourceVertices": 112,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.002494295339327657,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.003",
+      "sourceVertices": 112,
+      "proxyVertices": 98,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00024998321998093154,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | cast bronze outer shell.001",
+      "sourceVertices": 6947,
+      "proxyVertices": 142,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007754316465269806,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.004",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002876241347425923,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.005",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372124777,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.006",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028771115241410516,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.007",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372124777,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.002",
+      "sourceVertices": 1106,
+      "proxyVertices": 217,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035989553367983262,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.003",
+      "sourceVertices": 1106,
+      "proxyVertices": 210,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003006922414851232,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | plump tailored seat.001",
+      "sourceVertices": 2522,
+      "proxyVertices": 252,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006811721533606874,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel bearing.001",
+      "sourceVertices": 384,
+      "proxyVertices": 228,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0004331536672523839,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel hub.001",
+      "sourceVertices": 320,
+      "proxyVertices": 163,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0006805729698911023,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tailored upholstered inset.001",
+      "sourceVertices": 6811,
+      "proxyVertices": 146,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.008711937780859103,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.004",
+      "sourceVertices": 112,
+      "proxyVertices": 97,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0005338122355880159,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.005",
+      "sourceVertices": 112,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0024942953393267686,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.006",
+      "sourceVertices": 112,
+      "proxyVertices": 98,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002499832199811536,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.007",
+      "sourceVertices": 112,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0007326134597658296,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | cast bronze outer shell.002",
+      "sourceVertices": 6947,
+      "proxyVertices": 140,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007621185975239975,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.008",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372113675,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.009",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028771115241399414,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.010",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00028779259372113675,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.011",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002876241347424813,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.004",
+      "sourceVertices": 1106,
+      "proxyVertices": 213,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.004651932333253006,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.005",
+      "sourceVertices": 1106,
+      "proxyVertices": 210,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0038253274792072745,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | plump tailored seat.002",
+      "sourceVertices": 2522,
+      "proxyVertices": 251,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007552210377200774,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel bearing.002",
+      "sourceVertices": 384,
+      "proxyVertices": 229,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00043315366725260596,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel hub.002",
+      "sourceVertices": 320,
+      "proxyVertices": 163,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0006805729698911023,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tailored upholstered inset.002",
+      "sourceVertices": 6811,
+      "proxyVertices": 150,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00727840515781053,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.008",
+      "sourceVertices": 112,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0024942953393267686,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.009",
+      "sourceVertices": 112,
+      "proxyVertices": 98,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00024998321998093154,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.010",
+      "sourceVertices": 112,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0007326134597658296,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.011",
+      "sourceVertices": 112,
+      "proxyVertices": 97,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0005338122355880159,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | cast bronze outer shell.003",
+      "sourceVertices": 6947,
+      "proxyVertices": 142,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.007699513110802414,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.012",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00027255623884425706,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.013",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00027246922117263317,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.014",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002724692211728552,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | felt floor glide.015",
+      "sourceVertices": 192,
+      "proxyVertices": 149,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00027255623884425706,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.006",
+      "sourceVertices": 1106,
+      "proxyVertices": 208,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0035705822148042188,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | integrated soft arm cap.007",
+      "sourceVertices": 1106,
+      "proxyVertices": 217,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.003556090228387987,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | plump tailored seat.003",
+      "sourceVertices": 2522,
+      "proxyVertices": 250,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006816440082981878,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel bearing.003",
+      "sourceVertices": 384,
+      "proxyVertices": 228,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.00043315366725260596,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | swivel hub.003",
+      "sourceVertices": 320,
+      "proxyVertices": 163,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0006805729698911023,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tailored upholstered inset.003",
+      "sourceVertices": 6811,
+      "proxyVertices": 146,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.006597790464187625,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.012",
+      "sourceVertices": 112,
+      "proxyVertices": 98,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0002499832199807095,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.013",
+      "sourceVertices": 112,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.000732177147638069,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.014",
+      "sourceVertices": 112,
+      "proxyVertices": 97,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0005338122355871278,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tapered four star foot.015",
+      "sourceVertices": 112,
+      "proxyVertices": 95,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.002494295339327657,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | low bronze bowl",
+      "sourceVertices": 1152,
+      "proxyVertices": 189,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0009488416598326666,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | inset smoked glass top",
+      "sourceVertices": 1152,
+      "proxyVertices": 262,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.001499183932088588,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | spun bronze table body",
+      "sourceVertices": 1920,
+      "proxyVertices": 486,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | deckle paper block",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | deckle paper block.001",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover lower",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover lower.001",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover upper",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover upper.001",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | deckle paper block.002",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | deckle paper block.003",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover lower.002",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover lower.003",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover upper.002",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | linen cover upper.003",
+      "sourceVertices": 96,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | table concealed floor contact",
+      "sourceVertices": 576,
+      "proxyVertices": 252,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0007710783583219083,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tumbler glass",
+      "sourceVertices": 288,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tumbler glass.001",
+      "sourceVertices": 288,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    },
+    {
+      "name": "PL78 | tumbler glass.002",
+      "sourceVertices": 288,
+      "proxyVertices": 96,
+      "shape": "convexHull",
+      "maximumSampledSupportLossMeters": 0.0,
+      "presentation": true
+    }
+  ],
+  "count": 241,
+  "sourceVertices": 316390,
+  "proxyVertices": 37472,
+  "bytes": 856552,
+  "retainedBaseColliderObjects": 410
+}

@@ -45,8 +45,8 @@
     },
     {
       "id": "shell",
-      "url": "/assets/precision-v3/geometry/shell.glb",
-      "bytes": 2305624,
+      "url": "/assets/founder-lift-v10/shell.glb",
+      "bytes": 2318720,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/shell-architecture-normal.ktx2",
@@ -57,7 +57,7 @@
         "/assets/v2/textures/shell-detail-orm.ktx2"
       ],
       "textureBytes": 32576046,
-      "sha256": "956cf3d43f441fee34c4f594bc770feacea331508ca1c34e2b1009e5a9e1b03e"
+      "sha256": "3fb9cdaa73b6cfc8fa5769cf1fed07320a59b0c04e7b24dbd3b7ba278176d301"
     },
     {
       "id": "gallery",
@@ -77,8 +77,8 @@
     },
     {
       "id": "founder",
-      "url": "/assets/precision-v3/geometry/founder.glb",
-      "bytes": 98834832,
+      "url": "/assets/founder-lift-v10/founder.glb",
+      "bytes": 99325784,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/founder-architecture-normal.ktx2",
@@ -95,12 +95,12 @@
         "/assets/source-materials/founder-native-chair-normal.png"
       ],
       "textureBytes": 49398656,
-      "sha256": "27a25b2d5c5d182bfaa5dcea63ba1ae2fa486de3be7aacde21ff8c2bf6009c18"
+      "sha256": "120430c36c54510e381b867c930c5edf742a8862b5a3c99bc6bea04d9da79447"
     },
     {
       "id": "studio",
-      "url": "/assets/precision-v3/geometry/studio.glb",
-      "bytes": 218401920,
+      "url": "/assets/repair-v6/studio.glb",
+      "bytes": 218447828,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/studio-hero-normal.ktx2",
@@ -114,7 +114,20 @@
         "/assets/v2/textures/studio-detail-orm.ktx2"
       ],
       "textureBytes": 46744061,
-      "sha256": "0139bdc34693cf97f536c45b1eac5af51da25b7dc6c11b5a5dd7fa9ee83ecacb"
+      "sha256": "8998bce98a603a5c4bdb682434f7caf088230aa3982261a350507788a1926737"
+    },
+    {
+      "id": "founder-lift",
+      "url": "/assets/founder-lift-v10/lift.glb",
+      "bytes": 2979108,
+      "objects": 33,
+      "textureURLs": [
+        "/assets/founder-lift-v10/bronze-orm.png",
+        "/assets/founder-lift-v10/graphite-orm.png",
+        "/assets/founder-lift-v10/limestone-orm.png",
+        "/assets/source-walls/cream-stone-original.png"
+      ],
+      "textureBytes": 736519
     }
   ],
   "cameras": [
@@ -213,6 +226,79 @@
         9.65,
         1.7,
         -11.01
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA | Workstation 04 clearance",
+      "position": [
+        20.4,
+        1.9,
+        -32.6
+      ],
+      "target": [
+        17.7,
+        1,
+        -32.1
+      ],
+      "fov": 58
+    },
+    {
+      "id": "QA | Entrance steps",
+      "position": [
+        -8.7,
+        1.7,
+        -19.6
+      ],
+      "target": [
+        -3.8,
+        0.35,
+        -17.1
+      ],
+      "fov": 58
+    },
+    {
+      "id": "founder-lift-exterior",
+      "name": "Glass lift � exterior",
+      "position": [
+        21,
+        6,
+        12
+      ],
+      "target": [
+        13.25,
+        3.4,
+        0.6
+      ],
+      "fov": 42
+    },
+    {
+      "id": "founder-lift-arrival",
+      "name": "Glass lift � arrival",
+      "position": [
+        13.35,
+        5.95,
+        -1.5
+      ],
+      "target": [
+        13.25,
+        5.45,
+        1.25
+      ],
+      "fov": 65
+    },
+    {
+      "id": "founder-lift-junction",
+      "name": "Lift terrace junction",
+      "position": [
+        10.15,
+        1.15,
+        4.2
+      ],
+      "target": [
+        12.7,
+        -0.09,
+        0.57
       ],
       "fov": 55
     }
@@ -1784,7 +1870,7 @@
       "quaternion": [
         4.806787038308434e-16,
         -0.3826834559440613,
-        1.672762728333055e-08,
+        1.672762728333055e-8,
         0.9238795638084412
       ],
       "seatHeight": 0.59154999,
@@ -1816,7 +1902,7 @@
       "quaternion": [
         4.806787038308434e-16,
         0.3826834559440613,
-        -1.672762728333055e-08,
+        -1.672762728333055e-8,
         0.9238795638084412
       ],
       "seatHeight": 0.59154999,
@@ -1848,7 +1934,7 @@
       "quaternion": [
         -9.613574076616869e-16,
         0.9238795638084412,
-        -4.038405521100685e-08,
+        -4.038405521100685e-8,
         0.3826834559440613
       ],
       "seatHeight": 0.59154999,
@@ -1880,7 +1966,7 @@
       "quaternion": [
         0,
         -0.9238795638084412,
-        4.038405521100685e-08,
+        4.038405521100685e-8,
         0.3826833963394165
       ],
       "seatHeight": 0.59154999,
@@ -3610,7 +3696,7 @@
       "name": "gallery__EH54 | scanned cream limestone panels",
       "sourceMaterial": "EH54 | scanned cream limestone panels",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/gallery-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/gallery-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -3621,7 +3707,7 @@
       "name": "gallery__Satin bronze",
       "sourceMaterial": "Satin bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/gallery-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -3632,7 +3718,7 @@
       "name": "gallery__MF reference | bronze",
       "sourceMaterial": "MF reference | bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/gallery-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -3643,7 +3729,7 @@
       "name": "gallery__EH54 | polished warm-grey cloud marble",
       "sourceMaterial": "EH54 | polished warm-grey cloud marble",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/gallery-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/gallery-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -3654,7 +3740,7 @@
       "name": "gallery__Blackened bronze",
       "sourceMaterial": "Blackened bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/gallery-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/gallery-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4292,7 +4378,7 @@
       "name": "studio__PR94 | honed ivory limestone",
       "sourceMaterial": "PR94 | honed ivory limestone",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4308,7 +4394,7 @@
       "name": "studio__F73 | espresso limestone marble cut slabs",
       "sourceMaterial": "F73 | espresso limestone marble cut slabs",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4319,7 +4405,7 @@
       "name": "studio__F73 | cloth book 0",
       "sourceMaterial": "F73 | cloth book 0",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4330,7 +4416,7 @@
       "name": "studio__PR94 | charcoal powder coat",
       "sourceMaterial": "PR94 | charcoal powder coat",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4341,7 +4427,7 @@
       "name": "studio__PR94 | muted celadon glaze",
       "sourceMaterial": "PR94 | muted celadon glaze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4357,7 +4443,7 @@
       "name": "studio__F73 | cloth book 4",
       "sourceMaterial": "F73 | cloth book 4",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4368,7 +4454,7 @@
       "name": "studio__PR94 | charcoal basalt",
       "sourceMaterial": "PR94 | charcoal basalt",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4379,7 +4465,7 @@
       "name": "studio__PR94 | warm porcelain glaze",
       "sourceMaterial": "PR94 | warm porcelain glaze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4405,7 +4491,7 @@
       "name": "studio__PR94 | unglazed terracotta",
       "sourceMaterial": "PR94 | unglazed terracotta",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4416,7 +4502,7 @@
       "name": "studio__PR94 | petrol cloth binding",
       "sourceMaterial": "PR94 | petrol cloth binding",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4432,7 +4518,7 @@
       "name": "studio__F73 | smoked brown ceramic glaze",
       "sourceMaterial": "F73 | smoked brown ceramic glaze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4443,7 +4529,7 @@
       "name": "studio__HF89 | warm taupe fine woven cushions",
       "sourceMaterial": "HF89 | warm taupe fine woven cushions",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-hero-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4454,7 +4540,7 @@
       "name": "studio__Blackened bronze.001",
       "sourceMaterial": "Blackened bronze.001",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4465,7 +4551,7 @@
       "name": "studio__F73 | dry potting soil",
       "sourceMaterial": "F73 | dry potting soil",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4486,7 +4572,7 @@
       "name": "studio__F73 | blackened bronze cabinet interiors",
       "sourceMaterial": "F73 | blackened bronze cabinet interiors",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4502,7 +4588,7 @@
       "name": "studio__HF89 | directional satin champagne alloy",
       "sourceMaterial": "HF89 | directional satin champagne alloy",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4518,7 +4604,7 @@
       "name": "studio__HF89 | organic dark potting soil",
       "sourceMaterial": "HF89 | organic dark potting soil",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4534,7 +4620,7 @@
       "name": "studio__Blackened bronze",
       "sourceMaterial": "Blackened bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4550,7 +4636,7 @@
       "name": "studio__HF89 | ivory wool boucle upholstery",
       "sourceMaterial": "HF89 | ivory wool boucle upholstery",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-hero-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4566,7 +4652,7 @@
       "name": "studio__HF89 | fine natural clay aggregate",
       "sourceMaterial": "HF89 | fine natural clay aggregate",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4587,7 +4673,7 @@
       "name": "studio__F73 | honed charcoal planter basalt",
       "sourceMaterial": "F73 | honed charcoal planter basalt",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4608,7 +4694,7 @@
       "name": "studio__F73 | patinated umber bronze",
       "sourceMaterial": "F73 | patinated umber bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4619,7 +4705,7 @@
       "name": "studio__Satin bronze",
       "sourceMaterial": "Satin bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4635,7 +4721,7 @@
       "name": "studio__EH54 | scanned cream limestone panels",
       "sourceMaterial": "EH54 | scanned cream limestone panels",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4646,7 +4732,7 @@
       "name": "studio__WS72 | soft charcoal semi-aniline leather",
       "sourceMaterial": "WS72 | soft charcoal semi-aniline leather",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-hero-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4657,7 +4743,7 @@
       "name": "studio__HF89 | display black ceramic bezel",
       "sourceMaterial": "HF89 | display black ceramic bezel",
       "mode": "native-constant-with-GI",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4683,7 +4769,7 @@
       "name": "studio__PR94 | warm cut paper fibres",
       "sourceMaterial": "PR94 | warm cut paper fibres",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4694,7 +4780,7 @@
       "name": "studio__PR94 | satin champagne bronze",
       "sourceMaterial": "PR94 | satin champagne bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4705,7 +4791,7 @@
       "name": "studio__MF reference | bronze",
       "sourceMaterial": "MF reference | bronze",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4731,7 +4817,7 @@
       "name": "studio__PR94 | olive woven binding",
       "sourceMaterial": "PR94 | olive woven binding",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4742,7 +4828,7 @@
       "name": "studio__PR94 | charcoal library binding",
       "sourceMaterial": "PR94 | charcoal library binding",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4753,7 +4839,7 @@
       "name": "studio__PHOTO76 | studio ash brown loop pile",
       "sourceMaterial": "PHOTO76 | studio ash brown loop pile",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-hero-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-hero-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4764,7 +4850,7 @@
       "name": "studio__EH54 | polished warm-grey cloud marble",
       "sourceMaterial": "EH54 | polished warm-grey cloud marble",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-architecture-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-architecture-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4785,7 +4871,7 @@
       "name": "studio__PR94 | bone linen binding",
       "sourceMaterial": "PR94 | bone linen binding",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4796,7 +4882,7 @@
       "name": "studio__PR94 | warm grey buckram",
       "sourceMaterial": "PR94 | warm grey buckram",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4807,7 +4893,7 @@
       "name": "studio__PR94 | oiled walnut miniature timber",
       "sourceMaterial": "PR94 | oiled walnut miniature timber",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4823,7 +4909,7 @@
       "name": "studio__PR94 | oxblood bookcloth",
       "sourceMaterial": "PR94 | oxblood bookcloth",
       "mode": "baked-procedural",
-      "lightMap": "/assets/sunset-v4/lighting/studio-detail-indirect.exr",
+      "lightMap": "/assets/repair-v6/studio-detail-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4867,7 +4953,7 @@
       -16
     ],
     "color": [
-      1.0,
+      1,
       0.64,
       0.36
     ],
@@ -4876,12 +4962,14 @@
     "altitudeDegrees": 12
   },
   "collisions": {
-    "url": "/assets/geometry/collision.glb",
+    "url": "/assets/founder-lift-v10/building-collision.glb",
     "objects": 400,
     "additionalUrls": [
-      "/assets/geometry/furniture-collision.glb",
-      "/assets/geometry/circulation-collision.glb"
-    ]
+      "/assets/repair-v6/solid-collision.glb",
+      "/assets/geometry/circulation-collision.glb",
+      "/assets/founder-lift-v10/lift-collision.glb"
+    ],
+    "coverageReport": "/assets/repair-v6/collision-coverage.json"
   },
   "geometryProvenance": {
     "sourceObjects": 8782,
@@ -4939,7 +5027,7 @@
   "reflectionProbes": [
     {
       "id": "lounge",
-      "url": "/assets/sunset-v4/reflections/lounge-reflection.exr",
+      "url": "/assets/founder-lift-v9/lounge-reflection.exr",
       "bounds": {
         "min": [
           3.6,
@@ -4985,7 +5073,7 @@
     },
     {
       "id": "studio",
-      "url": "/assets/sunset-v4/reflections/studio-reflection.exr",
+      "url": "/assets/repair-v6/studio-reflection.exr",
       "bounds": {
         "min": [
           3.6,
@@ -5008,7 +5096,7 @@
     },
     {
       "id": "founder",
-      "url": "/assets/sunset-v4/reflections/founder-reflection.exr",
+      "url": "/assets/founder-lift-v9/founder-reflection.exr",
       "bounds": {
         "min": [
           3.6,
@@ -6680,5 +6768,23 @@
     "sourceModelUnchanged": true,
     "sourceUVsPreserved": true,
     "report": "/assets/precision-v3/validation.json"
+  },
+  "layoutRepair": {
+    "version": 6,
+    "sourceOriginalUnmodified": true,
+    "workstation04DeltaBlender": [
+      0,
+      -2.35,
+      0
+    ],
+    "geometry": "Exact source assembly positions; UVs, normals, topology and materials retained",
+    "studioGI": "512 samples, indirect plus practical, chart-protected denoise"
+  },
+  "lift": {
+    "base": 0.035,
+    "top": 4.23,
+    "centerX": 13.246875,
+    "cabinLight": true,
+    "source": "MD_Presentation_Lounge_Glass_Lift.blend"
   }
 }

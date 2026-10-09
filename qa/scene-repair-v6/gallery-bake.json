@@ -1,0 +1,12 @@
+{
+  "zone": "gallery",
+  "samples": 1024,
+  "prepared": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\scene-repair-v6\\MD_Lounge_Sunset_Repaired.blend",
+  "geometryExported": false,
+  "sourceUnmodified": true,
+  "atlases": [
+    "gallery-architecture",
+    "gallery-detail"
+  ],
+  "seconds": 609.9143800735474
+}

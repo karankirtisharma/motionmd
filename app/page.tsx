@@ -132,6 +132,8 @@ export default function Home() {
       <div>FPS: {stats?.fps ?? '—'} · Draw calls: {stats?.drawCalls ?? '—'}</div>
       <div>Triangles: {stats?.triangles.toLocaleString() ?? '—'}</div>
       <div>Resolution: {stats ? `${Math.round(stats.resolutionScale * 100)}%` : '—'} · Quality: {quality}</div>
+      {stats?.frameP50Ms !== undefined && <div>Frame ms p50 / p95: {stats.frameP50Ms.toFixed(1)} / {stats.frameP95Ms?.toFixed(1)}</div>}
+      {stats?.resourceMiB !== undefined && <div>Tracked buffers/textures: {Math.round(stats.resourceMiB)} MiB</div>}
       <div>Camera: {(progress * 100).toFixed(1)}%</div>
       <label style={{ display: 'block', marginTop: 8 }}>Reference camera
         <select aria-label="Reference camera" value={referenceCamera} disabled={!referenceCameras.length} onChange={event => { dismissWelcome(); setReferenceCamera(event.target.value); runtime.current?.setReferenceCamera(event.target.value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%', maxWidth: 290 }}>
@@ -145,6 +147,7 @@ export default function Home() {
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
+      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>{(['entrance', 'studio', 'founder-lift'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
     </aside>}
   </main>;
 }

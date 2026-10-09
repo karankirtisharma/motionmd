@@ -23,6 +23,7 @@ export type SceneManifest = {
   screen?: { objectName: string; materialName?: string; width?: number; height?: number };
   spawn: { position: Vec3; yaw: number };
   collisions?: { url: string; additionalUrls?: string[] };
+  lift?: { base: number; top: number; centerX: number; source?: string; cabinLight?: boolean };
   explorationBounds?: { minX: number; maxX: number; minZ: number; maxZ: number; height?: number };
   exposure?: number;
   baking?: { mode: 'none' | 'indirect' | 'combined'; description?: string; bakedPracticals?: boolean };
@@ -39,7 +40,7 @@ export type SceneManifest = {
 };
 export type LoadingProgress = { phase: string; progress?: number; detail?: string };
 export type RuntimeHint = { text: string; target?: string };
-export type RuntimeStats = { fps: number; drawCalls: number; triangles: number; renderer: string; quality: Quality; resolutionScale: number };
+export type RuntimeStats = { fps: number; drawCalls: number; triangles: number; renderer: string; quality: Quality; resolutionScale: number; frameP50Ms?: number; frameP95Ms?: number; resourceMiB?: number };
 export type RuntimeCallbacks = {
   onProgress?: (progress: LoadingProgress) => void;
   onReady?: () => void;
