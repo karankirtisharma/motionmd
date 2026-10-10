@@ -135,6 +135,9 @@ export default function Home() {
       {stats?.frameP50Ms !== undefined && <div>Frame ms p50 / p95: {stats.frameP50Ms.toFixed(1)} / {stats.frameP95Ms?.toFixed(1)}</div>}
       {stats?.resourceMiB !== undefined && <div>Tracked buffers/textures: {Math.round(stats.resourceMiB)} MiB</div>}
       <div>Camera: {(progress * 100).toFixed(1)}%</div>
+      {mode === 'tour' && <label style={{ display: 'block' }}>Tour preview (seconds)
+        <input aria-label="Tour preview seconds" type="range" min={0} max={duration} step={0.5} value={progress * duration} style={{ width: '100%' }} onChange={event => { dismissWelcome(); runtime.current?.setCinematicPlaying(false); runtime.current?.setReferenceCamera(''); runtime.current?.setTourProgress(Number(event.target.value) / duration); }} />
+      </label>}
       <label style={{ display: 'block', marginTop: 8 }}>Reference camera
         <select aria-label="Reference camera" value={referenceCamera} disabled={!referenceCameras.length} onChange={event => { dismissWelcome(); setReferenceCamera(event.target.value); runtime.current?.setReferenceCamera(event.target.value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%', maxWidth: 290 }}>
           <option value="">Tour</option>
@@ -147,7 +150,7 @@ export default function Home() {
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
-      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>{(['entrance', 'studio', 'founder-lift'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
+      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
     </aside>}
   </main>;
 }

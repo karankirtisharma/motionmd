@@ -119,6 +119,18 @@ export function createGlassLift(scene: THREE.Object3D, physics: Awaited<ReturnTy
   reset(); world.step();
   return {
     inside, interact, step, render, hint, reset,
+    setCinematicPose(pose: { height: number; openness: number; floor: number }) {
+      if (height === pose.height && openness === pose.openness && floor === pose.floor) return false;
+      height = previousHeight = THREE.MathUtils.clamp(pose.height, 0, travel);
+      openness = previousOpen = THREE.MathUtils.clamp(pose.openness, 0, 1);
+      floor = target = pose.floor === 1 ? 1 : 0;
+      phase = 'idle'; riding = false; elapsed = 0;
+      car.setBodyType(RAPIER.RigidBodyType.Fixed, true);
+      car.setTranslation({ x: 13.235, y: height, z: 1.15 }, true);
+      car.setNextKinematicTranslation({ x: 13.235, y: height, z: 1.15 });
+      interlock(); render(1); world.step();
+      return true;
+    },
     get state() { return { floor, target, height, openness, phase, riding, doorLocked: landingDoors.map(d => d.isEnabled()) }; },
     dispose() { cabinLight?.removeFromParent(); cabinLight?.dispose(); for (const c of owned) { physics.colliderNames.delete(c.handle); world.removeCollider(c, false); } world.removeRigidBody(car); },
   };

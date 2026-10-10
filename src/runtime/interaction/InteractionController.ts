@@ -73,9 +73,11 @@ export async function createInteractionController(options: Options) {
   let yaw = manifest.spawn.yaw ?? 0, pitch = 0.16, bodyYaw = yaw + Math.PI;
   let previousBodyYaw = bodyYaw, renderBodyYaw = bodyYaw;
   let cameraView: CameraView = 'thirdPerson';
+  let closeCamera = false;
   let intentionalUnlock = false, pointerLockUnavailable = false, cameraFloor = feet.y, cameraBlendDuration = 1.15;
   let verticalVelocity = 0, accumulator = 0, transition = 0, seatWeight = 0, cameraBlend = 0;
   let approachTime = 0, lastPrompt = '', dragging = false;
+  let actualSpeed = 0;
   const transitionStart = new THREE.Vector3();
   const cameraStart = new THREE.Vector3(), cameraStartQuaternion = new THREE.Quaternion();
   const STEP = 1 / 60;
@@ -184,7 +186,7 @@ export async function createInteractionController(options: Options) {
   }
   function simulate() {
     if (lift?.step(STEP, feet)) {
-      velocity.set(0, 0, 0); verticalVelocity = 0; grounded = true; physics.place(feet); return;
+      velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; grounded = true; physics.place(feet); return;
     }
     let moveX = 0, moveY = 0, speed = 0;
     if (mode === 'explore') {
@@ -210,7 +212,11 @@ export async function createInteractionController(options: Options) {
     // A gentle downward component keeps ground snapping active without defeating autostep.
     verticalVelocity = grounded ? -0.5 : Math.max(-16, verticalVelocity - 9.81 * STEP);
     displacement.set(velocity.x * STEP, verticalVelocity * STEP, velocity.z * STEP);
+    const oldX = feet.x, oldZ = feet.z;
     grounded = physics.move(displacement, STEP, feet);
+    const achievedSpeed = Math.hypot(feet.x - oldX, feet.z - oldZ) / STEP;
+    // Millimetre contact corrections at a blocked wall are not a walking gait.
+    actualSpeed = THREE.MathUtils.lerp(actualSpeed, achievedSpeed < 0.06 ? 0 : achievedSpeed, damping(16, STEP));
     if (cameraView === 'bodyCam' && mode === 'explore') bodyYaw = smoothAngle(bodyYaw, yaw + Math.PI, damping(14, STEP));
     else if (velocity.lengthSq() > 0.004) bodyYaw = smoothAngle(bodyYaw, Math.atan2(velocity.x, velocity.z), damping(10, STEP));
     if (feet.y < -10) { feet.fromArray(manifest.spawn.position); feet.y = physics.groundAt(feet); physics.place(feet); previousFeet.copy(feet); renderFeet.copy(feet); verticalVelocity = 0; }
@@ -218,10 +224,19 @@ export async function createInteractionController(options: Options) {
   function updateCamera(dt: number) {
     cameraFloor = smoothEyeHeight(cameraFloor, renderFeet.y, dt);
     const seatedView = selected && (mode === 'seated' || mode === 'sitting' || mode === 'standing');
-    const firstPerson = cameraView === 'bodyCam';
     const eyeHeight = selected ? THREE.MathUtils.lerp(avatar.view.eyeHeight, selected.height + avatar.view.seatedEyeOffset, seatWeight) : avatar.view.eyeHeight;
     const eyePosition = new THREE.Vector3(renderFeet.x, cameraFloor + eyeHeight, renderFeet.z);
     pivot.copy(renderFeet).setY(cameraFloor + (selected ? THREE.MathUtils.lerp(1.35, selected.height + 0.68, seatWeight) : 1.35));
+    const followDistance = lift?.inside(renderFeet) ? 1.05 : 2.45;
+    desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * followDistance, Math.sin(pitch) * followDistance + 0.10, Math.cos(yaw) * Math.cos(pitch) * followDistance).add(pivot);
+    const clearance = physics.cameraDistance(pivot, desiredCamera);
+    const useCloseCamera = !seatedView && cameraView === 'thirdPerson' && clearance < (closeCamera ? 1.7 : 1.4);
+    if (useCloseCamera !== closeCamera) {
+      closeCamera = useCloseCamera;
+      cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion);
+      cameraBlend = 0; cameraBlendDuration = 0.3;
+    }
+    const firstPerson = cameraView === 'bodyCam' || closeCamera;
     if (firstPerson) {
       const direction = cameraLookDirection(yaw, pitch);
       // The camera sits at calibrated eye height, inside the capsule. It does not
@@ -235,8 +250,6 @@ export async function createInteractionController(options: Options) {
       desiredCamera.copy(pivot).addScaledVector(viewDirection, -1.25).addScaledVector(up, 0.46);
       lookTarget.copy(screenPosition).lerp(pivot.clone().addScaledVector(up, 0.35), 0.12);
     } else {
-      const distance = lift?.inside(renderFeet) ? 1.05 : 2.45;
-      desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * distance, Math.sin(pitch) * distance + 0.10, Math.cos(yaw) * Math.cos(pitch) * distance).add(pivot);
       lookTarget.copy(pivot).addScaledVector(up, 0.03);
     }
     if (!firstPerson) {
@@ -321,17 +334,17 @@ export async function createInteractionController(options: Options) {
     }
     lift?.render(fixedStepPose ? THREE.MathUtils.clamp(accumulator / STEP, 0, 1) : 1);
     avatar.root.position.copy(renderFeet); avatar.root.rotation.y = renderBodyYaw;
-    avatar.update(delta, mode === 'explore' || mode === 'approach' ? Math.hypot(velocity.x, velocity.z) : 0, seatWeight, selected?.height ?? 0.55);
+    avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55);
     updateCamera(delta); display?.update();
     return true;
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
-    cameraBlend = 0; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
+    cameraBlend = 0; cameraBlendDuration = 1.15; closeCamera = false; mode = 'explore'; selected = undefined; seatWeight = 0;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
     feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
-    physics.place(feet); velocity.set(0, 0, 0); verticalVelocity = 0; accumulator = 0; grounded = false;
+    physics.place(feet); velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; accumulator = 0; grounded = false;
     cameraFloor = feet.y;
     const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cameraStartQuaternion);
     yaw = inspectionSpawn?.yaw ?? Math.atan2(-direction.x, -direction.z); pitch = 0.16; bodyYaw = yaw + Math.PI;
@@ -348,6 +361,7 @@ export async function createInteractionController(options: Options) {
   }
   return {
     player: avatar.root, update, enterExplore, exitExplore, handleInteract, leaveSeat, togglePointerLock, toggleCameraView,
+    setCinematicLiftPose(pose: { height: number; openness: number; floor: number }) { return lift?.setCinematicPose(pose) ?? false; },
     get cameraView() { return cameraView; },
     consumeIntentionalUnlock() { const value = intentionalUnlock; intentionalUnlock = false; return value; },
     setEnabled(value: boolean) {

@@ -9,7 +9,7 @@ import { applyMaterialManifest, prepareSourceMaterials } from './rendering/mater
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import { RenderDiagnostics, type DiagnosticMode } from './rendering/diagnostics';
-import { CinematicPath, CINEMATIC_SECONDS } from './rendering/cinematic';
+import { CinematicPath, CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from './rendering/cinematic';
 import { createDesertEnvironment } from './rendering/DesertEnvironment';
 import { guardShaderCompilation } from './rendering/shaderValidation';
 import { createAssetLoadGuard } from './rendering/loadingGuard';
@@ -255,6 +255,7 @@ export class SceneRuntime {
     if (!immediate && this.lastAppliedTourProgress === this.progress) return;
     this.lastAppliedTourProgress = this.progress;
     const pose = this.cinematic.sample(this.progress);
+    if (this.controls?.setCinematicLiftPose(pose.lift) && this.lighting) this.lighting.sun.shadow.needsUpdate = true;
     this.camera.position.copy(pose.position);
     this.camera.quaternion.copy(pose.quaternion);
     this.camera.fov = pose.fov;
@@ -327,6 +328,7 @@ export class SceneRuntime {
   }
 
   setTourProgress(progress: number) {
+    if (Math.abs(progress - this.targetProgress) > 0.01) this.temporal?.reset();
     this.targetProgress = MathUtils.clamp(progress, 0, 1);
     if (this.sceneTransition?.destination === 'tour') this.sceneTransition.progress = this.targetProgress;
   }
@@ -373,9 +375,10 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const spawn = { position: (location === 'entrance' ? [-8, -.355, -17.1] : location === 'founder-lift' ? [13.35, .035, -3.35] : [16.4, .03, -30.7]) as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : -Math.PI / 2 };
+    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7] };
+    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery' || location === 'founder-room' ? 0 : -Math.PI / 2 };
     this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
     this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));
@@ -386,8 +389,9 @@ export class SceneRuntime {
   setPaused(value: boolean) { this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
   explore() {
     if (!this.controls || this.mode !== 'tour' || this.sceneTransition) return;
+    if (this.progress < 0.999) { this.exploreDirectly(); return; }
     this.setCinematicPlaying(false);
-    this.controls.enterExplore({ position: this.camera.position.clone(), quaternion: this.camera.quaternion.clone() });
+    this.controls.enterExplore({ position: this.camera.position.clone(), quaternion: this.camera.quaternion.clone() }, this.progress >= 0.999 ? CINEMATIC_HANDOFF : undefined);
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
     this.controls.setEnabled(true); this.setMode('explore');
   }
@@ -425,6 +429,11 @@ export class SceneRuntime {
       this.targetProgress = transition.progress;
       this.applyTourCamera(0, true);
       if (transition.destination === 'explore' && this.controls) {
+        // Direct exploration still starts in the lounge; the completed tour hands
+        // off upstairs instead. Avoid flying the camera through the whole house.
+        this.controls.exitExplore();
+        const handoff = this.manifest.tour?.find(frame => frame.id === 'Explore handoff');
+        if (handoff) { this.camera.position.fromArray(handoff.position); this.camera.lookAt(new Vector3(...handoff.target)); }
         this.controls.enterExplore({ position: this.camera.position.clone(), quaternion: this.camera.quaternion.clone() });
         this.controls.update(0.001); this.controls.setEnabled(false); this.setMode('explore');
       }

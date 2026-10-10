@@ -1,40 +1,36 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { Vector3, PerspectiveCamera } from 'three';
-import { CINEMATIC_SECONDS, CinematicPath, cinematicDistance } from '../src/runtime/rendering/cinematic.ts';
-
-const manifest = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url), 'utf8'));
-const original = JSON.stringify(manifest.tour);
-const path = new CinematicPath(manifest);
-
-test('the cinematic is a short continuous source-route edit with the original handoff', () => {
-  assert.equal(JSON.stringify(manifest.tour), original, 'the source inspection route must remain intact');
-  assert.ok(CINEMATIC_SECONDS >= 45 && CINEMATIC_SECONDS <= 60);
-  assert.ok(path.curve.getLength() < 55, 'avoid reinstating the long studio/founder detour');
-  const handoff = manifest.tour.find(frame => frame.id === 'Explore handoff');
-  const final = path.sample(1);
-  assert.ok(final.position.distanceTo(new Vector3(...handoff.position)) < 1e-6);
-  const camera = new PerspectiveCamera();
-  camera.position.fromArray(handoff.position); camera.lookAt(new Vector3(...handoff.target));
-  assert.ok(final.quaternion.angleTo(camera.quaternion) < 1e-6);
+import {Vector3,PerspectiveCamera} from 'three';
+import {CINEMATIC_SECONDS,LIFT_TIMING,CINEMATIC_HANDOFF,CinematicPath,cinematicDistance} from '../src/runtime/rendering/cinematic.ts';
+const manifest=JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json',import.meta.url)));
+const original=JSON.stringify(manifest.tour), path=new CinematicPath(manifest);
+test('complete live tour covers all principal spaces without rewriting the source anchors',()=>{
+ assert.equal(JSON.stringify(manifest.tour),original);
+ for(const id of ['Desert architecture','Entrance threshold','Studio work floor','PC screen reveal','PC screen tracking','Studio chandelier reveal','MD sculpture reveal','Seating reveal','Presentation screen','Cabin boarding','Founder room reveal'])assert.ok(path.frames.some(f=>f.id===id),'missing '+id);
+ assert.ok(CINEMATIC_SECONDS>=60&&CINEMATIC_SECONDS<=90,'showcase must fit the requested 1–1.5 minutes');
+ assert.ok(!path.frames.some(f=>/flight|stair|gallery|bridge/i.test(f.id)),'omit the rejected long staircase detour');
+ const frame=path.frames.at(-1),last=path.sample(1),camera=new PerspectiveCamera();camera.position.fromArray(frame.position);camera.lookAt(new Vector3(...frame.target));
+ assert.ok(last.position.distanceTo(camera.position)<1e-6);assert.ok(last.quaternion.angleTo(camera.quaternion)<1e-6);
+ assert.ok(last.position.distanceTo(new Vector3(...CINEMATIC_HANDOFF.position))<3.2,'exploration continues in the room where the tour ends');
 });
-
-test('the cinematic starts and stops gently and removes source camera turn spikes', () => {
-  const rate = 60, steps = CINEMATIC_SECONDS * rate;
-  let previous = path.sample(0), previousVelocity, maxSpeed = 0, maxAcceleration = 0, maxAngularSpeed = 0;
-  for (let index = 1; index <= steps; index++) {
-    const pose = path.sample(index / steps);
-    const velocity = pose.position.clone().sub(previous.position).multiplyScalar(rate);
-    maxSpeed = Math.max(maxSpeed, velocity.length());
-    maxAngularSpeed = Math.max(maxAngularSpeed, pose.quaternion.angleTo(previous.quaternion) * rate);
-    if (previousVelocity) maxAcceleration = Math.max(maxAcceleration, velocity.clone().sub(previousVelocity).length() * rate);
-    assert.ok([...pose.position.toArray(), ...pose.quaternion.toArray(), pose.fov].every(Number.isFinite));
-    previous = pose; previousVelocity = velocity;
-  }
-  assert.ok(maxSpeed < 1.05, `camera speed ${maxSpeed} m/s exceeds the cinematic limit`);
-  assert.ok(maxAngularSpeed < 20 * Math.PI / 180, `camera turn speed ${maxAngularSpeed} rad/s is too abrupt`);
-  assert.ok(maxAcceleration < 2.2, `camera acceleration ${maxAcceleration} m/s² contains a route discontinuity`);
-  assert.ok(cinematicDistance(1 / steps) < 1e-7);
-  assert.ok(1 - cinematicDistance(1 - 1 / steps) < 1e-7);
+test('room camera and hydraulic ride have bounded motion and a level horizon',()=>{
+ let previous=path.sample(0),vprev,maxSpeed=0,maxAcceleration=0,maxTurn=0;
+ for(let i=1;i<=CINEMATIC_SECONDS*60;i++){
+  const pose=path.sample(i/(CINEMATIC_SECONDS*60)),v=pose.position.clone().sub(previous.position).multiplyScalar(60);
+  maxSpeed=Math.max(maxSpeed,v.length());maxTurn=Math.max(maxTurn,pose.quaternion.angleTo(previous.quaternion)*60*180/Math.PI);
+  if(vprev)maxAcceleration=Math.max(maxAcceleration,v.clone().sub(vprev).length()*60);
+  assert.ok([...pose.position.toArray(),...pose.quaternion.toArray(),pose.fov].every(Number.isFinite));
+  assert.ok(Math.abs(new Vector3(1,0,0).applyQuaternion(pose.quaternion).y)<1e-6,'no unintended camera roll');
+  previous=pose;vprev=v;
+ }
+ assert.ok(maxSpeed<2.4,`speed ${maxSpeed}`);assert.ok(maxAcceleration<4,`acceleration ${maxAcceleration}`);assert.ok(maxTurn<40,`turn ${maxTurn}`);
+ assert.ok(cinematicDistance(.0001)<1e-6);assert.ok(1-cinematicDistance(.9999)<1e-6);
+});
+test('camera remains in the cabin, doors close before rising, and opening precedes exit',()=>{
+ const at=s=>path.sample(s/CINEMATIC_SECONDS);
+ for(let t=LIFT_TIMING.close;t<=LIFT_TIMING.arrive;t+=.02){const p=at(t);assert.equal(p.lift.openness,0);assert.ok(Math.abs(p.position.y-p.lift.height-1.69)<1e-8);assert.ok(p.position.z>.8);}
+ assert.equal(at(LIFT_TIMING.open).lift.openness,1);
+ assert.equal(at(0).lift.floor,0);assert.equal(at(CINEMATIC_SECONDS).lift.floor,1);
+ for(const boundary of Object.values(LIFT_TIMING)){const a=at(boundary-.00001),b=at(boundary+.00001);assert.ok(a.position.distanceTo(b.position)<1e-4);assert.ok(a.quaternion.angleTo(b.quaternion)<1e-4);}
 });

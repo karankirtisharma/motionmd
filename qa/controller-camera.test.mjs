@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createCollisionWorld } from '../src/runtime/interaction/CollisionWorld.ts';
+import { CinematicPath, CINEMATIC_HANDOFF } from '../src/runtime/rendering/cinematic.ts';
 
 const manifest = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url), 'utf8'));
 delete manifest.lift; // This fixture isolates existing avatar/camera tests; lift has its own integration suite.
@@ -195,6 +196,31 @@ test('actual handoff controller keeps third-person outside the body and preserve
     const chair = manifest.chairs.find(item => item.id === 'chair-03');
     assert.ok(Math.abs(camera.position.y - chair.seatPosition[1] - avatar.view.seatedEyeOffset) < 0.01);
     finitePose(); capture('seated body');
+    if (controller.cameraView === 'bodyCam') controller.toggleCameraView();
+    controller.exitExplore();
+    const final = new CinematicPath(manifest).sample(1);
+    camera.position.copy(final.position); camera.quaternion.copy(final.quaternion);
+    controller.enterExplore(final, CINEMATIC_HANDOFF); advance(180);
+    assert.ok(physics.canStandAt(controller.player.position), 'founder handoff must fit the full avatar');
+    assert.ok(Math.abs(controller.player.position.y - 4.23) < .035, 'handoff remains on upper floor');
+    assert.ok(camera.position.distanceTo(final.position) < .1, 'final cinematic blends into the nearby follow camera: '+JSON.stringify({camera:camera.position.toArray(),final:final.position.toArray(),feet:controller.player.position.toArray()}));
+    let animationSpeed = Infinity;
+    const updateAvatar = avatar.update.bind(avatar);
+    avatar.update = (dt, speed, ...rest) => { animationSpeed = speed; return updateAvatar(dt, speed, ...rest); };
+    controller.enterExplore(undefined, { position: [16, 4.23, -8.7], yaw: 0 });
+    controller.setVirtualInput(0, 1); advance(240);
+    assert.ok(controller.player.position.z > -9.63, 'founder cabinet blocks walking');
+    assert.ok(animationSpeed < .02, 'blocked locomotion must settle into idle instead of walking through the cabinet: '+animationSpeed);
+    capture('founder cabinet stop');
+    controller.setVirtualInput(0,0);
+    controller.enterExplore(undefined,{position:[-1.3,4.2,-17],yaw:-Math.PI/2});
+    controller.setVirtualInput(0,1);advance(180);controller.setVirtualInput(0,0);advance(120);
+    assert.ok(controller.player.position.x < -.70, 'bridge glass stops the avatar');
+    assert.ok(horizontalDistance() < .12, 'tight follow clearance uses a comfortable eye view');
+    assert.equal(controller.cameraView,'thirdPerson','automatic clearance preserves the explicit V-key preference');
+    controller.setVirtualInput(0,0,-Math.PI/2/.0021,0);advance(180);
+    assert.ok(horizontalDistance()>1.8,'looking along the clear walkway restores third-person follow');
+    capture('bridge follow restored');
     context.diagnostic(JSON.stringify(poses));
   } finally {
     controller.dispose();

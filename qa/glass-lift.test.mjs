@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { createCollisionWorld } from '../src/runtime/interaction/CollisionWorld.ts';
 import { createGlassLift } from '../src/runtime/interaction/GlassLift.ts';
-import { CinematicPath } from '../src/runtime/rendering/cinematic.ts';
+import { CinematicPath, CINEMATIC_SECONDS } from '../src/runtime/rendering/cinematic.ts';
 const manifest = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url)));
 async function load(url) {
  let b=fs.readFileSync(new URL('../public'+url,import.meta.url));
@@ -104,15 +104,18 @@ test('hydraulic sheave/ram moves at half cabin speed and cable length stays cons
   }finally{f.dispose();}
 });
 
-test('existing cinematic clears the new enclosure and moving cabin at both stops',async()=>{
-  const f=await fixture(),path=new CinematicPath(manifest),shape=new RAPIER.Ball(.16);try {
-    for(const upper of [false,true]) {
-      if(upper){const p=new THREE.Vector3(13.35,.035,1.15);f.lift.interact(p);tick(f,p);}
-      for(let i=0;i<=2000;i++){
-        const pos=path.sample(i/2000).position;
-        const hit=f.p.world.intersectionWithShape(pos,{x:0,y:0,z:0,w:1},shape,undefined,undefined,f.p.capsule,f.p.body,c=>String(f.p.colliderNames.get(c.handle)).includes('LF102'));
-        assert.ok(!hit,`lift blocks cinematic ${i/2000}: ${pos.toArray()}`);
-      }
+test('full cinematic stays clear of architecture and the synchronized moving lift',async()=>{
+  const f=await fixture(),path=new CinematicPath(manifest),shape=new RAPIER.Ball(.17);try {
+    for(let i=0;i<=9120;i++){
+      const pose=path.sample(i/9120);f.lift.setCinematicPose(pose.lift);
+      const hit=f.p.world.intersectionWithShape(pose.position,{x:0,y:0,z:0,w:1},shape,undefined,undefined,f.p.capsule,f.p.body);
+      assert.ok(!hit,'blocked at '+i/9120*CINEMATIC_SECONDS+' seconds: '+f.p.colliderNames.get(hit?.handle));
     }
+    assert.equal(f.lift.state.floor,1);assert.equal(f.lift.state.openness,1);
+    assert.deepEqual(f.lift.state.doorLocked,[true,false]);
+    // Handoff keeps the lift upstairs and callable for a return trip.
+    const feet=new THREE.Vector3(13.35,4.23,1.15);f.p.place(feet);f.lift.interact(feet);tick(f,feet);
+    assert.equal(f.lift.state.floor,0);
+    f.lift.setCinematicPose(path.sample(0).lift);assert.equal(f.lift.state.height,0);
   }finally{f.dispose();}
 });

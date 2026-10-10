@@ -4967,7 +4967,8 @@
     "additionalUrls": [
       "/assets/repair-v6/solid-collision.glb",
       "/assets/geometry/circulation-collision.glb",
-      "/assets/founder-lift-v10/lift-collision.glb"
+      "/assets/founder-lift-v10/lift-collision.glb",
+      "/assets/experience-v11/additional-solids.glb"
     ],
     "coverageReport": "/assets/repair-v6/collision-coverage.json"
   },

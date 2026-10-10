@@ -12,7 +12,7 @@ const source = fs.readFileSync(new URL('../src/runtime/SceneRuntime.ts', import.
 const threeImport = source.split(/\r?\n/)[0].replace("'three'", JSON.stringify(import.meta.resolve('three')));
 const body = source.replace(/^import .*;\r?$/gm, '');
 const compiled = ts.transpileModule(body, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
-const cinematicImport = `import { CINEMATIC_SECONDS } from ${JSON.stringify(new URL('../src/runtime/rendering/cinematic.ts', import.meta.url).href)};`;
+const cinematicImport = `import { CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from ${JSON.stringify(new URL('../src/runtime/rendering/cinematic.ts', import.meta.url).href)};`;
 const { SceneRuntime } = await import(`data:text/javascript;base64,${Buffer.from(`${threeImport}\n${cinematicImport}\n${compiled}`).toString('base64')}`);
 
 function fixture(mode = 'explore') {
@@ -22,6 +22,7 @@ function fixture(mode = 'explore') {
   const shadow = { needsUpdate: false };
   const controls = {
     enabled: true, visible: mode !== 'tour',
+    setCinematicLiftPose() { return false; },
     update() { if (!this.enabled) return false; stats.characterFrames++; return true; },
     setEnabled(value) { this.enabled = value; },
     enterExplore() { this.visible = true; this.enabled = true; },
