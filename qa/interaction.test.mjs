@@ -58,25 +58,21 @@ test('diagonal movement stays at walking speed and respects camera yaw', () => {
   assert.ok(rightFacing.x > 0.999 && Math.abs(rightFacing.z) < 1e-10);
 });
 
-test('the exported architectural stair can be climbed to its actual landing', async () => {
-  const bytes = readAsset(manifest.collisions.url);
-  const root = (await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '')).scene;
-  const physics = await createCollisionWorld(root, undefined, root);
+test('the approved helical stair supports walking and sprinting in both directions', async () => {
+  const physics = await sourceCollision();
   try {
-    assert.ok(physics.meshCount > 100 && physics.triangleCount > 10000, 'the test must use source architectural geometry');
-    const feet = new THREE.Vector3(18.45, 0, -26.187);
-    physics.place(feet);
-    let grounded = false, velocityY = 0;
-    for (let i = 0; i < 310; i++) {
-      velocityY = grounded ? -0.06 : Math.max(-16, velocityY - 9.81 / 60);
-      grounded = physics.move(new THREE.Vector3(0.422618 * 1.38 / 60, velocityY / 60, 0.906308 * 1.38 / 60), 1 / 60, feet);
+    const route=[];
+    for(let i=0;i<=160;i++) {const a=(60+315/46)-(315+315/46)*i/160,r=a*Math.PI/180;route.push([18.76+1.55*Math.cos(r),3.67/24*((60-a)/(315/23)+.5),-(20.2+1.55*Math.sin(r))]);}
+    for(const speed of [1.38,3.35]) for(const direction of [1,-1]) {
+      const points=direction===1?route:[...route].reverse(),feet=new THREE.Vector3(...points[0]);feet.y=physics.groundAt(feet);physics.place(feet);let grounded=true,v=0;
+      for(const target of points.slice(1)) {
+        for(let i=0;i<180;i++) {const d=new THREE.Vector3(target[0]-feet.x,0,target[2]-feet.z);if(d.length()<.045)break;d.clampLength(0,speed/60);v=grounded?-.5:Math.max(-16,v-9.81/60);d.y=v/60;grounded=physics.move(d,1/60,feet);}
+        assert.ok(Math.hypot(feet.x-target[0],feet.z-target[2])<.1,`stair blocked at ${feet.toArray()}`);
+        assert.ok(Math.abs(feet.y-target[1])<.2,`stair support drift at ${feet.toArray()}`);
+      }
+      assert.ok(Math.abs(feet.y-(direction>0?3.67:0))<.06,'the complete stair must connect the actual floors');
     }
-    assert.ok(feet.y > 2.72 && feet.y < 2.80, `must reach source landing at 2.756 m, got ${feet.y}`);
-    assert.ok(grounded, 'the player must remain grounded on the landing');
-  } finally {
-    physics.dispose();
-    root.traverse((item) => { if (item.isMesh) { item.geometry.dispose(); (Array.isArray(item.material) ? item.material : [item.material]).forEach((material) => material.dispose()); } });
-  }
+  } finally {physics.dispose();}
 });
 
 test('damping response is stable across frame rates and heading wraps by shortest angle', () => {

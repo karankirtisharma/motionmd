@@ -43,6 +43,7 @@ export function createRocketboxAvatar(gltf: GLTF) {
     return found;
   }
   const pelvis = bone('Bip01 Pelvis');
+  const spine = bone('Bip01 Spine');
   const eyes = [bone('Bip01 LEye'), bone('Bip01 REye')];
   const eyeHeight = eyes.reduce((sum, eye) => sum + eye.getWorldPosition(new THREE.Vector3()).y, 0) / eyes.length;
   const legs = ['L', 'R'].map((side) => {
@@ -53,7 +54,15 @@ export function createRocketboxAvatar(gltf: GLTF) {
   const seatedHipHeight = pelvis.getWorldPosition(new THREE.Vector3()).y;
   const seatedEyeOffset = eyes.reduce((sum, eye) => sum + eye.getWorldPosition(new THREE.Vector3()).y, 0) / eyes.length - seatedHipHeight + 0.075;
   actions.sit.setEffectiveWeight(0); actions.idle.setEffectiveWeight(1); mixer.update(0);
-  let speedSmoothed = 0;
+  let speedSmoothed = 0, gaitPhase = 0, previousYaw = root.rotation.y;
+  let forwardLean = 0, sideLean = 0;
+  const walkDuration = actions.walk.getClip().duration, runDuration = actions.run.getClip().duration;
+  // Source left-foot forward peaks are at .242 (walk) and .292 (run).
+  // Drive both loops from one distance-based phase so sprint blends keep the same supporting leg.
+  actions.walk.paused = true; actions.run.paused = true;
+  const parentRotation = new THREE.Quaternion(), localRotation = new THREE.Quaternion();
+  const worldRotation = new THREE.Quaternion(), leanRotation = new THREE.Quaternion();
+  const rightAxis = new THREE.Vector3(), forwardAxis = new THREE.Vector3();
 
   function setWorldQuaternion(object: THREE.Object3D, quaternion: THREE.Quaternion) {
     const parent = object.parent?.getWorldQuaternion(new THREE.Quaternion()) ?? new THREE.Quaternion();
@@ -92,22 +101,50 @@ export function createRocketboxAvatar(gltf: GLTF) {
     root,
     animations: gltf.animations.map((clip) => clip.name),
     view: { eyeHeight, seatedEyeOffset },
+    get locomotion() {
+      return { phase: gaitPhase, speed: speedSmoothed, forwardLean, sideLean,
+        weights: Object.fromEntries(Object.entries(actions).map(([name, value]) => [name, value.getEffectiveWeight()])) };
+    },
     setBodyView(active: boolean) {
       // The source GLB has separate head/hair primitives. Hide only these locally;
       // torso, arms, legs, source rig and the immutable asset stay intact.
       headMeshes.forEach(({ mesh, visible }) => { mesh.visible = active ? false : visible; });
     },
     update(dt: number, speed: number, seated: number, seatHeight = 0.55) {
-      speedSmoothed = THREE.MathUtils.lerp(speedSmoothed, speed, damping(10, dt));
+      dt = THREE.MathUtils.clamp(dt, 0, 0.1);
+      seated = THREE.MathUtils.clamp(seated, 0, 1);
+      const oldSpeed = speedSmoothed;
+      speedSmoothed = THREE.MathUtils.lerp(speedSmoothed, Math.max(0, speed), damping(speed < speedSmoothed ? 14 : 9, dt));
       const running = THREE.MathUtils.smoothstep(speedSmoothed, 1.8, 3.4);
       const walking = THREE.MathUtils.smoothstep(speedSmoothed, 0.02, 0.6);
       actions.idle.setEffectiveWeight((1 - walking) * (1 - seated));
       actions.walk.setEffectiveWeight(walking * (1 - running) * (1 - seated));
       actions.run.setEffectiveWeight(walking * running * (1 - seated));
       actions.sit.setEffectiveWeight(seated);
-      actions.walk.setEffectiveTimeScale(Math.max(0.5, speedSmoothed / 1.35));
-      actions.run.setEffectiveTimeScale(Math.max(0.65, speedSmoothed / 3.35));
+      const stride = THREE.MathUtils.lerp(1.35 * walkDuration, 3.35 * runDuration, running);
+      gaitPhase = (gaitPhase + speedSmoothed * (1 - seated) * dt / stride) % 1;
+      actions.walk.time = gaitPhase * walkDuration;
+      actions.run.time = ((gaitPhase + 0.05) % 1) * runDuration;
       mixer.update(dt);
+      const turnRate = dt > 0 ? Math.atan2(Math.sin(root.rotation.y - previousYaw), Math.cos(root.rotation.y - previousYaw)) / dt : 0;
+      previousYaw = root.rotation.y;
+      const acceleration = dt > 0 ? (speedSmoothed - oldSpeed) / dt : 0;
+      const moving = walking * (1 - seated);
+      const pitchTarget = THREE.MathUtils.clamp(acceleration * 0.008 + running * 0.035, -0.035, 0.065) * moving;
+      const bankTarget = THREE.MathUtils.clamp(-turnRate * speedSmoothed * 0.009, -0.07, 0.07) * moving;
+      forwardLean = THREE.MathUtils.lerp(forwardLean, pitchTarget, damping(9, dt));
+      sideLean = THREE.MathUtils.lerp(sideLean, bankTarget, damping(9, dt));
+      // Add small upper-body weight shifts after the source motion. Feet and collision capsule stay upright.
+      // Suppress the layer immediately during sitting; the source sitting/foot IK owns that pose.
+      root.getWorldQuaternion(worldRotation);
+      rightAxis.set(1, 0, 0).applyQuaternion(worldRotation);
+      forwardAxis.set(0, 0, 1).applyQuaternion(worldRotation);
+      leanRotation.setFromAxisAngle(rightAxis, forwardLean * (1 - seated));
+      localRotation.setFromAxisAngle(forwardAxis, sideLean * (1 - seated));
+      leanRotation.multiply(localRotation);
+      spine.parent!.getWorldQuaternion(parentRotation);
+      localRotation.copy(parentRotation).invert().multiply(leanRotation).multiply(parentRotation);
+      spine.quaternion.premultiply(localRotation);
       // The bone pivot sits inside the pelvis, above the actual cushion contact.
       model.position.y = baseline + (seatHeight + 0.075 - seatedHipHeight) * seated;
       model.updateWorldMatrix(true, true);

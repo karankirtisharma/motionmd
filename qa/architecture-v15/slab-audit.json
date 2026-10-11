@@ -1,0 +1,268 @@
+[
+  {
+    "label": "slab route 0",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      7.4833173751831055,
+      3.6761138534545896,
+      -22.778051376342773
+    ]
+  },
+  {
+    "label": "reverse slab route 0",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      -1.0824553966522217,
+      4.232999572753907,
+      -11.523045539855957
+    ]
+  },
+  {
+    "label": "slab route 1",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      7.373192310333252,
+      3.675999889373779,
+      -21.59999656677246
+    ]
+  },
+  {
+    "label": "reverse slab route 1",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      5.52225399017334,
+      4.234009513854981,
+      -21.59999656677246
+    ]
+  },
+  {
+    "label": "slab route 2",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      7.37678337097168,
+      3.674999961853027,
+      -22.29999351501465
+    ]
+  },
+  {
+    "label": "reverse slab route 2",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      5.5241923332214355,
+      4.233971843719483,
+      -22.29999542236328
+    ]
+  },
+  {
+    "label": "slab route 3",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      7.355320453643799,
+      3.675966510772705,
+      -23.300003051757812
+    ]
+  },
+  {
+    "label": "reverse slab route 3",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      5.534198760986328,
+      4.234113464355469,
+      -23.30000114440918
+    ]
+  },
+  {
+    "label": "slab route 4",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      7.376471042633057,
+      3.675999889373779,
+      -24.100008010864258
+    ]
+  },
+  {
+    "label": "reverse slab route 4",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      5.544997692108154,
+      4.229069004058839,
+      -24.099998474121094
+    ]
+  },
+  {
+    "label": "slab route 0",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      7.483670234680176,
+      3.6758363342285154,
+      -22.77857780456543
+    ]
+  },
+  {
+    "label": "reverse slab route 0",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      -1.0732922554016113,
+      4.234056243896485,
+      -11.535102844238281
+    ]
+  },
+  {
+    "label": "slab route 1",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      7.398370742797852,
+      3.674999485015869,
+      -21.600000381469727
+    ]
+  },
+  {
+    "label": "reverse slab route 1",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      5.54166316986084,
+      4.233177909851075,
+      -21.60000228881836
+    ]
+  },
+  {
+    "label": "slab route 2",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      7.398115158081055,
+      3.67610050201416,
+      -22.299999237060547
+    ]
+  },
+  {
+    "label": "reverse slab route 2",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      5.500357627868652,
+      4.237643489837647,
+      -22.29983901977539
+    ]
+  },
+  {
+    "label": "slab route 3",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      7.3988142013549805,
+      3.675999889373779,
+      -23.299999237060547
+    ]
+  },
+  {
+    "label": "reverse slab route 3",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      5.542447090148926,
+      4.2340362167358405,
+      -23.30000114440918
+    ]
+  },
+  {
+    "label": "slab route 4",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      7.356318473815918,
+      3.676091442108154,
+      -24.09999656677246
+    ]
+  },
+  {
+    "label": "reverse slab route 4",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      5.534396648406982,
+      4.22911382675171,
+      -24.099994659423828
+    ]
+  },
+  {
+    "label": "solid slab 0,13",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 1,15",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 2,17",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 3,19",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 4,20",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 5.5,21",
+    "pass": true,
+    "ground": 4.232999618530273
+  },
+  {
+    "label": "solid slab 6.15,22",
+    "pass": true,
+    "ground": 4.1999995589256285
+  },
+  {
+    "label": "solid slab 6.45,22",
+    "pass": true,
+    "ground": 4.025000095367432
+  },
+  {
+    "label": "solid slab 6.75,22",
+    "pass": true,
+    "ground": 3.850000035762787
+  },
+  {
+    "label": "solid slab 7.3,22.5",
+    "pass": true,
+    "ground": 3.674999856948852
+  },
+  {
+    "label": "curved outer guard 0.25",
+    "pass": true
+  },
+  {
+    "label": "curved outer guard 0.5",
+    "pass": true
+  },
+  {
+    "label": "curved outer guard 0.75",
+    "pass": true
+  },
+  {
+    "label": "central atrium remains open",
+    "pass": true
+  }
+]

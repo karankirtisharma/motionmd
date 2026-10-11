@@ -9,24 +9,23 @@ async function fixture() { const root = new THREE.Group(); for (const url of [ma
     const b = fs.readFileSync(new URL('../public' + url, import.meta.url));
     root.add((await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset, b.byteOffset + b.length), '')).scene);
 } const ground = new THREE.Mesh(new THREE.BoxGeometry(120, .1, 120)); ground.position.set(0, -.405, 0); root.add(ground); return createCollisionWorld(root, undefined, root); }
-test('all six desks, monitors and limestone piers stop the full capsule', async (t) => {
+test('all six approved desk positions and eighteen monitors stop the full capsule', async (t) => {
     const p = await fixture();
     try {
-        for (const [x, z] of [[8, -34.2], [12, -31.6], [15.2, -33.25], [18.2, -30.7], [11, -25.7], [14.3, -25.7]])
+        for (const [x, z] of [[18.11,-27.31],[10.49,-32.09],[14.3,-32.09],[18.11,-32.09],[10.49,-27.31],[14.3,-27.31]])
             assert.equal(p.canStandAt(new THREE.Vector3(x, p.groundAt(new THREE.Vector3(x, 0, z)), z)), false, `desk ${x},${z} must block torso`);
         const names = [...p.colliderNames.values()];
         assert.equal(names.filter(n => n.includes('continuous curved aluminium display housing')).length, 18);
-        for (const [x, z, dx, dz] of [[6.5, -34.2, 1, 0], [8.5, -31.6, 1, 0], [16, -30.7, 1, 0], [9, -25.7, 1, 0], [12.95, -25.7, 1, 0]]) {
+        for (const [x, z, dx, dz] of [[10.49,-29.4,0,1],[14.3,-29.4,0,1],[18.11,-29.4,0,1],[10.49,-30,0,-1],[14.3,-30,0,-1],[18.11,-30,0,-1]]) {
             const feet = new THREE.Vector3(x, 0, z);
             feet.y = p.groundAt(feet);
             p.place(feet);
             for (let i = 0; i < 150; i++)
                 p.move(new THREE.Vector3(dx * 3.35 / 60, -.5 / 60, dz * 3.35 / 60), 1 / 60, feet);
-            assert.ok(feet.x < x + 2.3, `sprinting must stop at furniture: ${feet.toArray()}`);
+            assert.ok(Math.hypot(feet.x-x,feet.z-z) < 2.3, `sprinting must stop at furniture: ${feet.toArray()}`);
             assert.ok(feet.y < .30, `must not auto-step onto a desktop (${x},${z}): ${feet.toArray()}`);
         }
-        assert.equal(p.canStandAt(new THREE.Vector3(18.43, 0, -33.13)), false, 'structural pier remains solid after desk moved');
-        assert.ok(p.canStandAt(new THREE.Vector3(18.2, .03, -32.65)), 'old tabletop area ahead of column is now clear');
+        assert.ok(!names.some(n=>/R9 limestone gallery pier\.00[12]/.test(n)), 'piers retired in the approved model must not leave ghost colliders');
     }
     finally {
         p.dispose();

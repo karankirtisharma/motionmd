@@ -3,7 +3,7 @@ import type { ChairDefinition, SceneManifest, RuntimeHint } from '../../types';
 import { createCollisionWorld } from './CollisionWorld';
 import { createGlassLift } from './GlassLift';
 import { loadAvatar } from './Avatar';
-import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smootherStep, smoothAngle } from './movement';
+import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
 import { createPresentationScreen } from '../presentation/PresentationScreen';
 import { assetURL } from '../rendering/assets';
@@ -73,7 +73,6 @@ export async function createInteractionController(options: Options) {
   let yaw = manifest.spawn.yaw ?? 0, pitch = 0.16, bodyYaw = yaw + Math.PI;
   let previousBodyYaw = bodyYaw, renderBodyYaw = bodyYaw;
   let cameraView: CameraView = 'thirdPerson';
-  let closeCamera = false;
   let intentionalUnlock = false, pointerLockUnavailable = false, cameraFloor = feet.y, cameraBlendDuration = 1.15;
   let verticalVelocity = 0, accumulator = 0, transition = 0, seatWeight = 0, cameraBlend = 0;
   let approachTime = 0, lastPrompt = '', dragging = false;
@@ -195,6 +194,9 @@ export async function createInteractionController(options: Options) {
       const relative = cameraRelativeMove(moveX, moveY, yaw);
       speed = keys.has('ShiftLeft') || keys.has('ShiftRight') || virtual.sprint ? 3.35 : 1.38;
       displacement.set(relative.x * speed, 0, relative.z * speed);
+      if (cameraView === 'thirdPerson' && displacement.lengthSq() > 0.001) {
+        displacement.multiplyScalar(turnSpeedFactor(bodyYaw, Math.atan2(displacement.x, displacement.z)));
+      }
     } else if (mode === 'approach' && selected) {
       approachTime += STEP;
       displacement.copy(selected.approach).sub(feet); displacement.y = 0;
@@ -218,7 +220,7 @@ export async function createInteractionController(options: Options) {
     // Millimetre contact corrections at a blocked wall are not a walking gait.
     actualSpeed = THREE.MathUtils.lerp(actualSpeed, achievedSpeed < 0.06 ? 0 : achievedSpeed, damping(16, STEP));
     if (cameraView === 'bodyCam' && mode === 'explore') bodyYaw = smoothAngle(bodyYaw, yaw + Math.PI, damping(14, STEP));
-    else if (velocity.lengthSq() > 0.004) bodyYaw = smoothAngle(bodyYaw, Math.atan2(velocity.x, velocity.z), damping(10, STEP));
+    else if (achievedSpeed > 0.06) bodyYaw = locomotionHeading(bodyYaw, Math.atan2(feet.x - oldX, feet.z - oldZ), achievedSpeed, STEP);
     if (feet.y < -10) { feet.fromArray(manifest.spawn.position); feet.y = physics.groundAt(feet); physics.place(feet); previousFeet.copy(feet); renderFeet.copy(feet); verticalVelocity = 0; }
   }
   function updateCamera(dt: number) {
@@ -229,14 +231,9 @@ export async function createInteractionController(options: Options) {
     pivot.copy(renderFeet).setY(cameraFloor + (selected ? THREE.MathUtils.lerp(1.35, selected.height + 0.68, seatWeight) : 1.35));
     const followDistance = lift?.inside(renderFeet) ? 1.05 : 2.45;
     desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * followDistance, Math.sin(pitch) * followDistance + 0.10, Math.cos(yaw) * Math.cos(pitch) * followDistance).add(pivot);
-    const clearance = physics.cameraDistance(pivot, desiredCamera);
-    const useCloseCamera = !seatedView && cameraView === 'thirdPerson' && clearance < (closeCamera ? 1.7 : 1.4);
-    if (useCloseCamera !== closeCamera) {
-      closeCamera = useCloseCamera;
-      cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion);
-      cameraBlend = 0; cameraBlendDuration = 0.3;
-    }
-    const firstPerson = cameraView === 'bodyCam' || closeCamera;
+    // Obstructions shorten the follow boom below; only explicit V input changes
+    // perspective. A corner must not trigger an eye-height/FOV transition.
+    const firstPerson = cameraView === 'bodyCam';
     if (firstPerson) {
       const direction = cameraLookDirection(yaw, pitch);
       // The camera sits at calibrated eye height, inside the capsule. It does not
@@ -341,7 +338,7 @@ export async function createInteractionController(options: Options) {
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
-    cameraBlend = 0; cameraBlendDuration = 1.15; closeCamera = false; mode = 'explore'; selected = undefined; seatWeight = 0;
+    cameraBlend = 0; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
     feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
     physics.place(feet); velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; accumulator = 0; grounded = false;

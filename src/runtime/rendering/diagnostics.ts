@@ -3,7 +3,7 @@ import { MeshBasicNodeMaterial } from 'three/webgpu';
 import { color, texture, uv, vec3 } from 'three/tsl';
 import type Node from 'three/src/nodes/core/Node.js';
 
-export type DiagnosticMode = 'full' | 'albedo' | 'baked' | 'no-normals';
+export type DiagnosticMode = 'full' | 'albedo' | 'baked' | 'no-normals' | 'no-shadows';
 type Surface = Material & { color?: Color; colorNode?: MeshBasicNodeMaterial['colorNode']; map?: Texture | null; lightMap?: Texture | null; lightMapIntensity?: number; normalMap?: Texture | null; bumpMap?: Texture | null; clearcoatNormalMap?: Texture | null; normalNode?: unknown; clearcoatNormalNode?: unknown; transmission?: number; metalness?: number; metalnessMap?: Texture | null };
 
 /** Review-only material substitutions. Shared source texture data is never modified. */
@@ -18,7 +18,7 @@ export class RenderDiagnostics {
       if (!(object instanceof Mesh)) return;
       if (!this.originals.has(object)) this.originals.set(object, object.material);
       const original = this.originals.get(object)!;
-      if (mode === 'full') { object.material = original; return; }
+      if (mode === 'full' || mode === 'no-shadows') { object.material = original; return; }
       const replace = (material: Material) => this.variant(material as Surface, mode);
       object.material = Array.isArray(original) ? original.map(replace) : replace(original);
     });

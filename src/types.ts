@@ -32,6 +32,8 @@ export type SceneManifest = {
   materials?: Array<{
     name: string; objectNames?: string[]; lightMap?: string; lightMapIntensity?: number;
     lightMapMode?: 'indirect' | 'combined'; uvChannel?: number;
+    /** false: thin parts (rail tubes) whose 2-3 texel sun shadow would shimmer under temporal jitter. */
+    castShadow?: boolean;
     map?: string; normalMap?: string; roughnessMap?: string; metalnessMap?: string;
     aoMap?: string; emissiveMap?: string;
     sourcePBR?: { uvChannel: number; map?: string; normalMap?: string; roughnessMap?: string; metalnessMap?: string; roughness?: number; metalness?: number; normalScale?: [number, number]; clearcoat?: number; clearcoatRoughness?: number; ior?: number; doubleSided?: boolean; alphaTest?: number; opacity?: number; lighting: 'probe' };

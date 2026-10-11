@@ -21,7 +21,7 @@ export function prepareSourceMaterials(root: Object3D, renderer: WebGPURenderer)
     if (!(object instanceof Mesh)) return;
     const materials: Material[] = Array.isArray(object.material) ? object.material : [object.material];
     if (!object.userData.contextOnly && !object.geometry.userData.contextOnly) {
-      object.castShadow = true; object.receiveShadow = true;
+      object.castShadow = object.userData.castShadow !== false; object.receiveShadow = true;
     }
     object.frustumCulled = !('isSkinnedMesh' in object);
     for (const material of materials) {
@@ -133,6 +133,7 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
       const source = Array.isArray(object.material) ? object.material : [object.material];
       const updated = source.map(material => {
         if (material.name !== entry.name && !entry.objectNames?.includes(object.name)) return material;
+        if (entry.castShadow === false) { object.userData.castShadow = false; object.castShadow = false; }
         if (entry.lightMapMode === 'combined' && lightMap) {
           // A combined Cycles bake already contains reflected radiance and albedo.
           const result = new MeshBasicMaterial({ map: lightMap, color: new Color(1, 1, 1), side: material.side });

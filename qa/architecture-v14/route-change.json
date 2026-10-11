@@ -1,0 +1,31 @@
+{
+  "sourceSHA256": "8ad5abad8f7030fae9eb0943a214923c3587cfb8ccc06e270f7ec5a9038a331f",
+  "retired": [
+    "V13 | Hall bridge guard glass (opened)",
+    "V13 | rounded balcony bridge corner",
+    "V13 | curved corner guard glass",
+    "V13 | atrium bridge limestone body",
+    "V13 | atrium bridge walking finish",
+    "V13 | atrium bridge west guard glass",
+    "V13 | atrium bridge west soffit light",
+    "V13 | atrium bridge east guard glass",
+    "V13 | atrium bridge east soffit light",
+    "V13 | round rail | UC47 east upper stair guard top rail",
+    "V13 | round rail | SG49 front passage end rail",
+    "V13 | round rail | SG49 rear passage end rail"
+  ],
+  "added": [
+    "V14 | Expanded perimeter landing limestone",
+    "V14 | Expanded perimeter landing marble",
+    "V14 | Continuous perimeter glass",
+    "V14 | Continuous perimeter bronze handrail",
+    "V14 | Founder gallery restored opening guard",
+    "V14 | Founder gallery restored handrail",
+    "V14 | Studio passage restored opening guard",
+    "V14 | Studio passage continuous handrail"
+  ],
+  "cornerRadiusBefore": 1.65,
+  "cornerRadiusAfter": 4.05,
+  "centerBridgeRemoved": true,
+  "restOfApprovedModelUnchanged": true
+}

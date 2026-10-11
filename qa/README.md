@@ -1,5 +1,13 @@
 # Scene and interaction checks
 
+## Current suite — 11 October 2026
+
+**49 checks pass against v16.** Read [v16 diagnosis](architecture-v16/README.md) first. Additional audits verify lossless geometry, marble continuity, glass transmission, traversal, guards and cinematic clearance. Browser evidence is recorded there. Build, TypeScript and dependency checks pass.
+
+## Previous checkpoint — 10 October 2026
+
+Run **`npm test`** for the complete current suite: **47 checks** at the v12 handoff, including collision coverage and the hydraulic lift tests omitted by some older individual command lists below. Read [v12](experience-v12/README.md) for the latest collision/animation changes and [v11](experience-v11/README.md) for the 90-second showcase. Sections describing earlier counts or camera limits below are historical scope notes, superseded by these records and executable tests.
+
 Run from this app directory using Node.js 24 LTS. Install the locked dependencies with `npm ci`, then:
 
 ```sh
@@ -52,7 +60,7 @@ Two checks verify that the distant dune ring stays outside the source ground exc
 
 ## Cinematic checks
 
-Two checks load the delivered camera manifest and execute the actual cinematic sampler. They preserve the source inspection route, require a 45–60 second short edit, verify the original exploration handoff, and sample motion at 60 Hz. The current limits are 1.05 m/s translation, 20 degrees/second rotation, and 2.2 m/s² acceleration. The track must start and finish at rest. A separate source-collider audit samples the exact position spline 10,001 times with a 16 cm clearance sphere; this audit does not prove framing or visual composition.
+The current cinematic checks execute the actual 90-second sampler, require coverage of the PC screen fronts, hanging MD, atrium MD, presentation room and lift/founder room, and reject the old staircase detour. Limits are 2.4 m/s translation, 40 degrees/second turning and 4 m/s² acceleration. A 9,121-sample check tests a 17 cm camera sphere against the source architecture and synchronized moving lift. The end must hand off to a valid upstairs exploration position. Clearance checks do not prove composition or cinematic quality.
 
 ## Runtime checks
 

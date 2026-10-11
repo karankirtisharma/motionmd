@@ -1,0 +1,33 @@
+{
+  "comparedTo": "approved v14 derivative",
+  "unchanged": 8869,
+  "unexpectedChanges": [],
+  "removed": [
+    "SG49 front passage end glass",
+    "UC47 east upper stair guard glass",
+    "V13 | gallery edge guard glass x6.9-7.8",
+    "V14 | Continuous perimeter bronze handrail",
+    "V14 | Continuous perimeter glass",
+    "V14 | Expanded perimeter landing limestone",
+    "V14 | Expanded perimeter landing marble",
+    "V14 | Studio passage continuous handrail",
+    "V14 | Studio passage restored opening guard",
+    "WG53 raised east edge guard glass"
+  ],
+  "added": [
+    "V15 | Full width landing outer glass",
+    "V15 | Full width landing outer handrail",
+    "V15 | Gallery connection limestone slab",
+    "V15 | Gallery connection marble finish",
+    "V15 | Lower extended tread limestone slab",
+    "V15 | Lower extended tread marble finish",
+    "V15 | Main landing limestone slab",
+    "V15 | Main landing marble finish",
+    "V15 | Middle extended tread limestone slab",
+    "V15 | Middle extended tread marble finish",
+    "V15 | Studio remaining opening glass",
+    "V15 | Upper extended tread limestone slab",
+    "V15 | Upper extended tread marble finish"
+  ],
+  "onlyRequestedChanges": true
+}

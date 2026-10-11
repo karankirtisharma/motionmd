@@ -21,6 +21,23 @@ export function smoothAngle(current: number, target: number, alpha: number) {
   return current + difference * Math.max(0, Math.min(1, alpha));
 }
 
+/** A planted body takes time to reverse direction; never snap 180 degrees in one tick. */
+export function locomotionHeading(current: number, target: number, speed: number, dt: number) {
+  const difference = Math.atan2(Math.sin(target - current), Math.cos(target - current));
+  const maxRate = speed > 2 ? 4.6 : 6.2;
+  const step = difference * damping(10, dt);
+  return current + Math.max(-maxRate * dt, Math.min(maxRate * dt, step));
+}
+
+/** Slow sharp changes of travel direction while the body catches up. */
+export function turnSpeedFactor(bodyYaw: number, travelYaw: number) {
+  const cosine = Math.cos(travelYaw - bodyYaw);
+  // Small contact corrections must not feed back into the controller's forward speed.
+  if (cosine >= Math.cos(Math.PI / 9)) return 1;
+  const alignment = (1 + cosine) / (1 + Math.cos(Math.PI / 9));
+  return 0.35 + 0.65 * alignment;
+}
+
 export function smootherStep(value: number) {
   const x = Math.max(0, Math.min(1, value));
   return x * x * x * (x * (x * 6 - 15) + 10);

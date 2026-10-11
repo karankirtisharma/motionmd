@@ -213,14 +213,17 @@ test('actual handoff controller keeps third-person outside the body and preserve
     assert.ok(animationSpeed < .02, 'blocked locomotion must settle into idle instead of walking through the cabinet: '+animationSpeed);
     capture('founder cabinet stop');
     controller.setVirtualInput(0,0);
-    controller.enterExplore(undefined,{position:[-1.3,4.2,-17],yaw:-Math.PI/2});
+    // The entrance-side glass was retired when the full-width slab was added.
+    // Exercise tight follow clearance against the retained gallery guard instead.
+    controller.enterExplore(undefined,{position:[12,3.675,-24.05],yaw:0});
     controller.setVirtualInput(0,1);advance(180);controller.setVirtualInput(0,0);advance(120);
-    assert.ok(controller.player.position.x < -.70, 'bridge glass stops the avatar');
-    assert.ok(horizontalDistance() < .12, 'tight follow clearance uses a comfortable eye view');
+    assert.ok(controller.player.position.z > -24.65, 'gallery glass stops the avatar');
+    assert.ok(horizontalDistance() > .4 && horizontalDistance() < 1.5, 'tight follow clearance retracts the boom without switching to eye view');
+    assert.ok(Math.abs(camera.fov - 54) < .01, 'obstruction must not trigger a first-person FOV change');
     assert.equal(controller.cameraView,'thirdPerson','automatic clearance preserves the explicit V-key preference');
     controller.setVirtualInput(0,0,-Math.PI/2/.0021,0);advance(180);
     assert.ok(horizontalDistance()>1.8,'looking along the clear walkway restores third-person follow');
-    capture('bridge follow restored');
+    capture('gallery follow restored');
     context.diagnostic(JSON.stringify(poses));
   } finally {
     controller.dispose();

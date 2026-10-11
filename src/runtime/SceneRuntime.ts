@@ -355,6 +355,7 @@ export class SceneRuntime {
     if (!this.inspectionEnabled || !this.manifest) return;
     this.diagnostics ??= new RenderDiagnostics(this.content);
     this.diagnostics.setMode(mode);
+    if (this.lighting) this.lighting.sun.castShadow = mode !== 'no-shadows' && this.manifest.baking?.mode !== 'combined';
     this.temporal?.reset();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
@@ -375,10 +376,10 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7] };
-    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery' || location === 'founder-room' ? 0 : -Math.PI / 2 };
+    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63] };
+    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
     this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
     this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));

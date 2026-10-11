@@ -16,6 +16,7 @@ const avatarSource = transpile('../src/runtime/interaction/RocketboxAvatar.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`);
 const { createRocketboxAvatar } = await import(dataModule(avatarSource));
+const { locomotionHeading, turnSpeedFactor } = await import(movementURL);
 
 // Geometry, skinning and all animation buffers remain intact. Texture decoding
 // needs browser APIs and is unrelated to this numerical pose check.
@@ -33,6 +34,46 @@ header.writeUInt32LE(encoded.length, 12); header.writeUInt32LE(0x4e4f534a, 16);
 const blob = Buffer.concat([header, encoded, bytes.subarray(20 + oldLength)]);
 const load = () => new GLTFLoader().parseAsync(blob.buffer.slice(blob.byteOffset, blob.byteOffset + blob.length), '');
 const seatHeightAboveFloor = 0.56655; // Source cushion top .59155 m minus source chair floor .025 m.
+
+test('walk/run transition shares one foot phase and settles into idle after stopping', async context => {
+  const avatar = createRocketboxAvatar(await load());
+  try {
+    let minWeight = 1, maxWeight = 0, maxLean = 0;
+    for (let frame = 0; frame < 600; frame++) {
+      const speed = frame < 120 ? 1.38 : frame < 300 ? 3.35 : frame < 420 ? 1.38 : 0;
+      if (frame > 180 && frame < 240) avatar.root.rotation.y += .04;
+      avatar.update(1 / 60, speed, 0);
+      const state = avatar.locomotion;
+      const total = Object.values(state.weights).reduce((a, b) => a + b, 0);
+      minWeight = Math.min(minWeight, total); maxWeight = Math.max(maxWeight, total);
+      maxLean = Math.max(maxLean, Math.abs(state.forwardLean), Math.abs(state.sideLean));
+      assert.ok(state.phase >= 0 && state.phase < 1);
+      assert.ok(Math.abs(total - 1) < 1e-6, 'pose weights must remain normalized');
+    }
+    const stopped = avatar.locomotion;
+    assert.ok(stopped.speed < .001 && stopped.weights.idle > .999, 'stop settles instead of walking in place');
+    assert.ok(Math.abs(stopped.sideLean) < .001 && Math.abs(stopped.forwardLean) < .001, 'idle has no leftover bank');
+    assert.ok(maxLean > .02 && maxLean <= .071, 'restrained visible weight transfer');
+    const phase = stopped.phase;
+    for (let i = 0; i < 60; i++) avatar.update(1 / 60, 0, 0);
+    assert.ok(Math.abs(avatar.locomotion.phase - phase) < .001, 'resting gait is frozen');
+    context.diagnostic(JSON.stringify({minWeight, maxWeight, maximumLeanDegrees:maxLean*180/Math.PI}));
+  } finally { avatar.dispose(); }
+});
+
+test('a reversal has bounded body turning and minor contact corrections preserve full speed', () => {
+  for (const hz of [60, 90, 144, 165]) {
+    let angle = 0;
+    for (let i = 0; i < hz; i++) {
+      const next = locomotionHeading(angle, Math.PI, 3.35, 1/hz);
+      assert.ok(Math.abs(next - angle) <= 4.6/hz + 1e-8);
+      angle = next;
+    }
+    assert.ok(Math.abs(angle - Math.PI) < .03, 'reversal remains responsive');
+  }
+  assert.equal(turnSpeedFactor(0, 0.1), 1);
+  assert.ok(turnSpeedFactor(0, Math.PI) < .4);
+});
 
 function updateSkeletons(root) {
   root.updateMatrixWorld(true);

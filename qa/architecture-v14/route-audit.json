@@ -1,0 +1,94 @@
+[
+  {
+    "label": "perimeter to landing",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      18.599985122680664,
+      3.669999847412109,
+      -21.935619354248047
+    ]
+  },
+  {
+    "label": "landing to perimeter",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      -1.1999417543411255,
+      4.233000049591065,
+      -12.034660339355469
+    ]
+  },
+  {
+    "label": "spiral up",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      18.333229064941406,
+      3.670309314727783,
+      -21.68988800048828
+    ]
+  },
+  {
+    "label": "spiral down",
+    "speed": 1.38,
+    "pass": true,
+    "feet": [
+      19.399198532104492,
+      0.03384400367736819,
+      -21.611236572265625
+    ]
+  },
+  {
+    "label": "perimeter to landing",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      18.599998474121094,
+      3.6710002517700193,
+      -21.908864974975586
+    ]
+  },
+  {
+    "label": "landing to perimeter",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      -1.1999980211257935,
+      4.232999572753907,
+      -12.005793571472168
+    ]
+  },
+  {
+    "label": "spiral up",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      18.323585510253906,
+      3.6727359390258787,
+      -21.687040328979492
+    ]
+  },
+  {
+    "label": "spiral down",
+    "speed": 3.35,
+    "pass": true,
+    "feet": [
+      19.369421005249023,
+      0.02159608364105227,
+      -21.62516975402832
+    ]
+  },
+  {
+    "label": "former studio shortcut",
+    "pass": true
+  },
+  {
+    "label": "former founder shortcut",
+    "pass": true
+  },
+  {
+    "label": "perimeter glass",
+    "pass": true
+  }
+]
