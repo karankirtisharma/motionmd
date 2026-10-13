@@ -3,10 +3,10 @@ const m=JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json
 async function fixture(){const r=new T.Group();for(const u of [m.collisions.url,...m.collisions.additionalUrls]){const b=fs.readFileSync(new URL('../public'+u,import.meta.url));r.add((await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.length),'')).scene)}return createCollisionWorld(r,undefined,r)}
 test('previously omitted glass guards, cabinet and club seats block the complete body',async()=>{
  const p=await fixture();try{
-  for(const [name,x,y,z]of [['curved slab guard',5.61875,4.233,-16.175],['gallery guard',12,3.7,-24.9],['cabinet',16,4.25,-10.2],['founder club seat',10.7,4.25,-6.45]])assert.equal(p.canStandAt(new T.Vector3(x,y,z)),false,name);
+  for(const [name,x,y,z]of [['curved slab guard',3.0972,4.233,-11.7776],['gallery guard',12,3.7,-24.9],['cabinet',16,4.25,-10.2],['founder club seat',10.7,4.25,-6.45]])assert.equal(p.canStandAt(new T.Vector3(x,y,z)),false,name);
   for(const speed of [1.38,3.35])for(const [name,start,dir,axis,bound,sign]of [
-   ['curved slab',[4.81,4.233,-16.76],[.81,.585],'x',5.45,1],['gallery',[12,3.675,-24.05],[0,-1],'z',-24.64,-1],['cabinet',[16,4.23,-8.7],[0,-1],'z',-9.62,-1],['club seat',[10.7,4.23,-7.7],[0,1],'z',-7.2,1]
-  ]){const feet=new T.Vector3(...start);p.place(feet);for(let i=0;i<300;i++){p.move(new T.Vector3(dir[0]*speed/60,-.5/60,dir[1]*speed/60),1/60,feet);assert.ok(p.canStandAt(feet),name+' body must stay outside solid geometry');}assert.ok(name==='club seat'||(name==='curved slab' ? .81*(feet.x-5.61875)+.585*(feet.z+16.175)<-.19 : sign*feet[axis]<sign*bound),`${name} at ${speed}: ${feet.toArray()}`);assert.ok(Math.abs(feet.y-start[1])<.045,`${name} must not climb or fall`);}
+   ['curved slab',[2.7908537,4.233,-12.516621],[.38293286,.92377618],'x',3.0972,1],['gallery',[12,3.675,-24.05],[0,-1],'z',-24.64,-1],['cabinet',[16,4.23,-8.7],[0,-1],'z',-9.62,-1],['club seat',[10.7,4.23,-7.7],[0,1],'z',-7.2,1]
+  ]){const feet=new T.Vector3(...start);p.place(feet);for(let i=0;i<300;i++){p.move(new T.Vector3(dir[0]*speed/60,-.5/60,dir[1]*speed/60),1/60,feet);assert.ok(p.canStandAt(feet),name+' body must stay outside solid geometry');}assert.ok(name==='club seat'||(name==='curved slab' ? .38293286*(feet.x-3.0972)+.92377618*(feet.z+11.7776)<-.19 : sign*feet[axis]<sign*bound),`${name} at ${speed}: ${feet.toArray()}`);assert.ok(Math.abs(feet.y-start[1])<.045,`${name} must not climb or fall`);}
  }finally{p.dispose()}
 });
 test('approved perimeter gallery connects the existing entrance bridge to the helical landing in both directions',async()=>{
@@ -26,16 +26,16 @@ test('approved perimeter gallery connects the existing entrance bridge to the he
 });
 test('the rejected central shortcut is absent and both entrances have solid glass guards',async()=>{
  const p=await fixture();try{
-  for(const point of [[9.4,3.675,-22.6],[9.4,4.23,-10.985]])assert.equal(p.canStandAt(new T.Vector3(...point)),false,'restored guard blocks the former entrance');
-  assert.ok(p.groundAt(new T.Vector3(8,4.1,-17))<1,'no invisible central walkway remains above the atrium');
+  for(const point of [[10.95,3.675,-23.0],[9.4,4.23,-10.985]])assert.equal(p.canStandAt(new T.Vector3(...point)),false,'restored guard blocks the former entrance');
+  assert.ok(p.groundAt(new T.Vector3(11,4.1,-17))<1,'no invisible central walkway remains above the atrium');
   assert.ok(![...p.colliderNames.values()].some(n=>n.includes('atrium bridge')),'retired bridge must have no collision geometry');
  }finally{p.dispose()}
 });
 test('full width slab supports the diagonal shortcut and extended steps at walk and sprint speeds',async()=>{
  const p=await fixture();try{
-  const height=x=>x<6?4.233:x<6.3?4.2:x<6.6?4.025:x<6.9?3.85:3.675;
-  const diagonal=Array.from({length:41},(_,i)=>{const t=i/40,x=-1.1+8.6*t;return [x,height(x),-(11.5+11.3*t)]});
-  const routes=[diagonal,...[21.6,22.3,23.3,24.1].map(y=>[[5.5,4.233,-y],[7.4,3.675,-y]])];
+  const height=(x,y)=>{const u=x-(-7.28125+Math.sqrt(14.28125**2-(y-19.65)**2));return u<0?4.233:u<.3?4.2:u<.6?4.025:u<.9?3.85:3.675};
+  const diagonal=Array.from({length:41},(_,i)=>{const t=i/40,x=-1.1+8.6*t;return [x,height(x,11.5+11.3*t),-(11.5+11.3*t)]});
+  const routes=[diagonal,...[21.6,22.3,23.3,24.1].map(y=>[[5.5,4.233,-y],[8,3.675,-y]])];
   for(const speed of [1.38,3.35])for(const route of routes)for(const reverse of [false,true]){
    const points=reverse?[...route].reverse():route,feet=new T.Vector3(...points[0]);feet.y=p.groundAt(feet);p.place(feet);let grounded=true,v=0;
    for(const target of points.slice(1)){

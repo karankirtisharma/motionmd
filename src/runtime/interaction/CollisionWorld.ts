@@ -150,8 +150,17 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     },
     groundAt(position: THREE.Vector3, maximumDrop = 8) {
       const origin = position.clone().add(new THREE.Vector3(0, 0.6, 0));
-      const hit = cast(origin, new THREE.Vector3(0, -1, 0), maximumDrop + 0.6);
-      return hit ? origin.y - hit.timeOfImpact : position.y;
+      const down = new THREE.Vector3(0, -1, 0);
+      let support = -Infinity;
+      // A single f32 ray can miss exactly on a coplanar triangle edge and
+      // find the slab underside. Millimetre neighbours stabilize placement
+      // without changing the capsule's normal, per-frame movement solver.
+      for (const [dx, dz] of [[0, 0], [-0.002, 0], [0.002, 0], [0, -0.002], [0, 0.002]]) {
+        origin.x = position.x + dx; origin.z = position.z + dz;
+        const hit = cast(origin, down, maximumDrop + 0.6);
+        if (hit) support = Math.max(support, origin.y - hit.timeOfImpact);
+      }
+      return Number.isFinite(support) ? support : position.y;
     },
     canStandAt(feet: THREE.Vector3) {
       const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };

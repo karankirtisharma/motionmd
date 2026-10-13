@@ -1,0 +1,49 @@
+{
+  "source": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\architecture-v18\\MD_Presentation_Lounge_v18.blend",
+  "sourceSHA256": "68aac8e252ca8557eb92d6039f86d43426f69f260949f3478b1673f9866a8c17",
+  "backup": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\architecture-v17\\MD_Presentation_Lounge_v17.blend",
+  "backupHashVerified": true,
+  "retiredObjects": 10,
+  "newObjects": 5,
+  "transformedObjects": 11,
+  "topology": {
+    "nonManifold": 0,
+    "volume": 84.9853141926146,
+    "degenerate": 0
+  },
+  "tests": {
+    "passed": 50,
+    "failed": 0,
+    "landingChecks": 44,
+    "cameraSamples": 9000,
+    "cameraIntersections": 0,
+    "productionBuild": "passed"
+  },
+  "web": {
+    "triangles": 10743345,
+    "priorTriangles": 10729015,
+    "addedTriangles": 14330,
+    "addedTrianglePercent": 0.13356305308549477,
+    "newGeometryBytes": 502284
+  },
+  "browserObservation": {
+    "gpu": "RTX 4070",
+    "renderer": "WebGPU",
+    "viewport": [
+      1509,
+      1244
+    ],
+    "resolutionPercent": 100,
+    "fps": 164,
+    "p50Ms": 6.1,
+    "p95Ms": 6.4,
+    "drawCalls": 133,
+    "trackedMiB": 2302,
+    "note": "Single local settled reference-camera observation, not a cross-device benchmark."
+  },
+  "limitations": [
+    "Existing reflection captures reused.",
+    "WebGL fallback and mobile hardware not visually revalidated in this task."
+  ],
+  "git": "Prepared for the user-authorized v18 GitHub delivery; see Git history for the delivery commit. Native Blender sources and backups remain local."
+}

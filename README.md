@@ -2,13 +2,11 @@
 
 
 
-## Current architecture — 11 October 2026
+## Current architecture — 13 October 2026
 
+The **v18** checkpoint updates the upper landing to a continuous curved perimeter, rounds the short marble step fronts, integrates the adjoining gallery floors, and clears the tall display-pier projections. The original simple glass and detailed v17 glass spiral remain. Editable source: `outputs/architecture-v18/MD_Presentation_Lounge_v18.blend` (workspace-relative, preserved locally). The unchanged v17 source and `outputs/architecture-v18/rollback-v17-manifest.json` are the local rollback.
 
-
-The active **v17** refines the original spiral with 23 laminated glass treads, 64 segments per curved edge, polished bevels, champagne support shoes, silicone pads and small fixings. The original route and elevations are retained. Editable source: `outputs/architecture-v17/MD_Presentation_Lounge_v17.blend` (workspace-relative); v16 remains the rollback. Read [v17 verification](qa/architecture-v17/README.md).
-
-**49 tests pass**, including helical walking/running in both directions. The marked floor-junction export has zero competing top surfaces in the sampled region; 20 tread samples preserve marble and source elevations within 0.0000002 m. Assets and material extensions validate. Eight geometry chunks contain 10,729,015 triangles. Existing indirect lightmaps and reflection captures are reused; cross-device performance remains unverified. This is the v17 GitHub delivery checkpoint. Blender source and rollback copies remain local.
+**50 tests and the production build pass.** There are also 44 targeted landing checks, a 9,000-sample camera-clearance audit, and source/web surface checks. Eight affected illumination atlases were rebaked. Read [v18 verification](qa/architecture-v18/README.md) for evidence and limitations. This delivery includes the website, active scene assets and verification records; native Blender sources and backups remain local. The previous GitHub checkpoint is v17 (`5ba39fd`).
 
 ## Retained interaction checkpoint â€” 10 October 2026
 
@@ -18,7 +16,7 @@ The current tour is **90 seconds**, covering exterior, entrance, PC screens, han
 
 
 
-The v12 local work adds six missing glass barriers and reviewed wall/object collision geometry, synchronized walk/run phases, bounded body turning and subtle upper-body weight transfer. **47 automated tests pass** at this checkpoint. This work is newer than GitHub commit `2befb4728946bd5d76d343cc51dd201a07c986d1` and has not been committed or pushed. The actual manifest governs active asset versions; older asset folders are not interchangeable.
+The retained v12 work adds six missing glass barriers and reviewed wall/object collision geometry, synchronized walk/run phases, bounded body turning and subtle upper-body weight transfer. **47 automated tests passed** at that checkpoint, which was included in the subsequent v17 delivery. The actual manifest governs active asset versions; older asset folders are not interchangeable.
 
 
 
@@ -30,7 +28,7 @@ The original Blender file is the production source. The browser loads GLB geomet
 
 
 
-The active v17 export contains **10,729,015 triangles** across eight geometry chunks, including the lift and revised architecture. The preparation preserves evaluated geometry and original-object provenance. The entrance uses the source animation's open-door pose so the visitor can enter. This high-detail delivery needs a capable GPU; support on weaker devices must be measured before launch.
+The active v18 export contains **10,743,345 triangles** across nine geometry chunks, including the lift and revised architecture. The preparation preserves evaluated geometry and original-object provenance. The entrance uses the source animation's open-door pose so the visitor can enter. This high-detail delivery needs a capable GPU; support on weaker devices must be measured before launch.
 
 
 

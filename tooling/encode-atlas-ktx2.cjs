@@ -74,7 +74,7 @@ function metrics(source, decoded, kind) {
   fs.mkdirSync(reportDir, { recursive: true });
   const k = await require(path.join(wasmDir, 'libktx.js'))({ wasmBinary: fs.readFileSync(path.join(wasmDir, 'libktx.wasm')) });
   const zones = args.filter(x => !x.startsWith('--'));
-  if (!zones.length || zones.some(x => !/^(lounge|entrance|shell|gallery|founder|studio|v13)(-[a-z0-9]+)*$/.test(x))) throw new Error('Specify one or more scene atlas identifiers.');
+  if (!zones.length || zones.some(x => !/^(lounge|entrance|shell|gallery|founder|studio|v[0-9]+)(-[a-z0-9]+)*$/.test(x))) throw new Error('Specify one or more scene atlas identifiers.');
   for (const zone of zones) for (const kind of ['base', 'orm', 'normal']) {
     const name = `${zone}-${kind}`;
     const inputPath = path.join(textureDir, `${name}.png`), outputPath = path.join(textureDir, `${name}.ktx2`);
