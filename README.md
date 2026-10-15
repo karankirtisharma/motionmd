@@ -2,11 +2,11 @@
 
 
 
-## Current architecture — 13 October 2026
+## Current architecture — 15 October 2026
 
-The **v18** checkpoint updates the upper landing to a continuous curved perimeter, rounds the short marble step fronts, integrates the adjoining gallery floors, and clears the tall display-pier projections. The original simple glass and detailed v17 glass spiral remain. Editable source: `outputs/architecture-v18/MD_Presentation_Lounge_v18.blend` (workspace-relative, preserved locally). The unchanged v17 source and `outputs/architecture-v18/rollback-v17-manifest.json` are the local rollback.
+The **v19** architecture update removes the marked vestibule wall and thin curtain-wall frame, and connects the curved upper landing to the retained bronze support. Original glass, marble, the detailed glass spiral and other rooms remain. Editable source: `outputs/architecture-v19/MD_Presentation_Lounge_v19.blend` (workspace-relative, local). The preserved v18 source and `outputs/architecture-v19/rollback-v18-manifest.json` provide rollback.
 
-**50 tests and the production build pass.** There are also 44 targeted landing checks, a 9,000-sample camera-clearance audit, and source/web surface checks. Eight affected illumination atlases were rebaked. Read [v18 verification](qa/architecture-v18/README.md) for evidence and limitations. This delivery includes the website, active scene assets and verification records; native Blender sources and backups remain local. The previous GitHub checkpoint is v17 (`5ba39fd`).
+**51 tests and the production build pass.** Targeted landing checks, a 9,000-sample camera sweep and source/export audits also pass. Twelve illumination atlases were rebaked. Read [v19 verification](qa/architecture-v19/README.md) for results and limitations. This release includes the website assets and verification records; editable Blender sources and rollback copies remain local.
 
 ## Retained interaction checkpoint â€” 10 October 2026
 
@@ -28,7 +28,7 @@ The original Blender file is the production source. The browser loads GLB geomet
 
 
 
-The active v18 export contains **10,743,345 triangles** across nine geometry chunks, including the lift and revised architecture. The preparation preserves evaluated geometry and original-object provenance. The entrance uses the source animation's open-door pose so the visitor can enter. This high-detail delivery needs a capable GPU; support on weaker devices must be measured before launch.
+The active v19 export contains **10,742,670 triangles** across ten geometry chunks, including the lift and revised architecture. The preparation preserves evaluated geometry and original-object provenance. The entrance uses the source animation's open-door pose so the visitor can enter. This high-detail delivery needs a capable GPU; support on weaker devices must be measured before launch.
 
 
 
@@ -52,7 +52,7 @@ The complete website is at the repository root. Its full-quality scene assets us
 
 
 
-The scene includes about 770 MB of assets. GitHub LFS allowances and Vercel delivery usage apply. The repository does not purchase a plan or configure billing. Vercel's documented 100 MB Hobby / 1 GB Pro source limits concern CLI uploads; they do not by themselves establish whether this later Git import will succeed on a particular plan.
+The scene includes about 881 MB of manifest-linked assets. GitHub LFS allowances and Vercel delivery usage apply. The repository does not purchase a plan or configure billing. Vercel's documented 100 MB Hobby / 1 GB Pro source limits concern CLI uploads; they do not by themselves establish whether this later Git import will succeed on a particular plan.
 
 
 

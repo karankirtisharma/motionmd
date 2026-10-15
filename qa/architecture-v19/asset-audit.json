@@ -1,0 +1,58 @@
+{
+  "files": 120,
+  "bytes": 880538801,
+  "chunks": [
+    {
+      "id": "lounge",
+      "triangles": 643488,
+      "bytes": 26212432
+    },
+    {
+      "id": "entrance",
+      "triangles": 304979,
+      "bytes": 15790368
+    },
+    {
+      "id": "shell",
+      "triangles": 45317,
+      "bytes": 3085848
+    },
+    {
+      "id": "gallery",
+      "triangles": 2337,
+      "bytes": 712016
+    },
+    {
+      "id": "founder",
+      "triangles": 2851809,
+      "bytes": 100125376
+    },
+    {
+      "id": "studio",
+      "triangles": 6563145,
+      "bytes": 300537632
+    },
+    {
+      "id": "founder-lift",
+      "triangles": 45258,
+      "bytes": 2979108
+    },
+    {
+      "id": "v13",
+      "triangles": 265590,
+      "bytes": 7931076
+    },
+    {
+      "id": "v18",
+      "triangles": 15,
+      "bytes": 503476
+    },
+    {
+      "id": "v19",
+      "triangles": 20732,
+      "bytes": 494872
+    }
+  ],
+  "totalTriangles": 10742670,
+  "rejectedAssetsReferenced": false
+}

@@ -1,0 +1,114 @@
+{
+ "chunks": [
+  {
+   "chunk": "lounge",
+   "unchanged": true
+  },
+  {
+   "chunk": "entrance",
+   "from": "/assets/architecture-v18/entrance.glb",
+   "to": "/assets/architecture-v19/entrance.glb",
+   "touchedPrimitives": 1,
+   "droppedTriangles": 13,
+   "movedVertices": 0,
+   "bytes": 15790368,
+   "sha256": "2e40225a229a8f9da678857250f55d25b44ad5e361ddb5d9229a02fdab54756e"
+  },
+  {
+   "chunk": "shell",
+   "from": "/assets/architecture-v16/shell.glb",
+   "to": "/assets/architecture-v19/shell.glb",
+   "touchedPrimitives": 2,
+   "droppedTriangles": 189,
+   "movedVertices": 0,
+   "bytes": 3085848,
+   "sha256": "8340a51f8f47b0f1eb3dc1954059295d7bac3a1eecabeca95ae7f749496009e7"
+  },
+  {
+   "chunk": "gallery",
+   "unchanged": true
+  },
+  {
+   "chunk": "founder",
+   "unchanged": true
+  },
+  {
+   "chunk": "studio",
+   "unchanged": true
+  },
+  {
+   "chunk": "v13",
+   "from": "/assets/architecture-v18/v13.glb",
+   "to": "/assets/architecture-v19/v13.glb",
+   "touchedPrimitives": 4,
+   "droppedTriangles": 104,
+   "movedVertices": 0,
+   "bytes": 7931076,
+   "sha256": "69511a38c3eb4b4ede04874f0675e697b754b47bf3dc80a31035594e7439852e"
+  },
+  {
+   "chunk": "v18",
+   "from": "/assets/architecture-v18/v18.glb",
+   "to": "/assets/architecture-v19/v18.glb",
+   "touchedPrimitives": 4,
+   "droppedTriangles": 21104,
+   "movedVertices": 0,
+   "bytes": 503476,
+   "sha256": "cd5d0b6ef9de5aa0cf8b5d18f689b88cb6f2b22e6efd9a6b4d6f8e161c8f25d2"
+  }
+ ],
+ "coverage": [
+  {
+   "name": "V18 | Unified curved pavement and rounded short steps",
+   "op": "del",
+   "vertices": 5324,
+   "matched": 11072
+  },
+  {
+   "name": "V18 | Continuous curved clear glass guard",
+   "op": "del",
+   "vertices": 1048,
+   "matched": 3218
+  },
+  {
+   "name": "V18 | Continuous curved bronze handrail",
+   "op": "del",
+   "vertices": 3168,
+   "matched": 4306
+  },
+  {
+   "name": "V18 | Curved underside bronze edge beam",
+   "op": "del",
+   "vertices": 1044,
+   "matched": 3132
+  },
+  {
+   "name": "EH52 east vestibule rear jamb",
+   "op": "del",
+   "vertices": 8,
+   "matched": 48
+  },
+  {
+   "name": "UG52 Founder approach inner extension glass",
+   "op": "del",
+   "vertices": 8,
+   "matched": 24
+  },
+  {
+   "name": "V13 | round rail | UC47 Founder bridge join remaining rail",
+   "op": "del",
+   "vertices": 72,
+   "matched": 88
+  },
+  {
+   "name": "Front wing curtain wall mullion.027",
+   "op": "del",
+   "vertices": 96,
+   "matched": 381
+  }
+ ],
+ "jambFallbackVertices": 24,
+ "jambMaxError": 0.0032620344748437446,
+ "unmatched": [],
+ "partial": []
+}

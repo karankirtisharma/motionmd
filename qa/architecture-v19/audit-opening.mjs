@@ -1,0 +1,12 @@
+import fs from 'node:fs';import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+const manifest=JSON.parse(fs.readFileSync(process.env.SCENE_MANIFEST || 'public/assets/scene-manifest.json'));const root=new T.Group();
+for(const chunk of manifest.chunks){if(!['entrance','shell'].includes(chunk.id))continue;let b=fs.readFileSync('public'+chunk.url),len=b.readUInt32LE(12),j=JSON.parse(b.subarray(20,20+len));delete j.images;delete j.textures;delete j.samplers;j.materials=j.materials.map(m=>({name:m.name,doubleSided:true}));let s=Buffer.from(JSON.stringify(j)),p=Buffer.alloc(Math.ceil(s.length/4)*4,32);s.copy(p);let h=Buffer.from(b.subarray(0,20));h.writeUInt32LE(20+p.length+b.length-20-len,8);h.writeUInt32LE(p.length,12);b=Buffer.concat([h,p,b.subarray(20+len)]);const scene=(await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.length),'')).scene;scene.updateMatrixWorld(true);
+scene.traverse(o=>{if(!o.isMesh)return;const p=o.geometry.attributes.position,idx=o.geometry.index,vs=[],a=new T.Vector3(),bb=new T.Vector3(),c=new T.Vector3();for(let i=0;i<(idx?.count??p.count);i+=3){a.fromBufferAttribute(p,idx?idx.getX(i):i).applyMatrix4(o.matrixWorld);bb.fromBufferAttribute(p,idx?idx.getX(i+1):i+1).applyMatrix4(o.matrixWorld);c.fromBufferAttribute(p,idx?idx.getX(i+2):i+2).applyMatrix4(o.matrixWorld);if(Math.min(a.x,bb.x,c.x)>3.7||Math.max(a.x,bb.x,c.x)<-.5||Math.min(a.z,bb.z,c.z)>-10.6||Math.max(a.z,bb.z,c.z)<-11.1||Math.min(a.y,bb.y,c.y)>8.3||Math.max(a.y,bb.y,c.y)<4.2)continue;vs.push(...a,...bb,...c);}if(vs.length){const g=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(vs,3));const mesh=new T.Mesh(g,new T.MeshBasicMaterial({side:T.DoubleSide}));mesh.name=chunk.id+':'+o.material.name;root.add(mesh)}})}
+root.updateMatrixWorld(true);const ray=new T.Raycaster(),samples=[];
+for(const x of [.1,1,2,3,3.6])for(const h of [4.5,5.1,5.7,6.2]){
+ ray.set(new T.Vector3(x,h,-11.15),new T.Vector3(0,0,1));ray.far=.6;
+ const hits=ray.intersectObject(root).filter(h=>!/glass/i.test(h.object.name));
+ samples.push({x,height:h,opaqueHits:hits.map(h=>({name:h.object.name,point:h.point.toArray()}))});
+}
+fs.writeFileSync('qa/architecture-v19/opening-audit.json',JSON.stringify(samples,null,2));
+const blocked=samples.filter(s=>s.opaqueHits.length);console.log({rays:samples.length,blocked});if(blocked.length)process.exitCode=1;
