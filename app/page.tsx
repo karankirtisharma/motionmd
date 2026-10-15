@@ -146,7 +146,7 @@ export default function Home() {
       </label>
       <label style={{ display: 'block', marginTop: 6 }}>Material diagnostic
         <select aria-label="Material diagnostic" value={diagnosticMode} disabled={!referenceCameras.length} onChange={event => { const value = event.target.value as DiagnosticMode; setDiagnosticMode(value); runtime.current?.setDiagnosticMode(value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%' }}>
-          <option value="full">Full</option><option value="albedo">Albedo — unlit base</option><option value="baked">Baked diffuse only</option><option value="no-normals">Normals disabled</option><option value="no-shadows">Sun shadows disabled</option>
+          <option value="full">Full</option><option value="albedo">Albedo — unlit base</option><option value="baked">Baked diffuse only</option><option value="no-normals">Normals disabled</option><option value="no-shadows">Sun shadows disabled</option><option value="no-gi">Baked lighting disabled</option><option value="no-reflections">Environment reflections disabled</option><option value="no-ao">Ambient occlusion disabled</option>
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}

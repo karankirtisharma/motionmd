@@ -2,6 +2,10 @@
 
 
 
+## Current material repair — 15 October 2026
+
+The v20 material pass keeps the v19 architecture and fixes noisy baked lighting, inconsistent source-marble mapping, missing upholstery lightmap coverage, and a degenerate anisotropic bronze tangent frame. All 18 active irradiance maps were processed; entrance and shell architecture also received higher-sample bakes. **54 tests and the production build pass.** See [material verification and limitations](qa/material-v20/README.md) and the [reusable lighting tools](scripts/lightmaps/README.md).
+
 ## Current architecture — 15 October 2026
 
 The **v19** architecture update removes the marked vestibule wall and thin curtain-wall frame, and connects the curved upper landing to the retained bronze support. Original glass, marble, the detailed glass spiral and other rooms remain. Editable source: `outputs/architecture-v19/MD_Presentation_Lounge_v19.blend` (workspace-relative, local). The preserved v18 source and `outputs/architecture-v19/rollback-v18-manifest.json` provide rollback.

@@ -1,0 +1,1304 @@
+[
+  {
+    "id": 102,
+    "object": "Box_Studio_textured_rug002_50",
+    "material": "studio__HF89 | display black ceramic bezel",
+    "zone": "studio-detail",
+    "vertices": 173506,
+    "triangles": 190944,
+    "uncoveredFaceCentres": 180120,
+    "meanMissingIrradiance": {
+      "raw": 4.219167021801695e-05,
+      "old": 4.219407128402963e-05,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 51,
+    "object": "Box_Founder_polished_floor002_25",
+    "material": "founder__FR84 | directional satin champagne alloy",
+    "zone": "founder-detail",
+    "vertices": 115215,
+    "triangles": 114800,
+    "uncoveredFaceCentres": 96015,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 52,
+    "object": "Box_Founder_polished_floor002_27",
+    "material": "founder__FR84 | ivory mineral composite satin coat",
+    "zone": "founder-detail",
+    "vertices": 44117,
+    "triangles": 54630,
+    "uncoveredFaceCentres": 54315,
+    "meanMissingIrradiance": {
+      "raw": 0.0008802567608654499,
+      "old": 0.0008802854572422802,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 6,
+    "object": "extension_foundation001_9",
+    "material": "lounge__PL78 | circular hand woven wool",
+    "zone": "lounge-hero",
+    "vertices": 91462,
+    "triangles": 49040,
+    "uncoveredFaceCentres": 40608,
+    "meanMissingIrradiance": {
+      "raw": 0.00036300189094617963,
+      "old": 0.00036300046485848725,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 69,
+    "object": "Box_Founder_polished_floor002_57",
+    "material": "founder__PR94 | satin champagne bronze",
+    "zone": "founder-detail",
+    "vertices": 116813,
+    "triangles": 64100,
+    "uncoveredFaceCentres": 36011,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 7.925778255923888e-09
+    }
+  },
+  {
+    "id": 106,
+    "object": "Box_Studio_textured_rug002_57",
+    "material": "studio__PR94 | satin champagne bronze",
+    "zone": "studio-detail",
+    "vertices": 102182,
+    "triangles": 55172,
+    "uncoveredFaceCentres": 23307,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 3.1390037791290126e-10
+    }
+  },
+  {
+    "id": 96,
+    "object": "Box_Studio_textured_rug002_37",
+    "material": "studio__F73 | honed charcoal planter basalt",
+    "zone": "studio-detail",
+    "vertices": 139680,
+    "triangles": 69840,
+    "uncoveredFaceCentres": 21236,
+    "meanMissingIrradiance": {
+      "raw": 0.0007965558324940503,
+      "old": 0.000796695239841938,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 73,
+    "object": "Box_Founder_polished_floor002_61",
+    "material": "founder__PR94 | charcoal powder coat",
+    "zone": "founder-detail",
+    "vertices": 34600,
+    "triangles": 19940,
+    "uncoveredFaceCentres": 19378,
+    "meanMissingIrradiance": {
+      "raw": 8.337278813996818e-06,
+      "old": 8.338342922797892e-06,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 46,
+    "object": "Box_Founder_polished_floor002_15",
+    "material": "founder__FR79 | satin champagne bronze.001",
+    "zone": "founder-architecture",
+    "vertices": 107275,
+    "triangles": 53800,
+    "uncoveredFaceCentres": 14876,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 6.373469529918907e-10
+    }
+  },
+  {
+    "id": 89,
+    "object": "Box_Studio_textured_rug002_15",
+    "material": "studio__WS72 | soft charcoal semi-aniline leather",
+    "zone": "studio-hero",
+    "vertices": 340464,
+    "triangles": 193824,
+    "uncoveredFaceCentres": 10753,
+    "meanMissingIrradiance": {
+      "raw": 0.004662228282541037,
+      "old": 0.004661768674850464,
+      "clean": 0.0028360970318317413
+    }
+  },
+  {
+    "id": 8,
+    "object": "extension_foundation001_16",
+    "material": "lounge__PL86 | satin architectural bronze",
+    "zone": "lounge-architecture",
+    "vertices": 285215,
+    "triangles": 152832,
+    "uncoveredFaceCentres": 10704,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 2.7746217767798953e-08
+    }
+  },
+  {
+    "id": 68,
+    "object": "Box_Founder_polished_floor002_56",
+    "material": "founder__PR94 | bone linen binding",
+    "zone": "founder-detail",
+    "vertices": 17797,
+    "triangles": 11892,
+    "uncoveredFaceCentres": 10576,
+    "meanMissingIrradiance": {
+      "raw": 5.266008884063922e-06,
+      "old": 5.265942945698043e-06,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 112,
+    "object": "Box_Studio_textured_rug002_63",
+    "material": "studio__PR94 | charcoal powder coat",
+    "zone": "studio-detail",
+    "vertices": 17045,
+    "triangles": 9768,
+    "uncoveredFaceCentres": 8925,
+    "meanMissingIrradiance": {
+      "raw": 0.0005147698102518916,
+      "old": 0.0005148153286427259,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 105,
+    "object": "Box_Studio_textured_rug002_56",
+    "material": "studio__PR94 | bone linen binding",
+    "zone": "studio-detail",
+    "vertices": 15204,
+    "triangles": 10044,
+    "uncoveredFaceCentres": 8044,
+    "meanMissingIrradiance": {
+      "raw": 6.047162969480269e-06,
+      "old": 6.047205260983901e-06,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 72,
+    "object": "Box_Founder_polished_floor002_60",
+    "material": "founder__PR94 | oiled walnut miniature timber",
+    "zone": "founder-detail",
+    "vertices": 40762,
+    "triangles": 20392,
+    "uncoveredFaceCentres": 7521,
+    "meanMissingIrradiance": {
+      "raw": 1.3664561038240208e-06,
+      "old": 1.366357992083067e-06,
+      "clean": 3.983241185778752e-06
+    }
+  },
+  {
+    "id": 64,
+    "object": "Box_Founder_polished_floor002_47",
+    "material": "founder__HF89 | fine natural clay aggregate",
+    "zone": "founder-detail",
+    "vertices": 16800,
+    "triangles": 8400,
+    "uncoveredFaceCentres": 6764,
+    "meanMissingIrradiance": {
+      "raw": 0.0007063376833684742,
+      "old": 0.0007063017692416906,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 101,
+    "object": "Box_Studio_textured_rug002_47",
+    "material": "studio__HF89 | fine natural clay aggregate",
+    "zone": "studio-detail",
+    "vertices": 16800,
+    "triangles": 8400,
+    "uncoveredFaceCentres": 4074,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 87,
+    "object": "Box_Studio_textured_rug002_9",
+    "material": "studio__Blackened bronze",
+    "zone": "studio-architecture",
+    "vertices": 20108,
+    "triangles": 9748,
+    "uncoveredFaceCentres": 2472,
+    "meanMissingIrradiance": {
+      "raw": 0.000637349730823189,
+      "old": 0.0006373098585754633,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 65,
+    "object": "Box_Founder_polished_floor002_52",
+    "material": "founder__FC91 | fine ivory leather.003",
+    "zone": "founder-hero",
+    "vertices": 77964,
+    "triangles": 131992,
+    "uncoveredFaceCentres": 2443,
+    "meanMissingIrradiance": {
+      "raw": 0.00731044914573431,
+      "old": 0.007310692686587572,
+      "clean": 1.02143132686615
+    }
+  },
+  {
+    "id": 23,
+    "object": "Box_Hall_rear_full-height_limestone001_18",
+    "material": "entrance__MD68 | smoked bronze stone | fine diamond incision",
+    "zone": "entrance-architecture",
+    "vertices": 29195,
+    "triangles": 14832,
+    "uncoveredFaceCentres": 2365,
+    "meanMissingIrradiance": {
+      "raw": 0.004428344778716564,
+      "old": 0.004428044892847538,
+      "clean": 0.00511170132085681
+    }
+  },
+  {
+    "id": 71,
+    "object": "Box_Founder_polished_floor002_59",
+    "material": "founder__PR94 | petrol cloth binding",
+    "zone": "founder-detail",
+    "vertices": 7799,
+    "triangles": 3900,
+    "uncoveredFaceCentres": 1948,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 66,
+    "object": "Box_Founder_polished_floor002_54",
+    "material": "founder__PR94 | warm cut paper fibres",
+    "zone": "founder-detail",
+    "vertices": 13416,
+    "triangles": 6932,
+    "uncoveredFaceCentres": 1749,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 77,
+    "object": "Box_Founder_polished_floor002_65",
+    "material": "founder__PR94 | olive woven binding",
+    "zone": "founder-detail",
+    "vertices": 6597,
+    "triangles": 3300,
+    "uncoveredFaceCentres": 1635,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 47,
+    "object": "Box_Founder_polished_floor002_18",
+    "material": "founder__FR79 | warm ivory ceiling lacquer",
+    "zone": "founder-architecture",
+    "vertices": 65032,
+    "triangles": 32596,
+    "uncoveredFaceCentres": 1622,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 103,
+    "object": "Box_Studio_textured_rug002_54",
+    "material": "studio__PR94 | warm cut paper fibres",
+    "zone": "studio-detail",
+    "vertices": 19657,
+    "triangles": 10196,
+    "uncoveredFaceCentres": 1535,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 70,
+    "object": "Box_Founder_polished_floor002_58",
+    "material": "founder__PR94 | oxblood bookcloth",
+    "zone": "founder-detail",
+    "vertices": 5399,
+    "triangles": 2700,
+    "uncoveredFaceCentres": 1394,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 74,
+    "object": "Box_Founder_polished_floor002_62",
+    "material": "founder__PR94 | honed ivory limestone",
+    "zone": "founder-detail",
+    "vertices": 32971,
+    "triangles": 16488,
+    "uncoveredFaceCentres": 1322,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 111,
+    "object": "Box_Studio_textured_rug002_62",
+    "material": "studio__PR94 | honed ivory limestone",
+    "zone": "studio-detail",
+    "vertices": 17934,
+    "triangles": 8968,
+    "uncoveredFaceCentres": 1244,
+    "meanMissingIrradiance": {
+      "raw": 1.0648161151038948e-05,
+      "old": 1.0647876479197294e-05,
+      "clean": 6.620049134653527e-06
+    }
+  },
+  {
+    "id": 92,
+    "object": "Box_Studio_textured_rug002_30",
+    "material": "studio__F73 | cloth book 4",
+    "zone": "studio-detail",
+    "vertices": 1736,
+    "triangles": 1240,
+    "uncoveredFaceCentres": 1214,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 67,
+    "object": "Box_Founder_polished_floor002_55",
+    "material": "founder__PR94 | warm grey buckram",
+    "zone": "founder-detail",
+    "vertices": 4799,
+    "triangles": 2400,
+    "uncoveredFaceCentres": 1055,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 109,
+    "object": "Box_Studio_textured_rug002_60",
+    "material": "studio__PR94 | oxblood bookcloth",
+    "zone": "studio-detail",
+    "vertices": 5397,
+    "triangles": 2700,
+    "uncoveredFaceCentres": 988,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 78,
+    "object": "Box_Founder_polished_floor002_66",
+    "material": "founder__PR94 | charcoal library binding",
+    "zone": "founder-detail",
+    "vertices": 4797,
+    "triangles": 2400,
+    "uncoveredFaceCentres": 920,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 49,
+    "object": "Box_Founder_polished_floor002_20",
+    "material": "founder__FR79 | FR83 natural taupe wool",
+    "zone": "founder-hero",
+    "vertices": 6194,
+    "triangles": 6400,
+    "uncoveredFaceCentres": 894,
+    "meanMissingIrradiance": {
+      "raw": 0.03529949486255646,
+      "old": 0.03529868647456169,
+      "clean": 0.0316258929669857
+    }
+  },
+  {
+    "id": 108,
+    "object": "Box_Studio_textured_rug002_59",
+    "material": "studio__PR94 | warm grey buckram",
+    "zone": "studio-detail",
+    "vertices": 6600,
+    "triangles": 3300,
+    "uncoveredFaceCentres": 882,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 58,
+    "object": "Box_Founder_polished_floor002_35",
+    "material": "founder__HF89 | directional satin champagne alloy",
+    "zone": "founder-detail",
+    "vertices": 109686,
+    "triangles": 66364,
+    "uncoveredFaceCentres": 837,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 8.350981772764499e-08
+    }
+  },
+  {
+    "id": 55,
+    "object": "Box_Founder_polished_floor002_31",
+    "material": "founder__FR84 | warm grey linen",
+    "zone": "founder-detail",
+    "vertices": 2312,
+    "triangles": 1360,
+    "uncoveredFaceCentres": 794,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 54,
+    "object": "Box_Founder_polished_floor002_30",
+    "material": "founder__FR84 | charcoal buckram",
+    "zone": "founder-detail",
+    "vertices": 2322,
+    "triangles": 1360,
+    "uncoveredFaceCentres": 746,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 110,
+    "object": "Box_Studio_textured_rug002_61",
+    "material": "studio__PR94 | oiled walnut miniature timber",
+    "zone": "studio-detail",
+    "vertices": 24550,
+    "triangles": 12276,
+    "uncoveredFaceCentres": 698,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 11,
+    "object": "PL78_|_cast_bronze_outer_shell009",
+    "material": "lounge__PL78 | brushed champagne bronze",
+    "zone": "lounge-detail",
+    "vertices": 29499,
+    "triangles": 15282,
+    "uncoveredFaceCentres": 680,
+    "meanMissingIrradiance": {
+      "raw": 0.002475727815181017,
+      "old": 0.002475675893947482,
+      "clean": 0.0036238976754248142
+    }
+  },
+  {
+    "id": 81,
+    "object": "Box_Founder_polished_floor002_69",
+    "material": "founder__PR94 | muted celadon glaze",
+    "zone": "founder-detail",
+    "vertices": 37039,
+    "triangles": 18520,
+    "uncoveredFaceCentres": 643,
+    "meanMissingIrradiance": {
+      "raw": 0.021657796576619148,
+      "old": 0.021657612174749374,
+      "clean": 0.021334202960133553
+    }
+  },
+  {
+    "id": 59,
+    "object": "Box_Founder_polished_floor002_39",
+    "material": "founder__HF89 | ivory wool boucle upholstery",
+    "zone": "founder-hero",
+    "vertices": 411030,
+    "triangles": 206784,
+    "uncoveredFaceCentres": 633,
+    "meanMissingIrradiance": {
+      "raw": 0.008323967456817627,
+      "old": 0.008323113434016705,
+      "clean": 0.00965913850814104
+    }
+  },
+  {
+    "id": 9,
+    "object": "PL78_|_cast_bronze_outer_shell008",
+    "material": "lounge__PL78 | brushed champagne bronze",
+    "zone": "lounge-detail",
+    "vertices": 29499,
+    "triangles": 15282,
+    "uncoveredFaceCentres": 629,
+    "meanMissingIrradiance": {
+      "raw": 0.0008273559506051242,
+      "old": 0.0008273483254015446,
+      "clean": 0.0017023368272930384
+    }
+  },
+  {
+    "id": 13,
+    "object": "PL78_|_cast_bronze_outer_shell010",
+    "material": "lounge__PL78 | brushed champagne bronze",
+    "zone": "lounge-detail",
+    "vertices": 29499,
+    "triangles": 15282,
+    "uncoveredFaceCentres": 587,
+    "meanMissingIrradiance": {
+      "raw": 0.004238649737089872,
+      "old": 0.004239158239215612,
+      "clean": 0.005137542728334665
+    }
+  },
+  {
+    "id": 15,
+    "object": "PL78_|_cast_bronze_outer_shell011",
+    "material": "lounge__PL78 | brushed champagne bronze",
+    "zone": "lounge-detail",
+    "vertices": 29499,
+    "triangles": 15282,
+    "uncoveredFaceCentres": 579,
+    "meanMissingIrradiance": {
+      "raw": 0.009878967888653278,
+      "old": 0.00987955927848816,
+      "clean": 0.012597118504345417
+    }
+  },
+  {
+    "id": 7,
+    "object": "extension_foundation001_13",
+    "material": "lounge__PL86 | brushed champagne ceiling panels",
+    "zone": "lounge-architecture",
+    "vertices": 71478,
+    "triangles": 36856,
+    "uncoveredFaceCentres": 574,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 12,
+    "object": "PL78_|_cast_bronze_outer_shell009_1",
+    "material": "lounge__PL78 | ivory aniline upholstery",
+    "zone": "lounge-hero",
+    "vertices": 55326,
+    "triangles": 28114,
+    "uncoveredFaceCentres": 554,
+    "meanMissingIrradiance": {
+      "raw": 0.02139904722571373,
+      "old": 0.02139861509203911,
+      "clean": 0.024748854339122772
+    }
+  },
+  {
+    "id": 50,
+    "object": "Box_Founder_polished_floor002_22",
+    "material": "founder__FR84 | espresso leather",
+    "zone": "founder-hero",
+    "vertices": 3112,
+    "triangles": 1732,
+    "uncoveredFaceCentres": 534,
+    "meanMissingIrradiance": {
+      "raw": 0.020659059286117554,
+      "old": 0.02065792866051197,
+      "clean": 0.00840342789888382
+    }
+  },
+  {
+    "id": 42,
+    "object": "Box_Founder_polished_floor002_8",
+    "material": "founder__EH54 | scanned cream limestone panels",
+    "zone": "founder-architecture",
+    "vertices": 10666,
+    "triangles": 5288,
+    "uncoveredFaceCentres": 519,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 14,
+    "object": "PL78_|_cast_bronze_outer_shell010_1",
+    "material": "lounge__PL78 | ivory aniline upholstery",
+    "zone": "lounge-hero",
+    "vertices": 55326,
+    "triangles": 28114,
+    "uncoveredFaceCentres": 478,
+    "meanMissingIrradiance": {
+      "raw": 0.059768710285425186,
+      "old": 0.059763357043266296,
+      "clean": 0.06449313461780548
+    }
+  },
+  {
+    "id": 91,
+    "object": "Box_Studio_textured_rug002_29",
+    "material": "studio__F73 | cloth book 0",
+    "zone": "studio-detail",
+    "vertices": 3600,
+    "triangles": 1800,
+    "uncoveredFaceCentres": 464,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 20,
+    "object": "Box_Hall_rear_full-height_limestone001_6",
+    "material": "entrance__Blackened bronze",
+    "zone": "entrance-architecture",
+    "vertices": 11314,
+    "triangles": 5368,
+    "uncoveredFaceCentres": 436,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 94,
+    "object": "Box_Studio_textured_rug002_33",
+    "material": "studio__F73 | dry potting soil",
+    "zone": "studio-detail",
+    "vertices": 17904,
+    "triangles": 9740,
+    "uncoveredFaceCentres": 393,
+    "meanMissingIrradiance": {
+      "raw": 0.001139350119046867,
+      "old": 0.001139340689405799,
+      "clean": 0.0006847571930848062
+    }
+  },
+  {
+    "id": 10,
+    "object": "PL78_|_cast_bronze_outer_shell008_1",
+    "material": "lounge__PL78 | ivory aniline upholstery",
+    "zone": "lounge-hero",
+    "vertices": 55326,
+    "triangles": 28114,
+    "uncoveredFaceCentres": 361,
+    "meanMissingIrradiance": {
+      "raw": 0.02228679321706295,
+      "old": 0.022285930812358856,
+      "clean": 0.021494770422577858
+    }
+  },
+  {
+    "id": 16,
+    "object": "PL78_|_cast_bronze_outer_shell011_1",
+    "material": "lounge__PL78 | ivory aniline upholstery",
+    "zone": "lounge-hero",
+    "vertices": 55326,
+    "triangles": 28114,
+    "uncoveredFaceCentres": 337,
+    "meanMissingIrradiance": {
+      "raw": 0.07120286673307419,
+      "old": 0.07120262831449509,
+      "clean": 0.043505433946847916
+    }
+  },
+  {
+    "id": 104,
+    "object": "Box_Studio_textured_rug002_55",
+    "material": "studio__PR94 | olive woven binding",
+    "zone": "studio-detail",
+    "vertices": 2992,
+    "triangles": 1500,
+    "uncoveredFaceCentres": 302,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 107,
+    "object": "Box_Studio_textured_rug002_58",
+    "material": "studio__PR94 | charcoal library binding",
+    "zone": "studio-detail",
+    "vertices": 2994,
+    "triangles": 1500,
+    "uncoveredFaceCentres": 294,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 117,
+    "object": "Box_Studio_textured_rug002_69",
+    "material": "studio__PR94 | petrol cloth binding",
+    "zone": "studio-detail",
+    "vertices": 1800,
+    "triangles": 900,
+    "uncoveredFaceCentres": 294,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 63,
+    "object": "Box_Founder_polished_floor002_46",
+    "material": "founder__HF89 | organic dark potting soil",
+    "zone": "founder-detail",
+    "vertices": 4608,
+    "triangles": 2304,
+    "uncoveredFaceCentres": 278,
+    "meanMissingIrradiance": {
+      "raw": 0.0022566027473658323,
+      "old": 0.002256388310343027,
+      "clean": 0.002543624257668853
+    }
+  },
+  {
+    "id": 28,
+    "object": "Box_Complete_foundation001_6",
+    "material": "shell__Blackened bronze",
+    "zone": "shell-architecture",
+    "vertices": 46861,
+    "triangles": 20312,
+    "uncoveredFaceCentres": 252,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 115,
+    "object": "Box_Studio_textured_rug002_66",
+    "material": "studio__PR94 | muted celadon glaze",
+    "zone": "studio-detail",
+    "vertices": 3466,
+    "triangles": 1724,
+    "uncoveredFaceCentres": 240,
+    "meanMissingIrradiance": {
+      "raw": 0.0009380057454109192,
+      "old": 0.0009381134295836091,
+      "clean": 0.0012445570901036263
+    }
+  },
+  {
+    "id": 36,
+    "object": "Box_Founder_polished_floor002",
+    "material": "founder__FR82 | polished ivory large format stone",
+    "zone": "founder-architecture",
+    "vertices": 1224,
+    "triangles": 612,
+    "uncoveredFaceCentres": 226,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 41,
+    "object": "Box_Founder_polished_floor002_6",
+    "material": "founder__Blackened bronze",
+    "zone": "founder-detail",
+    "vertices": 8659,
+    "triangles": 4332,
+    "uncoveredFaceCentres": 142,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 56,
+    "object": "Box_Founder_polished_floor002_32",
+    "material": "founder__FR84 | fine mineral ivory ceiling",
+    "zone": "founder-architecture",
+    "vertices": 13601,
+    "triangles": 7228,
+    "uncoveredFaceCentres": 103,
+    "meanMissingIrradiance": {
+      "raw": 0.0008301551570184529,
+      "old": 0.0008301592897623777,
+      "clean": 0.0004400257021188736
+    }
+  },
+  {
+    "id": 83,
+    "object": "Box_Studio_textured_rug002_1",
+    "material": "studio__F73 | patinated umber bronze",
+    "zone": "studio-architecture",
+    "vertices": 21048,
+    "triangles": 9900,
+    "uncoveredFaceCentres": 96,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 84,
+    "object": "Box_Studio_textured_rug002_3",
+    "material": "studio__EH54 | scanned cream limestone panels",
+    "zone": "studio-architecture",
+    "vertices": 3718,
+    "triangles": 1448,
+    "uncoveredFaceCentres": 96,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 116,
+    "object": "Box_Studio_textured_rug002_67",
+    "material": "studio__PR94 | warm porcelain glaze",
+    "zone": "studio-detail",
+    "vertices": 40960,
+    "triangles": 20480,
+    "uncoveredFaceCentres": 94,
+    "meanMissingIrradiance": {
+      "raw": 0.01346482802182436,
+      "old": 0.013464134186506271,
+      "clean": 0.011636815033853054
+    }
+  },
+  {
+    "id": 131,
+    "object": "WEB_v13_architecture_13",
+    "material": "v13__EH54 | scanned cream limestone panels",
+    "zone": "v13-architecture",
+    "vertices": 6079,
+    "triangles": 2268,
+    "uncoveredFaceCentres": 73,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 120,
+    "object": "WEB_v13_architecture_2",
+    "material": "v13__PR94 | charcoal library binding",
+    "zone": "v13-architecture",
+    "vertices": 296,
+    "triangles": 156,
+    "uncoveredFaceCentres": 66,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 128,
+    "object": "WEB_v13_architecture_10",
+    "material": "v13__PR94 | oxblood bookcloth",
+    "zone": "v13-architecture",
+    "vertices": 216,
+    "triangles": 108,
+    "uncoveredFaceCentres": 56,
+    "meanMissingIrradiance": {
+      "raw": 0.01716967299580574,
+      "old": 0.017170079052448273,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 95,
+    "object": "Box_Studio_textured_rug002_34",
+    "material": "studio__F73 | blackened bronze cabinet interiors",
+    "zone": "studio-architecture",
+    "vertices": 4200,
+    "triangles": 2100,
+    "uncoveredFaceCentres": 50,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 25,
+    "object": "Box_Complete_foundation001",
+    "material": "shell__Dark stone | plinth and tables",
+    "zone": "shell-architecture",
+    "vertices": 25931,
+    "triangles": 13258,
+    "uncoveredFaceCentres": 45,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 136,
+    "object": "WEB_v13_architecture_22",
+    "material": "v13__MF reference | bronze",
+    "zone": "v13-architecture",
+    "vertices": 7069,
+    "triangles": 5256,
+    "uncoveredFaceCentres": 41,
+    "meanMissingIrradiance": {
+      "raw": 0.014271139167249203,
+      "old": 0.014271922409534454,
+      "clean": 0.011746269650757313
+    }
+  },
+  {
+    "id": 34,
+    "object": "Box_Entrance-side_upper_bridge002_5",
+    "material": "gallery__Blackened bronze",
+    "zone": "gallery-detail",
+    "vertices": 5100,
+    "triangles": 384,
+    "uncoveredFaceCentres": 34,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 118,
+    "object": "Box_Studio_textured_rug002_70",
+    "material": "studio__Blackened bronze.001",
+    "zone": "studio-detail",
+    "vertices": 1928,
+    "triangles": 960,
+    "uncoveredFaceCentres": 34,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 135,
+    "object": "WEB_v13_architecture_20",
+    "material": "v13__F73 | patinated umber bronze",
+    "zone": "v13-architecture",
+    "vertices": 2560,
+    "triangles": 1280,
+    "uncoveredFaceCentres": 27,
+    "meanMissingIrradiance": {
+      "raw": 0.009073294699192047,
+      "old": 0.009072976186871529,
+      "clean": 0.009073294699192047
+    }
+  },
+  {
+    "id": 57,
+    "object": "Box_Founder_polished_floor002_34",
+    "material": "founder__HF89 | ivory mineral composite satin coat",
+    "zone": "founder-detail",
+    "vertices": 13368,
+    "triangles": 6968,
+    "uncoveredFaceCentres": 25,
+    "meanMissingIrradiance": {
+      "raw": 0.19450698792934418,
+      "old": 0.19453872740268707,
+      "clean": 0.17631731927394867
+    }
+  },
+  {
+    "id": 122,
+    "object": "WEB_v13_architecture_4",
+    "material": "v13__PR94 | satin champagne bronze",
+    "zone": "v13-architecture",
+    "vertices": 1379,
+    "triangles": 2256,
+    "uncoveredFaceCentres": 24,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 119,
+    "object": "WEB_v13_architecture_1",
+    "material": "v13__PR94 | warm grey buckram",
+    "zone": "v13-architecture",
+    "vertices": 160,
+    "triangles": 84,
+    "uncoveredFaceCentres": 22,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 127,
+    "object": "WEB_v13_architecture_9",
+    "material": "v13__PR94 | bone linen binding",
+    "zone": "v13-architecture",
+    "vertices": 72,
+    "triangles": 36,
+    "uncoveredFaceCentres": 20,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 62,
+    "object": "Box_Founder_polished_floor002_43",
+    "material": "founder__HF89 | warm porcelain satin glaze",
+    "zone": "founder-detail",
+    "vertices": 13056,
+    "triangles": 6528,
+    "uncoveredFaceCentres": 18,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 24,
+    "object": "Box_Hall_rear_full-height_limestone001_20",
+    "material": "entrance__MD68 | ivory calcite | fine diagonal tooling",
+    "zone": "entrance-detail",
+    "vertices": 1281,
+    "triangles": 620,
+    "uncoveredFaceCentres": 16,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 85,
+    "object": "Box_Studio_textured_rug002_6",
+    "material": "studio__MF reference | bronze",
+    "zone": "studio-architecture",
+    "vertices": 4658,
+    "triangles": 2100,
+    "uncoveredFaceCentres": 12,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 86,
+    "object": "Box_Studio_textured_rug002_7",
+    "material": "studio__EH54 | polished warm-grey cloud marble",
+    "zone": "studio-architecture",
+    "vertices": 24,
+    "triangles": 12,
+    "uncoveredFaceCentres": 6,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 99,
+    "object": "Box_Studio_textured_rug002_41",
+    "material": "studio__HF89 | warm taupe fine woven cushions",
+    "zone": "studio-hero",
+    "vertices": 45476,
+    "triangles": 22848,
+    "uncoveredFaceCentres": 6,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 18,
+    "object": "Box_Hall_rear_full-height_limestone001_2",
+    "material": "entrance__Satin bronze",
+    "zone": "entrance-architecture",
+    "vertices": 4871,
+    "triangles": 1772,
+    "uncoveredFaceCentres": 4,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 126,
+    "object": "WEB_v13_architecture_8",
+    "material": "v13__PR94 | warm cut paper fibres",
+    "zone": "v13-architecture",
+    "vertices": 240,
+    "triangles": 120,
+    "uncoveredFaceCentres": 4,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 17,
+    "object": "Box_Hall_rear_full-height_limestone001",
+    "material": "entrance__EH54 | scanned cream limestone panels",
+    "zone": "entrance-architecture",
+    "vertices": 9947,
+    "triangles": 3515,
+    "uncoveredFaceCentres": 2,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 27,
+    "object": "Box_Complete_foundation001_3",
+    "material": "shell__PL86 | ground wing polished existing marble",
+    "zone": "shell-architecture",
+    "vertices": 24,
+    "triangles": 12,
+    "uncoveredFaceCentres": 2,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 32,
+    "object": "Box_Entrance-side_upper_bridge002_1",
+    "material": "gallery__EH54 | polished warm-grey cloud marble",
+    "zone": "gallery-architecture",
+    "vertices": 48,
+    "triangles": 24,
+    "uncoveredFaceCentres": 2,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 60,
+    "object": "Box_Founder_polished_floor002_41",
+    "material": "founder__HF89 | warm taupe fine woven cushions",
+    "zone": "founder-hero",
+    "vertices": 90952,
+    "triangles": 45696,
+    "uncoveredFaceCentres": 2,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 43,
+    "object": "Box_Founder_polished_floor002_9",
+    "material": "founder__EH54 | polished warm-grey cloud marble",
+    "zone": "founder-detail",
+    "vertices": 24,
+    "triangles": 1,
+    "uncoveredFaceCentres": 1,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 138,
+    "object": "WEB_v18_architecture_2",
+    "material": "v18__EH54 | polished warm-grey cloud marble",
+    "zone": "v18-architecture",
+    "vertices": 2447,
+    "triangles": 1,
+    "uncoveredFaceCentres": 1,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  },
+  {
+    "id": 139,
+    "object": "WEB_v18_architecture_4",
+    "material": "v18__MF reference | bronze",
+    "zone": "v18-architecture",
+    "vertices": 7438,
+    "triangles": 1,
+    "uncoveredFaceCentres": 1,
+    "meanMissingIrradiance": {
+      "raw": 0.0,
+      "old": 0.0,
+      "clean": 0.0
+    }
+  }
+]

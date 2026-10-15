@@ -1,0 +1,5 @@
+
+> md-lounge-live@0.1.0 verify:assets
+> node scripts/verify-assets.mjs
+
+Scene assets ready: 441 files, 3178.1 MB; 10 source geometry chunks.

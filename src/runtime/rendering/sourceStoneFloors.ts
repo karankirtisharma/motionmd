@@ -5,7 +5,15 @@ import type Node from 'three/src/nodes/core/Node.js';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial';
 import { loadTexture } from './assets';
 
-const SOURCE_NAME = 'EH54 | polished warm-grey cloud marble';
+// These four source graphs use the same REF76 image, BOX projection and metre
+// scale. Preserve their individual ramps instead of matching only one name.
+const SOURCE_RAMPS: Record<string, [number[], number[]]> = {
+ 'EH54 | polished warm-grey cloud marble': [[.145,.138,.126],[.48,.451,.4]],
+ 'PL86 | ground wing polished existing marble': [[.145,.138,.126],[.48,.451,.4]],
+ 'FR82 | polished ivory large format stone': [[.23,.205,.17],[.61,.565,.49]],
+ 'FR84 | honed polished table stone': [[.23,.205,.17],[.61,.565,.49]],
+};
+const sourceRamp = (name: string) => SOURCE_RAMPS[name.replace(/^.*?__/, '')];
 const worldGL = glslFn(`vec3 mdFloorWorld(vec3 p, mat4 m) { vec3 w=(m*vec4(p,1.0)).xyz; return vec3(w.x,-w.z,w.y); }`);
 const worldGPU = wgslFn(`fn mdFloorWorld(p:vec3<f32>,m:mat4x4<f32>)->vec3<f32> { let w=(m*vec4<f32>(p,1.0)).xyz; return vec3<f32>(w.x,-w.z,w.y); }`);
 const normalGL = glslFn(`vec3 mdFloorNormal(vec3 n, mat3 m) { vec3 w=normalize(m*n); return vec3(w.x,-w.z,w.y); }`);
@@ -37,7 +45,7 @@ const weightsGPU = wgslFn(`fn mdFloorWeights(n:vec3<f32>)->vec3<f32> {
 /** Keep the photographic source detail independent of unique lighting atlas density. */
 export async function restoreSourceStoneFloors(root:Object3D, signal?:AbortSignal):Promise<Texture[]> {
  const targets:Mesh[]=[];
- root.traverse(o=>{if(o instanceof Mesh&&(Array.isArray(o.material)?o.material:[o.material]).some(m=>m.name.endsWith(SOURCE_NAME)))targets.push(o);});
+ root.traverse(o=>{if(o instanceof Mesh&&(Array.isArray(o.material)?o.material:[o.material]).some(m=>sourceRamp(m.name)))targets.push(o);});
  if(!targets.length)return [];
  const map=await loadTexture('/assets/source-walls/greige-marble-original.png','color',signal);
  try {
@@ -52,12 +60,13 @@ export async function restoreSourceStoneFloors(root:Object3D, signal?:AbortSigna
   const sample=x.mul(w.x).add(y.mul(w.y)).add(z.mul(w.z));
   // Authored REF76 color ramp, evaluated in scene-linear Rec.709.
   const fac=sample.dot(vec3(.2126,.7152,.0722)).sub(.1).div(.56).clamp(0,1);
-  const color=mix(vec3(.145,.138,.126),vec3(.48,.451,.4),fac);
   let materials=0;
   for(const mesh of targets){const list=Array.isArray(mesh.material)?mesh.material:[mesh.material];const updated=list.map(source=>{
-   if(!source.name.endsWith(SOURCE_NAME)||!(source instanceof MeshStandardMaterial||source instanceof MeshPhysicalNodeMaterial))return source;
+   const ramp=sourceRamp(source.name);
+   if(!ramp||!(source instanceof MeshStandardMaterial||source instanceof MeshPhysicalNodeMaterial))return source;
    const material=source instanceof MeshPhysicalNodeMaterial?source:asPhysicalNodeMaterial(source);
-   material.map=null;material.color.setRGB(1,1,1);material.colorNode=color;
+   material.map=null;material.color.setRGB(1,1,1);
+   material.colorNode=mix(vec3(ramp[0][0],ramp[0][1],ramp[0][2]),vec3(ramp[1][0],ramp[1][1],ramp[1][2]),fac);
    (material as unknown as Record<string,unknown>).mdMarbleAlbedo=map;
    material.userData.sourceFloorRestored=true;material.needsUpdate=true;materials++;return material;
   });mesh.material=Array.isArray(mesh.material)?updated:updated[0];}

@@ -110,6 +110,18 @@ test('a swallowed glTF image failure prevents readiness while a fresh retry is c
   assert.doesNotThrow(() => createAssetLoadGuard().assertLoaded());
 });
 
+test('shadow diagnostics preserve the live shadow resource across repeated comparisons',()=>{
+  const {runtime,shadow}=fixture('tour');
+  runtime.diagnostics={setMode(){}};
+  runtime.lighting.sun.castShadow=true;
+  shadow.map={texture:{}};const target=shadow.map;
+  for(let i=0;i<3;i++){
+    runtime.setDiagnosticMode('no-shadows');assert.equal(shadow.intensity,0);
+    assert.equal(runtime.lighting.sun.castShadow,true);assert.equal(shadow.map,target);
+    runtime.setDiagnosticMode('full');assert.equal(shadow.intensity,1);assert.equal(shadow.map,target);
+  }
+});
+
 test('root-relative glTF dependencies retain the external asset release prefix', () => {
   const base = 'https://cdn.example.com/releases/lounge-2026';
   const page = 'https://lounge.example.com/';

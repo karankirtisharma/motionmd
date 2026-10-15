@@ -4,6 +4,7 @@ import { Fn, attribute, float, glslFn, modelNormalMatrix, modelWorldMatrix, text
 import type Node from 'three/src/nodes/core/Node.js';
 import { loadTexture } from './assets';
 import { sourceWorldHeightBump } from './sourceStoneWalls';
+import { installBrushTangents } from './brushTangents';
 
 const worldGL=glslFn(`vec3 mdBronzeWorld(vec3 p,mat4 m){return (m*vec4(p,1.0)).xyz;}`);
 const worldGPU=wgslFn(`fn mdBronzeWorld(p:vec3<f32>,m:mat4x4<f32>)->vec3<f32>{return (m*vec4<f32>(p,1.0)).xyz;}`);
@@ -14,7 +15,10 @@ const normalGPU=wgslFn(`fn mdBronzeNormal(n:vec3<f32>,m:mat3x3<f32>)->vec3<f32>{
 export async function restoreSourceBronze(root:Object3D,signal?:AbortSignal):Promise<Texture[]> {
   const materials=new Set<MeshPhysicalNodeMaterial>();
   root.traverse(o=>{if(o instanceof Mesh)for(const m of Array.isArray(o.material)?o.material:[o.material]) {
-    if(m instanceof MeshPhysicalNodeMaterial && m.name.endsWith('__Satin bronze'))materials.add(m);
+    if(m instanceof MeshPhysicalNodeMaterial && m.name.endsWith('__Satin bronze')) {
+      materials.add(m);
+      installBrushTangents(o);
+    }
   }});
   if(!materials.size)return [];
   const map=await loadTexture('/assets/surface-v5/bronze-source-grain.png','data',signal);

@@ -355,7 +355,8 @@ export class SceneRuntime {
     if (!this.inspectionEnabled || !this.manifest) return;
     this.diagnostics ??= new RenderDiagnostics(this.content);
     this.diagnostics.setMode(mode);
-    if (this.lighting) this.lighting.sun.castShadow = mode !== 'no-shadows' && this.manifest.baking?.mode !== 'combined';
+    // Keep the cached ShadowNode/render target alive when comparing modes.
+    if (this.lighting) this.lighting.sun.shadow.intensity = mode === 'no-shadows' ? 0 : 1;
     this.temporal?.reset();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }

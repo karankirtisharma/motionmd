@@ -1,7 +1,12 @@
-import { Mesh, Object3D } from 'three';
+import { Material, Mesh, Object3D } from 'three';
 import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 import { Fn, glslFn, materialRoughness, wgslFn } from 'three/tsl';
 import type Node from 'three/src/nodes/core/Node.js';
+
+const originalRoughness = new WeakMap<Material, Node<'float'> | null>();
+export function unfilteredRoughness(material: Material) {
+  return originalRoughness.has(material) ? originalRoughness.get(material) : (material as MeshPhysicalNodeMaterial).roughnessNode;
+}
 
 // Normal-map detail smaller than a pixel should widen the specular lobe instead
 // of becoming a moving pinprick. Full-resolution detail retains authored roughness.
@@ -24,6 +29,7 @@ export function filterSourceSpecular(root: Object3D) {
       if (!(material instanceof MeshPhysicalNodeMaterial) || !material.normalNode || seen.has(material) || material.userData.mdSpecularFiltered) continue;
       seen.add(material);
       const roughness = (material.roughnessNode ?? materialRoughness) as Node<'float'>;
+      originalRoughness.set(material, material.roughnessNode as Node<'float'> | null);
       const normal = material.normalNode;
       material.roughnessNode = Fn(builder => ('isWebGLBackend' in builder.renderer.backend ? filterGL : filterGPU)(roughness, normal))();
       material.userData.mdSpecularFiltered = true;
