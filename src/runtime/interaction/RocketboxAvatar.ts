@@ -7,6 +7,8 @@ export type DeskPose = {
   upright: number; deskHeight: number; deskFront?: number;
   hipOffset?: number;
   feetYaw?: number[];
+  stanceWeight?: number; balanceLean?: number;
+  grip?: { hand: number; point: THREE.Vector3; forward: THREE.Vector3; weight: number };
 };
 
 /** MIT Rocketbox source motions, with local root drift removed in the export. */
@@ -53,11 +55,20 @@ export function createRocketboxAvatar(gltf: GLTF) {
   const spine = bone('Bip01 Spine');
   const eyes = [bone('Bip01 LEye'), bone('Bip01 REye')];
   const eyeHeight = eyes.reduce((sum, eye) => sum + eye.getWorldPosition(new THREE.Vector3()).y, 0) / eyes.length;
+  const standingHipHeight = pelvis.getWorldPosition(new THREE.Vector3()).y;
   const legs = ['L', 'R'].map((side) => {
     const upper = bone(`Bip01 ${side} Thigh`), lower = bone(`Bip01 ${side} Calf`), foot = bone(`Bip01 ${side} Foot`);
-    return { upper, lower, foot, ankleHeight: foot.getWorldPosition(new THREE.Vector3()).y };
+    const a = upper.getWorldPosition(new THREE.Vector3()), b = lower.getWorldPosition(new THREE.Vector3()), c = foot.getWorldPosition(new THREE.Vector3());
+    const hinge = b.clone().sub(a).cross(c.clone().sub(b)).normalize();
+    const frame = (joint: THREE.Bone, direction: THREE.Vector3) => {
+      direction.normalize();
+      const basis = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(direction, hinge, direction.clone().cross(hinge)));
+      return joint.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(basis).invert();
+    };
+    return { upper, lower, foot, ankleHeight: c.y, frames: { upper: frame(upper, b.clone().sub(a)), lower: frame(lower, c.clone().sub(b)) } };
   });
   const uprightSpine = [spine, bone('Bip01 Spine1'), bone('Bip01 Spine2')].map(b => ({ bone: b, orientation: b.getWorldQuaternion(new THREE.Quaternion()) }));
+  const uprightHead = [bone('Bip01 Neck'), bone('Bip01 Head')].map(b => ({ bone: b, orientation: b.getWorldQuaternion(new THREE.Quaternion()) }));
   const arms = ['L', 'R'].map((side, index) => {
     const upper = bone(`Bip01 ${side} UpperArm`), lower = bone(`Bip01 ${side} Forearm`), hand = bone(`Bip01 ${side} Hand`);
     const middle = bone(`Bip01 ${side} Finger2`), first = bone(`Bip01 ${side} Finger1`), little = bone(`Bip01 ${side} Finger4`);
@@ -120,7 +131,7 @@ export function createRocketboxAvatar(gltf: GLTF) {
       setWorldQuaternion(foot, footOrientation);
     }
   }
-  function solveLimb(upper: THREE.Bone, lower: THREE.Bone, end: THREE.Bone, target: THREE.Vector3, pole: THREE.Vector3) {
+  function solveLimb(upper: THREE.Bone, lower: THREE.Bone, end: THREE.Bone, target: THREE.Vector3, pole: THREE.Vector3, frames?: { upper: THREE.Quaternion; lower: THREE.Quaternion }) {
     const a = upper.getWorldPosition(new THREE.Vector3()), b = lower.getWorldPosition(new THREE.Vector3()), c = end.getWorldPosition(new THREE.Vector3());
     const l1 = a.distanceTo(b), l2 = b.distanceTo(c), axis = target.clone().sub(a);
     const distance = THREE.MathUtils.clamp(axis.length(), Math.abs(l1 - l2) + 0.0001, l1 + l2 - 0.0001);
@@ -128,6 +139,19 @@ export function createRocketboxAvatar(gltf: GLTF) {
     const bend = pole.clone().sub(a); bend.addScaledVector(axis, -bend.dot(axis)).normalize();
     const along = (l1 * l1 + distance * distance - l2 * l2) / (2 * distance);
     const knee = a.clone().addScaledVector(axis, along).addScaledVector(bend, Math.sqrt(Math.max(0, l1 * l1 - along * along)));
+    if (frames) {
+      // A direction-only swing leaves the source animation's axial roll in the
+      // thigh/calf. Constrain both bones to their calibrated knee hinge frame.
+      const normal = bend.clone().cross(axis).normalize();
+      const orient = (joint: THREE.Bone, direction: THREE.Vector3, reference: THREE.Quaternion) => {
+        direction.normalize();
+        const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(direction, normal, direction.clone().cross(normal))).multiply(reference);
+        setWorldQuaternion(joint, q);
+      };
+      orient(upper, knee.clone().sub(a), frames.upper);
+      orient(lower, target.clone().sub(lower.getWorldPosition(b)), frames.lower);
+      return;
+    }
     setWorldQuaternion(upper, new THREE.Quaternion().setFromUnitVectors(b.sub(a).normalize(), knee.sub(a).normalize()).multiply(upper.getWorldQuaternion(new THREE.Quaternion())));
     lower.getWorldPosition(b); end.getWorldPosition(c);
     setWorldQuaternion(lower, new THREE.Quaternion().setFromUnitVectors(c.sub(b).normalize(), target.clone().sub(b).normalize()).multiply(lower.getWorldQuaternion(new THREE.Quaternion())));
@@ -136,18 +160,44 @@ export function createRocketboxAvatar(gltf: GLTF) {
     const rootQ = root.getWorldQuaternion(new THREE.Quaternion());
     const front = new THREE.Vector3(0, 0, 1).applyQuaternion(rootQ), left = new THREE.Vector3(1, 0, 0).applyQuaternion(rootQ);
     // Remove the source relaxed chair slouch, keeping a slight working inclination.
-    const incline = new THREE.Quaternion().setFromAxisAngle(left, 0.24 * pose.handWeight);
-    for (const item of uprightSpine) {
+    // A standing sidestep needs knee flexion. Previously the animated pelvis
+    // stayed at full standing height and the IK silently clamped short of the
+    // planted foot. Lower only the unseated stance, using measured leg lengths.
+    let drop = .025 * (pose.stanceWeight ?? 0) * (1 - pose.upright);
+    for (const [i, leg] of legs.entries()) {
+      const hip = leg.upper.getWorldPosition(new THREE.Vector3());
+      const knee = leg.lower.getWorldPosition(new THREE.Vector3()), ankle = leg.foot.getWorldPosition(new THREE.Vector3());
+      const reach = hip.distanceTo(knee) + knee.distanceTo(ankle) - .002;
+      const target = pose.feet[i].clone().add(new THREE.Vector3(0, leg.ankleHeight, 0));
+      const horizontalSq = (hip.x - target.x) ** 2 + (hip.z - target.z) ** 2;
+      drop = Math.max(drop, hip.y - target.y - Math.sqrt(Math.max(0, reach * reach - horizontalSq)));
+    }
+    model.position.y -= Math.min(.08, drop);
+    model.updateWorldMatrix(true, true);
+    const transfer = pose.balanceLean ?? 0;
+    const bodyWeight = Math.max(pose.upright, THREE.MathUtils.clamp(transfer / .12, 0, 1));
+    for (const [index, item] of uprightSpine.entries()) {
+      // Most flexion belongs at the hips/lower spine. A mild thoracic recovery
+      // and counter-rotated neck keep the chest/head from folding as one plank.
+      const incline = new THREE.Quaternion().setFromAxisAngle(left, 0.24 * pose.handWeight + transfer * (1 - index * .08));
       const q = incline.clone().multiply(rootQ).multiply(item.orientation);
-      setWorldQuaternion(item.bone, item.bone.getWorldQuaternion(new THREE.Quaternion()).slerp(q, pose.upright));
+      setWorldQuaternion(item.bone, item.bone.getWorldQuaternion(new THREE.Quaternion()).slerp(q, bodyWeight));
+    }
+    for (const item of uprightHead) {
+      const q = new THREE.Quaternion().setFromAxisAngle(left, .12 * pose.handWeight + transfer * .38).multiply(rootQ).multiply(item.orientation);
+      setWorldQuaternion(item.bone, item.bone.getWorldQuaternion(new THREE.Quaternion()).slerp(q, bodyWeight));
     }
     legs.forEach((leg, i) => {
       if (pose.footWeight <= 0) return;
       const current = leg.foot.getWorldPosition(new THREE.Vector3());
       const target = current.lerp(pose.feet[i].clone().add(new THREE.Vector3(0, leg.ankleHeight, 0)), pose.footWeight);
-      const pole = root.getWorldPosition(new THREE.Vector3()).addScaledVector(front, 1).addScaledVector(left, i === 0 ? 0.15 : -0.15);
+      // During a pivot the supporting knee follows that foot's toes, not the
+      // turning pelvis. The latter dragged the knee inward across a fixed foot.
+      const toeYaw = pose.feetYaw?.[i] ?? root.rotation.y;
+      const kneeForward = new THREE.Vector3(Math.sin(toeYaw), 0, Math.cos(toeYaw));
+      const pole = leg.upper.getWorldPosition(new THREE.Vector3()).addScaledVector(kneeForward, 1);
       const q = leg.foot.getWorldQuaternion(new THREE.Quaternion());
-      solveLimb(leg.upper, leg.lower, leg.foot, target, pole);
+      solveLimb(leg.upper, leg.lower, leg.foot, target, pole, leg.frames);
       // Feet retain the source's calibrated sole orientation, with toe roll removed below.
       const footQ = pose.feetYaw ? new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), pose.feetYaw[i]) : rootQ.clone();
       setWorldQuaternion(leg.foot, q.slerp(footQ.multiply(standingFootRotations[i]), pose.footWeight));
@@ -155,6 +205,14 @@ export function createRocketboxAvatar(gltf: GLTF) {
     arms.forEach((arm, i) => {
       const beforeQ = arm.hand.getWorldQuaternion(new THREE.Quaternion());
       const start = arm.hand.getWorldPosition(new THREE.Vector3());
+      // Rest the hands above the thighs during the weight transfer, rather
+      // than letting a seated idle gesture swing the arms through the legs.
+      const leg = legs[i];
+      const thigh = leg.upper.getWorldPosition(new THREE.Vector3());
+      const knee = leg.lower.getWorldPosition(new THREE.Vector3());
+      const support = THREE.MathUtils.smoothstep(pose.upright, 0, .65);
+      const thighTarget = thigh.lerp(knee, .66).add(new THREE.Vector3(0, .105, 0)).addScaledVector(left, arm.sign * .025);
+      start.lerp(thighTarget, support);
       // Tuck the desk-side hand during the narrow walking/turning approach.
       if (pose.deskFront !== undefined) start.x = Math.min(start.x, pose.deskFront - 0.15 - 0.10 * pose.upright);
       const goal = pose.hands[i], t = pose.handWeight, r = 1 - t;
@@ -163,21 +221,29 @@ export function createRocketboxAvatar(gltf: GLTF) {
       const c1 = start.clone().setY(Math.max(start.y + 0.24, pose.deskHeight + 0.18));
       const c2 = goal.clone().addScaledVector(front, -0.12).add(new THREE.Vector3(0, 0.18, 0));
       const target = start.clone().multiplyScalar(r * r * r).addScaledVector(c1, 3 * r * r * t).addScaledVector(c2, 3 * r * t * t).addScaledVector(goal, t * t * t);
-      const pole = arm.upper.getWorldPosition(new THREE.Vector3()).addScaledVector(left, arm.sign * 0.27).addScaledVector(front, -0.08).add(new THREE.Vector3(0, -0.5, 0));
+      const grip = pose.grip?.hand === i ? pose.grip : undefined;
+      if (grip) target.lerp(grip.point, grip.weight);
+      const workingPole = arm.upper.getWorldPosition(new THREE.Vector3()).addScaledVector(left, arm.sign * 0.27).addScaledVector(front, -0.08).add(new THREE.Vector3(0, -0.5, 0));
+      // Keep the idle elbow bend while approaching. Applying the working pole
+      // at zero hand weight made both elbows flare out before reaching the desk.
+      const pole = arm.lower.getWorldPosition(new THREE.Vector3()).lerp(workingPole, Math.max(t, support * .65, grip?.weight ?? 0));
       solveLimb(arm.upper, arm.lower, arm.hand, target, pole);
-      const across = left.clone().multiplyScalar(-arm.sign), normal = new THREE.Vector3().crossVectors(front, across);
-      const desired = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(across, normal, front)).multiply(arm.localBasis.clone().invert());
-      setWorldQuaternion(arm.hand, beforeQ.slerp(desired, pose.handWeight));
+      const palmForward = grip ? front.clone().lerp(grip.forward, grip.weight).normalize() : front;
+      const palmLeft = new THREE.Vector3(palmForward.z, 0, -palmForward.x);
+      const across = palmLeft.multiplyScalar(-arm.sign), normal = new THREE.Vector3().crossVectors(palmForward, across);
+      const desired = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(across, normal, palmForward)).multiply(arm.localBasis.clone().invert());
+      const palmWeight = Math.max(pose.handWeight, grip?.weight ?? 0);
+      setWorldQuaternion(arm.hand, beforeQ.slerp(desired, palmWeight));
       // Aim existing finger phalanges along the desktop. Keep thumb opposition and a small spread.
       arm.fingers.forEach((chain, digit) => chain.forEach((joint, segment) => {
         const child = chain[segment + 1] ?? joint.children.find(o => (o as THREE.Bone).isBone);
         if (!child) return;
         const origin = joint.getWorldPosition(new THREE.Vector3());
         const direction = child.getWorldPosition(new THREE.Vector3()).sub(origin).normalize();
-        const desiredDirection = front.clone().addScaledVector(left, digit === 0 ? -arm.sign * 0.6 : arm.sign * (digit - 2.5) * 0.035).normalize();
+        const desiredDirection = palmForward.clone().addScaledVector(left, digit === 0 ? -arm.sign * 0.6 : arm.sign * (digit - 2.5) * 0.035).normalize();
         const q = joint.getWorldQuaternion(new THREE.Quaternion());
         const goal = new THREE.Quaternion().setFromUnitVectors(direction, desiredDirection).multiply(q);
-        setWorldQuaternion(joint, q.slerp(goal, pose.handWeight));
+        setWorldQuaternion(joint, q.slerp(goal, palmWeight));
       }));
     });
   }
@@ -206,6 +272,11 @@ export function createRocketboxAvatar(gltf: GLTF) {
       actions.walk.setEffectiveWeight(walking * (1 - running) * (1 - seated));
       actions.run.setEffectiveWeight(walking * running * (1 - seated));
       actions.sit.setEffectiveWeight(seated);
+      // The supplied Sit is a looping seated gesture, not a stand-to-sit clip.
+      // At a desk use its neutral pose; IK and the contact trajectory own the
+      // transition. Otherwise different arrival times produce different bodies.
+      actions.sit.paused = !!contacts;
+      if (contacts) actions.sit.time = 0;
       const stride = THREE.MathUtils.lerp(1.35 * walkDuration, 3.35 * runDuration, running);
       gaitPhase = (gaitPhase + speedSmoothed * (1 - seated) * dt / stride) % 1;
       actions.walk.time = gaitPhase * walkDuration;
@@ -237,6 +308,13 @@ export function createRocketboxAvatar(gltf: GLTF) {
       // The bone pivot sits inside the pelvis, above the actual cushion contact.
       model.position.y = baseline + (seatHeight + (contacts?.hipOffset ?? 0.075) - seatedHipHeight) * seated;
       model.updateWorldMatrix(true, true);
+      if (contacts) {
+        // Control the actual pelvis, not an assumed model-origin offset. Source
+        // root tracks must not add a second vertical motion on top of lowering.
+        const height = THREE.MathUtils.lerp(standingHipHeight, seatHeight + (contacts.hipOffset ?? .075), seated);
+        model.position.y += root.position.y + height - pelvis.getWorldPosition(new THREE.Vector3()).y;
+        model.updateWorldMatrix(true, true);
+      }
       plantFeet(seated);
       if (contacts) deskPose(contacts);
     },

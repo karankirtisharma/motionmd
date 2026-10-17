@@ -5,6 +5,7 @@ import * as THREE from 'three';
 export const WORKSTATION = {
   id: 'founder-desk',
   sourceSeat: [15.5748868, 4.265, -3.7747329],
+  sourceSpindle: [15.65, 4.265, -3.75],
   sourceForward: [-0.975887, 0, -0.218281],
   seat: [15.42, 4.265, -5.3],
   cushionHeight: 4.8264914 - 4.265,
@@ -55,6 +56,29 @@ export function createWorkstation(scene: THREE.Object3D) {
   const source = new THREE.Vector3(...WORKSTATION.sourceSeat);
   group.position.copy(source); scene.add(group); group.updateMatrixWorld(true);
   for (const mesh of meshes) group.attach(mesh);
+  const swivel = new THREE.Group(); swivel.name = 'Founder chair swivel'; group.add(swivel);
+  swivel.position.copy(new THREE.Vector3(...WORKSTATION.sourceSpindle).sub(source));
+  group.updateMatrixWorld(true);
+  // The exported primitives combine pedestal and upholstery by material.
+  // Partition their existing triangles at the measured spindle joint; keep all
+  // original attributes (including both UV sets), normals and materials.
+  const pedestalMeshes: THREE.Mesh[] = [];
+  for (const mesh of [...meshes]) {
+    const geometry = mesh.geometry, indices = geometry.index;
+    if (!indices) throw new Error('Founder chair needs indexed source geometry');
+    const p = new THREE.Vector3(), heights = new Float32Array(geometry.attributes.position.count);
+    for (let i = 0; i < heights.length; i++) heights[i] = p.fromBufferAttribute(geometry.attributes.position, i).applyMatrix4(mesh.matrixWorld).y;
+    const fixed: number[] = [], moving: number[] = [];
+    for (let i = 0; i < indices.count; i += 3) {
+      const a = indices.getX(i), b = indices.getX(i + 1), c = indices.getX(i + 2);
+      (Math.min(heights[a], heights[b], heights[c]) >= 4.42 ? moving : fixed).push(a, b, c);
+    }
+    if (fixed.length) {
+      const base = mesh.clone(); base.name += ' pedestal'; base.geometry = geometry.clone(); base.geometry.setIndex(fixed);
+      group.add(base); pedestalMeshes.push(base); meshes.push(base);
+    }
+    geometry.setIndex(moving); swivel.attach(mesh);
+  }
   group.scale.setScalar(WORKSTATION.scale);
   const rotation = Math.PI / 2 - Math.atan2(WORKSTATION.sourceForward[0], WORKSTATION.sourceForward[2]);
   group.rotation.y = rotation;
@@ -65,15 +89,27 @@ export function createWorkstation(scene: THREE.Object3D) {
   group.position.copy(seat); group.updateMatrixWorld(true);
   offset.copy(seat).sub(source.clone().applyMatrix4(rotationMatrix));
   transform.copy(rotationMatrix).setPosition(offset);
+  const pivot = swivel.getWorldPosition(new THREE.Vector3());
+  const pointAt = (point: THREE.Vector3, angle: number) => point.clone().sub(pivot).applyAxisAngle(new THREE.Vector3(0, 1, 0), angle).add(pivot);
+  const leather = meshes.filter(mesh => !Array.isArray(mesh.material) && /fine ivory leather/.test(mesh.material.name));
+  const grips = [-1, 1].map(side => {
+    const ray = new THREE.Raycaster(new THREE.Vector3(seat.x + .16, 5.2, seat.z + side * .37), new THREE.Vector3(0, -1, 0));
+    const hit = ray.intersectObjects(leather, false)[0];
+    if (!hit) throw new Error('Founder armrest grip could not be measured');
+    return hit.point.clone().add(new THREE.Vector3(0, .0396, 0));
+  });
   return {
-    id: WORKSTATION.id, group, meshes, seat: seat.clone().addScaledVector(forward, 0.20), forward,
+    id: WORKSTATION.id, group, swivel, pedestalMeshes, meshes, pivot, seat: seat.clone().addScaledVector(forward, 0.20), forward,
+    pointAt,
+    grip(angle: number, side: number) { return pointAt(grips[side < 0 ? 0 : 1], angle); },
+    setSwivel(angle: number) { swivel.rotation.y = angle; group.updateMatrixWorld(true); },
     floor: seat.y, height: WORKSTATION.cushionHeight - WORKSTATION.seatDrop,
     screen: new THREE.Vector3(...WORKSTATION.screen),
     deskHeight: WORKSTATION.desk.max[1],
     deskFront: WORKSTATION.desk.min[0],
     // Wrist is near the front edge; palm and fingers extend onto the desktop.
     wrists: [new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0396, -5.49), new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0396, -5.11)],
-    approach: new THREE.Vector3(15.80, seat.y, -6.32),
+    approach: new THREE.Vector3(15.65, seat.y, -6.02),
     aligned: new THREE.Vector3(15.98, seat.y, -5.3),
     collisionTransform: { offset, rotation: rotationQuaternion, height: chairHeight },
     transform,

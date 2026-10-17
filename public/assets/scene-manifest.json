@@ -4052,7 +4052,7 @@
       "name": "founder__FR79 | antique bronze hand knotted rug",
       "sourceMaterial": "FR79 | antique bronze hand knotted rug",
       "mode": "baked-procedural",
-      "lightMap": "/assets/chair-v22/lighting/founder-rug-clearance-indirect.exr",
+      "lightMap": "/assets/chair-v22/lighting/founder-rug-swivel-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,

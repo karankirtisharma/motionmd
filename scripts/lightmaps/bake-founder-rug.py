@@ -14,6 +14,7 @@ p = argparse.ArgumentParser()
 p.add_argument('--work', type=Path, required=True)
 p.add_argument('--previous', type=Path, required=True)
 p.add_argument('--samples', type=int, default=512)
+p.add_argument('--swivel', action='store_true', help='Bake only the fixed pedestal; the upper chair casts live shadows')
 args = p.parse_args(sys.argv[sys.argv.index('--') + 1:])
 work = args.work.resolve(); work.mkdir(parents=True, exist_ok=True)
 start = time.time()
@@ -75,6 +76,13 @@ for obj in list(scene.objects):
     chair_mesh.transform(obj.matrix_world)
     for v in chair_mesh.vertices:
         v.co.z -= .12 * max(0, min(1, (v.co.z - 4.343) / (4.560 - 4.343)))
+    if args.swivel:
+        # Exactly the runtime swivel split. Preserve the stationary pedestal,
+        # remove the upper assembly from this receiver's static irradiance.
+        import bmesh
+        bm = bmesh.new(); bm.from_mesh(chair_mesh)
+        bmesh.ops.delete(bm, geom=[f for f in bm.faces if min(v.co.z for v in f.verts) >= 4.42], context='FACES')
+        bm.to_mesh(chair_mesh); bm.free()
     chair_mesh.transform(placement)
     clone = bpy.data.objects.new('Bake chair | ' + obj.name, chair_mesh)
     scene.collection.objects.link(clone); obj.hide_render = True; chair_count += 1
@@ -124,5 +132,5 @@ np.save(work / 'founder-rug-raw.npy', pixels.reshape(size[1], size[0], 4))
 np.save(work / 'founder-rug-old.npy', pixels.reshape(size[1], size[0], 4))
 np.asarray(data['uv'], np.float32).reshape(-1,2)[np.asarray(data['index'])].tofile(work / 'rug-uv.bin')
 (work / 'sources.json').write_text(json.dumps([{'zone':'founder-rug','raw':'retained as founder-rug-raw.npy','uv':str(work/'rug-uv.bin')}]))
-(work / 'bake-report.json').write_text(json.dumps({'source':bpy.data.filepath,'sourceSaved':False,'samples':args.samples,'size':size,'sourceCorrespondenceMax':maximum_error,'chairParts':chair_count,'seconds':time.time()-start}, indent=2))
+(work / 'bake-report.json').write_text(json.dumps({'source':bpy.data.filepath,'sourceSaved':False,'swivel':args.swivel,'samples':args.samples,'size':size,'sourceCorrespondenceMax':maximum_error,'chairParts':chair_count,'seconds':time.time()-start}, indent=2))
 note('complete')

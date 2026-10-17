@@ -54,6 +54,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   const colliderNames = new Map<number, string>();
   const workstationColliders: RAPIER.Collider[] = [];
   let workstationConfigured = false;
+    let workstationPlacement: { offset: THREE.Vector3; rotation: THREE.Quaternion } | undefined;
+    let workstationAngle = 0;
   let meshCount = 0, triangleCount = 0;
   try { root.traverse((object) => {
     const mesh = object as THREE.Mesh;
@@ -159,6 +161,14 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       const radius = active ? 0.10 : PLAYER_RADIUS;
       capsule.setShape(new RAPIER.Capsule(PLAYER_HALF_HEIGHT - radius, radius));
     },
+    restoreNavigationClearance(feet: THREE.Vector3) {
+      // The full navigation margin includes arm swing. Expand only once that
+      // margin fits, so releasing a desk pose cannot push the idle body sideways.
+      const shape = new RAPIER.Capsule(PLAYER_HALF_HEIGHT - PLAYER_RADIUS, PLAYER_RADIUS);
+      const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };
+      if (world.intersectionWithShape(center, { x: 0, y: 0, z: 0, w: 1 }, shape, undefined, undefined, capsule, body)) return false;
+      capsule.setShape(shape); return true;
+    },
     move(displacement: THREE.Vector3, dt: number, output: THREE.Vector3, ignoreWorkstation = false) {
       world.timestep = dt;
       controller.computeColliderMovement(capsule, displacement, undefined, undefined, (candidate) => candidate.handle !== capsule.handle && (!ignoreWorkstation || !workstationColliders.includes(candidate)));
@@ -201,8 +211,19 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
         }
         collider.setTranslation(offset); collider.setRotation(rotation);
       }
-      workstationConfigured = true; world.step();
+        workstationPlacement = { offset: offset.clone(), rotation: rotation.clone() };
+        workstationConfigured = true; world.step();
     },
+      swivelWorkstation(pivot: THREE.Vector3, angle: number) {
+        if (!workstationPlacement || angle === workstationAngle) return;
+        const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
+        const offset = workstationPlacement.offset.clone().sub(pivot).applyQuaternion(turn).add(pivot);
+        const rotation = turn.multiply(workstationPlacement.rotation);
+        // These named collision pieces are the cushion and the armrest rims /
+        // pads, all above the fixed pedestal joint.
+        for (const collider of workstationColliders) { collider.setTranslation(offset); collider.setRotation(rotation); }
+        workstationAngle = angle; world.step();
+      },
     hasLineOfSight(a: THREE.Vector3, b: THREE.Vector3, tolerance = 0.15) {
       const delta = b.clone().sub(a), length = delta.length();
       if (length < tolerance) return true;

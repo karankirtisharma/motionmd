@@ -52,12 +52,18 @@ const controllerSource = transpile('../src/runtime/interaction/InteractionContro
   .replace("from '../rendering/assets'", `from ${JSON.stringify(new URL('../src/runtime/rendering/assets.ts', import.meta.url).href)}`);
 const { createInteractionController } = await import(dataModule(controllerSource));
 
-test('founder desk completes collision-aware approach, contact IK, repeated input and stand', async context => {
+for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far side',[15.7,4.265,-4.1]]]) test(`founder desk completes collision-aware approach, contact IK, repeated input and stand (${entryLabel})`, async context => {
   const collisionRoot = new THREE.Group();
   for (const url of [manifest.collisions.url,...manifest.collisions.additionalUrls]) collisionRoot.add((await load(url)).scene);
   const scene = new THREE.Scene(); scene.add((await load(manifest.chunks.find(c=>c.id==='founder').url,true)).scene);
   const physics = await createCollisionWorld(scene,undefined,collisionRoot);
   const avatar = createRocketboxAvatar(await load(manifest.character.url,true));
+  const legReferences=['L','R'].map(side=>{
+    const joints=['Thigh','Calf','Foot'].map(part=>avatar.root.getObjectByName(`Bip01_${side}_${part}`));
+    const [a,b,c]=joints.map(j=>j.getWorldPosition(new THREE.Vector3()));
+    const hinge=b.clone().sub(a).cross(c.clone().sub(b)).normalize();
+    return {joints,hinges:joints.slice(0,2).map(j=>hinge.clone().applyQuaternion(j.getWorldQuaternion(new THREE.Quaternion()).invert())),toe:new THREE.Vector3(0,0,1).applyQuaternion(joints[2].getWorldQuaternion(new THREE.Quaternion()).invert())};
+  });
   const prior = {document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
   globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
   globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
@@ -66,8 +72,12 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
   let hint;
   const controller=await createInteractionController({scene,camera,canvas:{addEventListener(){},removeEventListener(){},focus(){},getBoundingClientRect(){return {left:0,top:0,width:1000,height:700};}},manifest:{...manifest,screen:undefined},onPrompt:p=>{hint=p;}});
   const stages=new Set(); let maximumStep=0;
-  const lateralMotion=[];
+  const turnMotion=[];
+  let entryFootfalls=0;
+  const lifted=[false,false];
   const chair=scene.getObjectByName('Founder interactive desk chair');
+  const swivelChair=scene.getObjectByName('Founder chair swivel');
+  const fixedPedestals=chair.children.filter(o=>o.isMesh).map(o=>({mesh:o,matrix:o.matrixWorld.toArray()}));
   const fixedChairMatrix=chair.matrixWorld.toArray();
   const handVertices=[];
   avatar.root.traverse(mesh=>{
@@ -81,10 +91,64 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
     }
     handVertices.push({mesh,vertices});
   });
-  let edgePenetration=0,edgeWorst;
+  let edgePenetration=0,edgeWorst,gripError=0,maximumSwivel=0;
+  const contactErrors={};
+  const bodyMechanics={lower:[],rise:[]};
+  let ankleHeight,previousContacts,maximumFootStep=0;
+  let maximumLegTwist=0;
   const checkTransition=()=>{
     assert.deepEqual(chair.matrixWorld.toArray(),fixedChairMatrix,'chair stays fixed throughout sitting and standing');
     avatar.root.updateMatrixWorld(true);
+    const state=controller.diagnostics.state;
+    maximumSwivel=Math.max(maximumSwivel,Math.abs(state.chairAngle));
+    assert.ok(Math.abs(swivelChair.rotation.y-state.chairAngle)<1e-8,'chair follows its interaction angle');
+    fixedPedestals.forEach(({mesh,matrix})=>assert.deepEqual(mesh.matrixWorld.toArray(),matrix,'pedestal never swivels'));
+    if(state.deskStage==='open') {
+      // Same top-surface ray as Workstation, evaluated on the actual moving leather.
+      const side=state.feet[2]<-5.3?-1:1;
+      const neutral=new THREE.Vector3(15.58,5.2,-5.3+side*.37);
+      const pivot=swivelChair.getWorldPosition(new THREE.Vector3());
+      const sample=neutral.sub(pivot).applyAxisAngle(new THREE.Vector3(0,1,0),state.chairAngle).add(pivot);
+      const leather=[];swivelChair.traverse(o=>{if(o.isMesh&&/fine ivory leather/.test(o.material.name))leather.push(o);});
+      const hit=new THREE.Raycaster(sample,new THREE.Vector3(0,-1,0)).intersectObjects(leather,false)[0];
+      assert.ok(hit,'grip stays on moving armrest');
+      const hand=avatar.root.getObjectByName(`Bip01_${side<0?'R':'L'}_Hand`).getWorldPosition(new THREE.Vector3());
+      gripError=Math.max(gripError,hand.distanceTo(hit.point.add(new THREE.Vector3(0,.0396,0))));
+    }
+    if(bodyMechanics[state.deskStage]) {
+      const point=name=>avatar.root.getObjectByName(name).getWorldPosition(new THREE.Vector3());
+      const hip=point('Bip01_Pelvis'),head=point('Bip01_Head');
+      const knees=['L','R'].map(side=>{
+        const thigh=point(`Bip01_${side}_Thigh`),knee=point(`Bip01_${side}_Calf`),foot=point(`Bip01_${side}_Foot`);
+        return thigh.sub(knee).angleTo(foot.sub(knee))*180/Math.PI;
+      });
+      bodyMechanics[state.deskStage].push({time:state.deskTime,hip:hip.toArray(),head:head.toArray(),knees});
+    }
+    if(state.footContacts) {
+      for(const {joints,hinges,toe} of legReferences) {
+        const [a,b,c]=joints.map(j=>j.getWorldPosition(new THREE.Vector3()));
+        const normal=b.clone().sub(a).cross(c.clone().sub(b)).normalize();
+        hinges.forEach((hinge,i)=>assert.ok(hinge.clone().applyQuaternion(joints[i].getWorldQuaternion(new THREE.Quaternion())).dot(normal)>.999,'thigh and calf retain a shared knee hinge without inward axial roll'));
+        const forward=toe.clone().applyQuaternion(joints[2].getWorldQuaternion(new THREE.Quaternion())).setY(0).normalize();
+        const axis=c.clone().sub(a).normalize(),bend=b.clone().sub(a);bend.addScaledVector(axis,-bend.dot(axis)).normalize();
+        const kneeDirection=forward.clone().addScaledVector(axis,-forward.dot(axis)).normalize();
+        assert.ok(bend.dot(kneeDirection)>.999,'knee bends toward the toes rather than inward');
+        if(['entry-turn','seat-turn'].includes(state.deskStage)) {
+          const body=new THREE.Vector3(Math.sin(state.bodyYaw),0,Math.cos(state.bodyYaw));
+          maximumLegTwist=Math.max(maximumLegTwist,body.angleTo(forward));
+          assert.ok(body.angleTo(forward)<Math.PI*5/24+.001,'deliberate turn keeps the pelvis between the foot headings within 37.5 degrees');
+        }
+      }
+      const currentContacts=[];
+      for(const [i,side] of ['L','R'].entries()) {
+        const foot=avatar.root.getObjectByName(`Bip01_${side}_Foot`).getWorldPosition(new THREE.Vector3());
+        currentContacts.push(foot);
+        if(previousContacts && !(state.deskStage==='entry-turn'&&state.deskTime<.025))maximumFootStep=Math.max(maximumFootStep,foot.distanceTo(previousContacts[i]));
+        const goal=new THREE.Vector3(...state.footContacts[i]).add(new THREE.Vector3(0,ankleHeight,0));
+        contactErrors[state.deskStage]=Math.max(contactErrors[state.deskStage]??0,foot.distanceTo(goal));
+      }
+      previousContacts=currentContacts;
+    } else previousContacts=undefined;
     for(const {mesh,vertices} of handVertices) {
       mesh.skeleton.update();const p=new THREE.Vector3();
       for(const v of vertices) {
@@ -94,15 +158,22 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
     }
   };
   try {
-    controller.enterExplore(undefined,{position:[14.8,4.265,-6.1],yaw:-Math.PI/2});
+    controller.enterExplore(undefined,{position:initialPosition,yaw:-Math.PI/2});
     for(let i=0;i<120;i++)controller.update(1/60);
+    ankleHeight=avatar.root.getObjectByName('Bip01_L_Foot').getWorldPosition(new THREE.Vector3()).y-controller.player.position.y;
     assert.equal(hint?.target,'founder-desk');
+    assert.equal(controller.diagnostics.state.chairAngle,Math.PI/4,'chair starts at the approved open angle');
     controller.handleInteract();
     for(let i=0;i<1200;i++) {
       const before=controller.player.position.clone(); controller.update(1/60);
       const state=controller.diagnostics.state; stages.add(state.deskStage ?? state.mode);
       maximumStep=Math.max(maximumStep,controller.player.position.distanceTo(before));
-      if(state.deskStage==='align') lateralMotion.push({distance:controller.player.position.distanceTo(before), walk:avatar.locomotion.weights.walk});
+      if(state.deskStage==='entry-turn') turnMotion.push({distance:controller.player.position.distanceTo(before), walk:avatar.locomotion.weights.walk, yaw:state.bodyYaw});
+      if(state.deskStage==='entry-turn') state.footContacts.forEach((foot,index)=>{
+        const airborne=foot[1]>4.266;
+        if(airborne&&!lifted[index])entryFootfalls++;
+        lifted[index]=airborne;
+      });
       checkTransition();
       if(i===120||i===240)controller.handleInteract();
       if(state.mode==='seated')break;
@@ -110,12 +181,21 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
     context.diagnostic(JSON.stringify({stages:[...stages],state:controller.diagnostics.state,maximumStep,hint}));
     assert.equal(controller.diagnostics.state.mode,'seated');
     assert.ok(maximumStep<0.06,'root has no teleportation');
-    assert.ok(lateralMotion.length / 60 < 2.5,'the short entry does not become a prolonged shuffle');
-    const middleSteps=lateralMotion.slice(Math.floor(lateralMotion.length*.2),Math.floor(lateralMotion.length*.8));
-    context.diagnostic(JSON.stringify({lateralFrames:lateralMotion.length,minimumMidStep:Math.min(...middleSteps.map(f=>f.distance)),maximumMidStep:Math.max(...middleSteps.map(f=>f.distance))}));
-    assert.ok(middleSteps.every(frame=>frame.distance>.004),'body carries through footfalls without repeatedly stopping');
-    assert.ok(middleSteps.some(frame=>frame.walk>.25),'existing upper-body motion remains active during lateral entry');
-    for (const stage of ['entry-turn','align','lower','reach','work']) assert.ok(stages.has(stage),stage);
+    assert.ok(turnMotion.length > 0 && turnMotion.length / 60 < 2.5,'turn and positioning form one short movement');
+    assert.equal(entryFootfalls,2,'normal entry uses two deliberate steps instead of micro-step pairs');
+    assert.ok(turnMotion.length/60>=1.25,'the two entry steps are unhurried');
+    assert.ok(!stages.has('align'),'no extra pair of alignment steps after the turn');
+    const middleSteps=turnMotion.slice(Math.floor(turnMotion.length*.2),Math.floor(turnMotion.length*.8));
+    context.diagnostic(JSON.stringify({turnFrames:turnMotion.length,minimumMidStep:Math.min(...middleSteps.map(f=>f.distance)),maximumMidStep:Math.max(...middleSteps.map(f=>f.distance))}));
+    assert.ok(middleSteps.every(frame=>frame.distance>.001),'body approaches the sitting stance during the turn');
+    assert.ok(middleSteps.every(frame=>frame.walk<.05),'forward-walking gait must not fight the lateral foot contacts');
+    for (const stage of ['entry-turn','lower','swivel-in','reach','work']) assert.ok(stages.has(stage),stage);
+    for (const stage of ['grip','open','ungrip','seat-turn']) assert.ok(!stages.has(stage),'initially open chair needs no grab or second turn');
+    context.diagnostic(JSON.stringify({entryTurn:turnMotion.map(f=>f.yaw).filter((_,i)=>i===0||i===turnMotion.length-1)}));
+    context.diagnostic(JSON.stringify({gripError,maximumSwivel}));
+    assert.ok(maximumSwivel>.7&&maximumSwivel<.8,'modest 45 degree swivel opens the entry');
+    assert.ok(gripError<.004,'grabbing hand follows the armrest through the swivel');
+    context.diagnostic(JSON.stringify({maximumLegTwistDegrees:maximumLegTwist*180/Math.PI}));
     const hands=[]; avatar.root.traverse(o=>{if(o.isBone&&/Bip01_[LR]_Hand$/.test(o.name))hands.push(o.getWorldPosition(new THREE.Vector3()).toArray());});
     context.diagnostic(JSON.stringify({hands}));
     avatar.root.updateMatrixWorld(true);
@@ -151,21 +231,50 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
     assert.ok(Math.abs(soleMin-4.265)<.002,'actual shoe sole rests on the rug');
     for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.0976)<.001,'wrist contact height');}
     controller.handleInteract();
-    const exitMotion=[];
+    const exitStages=new Set();
+    let riseEnd;
     for(let i=0;i<900;i++) {
       const before=controller.player.position.clone(); controller.update(1/60);checkTransition();
-      if(controller.diagnostics.state.deskStage==='exit')exitMotion.push(controller.player.position.distanceTo(before));
+      const exitState=controller.diagnostics.state;
+      exitStages.add(exitState.deskStage);
+      if(exitState.deskStage==='rise')riseEnd=controller.player.position.clone();
       if(controller.diagnostics.state.mode==='explore')break;
     }
-    assert.ok(exitMotion.slice(Math.floor(exitMotion.length*.2),Math.floor(exitMotion.length*.8)).every(distance=>distance>.004),'lateral exit also clears the rug without contact stalls');
+    assert.ok(!exitStages.has('exit'),'no automatic walk-away steps after rising');
+    assert.ok(riseEnd && controller.player.position.distanceTo(riseEnd)<.002,'movement returns at the rise endpoint');
+    const releasedPosition=controller.player.position.clone();
+    for(let i=0;i<120;i++)controller.update(1/60);
+    assert.ok(Math.hypot(controller.player.position.x-releasedPosition.x,controller.player.position.z-releasedPosition.z)<.002,'without input the visitor stays beside the chair');
     context.diagnostic(JSON.stringify({maximumHandDeskPenetration:edgePenetration,edgeWorst}));
+    context.diagnostic(JSON.stringify({contactErrors,maximumFootStep}));
+    assert.ok(maximumFootStep<.045,'feet do not pop between authored steps or sit/stand stages');
+    assert.ok(Object.values(contactErrors).every(error=>error<.002),'all authored foot contacts remain reachable throughout entry and exit');
     assert.ok(edgePenetration<.002,'hands clear the desk edge during both reach and withdrawal');
+    for(const [stage,time] of [['lower',.28],['rise',.42]]) {
+      const samples=bodyMechanics[stage],start=samples[0],prepared=samples.find(s=>s.time>=time);
+      assert.ok(Math.abs(prepared.hip[1]-start.hip[1])<.008,`${stage}: prepare weight transfer before changing pelvis height`);
+      assert.ok(prepared.head[0]-start.head[0]>.055,`${stage}: trunk moves forward before loading/unloading the knees`);
+      assert.ok(samples.every(s=>s.knees.every(angle=>angle>65&&angle<178)),`${stage}: measured knees stay flexed without folding or locking`);
+      context.diagnostic(JSON.stringify({mechanics:stage,preparationHip:prepared.hip.map((v,i)=>v-start.hip[i]),preparationHead:prepared.head.map((v,i)=>v-start.head[i]),kneeRange:[Math.min(...samples.flatMap(s=>s.knees)),Math.max(...samples.flatMap(s=>s.knees))]}));
+    }
     assert.equal(controller.diagnostics.state.mode,'explore');
     assert.equal(controller.diagnostics.state.seatWeight,0);
     context.diagnostic(JSON.stringify({stood:controller.diagnostics.state}));
-    assert.ok(physics.canStandAt(controller.player.position),'stand exits to a clear capsule location');
-    controller.setVirtualInput(0,-1);const before=controller.player.position.clone();for(let i=0;i<60;i++)controller.update(1/60);
+    assert.ok(physics.canStandAt(controller.player.position),'standing position fits the active capsule');
+    // Sitting again from the just-released stance must not walk to the old
+    // approach marker or perform a pair of in-place turning steps.
+    controller.handleInteract();
+    for(let i=0;i<8;i++)controller.update(1/60);
+    assert.equal(controller.diagnostics.state.deskStage,'lower','direct re-entry starts lowering without a redundant turn');
+    assert.ok(Math.hypot(controller.player.position.x-releasedPosition.x,controller.player.position.z-releasedPosition.z)<.002,'direct re-entry does not walk away and back');
+    for(let i=0;i<600&&controller.diagnostics.state.mode!=='seated';i++)controller.update(1/60);
+    assert.equal(controller.diagnostics.state.mode,'seated');
+    controller.handleInteract();
+    for(let i=0;i<600&&controller.diagnostics.state.mode!=='explore';i++)controller.update(1/60);
+    assert.equal(controller.diagnostics.state.mode,'explore');
+    controller.setVirtualInput(-1,0);const before=controller.player.position.clone();for(let i=0;i<90;i++)controller.update(1/60);
     assert.ok(controller.player.position.distanceTo(before)>.3,'movement resumes');
+    assert.equal(physics.capsule.shape.radius,.25,'normal movement clearance returns after walking clear');
     // The reported failure starts inside the narrow channel. Also enter from
     // the opposite armrest at a different display rate.
     controller.setVirtualInput(0,0);
@@ -175,7 +284,10 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
       controller.handleInteract();
       for(let i=0;i<hz*18;i++) {
         controller.update(1/hz);checkTransition();
-        if(controller.diagnostics.state.deskStage==='align')assert.ok(Math.abs(controller.diagnostics.state.bodyYaw-Math.PI/2)<.001,'entry keeps torso facing desk');
+        if(controller.diagnostics.state.deskStage==='lower') {
+          const delta=controller.diagnostics.state.bodyYaw-Math.PI/2-controller.diagnostics.state.chairAngle;
+          assert.ok(Math.abs(Math.atan2(Math.sin(delta),Math.cos(delta)))<.001,'entry aligns torso to the open seat');
+        }
         if(controller.diagnostics.state.mode==='seated')break;
       }
       assert.equal(controller.diagnostics.state.mode,'seated',`entry from ${position} at ${hz} Hz`);
@@ -184,6 +296,7 @@ test('founder desk completes collision-aware approach, contact IK, repeated inpu
       assert.equal(controller.diagnostics.state.mode,'explore');
     }
     assert.ok(edgePenetration<.002,'alternate entries also clear the desk');
+    assert.ok(Object.values(contactErrors).every(error=>error<.002),'alternate approaches keep both foot contacts reachable');
   } finally {controller.dispose();Object.assign(globalThis,prior);delete globalThis[fixtureKey];}
 });
 

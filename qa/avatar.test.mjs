@@ -80,6 +80,34 @@ function updateSkeletons(root) {
   root.traverse((object) => { if (object.isSkinnedMesh) object.skeleton.update(); });
 }
 
+test('desk contact IK preserves relaxed elbows until the hands start reaching', async () => {
+  const avatar=createRocketboxAvatar(await load());
+  try {
+    avatar.update(0,0,0);avatar.root.updateMatrixWorld(true);
+    const get=name=>avatar.root.getObjectByName(name).getWorldPosition(new THREE.Vector3());
+    const bend=side=>get(`Bip01_${side}_Forearm`).sub(get(`Bip01_${side}_UpperArm`)).normalize();
+    const before=['L','R'].map(bend);
+    const feet=['L','R'].map(side=>get(`Bip01_${side}_Foot`).setY(0));
+    avatar.update(0,0,0,.44,{feet,hands:[new THREE.Vector3(),new THREE.Vector3()],handWeight:0,footWeight:1,upright:0,deskHeight:.8});
+    for(const [i,side] of ['L','R'].entries())assert.ok(before[i].distanceTo(bend(side))<.001,'working elbow pole must not flare the approaching arms');
+  } finally {avatar.dispose();}
+});
+
+test('desk pose does not inherit the seated gesture loop or its elapsed arrival time', async () => {
+  const avatar=createRocketboxAvatar(await load());
+  try {
+    avatar.root.position.set(15.62,4.265,-5.3);avatar.root.rotation.y=Math.PI/2;
+    const contacts={feet:[new THREE.Vector3(15.98,4.265,-5.41),new THREE.Vector3(15.98,4.265,-5.19)],hands:[new THREE.Vector3(16.145,5.0976,-5.49),new THREE.Vector3(16.145,5.0976,-5.11)],handWeight:1,footWeight:1,upright:1,deskHeight:5.058,deskFront:16.125,hipOffset:.125};
+    const names=['Bip01_Pelvis','Bip01_Head','Bip01_L_Calf','Bip01_R_Calf','Bip01_L_Forearm','Bip01_R_Forearm'];
+    const positions=()=>names.map(name=>avatar.root.getObjectByName(name).getWorldPosition(new THREE.Vector3()));
+    avatar.update(1/60,0,1,.4414914,contacts);const reference=positions();
+    for(let frame=0;frame<900;frame++) {
+      avatar.update(1/60,0,1,.4414914,contacts);
+      positions().forEach((p,i)=>assert.ok(p.distanceTo(reference[i])<.00001,`${names[i]} must not be pulled by an unrelated seated gesture`));
+    }
+  } finally {avatar.dispose();}
+});
+
 for (const [name, speed, seated] of [['Idle', 0, 0], ['Walk', 1.38, 0], ['Run', 3.35, 0], ['Sit', 0, 1]]) {
   test(`${name}: complete clip loop stays finite, human scale and above the floor`, async (context) => {
     const gltf = await load();

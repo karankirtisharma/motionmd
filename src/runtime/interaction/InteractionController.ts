@@ -61,7 +61,7 @@ export async function createInteractionController(options: Options) {
     return { id: item.id, label: item.label ?? `Chair ${item.id.match(/\d+/)?.[0] ?? ''}`, seat, approach, approaches, forward, floor, height: seat.y - floor };
   });
   const keys = new Set<string>();
-  if (workstation) chairs.push({ id: workstation.id, label: 'Work at desk', seat: workstation.seat.clone().setY(workstation.floor + workstation.height), approach: workstation.approach.clone(), approaches: [workstation.approach.clone(), workstation.approach.clone().setZ(-4.28)], forward: workstation.forward, floor: workstation.floor, height: workstation.height, workstation });
+  if (workstation) chairs.push({ id: workstation.id, label: 'Work at desk', seat: workstation.seat.clone().setY(workstation.floor + workstation.height), approach: workstation.approach.clone(), approaches: [workstation.approach.clone(), workstation.approach.clone().setZ(-4.58)], forward: workstation.forward, floor: workstation.floor, height: workstation.height, workstation });
   const virtual = { x: 0, y: 0, sprint: false };
   const feet = new THREE.Vector3().fromArray(manifest.spawn.position);
   const previousFeet = feet.clone(), renderFeet = feet.clone();
@@ -84,8 +84,14 @@ export async function createInteractionController(options: Options) {
   let approachTime = 0, lastPrompt = '', dragging = false;
   let chairPointer: { x: number; y: number; distance: number } | undefined;
   let actualSpeed = 0;
-  let deskStage: 'entry-turn' | 'align' | 'lower' | 'reach' | 'work' | 'release' | 'rise' | 'exit' | undefined;
-  let deskTime = 0, handWeight = 0;
+  const approachRoute: THREE.Vector3[] = [];
+  let deskStage: 'entry-turn' | 'grip' | 'open' | 'ungrip' | 'seat-turn' | 'lower' | 'swivel-in' | 'reach' | 'work' | 'release' | 'swivel-out' | 'rise' | undefined;
+  let deskTime = 0, handWeight = 0, stanceWeight = 0, balanceLean = 0;
+  let chairAngle = Math.PI / 4, entryAngle = Math.PI / 4, entrySide = -1, gripWeight = 0, swivelFrom = 0;
+  if (workstation) {
+    workstation.setSwivel(chairAngle);
+    physics.swivelWorkstation(workstation.pivot, chairAngle);
+  }
   const deskFrom = new THREE.Vector3(), plantedFeet = [new THREE.Vector3(), new THREE.Vector3()];
   const turnFeet = [new THREE.Vector3(), new THREE.Vector3()], feetYaw = [0, 0];
   let turnStart = 0;
@@ -93,6 +99,7 @@ export async function createInteractionController(options: Options) {
   const swingStart = new THREE.Vector3();
   const swingGoal = new THREE.Vector3();
   let swingFoot = 0;
+  let swingYawStart = 0;
   const transitionStart = new THREE.Vector3();
   const cameraStart = new THREE.Vector3(), cameraStartQuaternion = new THREE.Quaternion();
   const STEP = 1 / 60;
@@ -148,7 +155,7 @@ export async function createInteractionController(options: Options) {
     if (shortcut === 'pointerLock') togglePointerLock();
     else if (shortcut === 'cameraView') toggleCameraView();
     else if (event.code === 'KeyE' && !event.repeat) handleInteract();
-    else if (event.code === 'Escape') { releaseCursor(); if (mode === 'approach') { mode = 'explore'; selected = undefined; } }
+    else if (event.code === 'Escape') { releaseCursor(); if (mode === 'approach') { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; } }
     else keys.add(event.code);
   }
   function keyUp(event: KeyboardEvent) { keys.delete(event.code); }
@@ -203,15 +210,28 @@ export async function createInteractionController(options: Options) {
   function beginSit(chair: Chair) {
     selected = chair; mode = 'approach'; approachTime = 0; velocity.set(0, 0, 0);
     deskStage = undefined; deskTime = 0; handWeight = 0;
-    prompt({ text: 'Approaching chair · Esc to cancel', target: chair.id }); resetInput();
-    // A visitor already in the front channel should not be routed back through
-    // the armrest to an outside approach marker.
-    if (chair.workstation && feet.x > chair.workstation.aligned.x - .15 && feet.x < chair.workstation.deskFront && Math.abs(feet.z - chair.workstation.seat.z) < .85) {
-      mode = 'sitting'; startDeskEntry(); releaseCursor(true);
+    approachRoute.length = 0;
+    if (chair.workstation && Math.abs(chairAngle) > .01) {
+      const openSide = chairAngle > 0 ? -1 : 1;
+      const openApproach = chair.workstation.approach.clone().setZ(chair.workstation.pivot.z + openSide * .72);
+      const standingSpot = chair.workstation.pointAt(chair.workstation.aligned, chairAngle);
+      if (feet.distanceTo(standingSpot) < .06) {
+        // Already beside the open seat after standing: do not walk away to
+        // the approach marker and back just to start the same interaction.
+        chair.approach.copy(feet);
+      } else if ((feet.z - chair.workstation.pivot.z) * openSide < 0) {
+        // Walk around the back of an already open chair, never through its arms.
+        approachRoute.push(new THREE.Vector3(14.5, chair.floor, feet.z), new THREE.Vector3(14.5, chair.floor, openApproach.z), openApproach);
+        chair.approach.copy(approachRoute.shift()!);
+      } else chair.approach.copy(openApproach);
     }
+    prompt({ text: 'Approaching chair · Esc to cancel', target: chair.id }); resetInput();
   }
   function startDeskEntry() {
     deskStage = 'entry-turn'; deskTime = 0; deskFrom.copy(feet); turnStart = bodyYaw; sideStep = -1;
+    stanceWeight = 0; balanceLean = 0;
+    entrySide = selected!.approach.z < selected!.workstation!.pivot.z ? -1 : 1;
+    entryAngle = -entrySide * Math.PI / 4; gripWeight = 0; swivelFrom = chairAngle;
     physics.setDeskClearance(true);
     avatar.root.updateMatrixWorld(true);
     for (let i = 0; i < 2; i++) {
@@ -234,7 +254,9 @@ export async function createInteractionController(options: Options) {
     display?.setActive(false); options.onScreenMode?.(false);
     prompt({ text: 'Standing up', target: selected.id });
   }
+  let pendingNavigationClearance = false;
   function simulate() {
+    if (pendingNavigationClearance && physics.restoreNavigationClearance(feet)) pendingNavigationClearance = false;
     if (lift?.step(STEP, feet)) {
       velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; grounded = true; physics.place(feet); return;
     }
@@ -252,14 +274,16 @@ export async function createInteractionController(options: Options) {
       approachTime += STEP;
       displacement.copy(selected.approach).sub(feet); displacement.y = 0;
       const distance = displacement.length();
-      if (distance < 0.10) {
+      if (selected.workstation && distance < .4) physics.setDeskClearance(true);
+      if (distance < (selected.workstation ? .035 : .10)) {
+        if (approachRoute.length) { selected.approach.copy(approachRoute.shift()!); approachTime = 0; return; }
         mode = 'sitting'; transition = 0; transitionStart.copy(feet); velocity.set(0, 0, 0);
         if (selected.workstation) startDeskEntry();
         else options.onStateChange?.('seated');
         releaseCursor(true);
         return;
       }
-      if (approachTime > 7) { mode = 'explore'; selected = undefined; prompt({ text: 'Move closer to the front of the chair' }); return; }
+      if (approachTime > 7) { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; prompt({ text: 'Move closer to the front of the chair' }); return; }
       displacement.multiplyScalar(Math.min(1.0, distance * 2.5) / distance);
     } else { if (lift) physics.world.step(); return; }
     velocity.x = THREE.MathUtils.lerp(velocity.x, displacement.x, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
@@ -340,92 +364,123 @@ export async function createInteractionController(options: Options) {
     if (!selected?.workstation || !deskStage) return;
     const desk = selected.workstation;
     deskTime += delta;
-    const advance = (stage: typeof deskStage) => { deskStage = stage; deskTime = 0; deskFrom.copy(feet); turnStart = bodyYaw; sideStep = -1; };
-    if (deskStage === 'align' || deskStage === 'exit') {
-      // A short lateral step-and-close: retain one planted support foot, but
-      // carry the body continuously through the sequence instead of stopping
-      // its root at every footfall (which produced the mechanical shuffle).
-      const target = deskStage === 'align' ? desk.aligned : selected.approach;
-      const path = target.clone().sub(deskFrom); path.y = 0;
-      const steps = Math.max(2, 2 * Math.ceil(path.length() / .36)), duration = .34;
-      const progress = smootherStep(Math.min(1, deskTime / (steps * duration)));
-      const stepTime = progress * steps;
-      const index = Math.min(steps - 1, Math.floor(stepTime));
-      const phase = Math.min(1, stepTime - index);
-      const leading = path.z >= 0 ? 1 : 0, swinging = index % 2 === 0 ? leading : 1 - leading;
-      if (sideStep !== index) {
-        if (sideStep >= 0) plantedFeet[swingFoot].copy(swingGoal);
-        sideStep = index; swingFoot = swinging; swingStart.copy(plantedFeet[swinging]);
+    const ease = (value: number) => smootherStep(THREE.MathUtils.clamp(value, 0, 1));
+    const footAt = (anchor: THREE.Vector3, angle: number, i: number) => new THREE.Vector3(i === 0 ? .11 : -.11, 0, 0).applyAxisAngle(up, angle).add(anchor).setY(desk.floor);
+    const advance = (stage: typeof deskStage) => {
+      deskStage = stage; deskTime = 0; deskFrom.copy(feet); turnStart = bodyYaw; sideStep = -1; swivelFrom = chairAngle;
+      turnFeet.forEach((p, i) => p.copy(plantedFeet[i]));
+    };
+    const swivel = (angle: number) => {
+      chairAngle = angle; desk.setSwivel(angle); physics.swivelWorkstation(desk.pivot, angle);
+    };
+    const seat = desk.pointAt(desk.seat, chairAngle), aligned = desk.pointAt(desk.aligned, chairAngle);
+    if (deskStage === 'entry-turn' || deskStage === 'seat-turn') {
+      const alreadyOpen = Math.abs(chairAngle - entryAngle) < .01;
+      const enteringSeat = deskStage === 'seat-turn' || alreadyOpen;
+      const targetYaw = enteringSeat ? Math.PI / 2 + entryAngle : entrySide < 0 ? 0 : Math.PI;
+      const path = enteringSeat ? aligned.clone().sub(deskFrom).setY(0) : new THREE.Vector3();
+      const turnAngle = Math.atan2(Math.sin(targetYaw - turnStart), Math.cos(targetYaw - turnStart));
+      if (Math.abs(turnAngle) < .001 && path.length() < .005) {
+        advance(enteringSeat ? 'lower' : 'grip');
+        return;
       }
-      const pairEnd = Math.min(steps, index + (index % 2 === 0 ? 2 : 1));
-      const goal = deskFrom.clone().addScaledVector(path, pairEnd / steps).setY(desk.floor);
-      goal.z += swinging === 0 ? -.11 : .11;
-      swingGoal.copy(goal);
-      plantedFeet[swinging].lerpVectors(swingStart, goal, smootherStep(phase));
-      plantedFeet[swinging].y += Math.sin(Math.PI * phase) * .035;
-      const desired = deskFrom.clone().addScaledVector(path, progress);
-      // This authored step stays on the measured flat rug. Injecting downward
-      // gravity into every lateral sweep caused repeated rug contact stalls.
-      const movement = desired.sub(feet); movement.y = 0;
-      const distance = Math.hypot(movement.x, movement.z);
-      physics.move(movement, delta, feet, true);
-      // Retain a restrained amount of the original gait's shoulder/arm motion;
-      // IK, rather than the forward walk clip, owns both lateral foot contacts.
-      bodyYaw = Math.PI / 2; actualSpeed = Math.min(.38, distance / Math.max(delta, .001));
-      if (deskTime >= steps * duration) {
-        actualSpeed = 0;
-        if (Math.hypot(feet.x - target.x, feet.z - target.z) > .04) {
+      // A deliberate step-and-close replaces the old rapid 30-degree shuffles.
+      // Only unusually large arrival turns need another pair; knee hinge IK
+      // continues to track each foot's heading throughout the weight transfer.
+      const pairs = Math.max(1, Math.ceil(Math.abs(turnAngle) / (Math.PI * 5 / 12)));
+      const steps = pairs * 2, duration = Math.max(.65, path.length() / pairs / .55), total = steps * duration;
+      const t = Math.min(1, deskTime / total);
+      stanceWeight = ease(deskTime / .25); actualSpeed = 0;
+      const clock = Math.min(steps, deskTime / duration), index = Math.min(steps - 1, Math.floor(clock)), phase = Math.min(1, clock - index);
+      const swinging = index % 2;
+      if (sideStep !== index) {
+        if (sideStep >= 0) { plantedFeet[swingFoot].copy(swingGoal); feetYaw[swingFoot] = turnStart + turnAngle * (Math.floor(sideStep / 2) + 1) / pairs; }
+        sideStep = index; swingFoot = swinging; swingStart.copy(plantedFeet[swinging]); swingYawStart = feetYaw[swinging];
+      }
+      const landingYaw = turnStart + turnAngle * (Math.floor(index / 2) + 1) / pairs;
+      // Finish each turning pair closer to the seat. The final turn lands in
+      // the sitting stance, without a second, disconnected alignment shuffle.
+      const landingProgress = ease((Math.floor(index / 2) + 1) / pairs);
+      swingGoal.copy(footAt(deskFrom.clone().addScaledVector(path, landingProgress), landingYaw, swinging));
+      plantedFeet[swinging].lerpVectors(swingStart, swingGoal, ease(phase));
+      plantedFeet[swinging].y += Math.sin(Math.PI * phase) ** 2 * .035;
+      feetYaw[swinging] = smoothAngle(swingYawStart, landingYaw, ease(phase));
+      // Pelvis stays between the two foot headings: never wind a planted leg
+      // through the whole turn while the other foot jumps to the final heading.
+      bodyYaw = smoothAngle(feetYaw[0], feetYaw[1], .5);
+      if (enteringSeat) {
+        const movement = deskFrom.clone().addScaledVector(path, ease(t)).sub(feet).setY(0);
+        physics.move(movement, delta, feet, true);
+      }
+      if (t === 1) {
+        if (enteringSeat && Math.hypot(feet.x - aligned.x, feet.z - aligned.z) > .04) {
           physics.setDeskClearance(false); mode = 'explore'; selected = undefined; deskStage = undefined;
           prompt({ text: 'Move to the open side of the chair and try again' }); options.onStateChange?.('explore'); return;
         }
-        if (deskStage === 'align') {
-          advance('lower');
-        } else {
-          physics.setDeskClearance(false); physics.place(feet); mode = 'explore'; selected = undefined; deskStage = undefined; seatWeight = handWeight = 0;
-          previousFeet.copy(feet); velocity.set(0, 0, 0); grounded = true; verticalVelocity = 0;
-          nearestSamplePosition.set(Infinity, Infinity, Infinity); options.onStateChange?.('explore'); prompt(null);
-        }
+        advance(enteringSeat ? 'lower' : 'grip');
       }
-    } else if (deskStage === 'entry-turn') {
-      const turnAngle = Math.abs(Math.atan2(Math.sin(Math.PI / 2 - turnStart), Math.cos(Math.PI / 2 - turnStart)));
-      const t = Math.min(1, deskTime / (.45 + .45 * turnAngle / Math.PI));
-      bodyYaw = smoothAngle(turnStart, Math.PI / 2, smootherStep(t));
-      actualSpeed = 0;
-      for (let i = 0; i < 2; i++) {
-        const step = THREE.MathUtils.clamp(t * 2 - i, 0, 1);
-        const target = new THREE.Vector3(feet.x, desk.floor, feet.z + (i === 0 ? -0.11 : 0.11));
-        plantedFeet[i].lerpVectors(turnFeet[i], target, smootherStep(step)); plantedFeet[i].y += Math.sin(Math.PI * step) * 0.035;
-        feetYaw[i] = smoothAngle(turnStart, Math.PI / 2, smootherStep(step));
-      }
-      if (t === 1) {
-        for (let i = 0; i < 2; i++) plantedFeet[i].set(feet.x, desk.floor, feet.z + (i === 0 ? -0.11 : 0.11));
-        advance('align');
-      }
+    } else if (deskStage === 'grip' || deskStage === 'open' || deskStage === 'ungrip') {
+      const t = Math.min(1, deskTime / (deskStage === 'open' ? 1.05 : deskStage === 'grip' ? .9 : .65));
+      const bend = deskStage === 'ungrip' ? 1 - ease(t) : deskStage === 'grip' ? ease(t) : 1;
+      seatWeight = .46 * bend; balanceLean = .65 * bend; gripWeight = bend; actualSpeed = 0;
+      if (deskStage === 'open') swivel(THREE.MathUtils.lerp(swivelFrom, entryAngle, ease(t)));
+      prompt({ text: 'Turning the chair', target: desk.id });
+      if (t === 1) advance(deskStage === 'grip' ? 'open' : deskStage === 'open' ? 'ungrip' : 'seat-turn');
     } else if (deskStage === 'lower') {
-      const t = Math.min(1, deskTime / 1.6), w = smootherStep(t);
-      seatWeight = w; feet.lerpVectors(deskFrom, desk.seat, w);
+      const t = Math.min(1, deskTime / 1.8), lower = ease((t - .18) / .64);
+      balanceLean = .48 * ease(t / .28) * (1 - ease((t - .67) / .33));
+      seatWeight = lower; feet.lerpVectors(deskFrom, seat, lower);
       prompt({ text: 'Taking a seat', target: desk.id });
-      if (t === 1) advance('reach');
+      if (t === 1) advance('swivel-in');
+    } else if (deskStage === 'swivel-in' || deskStage === 'swivel-out') {
+      const steps = 4, duration = .48, total = steps * duration;
+      const targetAngle = deskStage === 'swivel-in' ? 0 : entryAngle;
+      const t = Math.min(1, deskTime / total);
+      swivel(THREE.MathUtils.lerp(swivelFrom, targetAngle, ease(t)));
+      feet.copy(desk.pointAt(desk.seat, chairAngle)); bodyYaw = Math.PI / 2 + chairAngle;
+      seatWeight = 1; balanceLean = 0; actualSpeed = 0;
+      const clock = Math.min(steps, deskTime / duration), index = Math.min(steps - 1, Math.floor(clock)), phase = Math.min(1, clock - index);
+      const swinging = index % 2;
+      if (sideStep !== index) {
+        if (sideStep >= 0) { plantedFeet[swingFoot].copy(swingGoal); feetYaw[swingFoot] = turnStart; }
+        sideStep = index; swingFoot = swinging; swingStart.copy(plantedFeet[swinging]); swingYawStart = feetYaw[swinging];
+      }
+      const pairEnd = Math.min(steps, index + (index % 2 === 0 ? 2 : 1));
+      const landingAngle = THREE.MathUtils.lerp(swivelFrom, targetAngle, ease(pairEnd / steps));
+      const goal = footAt(desk.pointAt(desk.aligned, landingAngle), Math.PI / 2 + landingAngle, swinging);
+      swingGoal.copy(goal); plantedFeet[swinging].lerpVectors(swingStart, goal, ease(phase));
+      plantedFeet[swinging].y += Math.sin(Math.PI * phase) ** 2 * .025;
+      feetYaw[swinging] = smoothAngle(swingYawStart, Math.PI / 2 + landingAngle, ease(phase));
+      turnStart = Math.PI / 2 + landingAngle;
+      prompt({ text: deskStage === 'swivel-in' ? 'Turning toward the desk' : 'Turning to stand', target: desk.id });
+      if (t === 1) {
+        for (let i = 0; i < 2; i++) { plantedFeet[i].copy(footAt(desk.pointAt(desk.aligned, targetAngle), Math.PI / 2 + targetAngle, i)); feetYaw[i] = Math.PI / 2 + targetAngle; }
+        advance(deskStage === 'swivel-in' ? 'reach' : 'rise');
+      }
     } else if (deskStage === 'reach') {
       const t = Math.min(1, deskTime / 1.2);
-      feet.copy(desk.seat); seatWeight = 1;
-      handWeight = smootherStep(t);
-      if (t === 1) {
-        advance('work'); mode = 'seated'; options.onStateChange?.('seated');
-        prompt({ text: 'E — Stand up · Drag to look · V — Change view', target: desk.id });
-      }
+      feet.copy(seat); seatWeight = 1; handWeight = ease(t);
+      if (t === 1) { advance('work'); mode = 'seated'; options.onStateChange?.('seated'); prompt({ text: 'E \u2014 Stand up \u00b7 Drag to look \u00b7 V \u2014 Change view', target: desk.id }); }
     } else if (deskStage === 'work') {
-      feet.copy(desk.seat); seatWeight = handWeight = 1;
+      feet.copy(seat); seatWeight = handWeight = 1;
     } else if (deskStage === 'release') {
-      const t = Math.min(1, deskTime / 1.2);
-      handWeight = 1 - smootherStep(t);
-      feet.copy(desk.seat);
-      if (t === 1) advance('rise');
+      const t = Math.min(1, deskTime / 1.2); handWeight = 1 - ease(t); feet.copy(seat);
+      if (t === 1) advance('swivel-out');
     } else if (deskStage === 'rise') {
-      const t = Math.min(1, deskTime / 1.6), w = smootherStep(t);
-      seatWeight = 1 - w; feet.lerpVectors(deskFrom, desk.aligned, w);
-      if (t === 1) { physics.place(feet); advance('exit'); }
-
+      const t = Math.min(1, deskTime / 1.9), lift = ease((t - .26) / .66);
+      const forward = .28 * ease(t / .3) + .72 * lift;
+      balanceLean = .52 * ease(t / .28) * (1 - ease((t - .42) / .58));
+      seatWeight = 1 - lift; feet.lerpVectors(deskFrom, aligned, forward);
+      stanceWeight = 1 - ease((t - .72) / .28);
+      if (t === 1) {
+        // End where the feet supported the rise. No automatic walk-away pair:
+        // the next horizontal movement belongs to the user's movement input.
+        pendingNavigationClearance = !physics.restoreNavigationClearance(feet); physics.place(feet);
+        mode = 'explore'; selected = undefined; deskStage = undefined;
+        seatWeight = handWeight = stanceWeight = balanceLean = actualSpeed = 0;
+        previousFeet.copy(feet); velocity.set(0, 0, 0); grounded = true; verticalVelocity = 0;
+        nearestSamplePosition.set(Infinity, Infinity, Infinity); options.onStateChange?.('explore'); prompt(null);
+      }
     }
   }
   function update(dt: number) {
@@ -478,8 +533,8 @@ export async function createInteractionController(options: Options) {
     }
     lift?.render(fixedStepPose ? THREE.MathUtils.clamp(accumulator / STEP, 0, 1) : 1);
     avatar.root.position.copy(renderFeet); avatar.root.rotation.y = renderBodyYaw;
-    const deskContacts = selected?.workstation && deskStage  ? { hands: selected.workstation.wrists, feet: plantedFeet, handWeight, footWeight: 1, upright: seatWeight, deskHeight: selected.workstation.deskHeight, deskFront: selected.workstation.deskFront, hipOffset: 0.125, feetYaw: deskStage === 'entry-turn' ? feetYaw : undefined } : undefined;
-    avatar.update(delta, mode === 'explore' || mode === 'approach' || deskStage === 'align' || deskStage === 'exit' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts);
+    const deskContacts = selected?.workstation && deskStage  ? { hands: selected.workstation.wrists, feet: plantedFeet, handWeight, footWeight: 1, upright: seatWeight, stanceWeight, balanceLean, deskHeight: selected.workstation.deskHeight, deskFront: selected.workstation.deskFront, hipOffset: 0.125, feetYaw, grip: gripWeight > 0 ? { hand: entrySide < 0 ? 1 : 0, point: selected.workstation.grip(chairAngle, entrySide), forward: selected.workstation.forward.clone().applyAxisAngle(up, chairAngle), weight: gripWeight } : undefined } : undefined;
+    avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts);
     updateCamera(delta); display?.update();
     return true;
   }
@@ -487,7 +542,7 @@ export async function createInteractionController(options: Options) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
     cameraBlend = 0; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
-    physics.setDeskClearance(false); deskStage = undefined; handWeight = 0; inspectionDistance = undefined;
+    physics.setDeskClearance(false); pendingNavigationClearance = false; deskStage = undefined; handWeight = 0; inspectionDistance = undefined;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
     feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
     physics.place(feet); velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; accumulator = 0; grounded = false;
@@ -524,7 +579,7 @@ export async function createInteractionController(options: Options) {
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },
-    diagnostics: { get state() { return { mode, deskStage, feet: feet.toArray(), bodyYaw, seatWeight, handWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
+    diagnostics: { get state() { return { mode, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
     dispose() {
       if (disposed) return; exitExplore(); disposed = true;
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
