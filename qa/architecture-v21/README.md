@@ -1,5 +1,17 @@
 # Gallery opening and continuous mirror — 17 October 2026
 
+## Current founder-side correction
+
+The user's marked dark panel was the reverse of the exported mirror: the gallery face at world Z = -9.45 reflected correctly, but the founder-room side exposed `V21 | Mirror structural backing`. The runtime now rotates copies of the existing face, silver edge and four bronze reveals 180 degrees about the measured backing centre. The added face is at Z = -9.25 and faces +Z. Geometry buffers and surround materials are shared; the Blender source, GLB, lighting, wall collider and adjacent opening are unchanged.
+
+The two opposite faces share one HDR target. Only the visible, front-facing surface renders, using its own physical clipping plane. Both faces are hidden during that pass and visibility/renderer state is restored afterward. This adds six small meshes, with no additional asset download or second reflection pass per frame.
+
+Current validation: 59/59 tests, type checking, asset closure (143 files, 882.3 MB, 11 chunks) and production build pass. New tests raycast nine points across the founder face to confirm the backing is covered, verify the outward normal and plane, check both reflected camera positions and one shared render pass, and verify cleanup. Existing mirror solidity and adjacent opening traversal tests still pass.
+
+Local WebGPU visual review at 100% / High quality confirms a continuous reflection on both faces, with the thin bronze surround and adjacent glazing preserved. Reference cameras: `V22 mirror founder side` and `V21 mirror detail`. Captures `mirror-founder-side.png` and `mirror-gallery-side.png` are retained in the external Codex visualization `chair-work` folder, outside the clean website. Camera-cut checks showed each side updating to its own reflection. Background-tab throttling prevents a meaningful frame-rate comparison; mobile and WebGL GPU appearance were not tested. The original v20 indirect-light limitation below remains.
+
+The following sections describe the earlier v21 source/export work and its historical verification limits.
+
 The red-marked library backing, portal separator, shallow head and jamb are removed. The parked glass door and handle are retired with that opening. The adjacent green-marked bronze panel and its joints are replaced by one silvered mirror face, a solid backing and a 20 mm bronze perimeter with restrained bevels. The existing soffit support and balcony safety glass remain.
 
 ## Source and rollback

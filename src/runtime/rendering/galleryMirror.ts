@@ -1,4 +1,4 @@
-import { Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
+import { Box3, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { screenUV, texture } from 'three/tsl';
 
@@ -40,26 +40,60 @@ export function createGalleryMirror(root: Object3D) {
   if (!panes.length) return undefined;
   if (panes.length !== 1) throw new Error('The continuous gallery mirror must export as one plane.');
   const pane = panes[0];
-  pane.geometry.computeBoundingBox();
-  const localPoint = pane.geometry.boundingBox!.getCenter(new Vector3());
-  const localNormal = new Vector3().fromBufferAttribute(pane.geometry.getAttribute('normal'), 0).normalize();
+  // The export only silvered the gallery side. The founder-room side exposed
+  // the opaque bronze backing. Reuse the actual face, edge and reveals around
+  // the backing's centre to finish that side without changing its solid wall.
+  root.updateWorldMatrix(true, true);
+  const assembly = pane.parent!;
+  const backing = assembly.children.find(o => o.userData.sourceName === 'V21 | Mirror structural backing');
+  const added: Object3D[] = [];
+  if (backing) {
+    const centre = new Box3().setFromObject(backing).getCenter(new Vector3());
+    const turn = new Matrix4().makeTranslation(centre.x, centre.y, centre.z)
+      .multiply(new Matrix4().makeRotationY(Math.PI))
+      .multiply(new Matrix4().makeTranslation(-centre.x, -centre.y, -centre.z));
+    const inverse = assembly.matrixWorld.clone().invert();
+    for (const original of [...assembly.children]) {
+      if (original === backing || !(original instanceof Mesh)) continue;
+      const reverse = original.clone();
+      reverse.name += ' | founder side';
+      reverse.userData = { ...original.userData, mirrorSide: 'founder' };
+      inverse.clone().multiply(turn).multiply(original.matrixWorld)
+        .decompose(reverse.position, reverse.quaternion, reverse.scale);
+      assembly.add(reverse); added.push(reverse);
+      if (original === pane) panes.push(reverse);
+    }
+    assembly.updateWorldMatrix(true, true);
+  }
+  const surfaces = panes.map(surface => {
+    surface.geometry.computeBoundingBox();
+    return { pane: surface,
+      point: surface.geometry.boundingBox!.getCenter(new Vector3()),
+      normal: new Vector3().fromBufferAttribute(surface.geometry.getAttribute('normal'), 0).normalize() };
+  });
   const target = new RenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
   const material = new MeshBasicNodeMaterial({ name: 'V21 | live silver mirror' });
   material.colorNode = texture(target.texture, screenUV.flipX()).rgb.mul(0.94);
-  pane.material = material;
-  pane.castShadow = false; pane.receiveShadow = false; pane.userData.castShadow = false;
+  for (const surface of panes) {
+    surface.material = material;
+    surface.castShadow = false; surface.receiveShadow = false; surface.userData.castShadow = false;
+  }
   const camera = new PerspectiveCamera(), frustum = new Frustum(), matrix = new Matrix4(), size = new Vector2();
   const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
   return {
     update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera) {
-      if (!pane.visible || !material.visible) return;
+      if (!material.visible) return;
       scene.updateMatrixWorld(); view.updateMatrixWorld();
-      point.copy(localPoint).applyMatrix4(pane.matrixWorld);
-      normal.copy(localNormal).transformDirection(pane.matrixWorld);
-      eye.setFromMatrixPosition(view.matrixWorld);
-      if (eye.sub(point).dot(normal) <= 0.01) return;
       frustum.setFromProjectionMatrix(matrix.multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse), view.coordinateSystem, view.reversedDepth);
-      if (!frustum.intersectsObject(pane)) return;
+      // Opposite faces cannot both face the viewer; share one bounded target
+      // and render only the visible side, at the physical surface of that side.
+      const active = surfaces.find(surface => {
+        point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
+        normal.copy(surface.normal).transformDirection(surface.pane.matrixWorld);
+        eye.setFromMatrixPosition(view.matrixWorld);
+        return surface.pane.visible && eye.sub(point).dot(normal) > 0.01 && frustum.intersectsObject(surface.pane);
+      });
+      if (!active) return;
       renderer.getDrawingBufferSize(size);
       const scale = Math.min(0.85, 1536 / Math.max(size.x, size.y));
       const width = Math.max(1, Math.round(size.x * scale)), height = Math.max(1, Math.round(size.y * scale));
@@ -67,14 +101,16 @@ export function createGalleryMirror(root: Object3D) {
       mirrorCamera(view, camera, point, normal);
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
-      pane.visible = false;
+      const visibility = panes.map(surface => surface.visible);
+      panes.forEach(surface => { surface.visible = false; });
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target); renderer.autoClear = true;
         renderer.render(scene, camera);
       } finally {
-        renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT); renderer.autoClear = oldClear; pane.visible = true;
+        renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT); renderer.autoClear = oldClear;
+        panes.forEach((surface, i) => { surface.visible = visibility[i]; });
       }
     },
-    dispose() { target.dispose(); },
+    dispose() { target.dispose(); material.dispose(); added.forEach(object => object.removeFromParent()); },
   };
 }

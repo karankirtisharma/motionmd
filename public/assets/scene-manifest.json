@@ -536,6 +536,12 @@
         -9.45
       ],
       "fov": 48
+    },
+    {
+      "id": "V22 mirror founder side",
+      "position": [7.8, 5.8, -5.3],
+      "target": [4.995, 5.75, -9.25],
+      "fov": 48
     }
   ],
   "tour": [
@@ -7767,7 +7773,7 @@
       "frameWidth": 0.02,
       "bevel": 0.003
     },
-    "reflection": "One live planar reflection with scene clipping and bounded render target; existing local probes retained for surrounding materials.",
+    "reflection": "Live planar mirror faces on gallery and founder-room sides. Runtime reuses the exported face and bronze reveals around the structural backing centre. One shared bounded render target renders only the facing surface; existing local probes retained for surrounding materials.",
     "lightingLimitation": "Previous v20 diffuse bakes are retained. Removal-specific indirect-light rebake pending."
   }
 }

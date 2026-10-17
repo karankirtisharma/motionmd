@@ -41,3 +41,25 @@ test('removed panel and head are absent in the shipped geometry; mirror is solid
  }finally{physics.dispose();}
  assert.equal(rays,15);
 });
+
+test('founder side covers the dark backing with a correctly facing live mirror and shares one render pass',async()=>{
+ const root=await load('/assets/architecture-v21/mirror.glb'),scene=new T.Scene();scene.add(root);
+ const originalCount=root.children.length,mirror=createGalleryMirror(root);scene.updateMatrixWorld(true);
+ const panes=[];root.traverse(o=>{if(o.userData.mdPlanarMirror)panes.push(o)});assert.equal(panes.length,2);
+ const rear=panes.find(o=>o.userData.mirrorSide==='founder'),bounds=new T.Box3().setFromObject(rear);
+ assert.ok(Math.abs(bounds.min.z+9.25)<1e-5);
+ assert.ok(new T.Vector3().fromBufferAttribute(rear.geometry.attributes.normal,0).transformDirection(rear.matrixWorld).distanceTo(new T.Vector3(0,0,1))<1e-6);
+ const ray=new T.Raycaster();
+ for(const x of [3.8,5,6.2])for(const y of [4.3,5.75,7.2]){
+  ray.set(new T.Vector3(x,y,-7),new T.Vector3(0,0,-1));
+  assert.equal(ray.intersectObject(root)[0]?.object,rear,`bronze backing exposed at ${x},${y}`);
+ }
+ let calls=0,reflectionTarget,reflectedPosition;
+ const renderer={autoClear:false,getRenderTarget:()=>null,getMRT:()=>null,setRenderTarget:v=>{if(v){if(reflectionTarget)assert.equal(v,reflectionTarget);reflectionTarget=v;}},setMRT:()=>{},getDrawingBufferSize:v=>v.set(1600,1000),render:(_,camera)=>{calls++;assert.ok(panes.every(p=>!p.visible));reflectedPosition=camera.position.clone();}};
+ for(const z of [-5.3,-13.5]){
+  const view=new T.PerspectiveCamera(48,1.6,.1,100);view.position.set(5,5.8,z);view.lookAt(5,5.75,-9.35);view.updateMatrixWorld();
+  const before=calls;mirror.update(renderer,scene,view);assert.equal(calls,before+1);assert.ok(panes.every(p=>p.visible));
+  assert.ok(Math.abs(reflectedPosition.z-(2*(z>-9.35?-9.25:-9.45)-z))<1e-5);
+ }
+ mirror.dispose();assert.equal(root.children.length,originalCount);
+});
