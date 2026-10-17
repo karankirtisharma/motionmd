@@ -1,0 +1,1277 @@
+{
+  "created": "2026-10-17T14:21:47.103Z",
+  "source": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\md-lounge-web",
+  "baselineCommit": "8957f67949efd91766756fb11f851d28ad3b0c18",
+  "includesLocalV21Changes": true,
+  "files": 211,
+  "bytes": 879968573,
+  "verified": "Every copied file SHA-256 matches source",
+  "entries": [
+    {
+      "file": "app/globals.css",
+      "bytes": 22823,
+      "sha256": "0ac4cbdc17af5716f3993ce86b8674c39667a3427fdb6a7051209ff0d3f2f94c",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "app/layout.tsx",
+      "bytes": 567,
+      "sha256": "7007acdb1bef5add8dcb5afcfd6ddfebd18cfeb176f7d9e8300a61fefaddfa6c",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "app/page.tsx",
+      "bytes": 12292,
+      "sha256": "5021c70679556d51f145b60029ae8f013c1bdddf265f480fa991035441a62c9d",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/components/LoungeInterface.tsx",
+      "bytes": 19268,
+      "sha256": "88c724698b2bb93e14ae3b2c7a80b43dbca6a631cef8c89c3b0d228b9cef1d73",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/Avatar.ts",
+      "bytes": 9035,
+      "sha256": "1b55142e232e68b60df591e5e10b6b9a9c795b131b0515adbae6f1690d0c0467",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/CollisionWorld.ts",
+      "bytes": 11241,
+      "sha256": "2c3187d878078a345cb7d15fab5d893190b984913bc4833e20f66039dd8d26a4",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/GlassLift.ts",
+      "bytes": 8858,
+      "sha256": "4eedd83d2639d21551da60d1dc97572faf86063d918705437ffd8cdf2fa1f5b7",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/InteractionController.ts",
+      "bytes": 24935,
+      "sha256": "73551dd8cf8d23ef02fc8ccc3033564a98636f01597f359f04e874cb7d3656a5",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/movement.ts",
+      "bytes": 2984,
+      "sha256": "0303e199a1d88f68a0c4645b6c53155d59c1373c1929c574375d9084c7092d1e",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/interaction/RocketboxAvatar.ts",
+      "bytes": 10748,
+      "sha256": "c1994bef370093642b56c581f2334f93f12f5e910f4465da057b5043626aa8b4",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/presentation/PresentationScreen.ts",
+      "bytes": 11563,
+      "sha256": "ccb63c9f73a7d080bacfb238306a4aaa3f364eee83884a09724bb47c60ee9f7e",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/assets.ts",
+      "bytes": 3300,
+      "sha256": "451fff0bae0423e8a9b123b46b19b0c8628072257f86efd44009336c0608b65a",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/BakedPhysicalMaterial.ts",
+      "bytes": 2186,
+      "sha256": "8c285e0ebcc94471605a0251c66f2293e043868b6f58a419d2a3ca6b1ef30752",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/brushTangents.ts",
+      "bytes": 1242,
+      "sha256": "3823f0066f2bd085298acf13cf1a52b98b8a58d9462dba64974af0ca2ebb1510",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/cinematic.ts",
+      "bytes": 11217,
+      "sha256": "ee50213ff75f5d9f4740612b26945745a4a5613e68ee49615b89c44ae85722f4",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/color.ts",
+      "bytes": 2861,
+      "sha256": "a9a924e36d64714376f5e8c9a6ce7161aeaa9f45404a26265249653d4116a556",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/DesertEnvironment.ts",
+      "bytes": 9166,
+      "sha256": "fc1595ea70c16733b433d4f32033c3e99919f877468eff02e44300561af347b8",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/diagnostics.ts",
+      "bytes": 4395,
+      "sha256": "f9471ed4f52c9315f59d9e19ef51b4d57b6fc04ff07454169340da61a74678fe",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/galleryMirror.ts",
+      "bytes": 4955,
+      "sha256": "6d829fed13f3e4c69a4ee29211049c294c71cdb893b0c656fc8cda405af958f3",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/lighting.ts",
+      "bytes": 8492,
+      "sha256": "83249e7df2674300d7f139d65888950859ce46bbc6f2427a79a91f9d6a5ff638",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/loadingGuard.ts",
+      "bytes": 649,
+      "sha256": "fb63b16cb2a24a4967070e90b51a238a6b2afd19050e84dc0771247a87f6a9d9",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/materials.ts",
+      "bytes": 12180,
+      "sha256": "eb56559fc6cb53ef187679d429c6719d475a508d0a1e33494a8fcf538f8be206",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/probes.ts",
+      "bytes": 2976,
+      "sha256": "ec36db7512227be19e807a95855c5dd2f2d9bf8cbdfc5e9378a5832b62ee8ab1",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/SandSurface.ts",
+      "bytes": 2200,
+      "sha256": "bdd54d452017af2fc0af509c94ed4f2b6f8eef1b2574a3a6ddd98f6bd4eaddf3",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/shaderValidation.ts",
+      "bytes": 2634,
+      "sha256": "8a8fd2e4a35de069ba5b4c110beac4342f43887664286d1e700fdccfff1e1b8c",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/shadowBounds.ts",
+      "bytes": 1960,
+      "sha256": "307028f0d1c6e603817fbbaa988cbf163ffd8089ac26694f6f6fb40bc15782e6",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/sourceBronze.ts",
+      "bytes": 2701,
+      "sha256": "b1466b744b4eb34918ce50a36f85a605a4df5c133ac554680e2a48617daa747f",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/sourceNormals.ts",
+      "bytes": 3872,
+      "sha256": "1e37ee574128f6db58a2b1cc7e4ca812f217813c49edff36b0636228d3c4c2b8",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/sourceStoneFloors.ts",
+      "bytes": 5514,
+      "sha256": "9a26fadb5196e981b49e635773c55e0c465890ab50843aa24deee21098e39990",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/sourceStoneWalls.ts",
+      "bytes": 7769,
+      "sha256": "94c35329d4dba0d303ded689d1bf80860133fe25dc6bf9f817fe533fd1358ce5",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/spatialVisibility.ts",
+      "bytes": 3970,
+      "sha256": "36760cd4f75a318846c60987439350bca34a8fa3ef12c7fc113ed2010406b3ca",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/specularFiltering.ts",
+      "bytes": 2000,
+      "sha256": "ed30dded5872c2cd41812d126a21e84ff2480bdc5f14f054537f3bf57aa3803e",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/rendering/TemporalRenderer.ts",
+      "bytes": 2009,
+      "sha256": "2b5a4e21bcf8abdb122e3e57903a8ea9517c2e83f8ba6183680406f6b5d43655",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/runtime/SceneRuntime.ts",
+      "bytes": 30771,
+      "sha256": "ea6d750f90389ed178bdfce98f824b8c43c13dd52305176e599f2412da5c5294",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "src/types.ts",
+      "bytes": 4259,
+      "sha256": "9927c18773e85b4511f521a85adbaa8b1c49619b484fc6a5422da04eff2eb484",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/lightmaps/convert.py",
+      "bytes": 2771,
+      "sha256": "f58789b9b91820dd67eab4169abac4862962c4dd999b80a94c38e92d8a9778e8",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/lightmaps/denoise.py",
+      "bytes": 5991,
+      "sha256": "7339da9d58aae2db68dccc9d4a35a33e9f74e532c429c7d8e169aaba2735da29",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/lightmaps/export-meshes.mjs",
+      "bytes": 2254,
+      "sha256": "3966b1382f1cbf47e818f0a9b7e0133450376de95c6800f9b73cb9554dc773cb",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/lightmaps/README.md",
+      "bytes": 4066,
+      "sha256": "a8cad962f96e2d0ba2933502478f3b3d3d4e0ab2fab249452c4c57405b0029a4",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/lightmaps/repair_missing.py",
+      "bytes": 3270,
+      "sha256": "c067e4c30010f121e307fd3c0ef12e13ff4215ad6d93554d141f70bef1ed2a04",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "scripts/verify-assets.mjs",
+      "bytes": 2206,
+      "sha256": "d98233865b4381b6f968118079c954c2b18e2514a337dd489d3772e5916e32b7",
+      "reason": "Application or reusable maintenance code"
+    },
+    {
+      "file": "package.json",
+      "bytes": 1401,
+      "sha256": "70b499236f6cb46eeeae987faa290ac4332ad0e59135debaae22e463c0d9bcd9",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "package-lock.json",
+      "bytes": 38622,
+      "sha256": "8f3ce821e884ca00b5eb78879b680f6e0810e597c53bc461c334a34accbd8ccc",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "next.config.ts",
+      "bytes": 634,
+      "sha256": "9f22fac60d984d2b7edec16cb4d296ac49328661354d59eeac2d6079c6e9c9ec",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "tsconfig.json",
+      "bytes": 811,
+      "sha256": "2c541b15964c5b7be005bb1e81261229e438ba83fd534ec67b54a82000bbafdb",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "vercel.json",
+      "bytes": 237,
+      "sha256": "d0513c876f5f34c3d5ebf7e64b83339b4e8cf5d5842a746e7044f1fde5dbb4b0",
+      "reason": "Project configuration"
+    },
+    {
+      "file": ".gitignore",
+      "bytes": 434,
+      "sha256": "232fd61cb34a935341528c9f20d493d80cc2d242dee0497777cf925724a8972c",
+      "reason": "Project configuration"
+    },
+    {
+      "file": ".gitattributes",
+      "bytes": 440,
+      "sha256": "6c129660b61ee1a6786fbae7319eeb93691cbfc903470c4de8351af63404dfcf",
+      "reason": "Project configuration"
+    },
+    {
+      "file": ".vercelignore",
+      "bytes": 283,
+      "sha256": "7edf032843c33addb6fb03051f3fcccfd66f4d379b487e6b1caeb73855e6d466",
+      "reason": "Project configuration"
+    },
+    {
+      "file": ".env.example",
+      "bytes": 253,
+      "sha256": "7438df4e834b7aafcd3f3b4ca81d6addd7ac28a1e33907c1b79a9185a081e28e",
+      "reason": "Project configuration"
+    },
+    {
+      "file": ".nvmrc",
+      "bytes": 3,
+      "sha256": "68ca3fba3b7e864770cb61aeb306d4bd4354b68ab4dd38450860c5d823e42a53",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "AGENTS.md",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+      "reason": "Project configuration"
+    },
+    {
+      "file": "qa/avatar.test.mjs",
+      "bytes": 9155,
+      "sha256": "3c80b5697c08a51174a8a1e83e0746d4c52c89d684b378ecd681cdedaca17ad9",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/brush-tangents.test.mjs",
+      "bytes": 1130,
+      "sha256": "a3b35ba7297b47f825e3f2eac9c42a628ada7fb410fc070cf97dc60c915fa46d",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/cinematic.test.mjs",
+      "bytes": 3287,
+      "sha256": "444ec0c46178fbab389ad988487a26e0e6ec03f3342c7ec53099c542f786df2b",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/collision-coverage.test.mjs",
+      "bytes": 5015,
+      "sha256": "fbc55916c9dd34a0ffb566056dc1182fb867be78348d614ffa3e5b3a3f32d70a",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/controller-camera.test.mjs",
+      "bytes": 19387,
+      "sha256": "93acc1ec98aea75976434f5a2fea2dfb00be40b4b9049dc5c62d28ed42e01c3d",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/environment.test.mjs",
+      "bytes": 4729,
+      "sha256": "f891e3112e0254ba4706dfb804576e080475c270f903bc3379e9cf27240c833d",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/founder-landing-connection.test.mjs",
+      "bytes": 2806,
+      "sha256": "97d399bb7cb674b818b3793b7e171c086f94377484022e5705a12ac6bb30e5ef",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/gallery-mirror.test.mjs",
+      "bytes": 5068,
+      "sha256": "58950d729bc8686020b29a5f26ccc9f7a314fc28b25e9dfa6e2c0bd430675d02",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/glass-lift.test.mjs",
+      "bytes": 7969,
+      "sha256": "e3b2f0f8025f74e31ef5ea46d5d91b399dbde39043f9034b063d84085ae22d54",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/interaction.test.mjs",
+      "bytes": 12202,
+      "sha256": "3c61f268de11dcb86d442d23f03c6396822395588b4d0a616b5fa04589425d76",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/landing-support.test.mjs",
+      "bytes": 1308,
+      "sha256": "e76082e2affde6bc59fe5daa74a9942e8f064085604837a1e62ba6fbe237066f",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/material-diagnostics.test.mjs",
+      "bytes": 2699,
+      "sha256": "d2ada4740299defb9f63bd1b7535daebe684533b97620c0206f937762625e4d7",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/remaining-collision.test.mjs",
+      "bytes": 4802,
+      "sha256": "ffd3591fdf5cc4568028173832c2a3d6e8dbcd93c0e561dc8aeb09a9d32e192f",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/rendering.test.mjs",
+      "bytes": 3759,
+      "sha256": "51e1c304fb814c9c37d643ec753d5b0f3c107d25792860b6d285595cd7a1ac8f",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/runtime.test.mjs",
+      "bytes": 8087,
+      "sha256": "e505960c73d62f4ea2fde247aad12ad80d12bc6bef0f7234210b73bb135ba36e",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/scene-repair.test.mjs",
+      "bytes": 3930,
+      "sha256": "f9e3b92f34db3c0dbe639f7390f312e1aab3afbd1809f57b2dc2fcd32baa724d",
+      "reason": "Regression test"
+    },
+    {
+      "file": "qa/benchmark-collision.mjs",
+      "bytes": 1880,
+      "sha256": "01bb95df437c11b301bf8b96a05e8e2f3e10bbcfaabd95cd5d897cd9993f7725",
+      "reason": "Package script"
+    },
+    {
+      "file": "qa/architecture-v21/README.md",
+      "bytes": 3272,
+      "sha256": "332c04e15e7af36d924f9df5fc22f0e4ca35f6245825ce557b0ccce55293e99f",
+      "reason": "Current verification notes"
+    },
+    {
+      "file": "qa/material-v20/README.md",
+      "bytes": 6620,
+      "sha256": "a65e9c0455de6c0058dc81007ebe963194c46748585a3fdfe435d08fef5c11cd",
+      "reason": "Current verification notes"
+    },
+    {
+      "file": "public/assets/scene-manifest.json",
+      "bytes": 221912,
+      "sha256": "bb852ae41ff76e91511217157c655b1301aa22b08494da9e73de9230af371352",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/lounge.glb",
+      "bytes": 26212432,
+      "sha256": "7591440300646f6910d1f3a0da8e0dd4d989f772ce3861f6dc7a872da03a036a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-architecture-normal.ktx2",
+      "bytes": 1121619,
+      "sha256": "f6d2d0cdc0543dba9c117acab781165973324a1772f3a08bc30b2b68b874290d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-architecture-base.ktx2",
+      "bytes": 1059325,
+      "sha256": "2d49848e3f3820a49a5bf40a7161f74a9d721a7a2cb7e89d8449721e1b835c00",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-architecture-orm.ktx2",
+      "bytes": 2299829,
+      "sha256": "05731db697eec282757a530fdb6992428720eb9c3a49ff75d39bd0d4a5b781f7",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-detail-normal.ktx2",
+      "bytes": 805608,
+      "sha256": "6ea0cb633eefc8312cb4bd45558ae931cd0d6f6c6ef14a85ce24dd849a823196",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-detail-base.ktx2",
+      "bytes": 5508722,
+      "sha256": "98b01c6f5e81aeaba49b866c62d126c38e3b66d29336b17b3fa1ab5c5de1f37c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-detail-orm.ktx2",
+      "bytes": 4585223,
+      "sha256": "7fb9a131a9b11d4e076d1e6608cbddda3fcc3225c85e4741af5689c0670b957d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-hero-normal.ktx2",
+      "bytes": 1724256,
+      "sha256": "709afb14976acd5173db77984332dc152d8c687e7203ba1223237aa382bcf901",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-hero-base.ktx2",
+      "bytes": 5308535,
+      "sha256": "aff6b2e93f3d3d0b317768f7481455c114be3a56ae3dff71d8cba461b965767c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/lounge-hero-orm.ktx2",
+      "bytes": 4011484,
+      "sha256": "300a2dbbb29963452f175aa3cc4bcb07583ba3d896442ac378f46f820c3c7990",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/entrance.glb",
+      "bytes": 15790368,
+      "sha256": "2e40225a229a8f9da678857250f55d25b44ad5e361ddb5d9229a02fdab54756e",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-architecture-normal.ktx2",
+      "bytes": 1091287,
+      "sha256": "9344d71d145191f99a588ceedb97c503ee0f98966e11e7aaa7901847ddd0c30a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-architecture-base.ktx2",
+      "bytes": 10935234,
+      "sha256": "b1f4ad8269ee335301e8184fb2c0f39e4269afdea54b6f20f07953635d3daa0d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-architecture-orm.ktx2",
+      "bytes": 3317166,
+      "sha256": "ef8b164876a9853957beffaa17293a3552152d3edc2d9c735821f6a76b08717f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-detail-normal.ktx2",
+      "bytes": 9936311,
+      "sha256": "cba68b01849a4cf9be1082911ae4c89320ccc076b729b3ac9b20ef3942585a99",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-detail-base.ktx2",
+      "bytes": 9866441,
+      "sha256": "d3a07a1f5da0ab2ad67ed7b61b6c28ccd4c1c5fb3023d8b4b925ca131cc2b1ec",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/entrance-detail-orm.ktx2",
+      "bytes": 45842,
+      "sha256": "8ee47942f8cd8c1a5f049fa3ccfac00879d464324349fd8623a37678028a71f1",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/shell.glb",
+      "bytes": 3085848,
+      "sha256": "8340a51f8f47b0f1eb3dc1954059295d7bac3a1eecabeca95ae7f749496009e7",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-architecture-normal.ktx2",
+      "bytes": 753210,
+      "sha256": "04262ca979ed5b6651e447ffa4868a10798105ad7aa5dab4c33fdec9ad0e796d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-architecture-base.ktx2",
+      "bytes": 11340286,
+      "sha256": "4061dfbeb13d4b173a7c6a0f7f4a8f8b3d3bc0172fb4ed210b2cf63692fd8ecc",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-architecture-orm.ktx2",
+      "bytes": 2623470,
+      "sha256": "417dac92b036475d148d7da2e06cd62d4493ddf34f73a85abe37264ea98404bd",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-detail-normal.ktx2",
+      "bytes": 1782983,
+      "sha256": "955c93df6b5fbd4e451c978ef844915ad8f794744c116480ab17d34fc9bd6dcd",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-detail-base.ktx2",
+      "bytes": 15053399,
+      "sha256": "ee8b7813c93819e0bfd768e074bd9402eb237e657eff056050e136a8ce4fbc2d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/shell-detail-orm.ktx2",
+      "bytes": 1022698,
+      "sha256": "1069eae9673aad5405089716a974a10888fcaae19e3a29cb11e2ab8757d9a77d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/gallery.glb",
+      "bytes": 712016,
+      "sha256": "a0a91e959f0d8d15588887953e41110df39932ca57bbbc682e96d1ea35d55fd5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-architecture-normal.ktx2",
+      "bytes": 360395,
+      "sha256": "843c64d43b0710cb91af4d61779750fe68fb78aa21ffde56d51bfe29a057927f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-architecture-base.ktx2",
+      "bytes": 13660809,
+      "sha256": "7ffee8259de794cd6f89ce396c366cc37e0eb01b289149571e44dfe81695ca1c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-architecture-orm.ktx2",
+      "bytes": 1691967,
+      "sha256": "0b6bedc93710ca7b6e41369311dd05a30227735fb471a0df1e76a9c5b09ef49c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-detail-normal.ktx2",
+      "bytes": 1757502,
+      "sha256": "93941e612aa094380f98e17914947a2193eb863eff78ae8c1303b55668efc8a2",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-detail-base.ktx2",
+      "bytes": 76580,
+      "sha256": "d1c411d4f8331ea2ef1e804484d9cb146ae16210c97c30916e4ef40e1939401b",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/gallery-detail-orm.ktx2",
+      "bytes": 3951221,
+      "sha256": "ef5884371a95dafd282ba90046d9853bd8ec82e86937be8e2401a80648c9178d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v21/founder.glb",
+      "bytes": 100150584,
+      "sha256": "48d53008eda6f43849bce1ffd8b81d6eb995011c36e0410db62a2049f9d9e499",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-architecture-normal.ktx2",
+      "bytes": 1103756,
+      "sha256": "3904876e26b06ee776e674ae200f33565e2c9b5d418dc1fc8ecdd07beacbfe03",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-architecture-base.ktx2",
+      "bytes": 6605495,
+      "sha256": "991b8e456a3dd8c5b5cf6c2009379dac2b9f08310ec59846350b5ba803877dd0",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-architecture-orm.ktx2",
+      "bytes": 3261205,
+      "sha256": "91a97b29e0ec4515f5c0928cc20fef0d4165eebe42d099cd0d87a075b4c2a76d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-detail-normal.ktx2",
+      "bytes": 1389487,
+      "sha256": "853765a722c0c54451fbec1d6390f0252cc0ce096e9a76998f02c99e22ad6f2c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-detail-base.ktx2",
+      "bytes": 3089634,
+      "sha256": "6a8e067b37ce565232de58bc5e353d1c9faf2a66f4cf237885e671b9e75a39c5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-detail-orm.ktx2",
+      "bytes": 2906714,
+      "sha256": "4049118a9562894cd2e5ff909fbe3a33ff90f5220276e4d5cd7df8e4bf68c49d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-hero-normal.ktx2",
+      "bytes": 8573944,
+      "sha256": "b0385342c432980f8c04c11f727cf0c9a413a4d15f980da0cce234da6fbf6fc8",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-hero-base.ktx2",
+      "bytes": 7462792,
+      "sha256": "f95797e741747a21d3658ad203c5466a20c0b25f76365bb5a275a3ec59458646",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/founder-hero-orm.ktx2",
+      "bytes": 5157314,
+      "sha256": "2603cbd8083e2ad592349dd80bda466325450480b97922db45540edd10b0a098",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-materials/founder-native-chair-base.png",
+      "bytes": 2621408,
+      "sha256": "7a7fc6b578573e3e48e2112b2d55dfe357f5a82b00a6267cb73d60930d4243bf",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-materials/founder-native-chair-orm.png",
+      "bytes": 2626683,
+      "sha256": "aa5051fd676cef3ea5c680ab2aab96ed16263a0bc46aca155fdaac508bebe8fd",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-materials/founder-native-chair-normal.png",
+      "bytes": 4600224,
+      "sha256": "e36e4369f1eac9816f7312cd0214ccc1b12b255f906a6322a2f126cf7a799b1c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/studio.glb",
+      "bytes": 300537632,
+      "sha256": "9ace9b8189d937fb2dd8cd592530ef05741ecbc18fa4aca933dfe5899a2efb29",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-hero-normal.ktx2",
+      "bytes": 9660509,
+      "sha256": "488344fa2eb55a3cc96cde1662065eaf09365710ab6be44a8c1103d22befef01",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-hero-base.ktx2",
+      "bytes": 7584030,
+      "sha256": "ea7a130c0b1e8b711d9f2549962bd1816d388f079e3d0b6fa518074a33638869",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-hero-orm.ktx2",
+      "bytes": 5622167,
+      "sha256": "36098202523013278bba76a481e33d89bfc5b96992da828154c43f98e2872984",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-architecture-normal.ktx2",
+      "bytes": 1065571,
+      "sha256": "82afe809fe09d486e40089080c1e7c719711173baf32117398eda5215e923d5a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-architecture-base.ktx2",
+      "bytes": 7333152,
+      "sha256": "6ab1aa52cb87c775008f4df1f5e62b2aad5fc4556fc8e2d959e5035a33afa197",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-architecture-orm.ktx2",
+      "bytes": 3277390,
+      "sha256": "724737706cef949b0a04ed353e2ebd71dd46965e2cae66f16c6f46e3e3af962c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-detail-normal.ktx2",
+      "bytes": 1920531,
+      "sha256": "779755fd3b7b5f7fa3e3fec9865b759197a1c3262ab224f944b1ba4daf328983",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-detail-base.ktx2",
+      "bytes": 4661311,
+      "sha256": "6233151476894c9c12d8137f920ad407c09c338d93a8e002825939f5ecf70761",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/textures/studio-detail-orm.ktx2",
+      "bytes": 5619400,
+      "sha256": "1029db73c3ec45ebb550c6f5947188bb0858727a6ad8f20482d0bbcb3d63ae4e",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v10/lift.glb",
+      "bytes": 2979108,
+      "sha256": "1900a9a9c6842a4765d190df59246cf1dac4b4479c06a1cc749caf83d0a84ff1",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v10/bronze-orm.png",
+      "bytes": 358772,
+      "sha256": "2a8b0dfa10ab6c5e4b312fe12c4dcb24abc632b9a51d5079b69d9cde27b21965",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v10/graphite-orm.png",
+      "bytes": 292127,
+      "sha256": "cff763f01df1650300a255a03604fb3f8efd6ca89040269f4950a80db055a413",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v10/limestone-orm.png",
+      "bytes": 85620,
+      "sha256": "c019ca8e511fa4e985c91320a670a683b9d9661aaaf2702cb3bd8db2e2c9ee98",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-walls/cream-stone-original.png",
+      "bytes": 899033,
+      "sha256": "a48198b45cfa76d4474d4a2fc32029d27d7df954aaf15e2f7257445223bd43a8",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/v13.glb",
+      "bytes": 7931076,
+      "sha256": "69511a38c3eb4b4ede04874f0675e697b754b47bf3dc80a31035594e7439852e",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/textures/v13-architecture-normal.ktx2",
+      "bytes": 562202,
+      "sha256": "3d54ec9548f40f56d94c81a563177a626a5dbbf0fcc6ecad007f1b0a48a1c6f5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/textures/v13-architecture-base.ktx2",
+      "bytes": 8631780,
+      "sha256": "98c1d572659818c15a66e6547bfa2aeed03b8d887f27b70b71d4942ad288007d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/textures/v13-architecture-orm.ktx2",
+      "bytes": 2133662,
+      "sha256": "4369ee71fc8b939862628090f0784d6b4d30c7a126382271a6f5f7c8def3163c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/v18.glb",
+      "bytes": 503476,
+      "sha256": "cd5d0b6ef9de5aa0cf8b5d18f689b88cb6f2b22e6efd9a6b4d6f8e161c8f25d2",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v18/textures/v18-architecture-normal.ktx2",
+      "bytes": 236016,
+      "sha256": "b5e66a476db0a956dee96344ceb615cd81d2400e4f767418f26ba3b06350cd6e",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v18/textures/v18-architecture-base.ktx2",
+      "bytes": 6958751,
+      "sha256": "1b2055cbe18912b4dac5be0f788e27478b8bb7754e4bb35f23e33c268d13c21b",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v18/textures/v18-architecture-orm.ktx2",
+      "bytes": 1717265,
+      "sha256": "f13534b97867b8dab73c450f25fec7f051576f2b8aa864fae4fbddb1336e936c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/v19.glb",
+      "bytes": 494872,
+      "sha256": "9554af4814ce23b8bfeb7a20546aac1d4252e65034448e5402d38aba91c2944f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/textures/v19-architecture-normal.ktx2",
+      "bytes": 251843,
+      "sha256": "e128c49852adad40ee72483c7122f43e105bdfc3aaa9879b479c67c4cb137349",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/textures/v19-architecture-base.ktx2",
+      "bytes": 9595087,
+      "sha256": "218e6f8eb02e1a031042441e4588ea993b4bb21082f18499c81217cc1e31006b",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/textures/v19-architecture-orm.ktx2",
+      "bytes": 1987270,
+      "sha256": "ba11f67537af7e28a44e8407259753062a511e58843cb4a1525e5dbfd1b990a5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v21/mirror.glb",
+      "bytes": 102908,
+      "sha256": "8ed4273a42faad9d9d95581eb9f139677d493a1c214da15c867ba3fd56e050e4",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/lounge-detail-indirect.exr",
+      "bytes": 6522133,
+      "sha256": "f03d9488d6b3853c0b932a57c699f1bdbcc66730a7b6132c5a9e3df6e6aece5d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/lounge-architecture-indirect.exr",
+      "bytes": 2441886,
+      "sha256": "12c8089dfdc1634db7cf97ba5d06ad3ddec68a55583c6454296938ee8bd0e509",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/lounge-hero-indirect.exr",
+      "bytes": 3991829,
+      "sha256": "8453882615a289c55ee4b2cf1599b3706aba8105326b3948e34726c1ff04be35",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/entrance-architecture-indirect.exr",
+      "bytes": 5554417,
+      "sha256": "6889f864e4214b6420e4614a4ddd3f55e757da5ab7143044010ef9a4a64841c7",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/entrance-detail-indirect.exr",
+      "bytes": 6130254,
+      "sha256": "1567a02f7f9f67e3fb4582fc5da3d72c67342cbe41cdeec73faf9f5d40a1092c",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/shell-detail-indirect.exr",
+      "bytes": 7069982,
+      "sha256": "9b4d709faecf72c84b96b93d036a7f4111329cc9b2c3d20f78fd2a70e2c149bd",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/shell-architecture-indirect.exr",
+      "bytes": 5161699,
+      "sha256": "52c2daf00c61515e08caffd1696db8d3a3004ddca328054a6d1e6d5b5a050229",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/gallery-architecture-indirect.exr",
+      "bytes": 2445711,
+      "sha256": "5466238b45151c80d0823d2ef5c7ded5c1918fc65b0c370dce80dd350da3487f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/gallery-detail-indirect.exr",
+      "bytes": 1516129,
+      "sha256": "13bdea6d6d6effacef5ce4ecc08597dd8b0ef27b65d9b95d552900ecc062d5fe",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/founder-detail-indirect.exr",
+      "bytes": 2910892,
+      "sha256": "38a9c9c45b4557f1beb878cf39b1508b67b2cc92054257f2e25e47b7dda2fd64",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/founder-architecture-indirect.exr",
+      "bytes": 6909406,
+      "sha256": "8e1b19538745939e9bfcccfc1d0cdc2742da6f382e6e590f2326aa7354586002",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/founder-hero-indirect.exr",
+      "bytes": 6015384,
+      "sha256": "6821b4beff07aa37c53c667bcc6c24593c806d619f62f945a13209b320648c08",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-materials/founder-native-chair-validation.json",
+      "bytes": 3746,
+      "sha256": "31210fd7fa4d35eb890739ee3fcac85fa00f265d8ccee4ea7a32d91aa682146a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/studio-detail-indirect.exr",
+      "bytes": 6336442,
+      "sha256": "f56eb8332844040706a305592e64039b6f0e8ac12a0be5b5ca40c61ef2921543",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/studio-hero-indirect.exr",
+      "bytes": 8033694,
+      "sha256": "0e9cf5863316b7454a0aa39889c0221c5047e9c344d08ee1c85110c1a14523f5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/studio-architecture-indirect.exr",
+      "bytes": 4941626,
+      "sha256": "ddbb174029aedee016ee29dc6d4267858cb9c13fc0cdacfd4af80e02c6fc2f38",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/v13-architecture-indirect.exr",
+      "bytes": 4451611,
+      "sha256": "190713322f80452e4b4ded41265fa8e8e1a6aabdc1814f098ad01d409fac0135",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/v18-architecture-indirect.exr",
+      "bytes": 324677,
+      "sha256": "1d8043d2656bdb423aabb5adfc5cfed7015c5a3586fc72f00d05a1dfcc855996",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/material-v20/lighting/v19-architecture-indirect.exr",
+      "bytes": 6287789,
+      "sha256": "1a50ea24c8874a6ad67ad90ba22cf76e4a990b16c888173fabc9c40b0d7de971",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v21/collision/architecture-v19_collision_architecture-v18_collision_architecture-v16_collision_building-collision.glb",
+      "bytes": 1694748,
+      "sha256": "962a41e9c8e2a5883b84d77fe9f37235d20f0d30586d70d10b62bae1b9954b16",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_solid-collision.glb",
+      "bytes": 876344,
+      "sha256": "7f8bfc6dc9b3225bc35a08cb85b6787c757fb544cce19b73c822300e6da7cec6",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_circulation-collision.glb",
+      "bytes": 12692,
+      "sha256": "18b3bbd88a6edeb1fde18fb3464abf2967b93e7cd6405c7aee29e5f827615c42",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_lift-collision.glb",
+      "bytes": 25808,
+      "sha256": "1b5825911a9bc2f77dd56d4dba0fad75daa062cc9394be6dc2cf8eced2de5046",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_additional-solids.glb",
+      "bytes": 816556,
+      "sha256": "b1d6b2fd0661c2890f19e34bacf090847866a4d3ede3fef761bbbe0df637ca2a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v21/collision/architecture-v19_collision_architecture-v18_collision_architecture-v16_collision_static-solids.glb",
+      "bytes": 195564,
+      "sha256": "efc7feba46ed0f21e2ef1b4f1a8fd7e33f7de30768a18e1feac434d95ef7e26a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_v13-collision.glb",
+      "bytes": 209116,
+      "sha256": "9031d8f6a09d0a0d21e47b73acc187b28642cb8737c0d1f366757ee7b1633ed1",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/architecture-v18_collision_v18-collision.glb",
+      "bytes": 160056,
+      "sha256": "9045cd0b2314117d01c7a0d9355072b6aa0f68ac1d4e091cc954be1deeeb84a0",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v19/collision/v19-collision.glb",
+      "bytes": 150996,
+      "sha256": "e79782548e5daa469f37d86161a5c45a615725f09f8e5fbf0cab127deb9dd4ef",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v21/mirror-collision.glb",
+      "bytes": 16448,
+      "sha256": "c1d695b43a71a89bc04495c82c95594f596a0d32ef9de1ab370543b999310ea8",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/repair-v6/collision-coverage.json",
+      "bytes": 60382,
+      "sha256": "78145f15e6b00197e44edeec5c93187514a41d64e69bfbe9ad8849a21787141d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-object-names.json",
+      "bytes": 294848,
+      "sha256": "810ec568b504977cb201c41e8a74f04796ff7eb702f6cb8a2ec2d1a0b6cdacaa",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/reports/source-material-coverage.json",
+      "bytes": 205392,
+      "sha256": "9a98e45402e9aadf5e2c1e812da2d9b84b02640424aaec251d3fa022786094e3",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/orientation-v3/repair-summary.json",
+      "bytes": 11539,
+      "sha256": "9ad2f23b7864dd764f81363b0355f334040512541c3c8c3cf9c987b0fdc2da8f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/sunset-v4/lighting-summary.json",
+      "bytes": 13550,
+      "sha256": "6ab3e29d793fa5ffd6d329e842c0571f27d1107e466dd226be13afd811912f59",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/character/RocketboxVisitor.glb",
+      "bytes": 21088756,
+      "sha256": "b96d4cb29605b18b13df690c7a261637df8e3deeeb7c0732862c64bc785ff997",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/asset-validation.json",
+      "bytes": 30522,
+      "sha256": "ff1812a06019cd8318b734cf206bcc03c6540891f5ed87cf586bea70c6cc5447",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v9/lounge-reflection.exr",
+      "bytes": 5724392,
+      "sha256": "85a7ba7daa68f77c4c353078e63fd953d706cd7e70714ea9e5768ca619c80419",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/sunset-v4/reflections/entrance-reflection.exr",
+      "bytes": 6960578,
+      "sha256": "e959b2b8fceaeaad731a99c9dfd6c873fe51780e13fe02315bb6283f2283233f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/repair-v6/studio-reflection.exr",
+      "bytes": 7015905,
+      "sha256": "f098afa69947231bc0890ceafb21a4323df145ed5b3a195eba40fcba6154b28b",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/founder-lift-v9/founder-reflection.exr",
+      "bytes": 6548478,
+      "sha256": "35cb8b325850d5e7ce43e4bf72d415adafa70f7ce5a7a3d3ccbeb512a8e1f3a5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/sunset-v4/reflections/exterior-reflection.exr",
+      "bytes": 3035941,
+      "sha256": "ee7f39bf1f9e0a2cf25e83da7eab62c195a79770821d533ec09cd2148dd3f73f",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/color/blender-agx-medium-high.rgba16f.gz",
+      "bytes": 1936926,
+      "sha256": "de9416f9ae938ace806d7a177fe760b4b22cc87e3d064d7a3bd33db9275560b5",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/color/blender-agx-medium-high.rgba16f",
+      "bytes": 17173512,
+      "sha256": "e520d3ea184f7b23648b64923851d9b43d06da8a3cc11733024912c493831c0b",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/color/source-color.json",
+      "bytes": 960,
+      "sha256": "437b7d124ddd574051484252b5492ef4555bf5216959ba487500133cc21664a9",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/texture-validation.json",
+      "bytes": 22461,
+      "sha256": "924321258e9855e091b6c6c90dd9d9378736e7ee922c6cda7d988637466da597",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-materials/materials.json",
+      "bytes": 7745,
+      "sha256": "6dacb3ad71d5dfb904d315749c04f490deabaf22523675ff774a8e062c3675c1",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/v2/repair-summary.json",
+      "bytes": 31630,
+      "sha256": "f8e8da5237c4b302d3c765c1faf4962ba7a50f34aaf6ff053f04d61860044194",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/precision-v3/validation.json",
+      "bytes": 4517,
+      "sha256": "ec2965c76e41fd1c9f129d593cbeeab5224ac99ddc82f8bdeeb7ee896dd79081",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/v13.glb",
+      "bytes": 916032,
+      "sha256": "03d5cafc601233fba0722aa19f6d439467285fce6753573d6d2b0be5ca11e17a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/architecture-v16/collision/v13-collision.glb",
+      "bytes": 209188,
+      "sha256": "2fa25c7402db8d15bc59e962cea96be311aca7a9e78d73f26dd0ab8dacca6e30",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/environment/qwantani-sunset-2k.hdr",
+      "bytes": 4171959,
+      "sha256": "d66e08231e9c09ca40c6d035214ae8efb638782745c82addbb2a063fa32cabef",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/surface-v5/bronze-source-grain.png",
+      "bytes": 3174256,
+      "sha256": "be12443b883b7b4e496165519c714991eac9c900f0cc8f182a5519b359922edf",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-walls/greige-marble-original.png",
+      "bytes": 3035591,
+      "sha256": "c9e5f67aabd9f5ebbebdf5b744f8e77236b2fcb083f8ceea474f0a9a8a81f7ef",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-walls/stone-roughness-original.jpg",
+      "bytes": 941909,
+      "sha256": "519e24e673323b0f09f6591e6339c95f9c6aedad3798e4a46d43b34bf335d649",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/source-walls/stone-height-original.jpg",
+      "bytes": 662027,
+      "sha256": "930642512b1d5d7db8954233113b9a0fc60cf8827a660c48bf118847947aa11d",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/basis/basis_transcoder.js",
+      "bytes": 57529,
+      "sha256": "8478b5b6d6b74e7d3082b89f6417321d8d1dc0307f2b30d4484bb11b441696a1",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/basis/basis_transcoder.wasm",
+      "bytes": 527333,
+      "sha256": "6cf17dc889352c42e9acf8897107978d127005fe3386c36a0e3845e27967630a",
+      "reason": "Active scene/runtime dependency"
+    },
+    {
+      "file": "public/assets/character/LICENSE.txt",
+      "bytes": 372,
+      "sha256": "e8dbf915a2b82229913e301a0787696611241bdefec4832bc084f54161db1efe",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/character/PROVENANCE.md",
+      "bytes": 1707,
+      "sha256": "055e4c4b0d1de857185cc55839f7fdfb3e15279b2d08bd520c1572b6553c7784",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/environment/PROVENANCE.md",
+      "bytes": 1923,
+      "sha256": "ca173821a213f1a03eea298b62f5b0b5f914077f4e8e6d828886fb8c89763869",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/source-walls/provenance.json",
+      "bytes": 2553,
+      "sha256": "8d9be7bbf7dc5a9dd954a174327ff4061abad22cf9898b305ebc632e807ba1ae",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/source-walls/floor-provenance.json",
+      "bytes": 1350,
+      "sha256": "e6ad0c3bcc0a45c57d3faedf532223ff666cf5fb9ecee5946cbfc4365d6efeab",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/surface-v5/bronze-provenance.json",
+      "bytes": 853,
+      "sha256": "7187149848bb00951a1de5a735ef0e90608f49ba2628e6ee366ed1804eaac4d6",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/character/Rocketbox-MIT-LICENSE.txt",
+      "bytes": 1066,
+      "sha256": "17474e386e0b9e1a700cc3d06b2b0882a2c376d9c6b49c7f8274409b8f8d2352",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/character/Rocketbox-PROVENANCE.json",
+      "bytes": 5113,
+      "sha256": "5f714623fde8818f5001bd600d2e19fe5b7bedc017c02207b700b5424a96ea38",
+      "reason": "License/provenance"
+    },
+    {
+      "file": "public/assets/experience-v12/coverage.json",
+      "bytes": 17233,
+      "sha256": "e31420cf72160b805feda112f7c76128b4f30ca7b5b4dd81684787165283bab9",
+      "reason": "Required regression fixture"
+    },
+    {
+      "file": "public/assets/architecture-v18/collision/v18-collision.glb",
+      "bytes": 160080,
+      "sha256": "f9ae056ee32f2872425363f0cd5c45640aa4c17939e5cc3a2b0e524341e200e7",
+      "reason": "Required regression fixture"
+    }
+  ]
+}

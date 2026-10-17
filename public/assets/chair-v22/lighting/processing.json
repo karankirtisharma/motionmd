@@ -1,0 +1,106 @@
+[
+  {
+    "zone": "founder-rug",
+    "referenceNote": "The old metrics repeat the new raw bake for denoising comparison, not the previously deployed atlas. Chair pivot: [15.42, 4.265, -5.3].",
+    "raw": "retained as founder-rug-raw.npy",
+    "uv": "C:\\Users\\karan_z7alww2\\.codex\\visualizations\\2026\\10\\17\\01a14a42-20bc-7ca3-a5e8-1779e078f8e0\\chair-work\\rug-uv.bin",
+    "filter": "OIDN 2.5.1 RTLightmap, no auxiliary guides, isolated UV coverage components",
+    "chartCount": 6,
+    "filteredCharts": 6,
+    "unfilterablePixels": 0,
+    "coveredPixels": 1021836,
+    "paddingPixels": 41840,
+    "seconds": 1.03,
+    "rawMetrics": {
+      "meanRGB": [
+        1.0457510948181152,
+        0.7947242856025696,
+        0.5522974133491516
+      ],
+      "rmsLaplacian": 0.37056349752209256
+    },
+    "old": {
+      "meanRGB": [
+        1.0457510948181152,
+        0.7947242856025696,
+        0.5522974133491516
+      ],
+      "rmsLaplacian": 0.37056349752209256
+    },
+    "clean": {
+      "meanRGB": [
+        1.0456063747406006,
+        0.7946003675460815,
+        0.5526666045188904
+      ],
+      "rmsLaplacian": 0.007917513020669138
+    },
+    "limitations": "Components under 4 covered texels retain raw values; raster-connected UV charts are treated as one island. Laplacian reduction alone does not prove visual fidelity.",
+    "inputVariant": "raw",
+    "output": "founder-rug-clearance-indirect.exr",
+    "outputSHA256": "0069dad24157cb63d5a49e23bf6b4f55a3441ec4c4b2582db50902f59f742bc7",
+    "bytes": 1678457
+  },
+  {
+    "zone": "founder-chair",
+    "raw": "retained externally as founder-chair-raw.npy",
+    "uv": "C:\\Users\\karan_z7alww2\\.codex\\visualizations\\2026\\10\\17\\01a14a42-20bc-7ca3-a5e8-1779e078f8e0\\chair-work\\upholstery\\chair-uv.bin",
+    "filter": "OIDN 2.5.1 RTLightmap, no auxiliary guides, isolated UV coverage components",
+    "chartCount": 450,
+    "filteredCharts": 198,
+    "unfilterablePixels": 372,
+    "coveredPixels": 174022,
+    "paddingPixels": 88735,
+    "seconds": 6.86,
+    "rawMetrics": {
+      "meanRGB": [
+        1.0747991800308228,
+        0.7874897122383118,
+        0.5286043882369995
+      ],
+      "rmsLaplacian": 0.3180990684912653
+    },
+    "old": {
+      "meanRGB": [
+        1.0747991800308228,
+        0.7874897122383118,
+        0.5286043882369995
+      ],
+      "rmsLaplacian": 0.3180990684912653
+    },
+    "clean": {
+      "meanRGB": [
+        1.074300765991211,
+        0.7873265743255615,
+        0.5287321209907532
+      ],
+      "rmsLaplacian": 0.2505957223114583
+    },
+    "limitations": "Components under 4 covered texels retain raw values; raster-connected UV charts are treated as one island. Laplacian reduction alone does not prove visual fidelity.",
+    "inputVariant": "raw",
+    "output": "founder-chair-indirect.exr",
+    "outputSHA256": "b5a7a6d14c5dbdd21dca05abe1c4083d274c3ea49439a5b0b66558a56bc01605",
+    "bytes": 1115675,
+    "referenceNote": "Old metrics repeat the new raw bake for denoising comparison, not the previously deployed atlas. Current fixed chair pivot [15.42,4.265,-5.3].",
+    "coverageRepair": [
+      {
+        "id": 0,
+        "material": "founder__FC91 | fine ivory leather.003",
+        "zone": "founder-chair",
+        "missingFaces": 2853,
+        "repairedFaces": 2829,
+        "newCoveragePixels": 5007,
+        "paddingPixels": 60466
+      }
+    ],
+    "bake": {
+      "source": "D:\\Motion Design MD FINAL\\MD_Presentation_Lounge_v21.blend",
+      "sourceSaved": false,
+      "samples": 1024,
+      "size": 4096,
+      "chairParts": 86,
+      "signal": "indirect diffuse plus direct practicals; no albedo or direct sun; smooth source geometric normals",
+      "seconds": 260.2282335758209
+    }
+  }
+]

@@ -2,6 +2,8 @@ node_modules/
 .next/
 .next-*/
 out/
+output/
+tmp/
 .vercel/
 .env*
 !.env.example

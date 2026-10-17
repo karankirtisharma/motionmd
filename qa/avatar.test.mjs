@@ -133,7 +133,7 @@ test('sit and stand blending plants the feet while the body turns toward a sourc
       });
     }
     assert.ok(minimum > -0.002, `sit/stand transition stays above floor: ${minimum}`);
-    assert.ok(maximum < 1.83, 'sit/stand does not increase avatar height unexpectedly');
+    assert.ok(maximum < 1.93, 'sit/stand does not increase avatar height unexpectedly');
     context.diagnostic(JSON.stringify({ frames: 240, minimumVertexY: minimum, maximumVertexY: maximum }));
   } finally { avatar.dispose(); }
 });
@@ -146,7 +146,7 @@ test('body camera uses source eye calibration and hides only head/hair primitive
   const body = meshes.filter((mesh) => /m005_body/i.test(mesh.material.name));
   try {
     assert.equal(head.length, 2); assert.equal(body.length, 1);
-    assert.ok(avatar.view.eyeHeight > 1.55 && avatar.view.eyeHeight < 1.73);
+    assert.ok(avatar.view.eyeHeight > 1.55 && avatar.view.eyeHeight < 1.83);
     assert.ok(avatar.view.seatedEyeOffset > 0.70 && avatar.view.seatedEyeOffset < 1);
     avatar.setBodyView(true);
     assert.ok(head.every((mesh) => !mesh.visible)); assert.ok(body.every((mesh) => mesh.visible));

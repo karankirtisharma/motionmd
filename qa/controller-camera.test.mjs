@@ -43,6 +43,7 @@ async function load(url, omitImages = false) {
 const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
+  .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
   .replace("from './GlassLift'", `from ${JSON.stringify(new URL('../src/runtime/interaction/GlassLift.ts', import.meta.url).href)}`)
   .replace("from './CollisionWorld'", `from ${JSON.stringify(dataModule(`export const createCollisionWorld=async()=>globalThis.${fixtureKey}.physics;`))}`)
@@ -50,6 +51,141 @@ const controllerSource = transpile('../src/runtime/interaction/InteractionContro
   .replace("from '../presentation/PresentationScreen'", `from ${JSON.stringify(dataModule(`export const createPresentationScreen=()=>globalThis.${fixtureKey}.screen;`))}`)
   .replace("from '../rendering/assets'", `from ${JSON.stringify(new URL('../src/runtime/rendering/assets.ts', import.meta.url).href)}`);
 const { createInteractionController } = await import(dataModule(controllerSource));
+
+test('founder desk completes collision-aware approach, contact IK, repeated input and stand', async context => {
+  const collisionRoot = new THREE.Group();
+  for (const url of [manifest.collisions.url,...manifest.collisions.additionalUrls]) collisionRoot.add((await load(url)).scene);
+  const scene = new THREE.Scene(); scene.add((await load(manifest.chunks.find(c=>c.id==='founder').url,true)).scene);
+  const physics = await createCollisionWorld(scene,undefined,collisionRoot);
+  const avatar = createRocketboxAvatar(await load(manifest.character.url,true));
+  const prior = {document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
+  globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
+  globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
+  globalThis[fixtureKey]={physics,avatar};
+  const camera=new THREE.PerspectiveCamera(54,16/9,.1,1800); camera.position.set(12,6,-6);camera.lookAt(16,5.5,-5.3);
+  let hint;
+  const controller=await createInteractionController({scene,camera,canvas:{addEventListener(){},removeEventListener(){},focus(){},getBoundingClientRect(){return {left:0,top:0,width:1000,height:700};}},manifest:{...manifest,screen:undefined},onPrompt:p=>{hint=p;}});
+  const stages=new Set(); let maximumStep=0;
+  const lateralMotion=[];
+  const chair=scene.getObjectByName('Founder interactive desk chair');
+  const fixedChairMatrix=chair.matrixWorld.toArray();
+  const handVertices=[];
+  avatar.root.traverse(mesh=>{
+    if(!mesh.isSkinnedMesh)return;
+    const indices=mesh.geometry.attributes.skinIndex,weights=mesh.geometry.attributes.skinWeight;
+    const vertices=[];
+    for(let v=0;v<indices.count;v++) {
+      let weight=0;
+      for(let k=0;k<4;k++)if(/Bip01_[LR]_(Hand|Finger)/.test(mesh.skeleton.bones[indices.getComponent(v,k)].name))weight+=weights.getComponent(v,k);
+      if(weight>.8)vertices.push(v);
+    }
+    handVertices.push({mesh,vertices});
+  });
+  let edgePenetration=0,edgeWorst;
+  const checkTransition=()=>{
+    assert.deepEqual(chair.matrixWorld.toArray(),fixedChairMatrix,'chair stays fixed throughout sitting and standing');
+    avatar.root.updateMatrixWorld(true);
+    for(const {mesh,vertices} of handVertices) {
+      mesh.skeleton.update();const p=new THREE.Vector3();
+      for(const v of vertices) {
+        mesh.getVertexPosition(v,p);p.applyMatrix4(mesh.matrixWorld);
+        if(p.x>16.126&&p.x<17.275&&p.z>-6.85&&p.z<-3.75&&p.y>5.02&&p.y<5.05799985){if(5.05799985-p.y>edgePenetration)edgeWorst={point:p.toArray(),state:controller.diagnostics.state};edgePenetration=Math.max(edgePenetration,5.05799985-p.y);}
+      }
+    }
+  };
+  try {
+    controller.enterExplore(undefined,{position:[14.8,4.265,-6.1],yaw:-Math.PI/2});
+    for(let i=0;i<120;i++)controller.update(1/60);
+    assert.equal(hint?.target,'founder-desk');
+    controller.handleInteract();
+    for(let i=0;i<1200;i++) {
+      const before=controller.player.position.clone(); controller.update(1/60);
+      const state=controller.diagnostics.state; stages.add(state.deskStage ?? state.mode);
+      maximumStep=Math.max(maximumStep,controller.player.position.distanceTo(before));
+      if(state.deskStage==='align') lateralMotion.push({distance:controller.player.position.distanceTo(before), walk:avatar.locomotion.weights.walk});
+      checkTransition();
+      if(i===120||i===240)controller.handleInteract();
+      if(state.mode==='seated')break;
+    }
+    context.diagnostic(JSON.stringify({stages:[...stages],state:controller.diagnostics.state,maximumStep,hint}));
+    assert.equal(controller.diagnostics.state.mode,'seated');
+    assert.ok(maximumStep<0.06,'root has no teleportation');
+    assert.ok(lateralMotion.length / 60 < 2.5,'the short entry does not become a prolonged shuffle');
+    const middleSteps=lateralMotion.slice(Math.floor(lateralMotion.length*.2),Math.floor(lateralMotion.length*.8));
+    context.diagnostic(JSON.stringify({lateralFrames:lateralMotion.length,minimumMidStep:Math.min(...middleSteps.map(f=>f.distance)),maximumMidStep:Math.max(...middleSteps.map(f=>f.distance))}));
+    assert.ok(middleSteps.every(frame=>frame.distance>.004),'body carries through footfalls without repeatedly stopping');
+    assert.ok(middleSteps.some(frame=>frame.walk>.25),'existing upper-body motion remains active during lateral entry');
+    for (const stage of ['entry-turn','align','lower','reach','work']) assert.ok(stages.has(stage),stage);
+    const hands=[]; avatar.root.traverse(o=>{if(o.isBone&&/Bip01_[LR]_Hand$/.test(o.name))hands.push(o.getWorldPosition(new THREE.Vector3()).toArray());});
+    context.diagnostic(JSON.stringify({hands}));
+    avatar.root.updateMatrixWorld(true);
+    let handMin=Infinity,handMax=-Infinity,seatMin=Infinity,soleMin=Infinity;
+    const palms=[Infinity,Infinity],thighSamples=[];
+    let seatSample;
+    avatar.root.traverse(o=>{
+      if(!o.isSkinnedMesh)return;o.skeleton.update();
+      const indices=o.geometry.attributes.skinIndex,weights=o.geometry.attributes.skinWeight,p=new THREE.Vector3();
+      for(let v=0;v<indices.count;v++) {
+        let handWeight=0;for(let k=0;k<4;k++)if(/Bip01_[LR]_(Hand|Finger)/.test(o.skeleton.bones[indices.getComponent(v,k)].name))handWeight+=weights.getComponent(v,k);
+        o.getVertexPosition(v,p);p.applyMatrix4(o.matrixWorld);
+        let pelvisWeight=0;for(let k=0;k<4;k++)if(/Pelvis|Thigh/.test(o.skeleton.bones[indices.getComponent(v,k)].name))pelvisWeight+=weights.getComponent(v,k);
+        if(pelvisWeight>.8&&p.x>controller.player.position.x-.15&&p.x<controller.player.position.x+.1&&Math.abs(p.z+5.3)<.2&&p.y>4.6&&p.y<seatMin){seatMin=p.y;seatSample={p:p.toArray(),mesh:o.name,weights:Array.from({length:4},(_,k)=>[o.skeleton.bones[indices.getComponent(v,k)].name,weights.getComponent(v,k)])};}
+        soleMin=Math.min(soleMin,p.y);
+        if(handWeight>.8) {o.getVertexPosition(v,p);p.applyMatrix4(o.matrixWorld);if(p.x>16.125){handMin=Math.min(handMin,p.y);handMax=Math.max(handMax,p.y);}}
+        for(let k=0;k<4;k++) {const name=o.skeleton.bones[indices.getComponent(v,k)].name;if(/Bip01_[LR]_Hand$/.test(name)&&weights.getComponent(v,k)>.8)palms[name.includes('_L_')?0:1]=Math.min(palms[name.includes('_L_')?0:1],p.y);}
+        if(p.x>15.55&&p.x<16.02&&Math.abs(p.z+5.3)<.21&&p.y>4.57&&p.y<4.95)thighSamples.push(p.clone());
+      }
+    });
+    context.diagnostic(JSON.stringify({handMin,handMax,palms,seatMin,seatSample,soleMin,deskTop:5.05799985}));
+    const leather=[];scene.traverse(o=>{if(o.isMesh&&/FC91.*fine ivory leather/.test(o.material.name))leather.push(o);});
+    const surface=new THREE.Raycaster(new THREE.Vector3(seatSample.p[0],5,seatSample.p[2]),new THREE.Vector3(0,-1,0)).intersectObjects(leather,false).map(hit=>hit.point.toArray());
+    context.diagnostic(JSON.stringify({cushionSurface:surface}));
+    assert.ok(surface.length>0,'the pelvis is supported by the actual cushion geometry');
+    assert.ok(Math.abs(seatMin-surface[0][1])<.004,'hips contact the cushion');
+    let penetration=0,worst;
+    for(const p of thighSamples){const hit=new THREE.Raycaster(new THREE.Vector3(p.x,5.06,p.z),new THREE.Vector3(0,-1,0)).intersectObjects(leather,false)[0];if(hit&&hit.point.y-p.y>penetration){penetration=hit.point.y-p.y;worst=p.toArray();}}
+    context.diagnostic(JSON.stringify({sampledSeatPenetration:penetration,worst,samples:thighSamples.length}));
+    assert.ok(handMin>=5.05799985-.001&&handMin<=5.05799985+.003,'actual palm skin contacts the tabletop without penetration or floating');
+    assert.ok(Math.abs(palms[0]-palms[1])<.001,'both palms share the desk plane');
+    assert.ok(penetration<.004,'cushion does not cut through the sampled thigh skin');
+    assert.ok(Math.abs(soleMin-4.265)<.002,'actual shoe sole rests on the rug');
+    for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.0976)<.001,'wrist contact height');}
+    controller.handleInteract();
+    const exitMotion=[];
+    for(let i=0;i<900;i++) {
+      const before=controller.player.position.clone(); controller.update(1/60);checkTransition();
+      if(controller.diagnostics.state.deskStage==='exit')exitMotion.push(controller.player.position.distanceTo(before));
+      if(controller.diagnostics.state.mode==='explore')break;
+    }
+    assert.ok(exitMotion.slice(Math.floor(exitMotion.length*.2),Math.floor(exitMotion.length*.8)).every(distance=>distance>.004),'lateral exit also clears the rug without contact stalls');
+    context.diagnostic(JSON.stringify({maximumHandDeskPenetration:edgePenetration,edgeWorst}));
+    assert.ok(edgePenetration<.002,'hands clear the desk edge during both reach and withdrawal');
+    assert.equal(controller.diagnostics.state.mode,'explore');
+    assert.equal(controller.diagnostics.state.seatWeight,0);
+    context.diagnostic(JSON.stringify({stood:controller.diagnostics.state}));
+    assert.ok(physics.canStandAt(controller.player.position),'stand exits to a clear capsule location');
+    controller.setVirtualInput(0,-1);const before=controller.player.position.clone();for(let i=0;i<60;i++)controller.update(1/60);
+    assert.ok(controller.player.position.distanceTo(before)>.3,'movement resumes');
+    // The reported failure starts inside the narrow channel. Also enter from
+    // the opposite armrest at a different display rate.
+    controller.setVirtualInput(0,0);
+    for(const [position,hz] of [[[15.98,4.265,-5.9],60],[[15.7,4.265,-4.1],144]]) {
+      controller.enterExplore(undefined,{position,yaw:0});
+      for(let i=0;i<hz;i++)controller.update(1/hz);
+      controller.handleInteract();
+      for(let i=0;i<hz*18;i++) {
+        controller.update(1/hz);checkTransition();
+        if(controller.diagnostics.state.deskStage==='align')assert.ok(Math.abs(controller.diagnostics.state.bodyYaw-Math.PI/2)<.001,'entry keeps torso facing desk');
+        if(controller.diagnostics.state.mode==='seated')break;
+      }
+      assert.equal(controller.diagnostics.state.mode,'seated',`entry from ${position} at ${hz} Hz`);
+      controller.handleInteract();
+      for(let i=0;i<hz*15;i++){controller.update(1/hz);checkTransition();if(controller.diagnostics.state.mode==='explore')break;}
+      assert.equal(controller.diagnostics.state.mode,'explore');
+    }
+    assert.ok(edgePenetration<.002,'alternate entries also clear the desk');
+  } finally {controller.dispose();Object.assign(globalThis,prior);delete globalThis[fixtureKey];}
+});
 
 test('actual controller carries and renders the visitor with the cabin, then allows disembarking', async () => {
   const actual = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url)));

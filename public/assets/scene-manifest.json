@@ -1,8 +1,8 @@
 {
   "version": "2",
   "source": {
-    "filename": "MD_Presentation_Lounge_v19.blend",
-    "sha256": "df27b1dd8b8b382027a334613b238ba3a733b3f72a7088a502c9f208f4e4bbce",
+    "filename": "MD_Presentation_Lounge_v21.blend",
+    "sha256": "a9d47877c8379035dce248a3cc5885fe808e8e06ab6ab754d67ef2b132bff8da",
     "blenderVersion": "5.2.0 LTS",
     "baseExportSource": {
       "filename": "MD_Presentation_Lounge.blend",
@@ -84,8 +84,8 @@
     },
     {
       "id": "founder",
-      "url": "/assets/architecture-v16/founder.glb",
-      "bytes": 100125376,
+      "url": "/assets/architecture-v21/founder.glb",
+      "bytes": 100150584,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/founder-architecture-normal.ktx2",
@@ -102,7 +102,7 @@
         "/assets/source-materials/founder-native-chair-normal.png"
       ],
       "textureBytes": 49398656,
-      "sha256": "42133f0f0851a305eda3750a26622c8ba88feb354e8b23566e8ccfee3c212d9c"
+      "sha256": "48d53008eda6f43849bce1ffd8b81d6eb995011c36e0410db62a2049f9d9e499"
     },
     {
       "id": "studio",
@@ -174,6 +174,13 @@
         "/assets/architecture-v19/textures/v19-architecture-orm.ktx2"
       ],
       "textureBytes": 11834200
+    },
+    {
+      "id": "gallery-mirror",
+      "url": "/assets/architecture-v21/mirror.glb",
+      "bytes": 102908,
+      "sha256": "8ed4273a42faad9d9d95581eb9f139677d493a1c214da15c867ba3fd56e050e4",
+      "priority": 2
     }
   ],
   "cameras": [
@@ -515,6 +522,20 @@
         -3.8
       ],
       "fov": 45
+    },
+    {
+      "id": "V21 mirror detail",
+      "position": [
+        7.8,
+        5.8,
+        -13.5
+      ],
+      "target": [
+        4.995,
+        5.75,
+        -9.45
+      ],
+      "fov": 48
     }
   ],
   "tour": [
@@ -4025,7 +4046,7 @@
       "name": "founder__FR79 | antique bronze hand knotted rug",
       "sourceMaterial": "FR79 | antique bronze hand knotted rug",
       "mode": "baked-procedural",
-      "lightMap": "/assets/material-v20/lighting/founder-hero-indirect.exr",
+      "lightMap": "/assets/chair-v22/lighting/founder-rug-clearance-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
@@ -4505,11 +4526,11 @@
       "name": "founder__FC91 | fine ivory leather.003",
       "sourceMaterial": "FC91 | fine ivory leather.003",
       "mode": "native-source-images-with-GI",
-      "lightMap": "/assets/material-v20/lighting/founder-hero-indirect.exr",
+      "lightMap": "/assets/chair-v22/lighting/founder-chair-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,
-      "atlasId": "founder-hero",
+      "atlasId": "founder-chair",
       "bakeConvention": "Cycles diffuse indirect plus practical direct, without COLOR: outgoing diffuse radiance / albedo. Multiply by pi to supply irradiance to Three.js physical lightMap.",
       "sourceTextureValidation": "/assets/source-materials/founder-native-chair-validation.json"
     },
@@ -5508,17 +5529,18 @@
     "altitudeDegrees": 12
   },
   "collisions": {
-    "url": "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_building-collision.glb",
+    "url": "/assets/architecture-v21/collision/architecture-v19_collision_architecture-v18_collision_architecture-v16_collision_building-collision.glb",
     "objects": 400,
     "additionalUrls": [
       "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_solid-collision.glb",
       "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_circulation-collision.glb",
       "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_lift-collision.glb",
       "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_additional-solids.glb",
-      "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_static-solids.glb",
+      "/assets/architecture-v21/collision/architecture-v19_collision_architecture-v18_collision_architecture-v16_collision_static-solids.glb",
       "/assets/architecture-v19/collision/architecture-v18_collision_architecture-v16_collision_v13-collision.glb",
       "/assets/architecture-v19/collision/architecture-v18_collision_v18-collision.glb",
-      "/assets/architecture-v19/collision/v19-collision.glb"
+      "/assets/architecture-v19/collision/v19-collision.glb",
+      "/assets/architecture-v21/mirror-collision.glb"
     ],
     "coverageReport": "/assets/repair-v6/collision-coverage.json"
   },
@@ -7700,5 +7722,52 @@
     ],
     "cyclesSamples": 256,
     "lightingLimitation": "Existing sunset reflection captures retained."
+  },
+  "architectureV21": {
+    "baseline": "outputs/architecture-v19/MD_Presentation_Lounge_v19.blend",
+    "baselineSHA256": "df27b1dd8b8b382027a334613b238ba3a733b3f72a7088a502c9f208f4e4bbce",
+    "source": "outputs/architecture-v21/MD_Presentation_Lounge_v21.blend",
+    "sourceSHA256": "a9d47877c8379035dce248a3cc5885fe808e8e06ab6ab754d67ef2b132bff8da",
+    "removed": [
+      "FR40 single library backing",
+      "FR40 library portal separator",
+      "FR40 portal shallow head",
+      "FR40 portal jamb",
+      "FR40 parked gallery glass leaf",
+      "FR40 gallery door handle",
+      "FR40 west plain bronze wall",
+      "FR40 plain wall panel joint",
+      "FR40 plain wall panel joint.001"
+    ],
+    "new": [
+      "V21 | Mirror structural backing",
+      "V21 | Silvered mirror edge",
+      "V21 | Continuous mirror face",
+      "V21 | Mirror vertical bronze reveal",
+      "V21 | Mirror vertical bronze reveal.001",
+      "V21 | Mirror horizontal bronze reveal",
+      "V21 | Mirror horizontal bronze reveal.001"
+    ],
+    "replaced": [],
+    "moved": {},
+    "mirror": {
+      "boundsBlender": [
+        [
+          3.7,
+          9.28,
+          4.2
+        ],
+        [
+          6.29,
+          9.461,
+          7.3
+        ]
+      ],
+      "faceY": 9.45,
+      "frameWidth": 0.02,
+      "bevel": 0.003
+    },
+    "reflection": "One live planar reflection with scene clipping and bounded render target; existing local probes retained for surrounding materials.",
+    "lightingLimitation": "Previous v20 diffuse bakes are retained. Removal-specific indirect-light rebake pending."
   }
 }

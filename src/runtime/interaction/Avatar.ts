@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { damping } from './movement';
-import { createRocketboxAvatar } from './RocketboxAvatar';
+import { createRocketboxAvatar, type DeskPose } from './RocketboxAvatar';
 import { createAssetLoadGuard } from '../rendering/loadingGuard';
 import { resolveAssetDependency } from '../rendering/assets';
 
@@ -110,7 +110,7 @@ export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb')
     animations: clips.map((clip) => clip.name),
     view: { eyeHeight: 1.64, seatedEyeOffset: 0.84 },
     setBodyView(active: boolean) { bodyView = active; if (head && headScale) head.scale.copy(headScale).multiplyScalar(active ? 0.001 : 1); },
-    update(dt: number, speed: number, seated: number, seatHeight = 0.55) {
+    update(dt: number, speed: number, seated: number, seatHeight = 0.55, _contacts?: DeskPose) {
       currentSpeed = THREE.MathUtils.lerp(currentSpeed, speed, damping(10, dt));
       seatWeight = seated;
       const running = THREE.MathUtils.smoothstep(currentSpeed, 1.8, 3.4);

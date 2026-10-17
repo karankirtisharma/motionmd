@@ -20,8 +20,14 @@ test('retained balcony/return panes stop walking and sprinting from both sides',
   try {
     // Two pier-return panes disappeared with their piers in the approved source.
     // Their replacement perimeter and shortcut-closure guards have separate traversal tests.
-    const panes = records.filter(r => /glass/.test(r.sourceName) && !r.sourceName.startsWith('MF36 gallery guard pier return glass'));
-    assert.equal(panes.length, 4);
+    // V21 opens the presentation portal; its retired door must not leave a ghost collider.
+    // The widened opening has bidirectional traversal coverage in gallery-mirror.test.mjs.
+    const retiredDoor = 'FR40 parked gallery glass leaf';
+    assert.ok(manifest.architectureV21.removed.includes(retiredDoor));
+    assert.ok(![...p.colliderNames.values()].includes(retiredDoor));
+    const panes = records.filter(r => /glass/.test(r.sourceName)
+      && !r.sourceName.startsWith('MF36 gallery guard pier return glass') && r.sourceName !== retiredDoor);
+    assert.equal(panes.length, 3);
     for (const { sourceName, min, max } of panes) {
       const size = max.map((v, i) => v - min[i]), axis = size[0] < size[2] ? 0 : 2;
       const center = min.map((v, i) => (v + max[i]) / 2);

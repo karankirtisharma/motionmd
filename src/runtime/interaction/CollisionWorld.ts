@@ -52,6 +52,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   root.updateMatrixWorld(true);
   const point = new THREE.Vector3();
   const colliderNames = new Map<number, string>();
+  const workstationColliders: RAPIER.Collider[] = [];
+  let workstationConfigured = false;
   let meshCount = 0, triangleCount = 0;
   try { root.traverse((object) => {
     const mesh = object as THREE.Mesh;
@@ -88,10 +90,24 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     try { obstacle = world.createCollider(descriptor.setFriction(0.6)); }
     catch (error) { throw new Error(`Invalid collision geometry ${mesh.userData.sourceName ?? mesh.name}: ${String(error)}`); }
     colliderNames.set(obstacle.handle, String(mesh.userData.sourceName ?? mesh.name));
+    if (/^FC91 Installed \|/.test(String(mesh.userData.sourceName ?? ''))) workstationColliders.push(obstacle);
     triangleCount += triangles.length / 3;
     meshCount++;
   }); } catch (error) { world.free(); disposeLoaded(); throw error; }
   if (triangleCount < 1) { world.free(); disposeLoaded(); throw new Error('No architectural collision surfaces were available.'); }
+  // The founder rug's visible pile was omitted from the architectural hulls.
+  // Support soles at its measured surface instead of the stone 35 mm below it.
+  const rugBounds = new THREE.Box3();
+  scene.updateMatrixWorld(true);
+  scene.traverse(object => {
+    const mesh = object as THREE.Mesh;
+    if (mesh.isMesh && !Array.isArray(mesh.material) && /founder__FR79 \| (antique bronze hand knotted rug|reference wool fiber)$/.test(mesh.material.name)) rugBounds.union(new THREE.Box3().setFromObject(mesh));
+  });
+  if (!rugBounds.isEmpty()) {
+    const size = rugBounds.getSize(new THREE.Vector3()).multiplyScalar(0.5), center = rugBounds.getCenter(new THREE.Vector3());
+    const rug = world.createCollider(RAPIER.ColliderDesc.cuboid(size.x, size.y, size.z).setTranslation(center.x, center.y, center.z));
+    colliderNames.set(rug.handle, 'Founder rug surface');
+  }
   let perimeterColliders = 0;
   if (bounds) {
     const { minX, maxX, minZ, maxZ } = bounds;
@@ -137,9 +153,15 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   return {
     meshCount, triangleCount, perimeterColliders,
     world, capsule, body, controller, place, colliderNames,
-    move(displacement: THREE.Vector3, dt: number, output: THREE.Vector3) {
+    setDeskClearance(active: boolean) {
+      // The normal navigation capsule includes generous arm clearance. During the
+      // measured front-of-seat approach use the torso depth, keeping its full height.
+      const radius = active ? 0.10 : PLAYER_RADIUS;
+      capsule.setShape(new RAPIER.Capsule(PLAYER_HALF_HEIGHT - radius, radius));
+    },
+    move(displacement: THREE.Vector3, dt: number, output: THREE.Vector3, ignoreWorkstation = false) {
       world.timestep = dt;
-      controller.computeColliderMovement(capsule, displacement, undefined, undefined, (candidate) => candidate.handle !== capsule.handle);
+      controller.computeColliderMovement(capsule, displacement, undefined, undefined, (candidate) => candidate.handle !== capsule.handle && (!ignoreWorkstation || !workstationColliders.includes(candidate)));
       const movement = controller.computedMovement();
       const old = body.translation();
       body.setNextKinematicTranslation({ x: old.x + movement.x, y: old.y + movement.y, z: old.z + movement.z });
@@ -165,6 +187,21 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     canStandAt(feet: THREE.Vector3) {
       const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };
       return !world.intersectionWithShape(center, { x: 0, y: 0, z: 0, w: 1 }, capsule.shape, undefined, undefined, capsule, body);
+    },
+    configureWorkstation(offset: THREE.Vector3, rotation: THREE.Quaternion, height: (y: number) => number) {
+      if (workstationConfigured) return;
+      for (const collider of workstationColliders) {
+        const shape = collider.shape;
+        if (shape instanceof RAPIER.ConvexPolyhedron || shape instanceof RAPIER.TriMesh) {
+          const vertices = shape.vertices.slice();
+          for (let i = 1; i < vertices.length; i += 3) vertices[i] = height(vertices[i]);
+          collider.setShape(shape instanceof RAPIER.ConvexPolyhedron
+            ? new RAPIER.ConvexPolyhedron(vertices, shape.indices)
+            : new RAPIER.TriMesh(vertices, shape.indices, shape.flags));
+        }
+        collider.setTranslation(offset); collider.setRotation(rotation);
+      }
+      workstationConfigured = true; world.step();
     },
     hasLineOfSight(a: THREE.Vector3, b: THREE.Vector3, tolerance = 0.15) {
       const delta = b.clone().sub(a), length = delta.length();

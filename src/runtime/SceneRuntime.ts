@@ -16,6 +16,7 @@ import { createAssetLoadGuard } from './rendering/loadingGuard';
 import { createTemporalRenderer } from './rendering/TemporalRenderer';
 import { filterSourceSpecular } from './rendering/specularFiltering';
 import { partitionSourceGeometry } from './rendering/spatialVisibility';
+import { createGalleryMirror } from './rendering/galleryMirror';
 import { createInteractionController } from './interaction/InteractionController';
 
 type InteractionController = Awaited<ReturnType<typeof createInteractionController>>;
@@ -38,6 +39,7 @@ export class SceneRuntime {
   private desert?: Awaited<ReturnType<typeof createDesertEnvironment>>;
   private shaderValidation?: ReturnType<typeof guardShaderCompilation>;
   private temporal?: ReturnType<typeof createTemporalRenderer>;
+  private galleryMirror?: ReturnType<typeof createGalleryMirror>;
   private textures = new Set<Texture>();
   private ktx2?: KTX2Loader;
   private mixers: Array<{ mixer: AnimationMixer; duration: number }> = [];
@@ -125,6 +127,7 @@ export class SceneRuntime {
       const bounds = new Box3().setFromObject(this.content);
       this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal);
       if (this.disposed || this.abort.signal.aborted) { this.lighting.dispose(); return; }
+      this.galleryMirror = createGalleryMirror(this.content);
       // Preserve each source material's complete probe graph before subdividing
       // its visibility bounds; every cell then shares that same final shader.
       partitionSourceGeometry(this.content);
@@ -281,7 +284,7 @@ export class SceneRuntime {
     // Idle breathing and seated motion still cast changing shadows. Frozen reference
     // views, menus and fades reuse the map until an explicit scene change below.
     if (characterAdvanced && this.lighting) this.lighting.sun.shadow.needsUpdate = true;
-    try { if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); }
+    try { this.galleryMirror?.update(this.renderer, this.scene, this.camera); if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
     this.statsFrames++; this.statsTime += elapsed;
     if (this.inspectionEnabled) this.frameSamples.push(elapsed * 1000);
@@ -353,7 +356,8 @@ export class SceneRuntime {
   setReducedMotion(value: boolean) { this.reducedMotion = value; }
   setDiagnosticMode(mode: DiagnosticMode) {
     if (!this.inspectionEnabled || !this.manifest) return;
-    this.diagnostics ??= new RenderDiagnostics(this.content);
+    // Interactive furniture is reparented into the scene after loading.
+    this.diagnostics ??= new RenderDiagnostics(this.scene);
     this.diagnostics.setMode(mode);
     // Keep the cached ShadowNode/render target alive when comparing modes.
     if (this.lighting) this.lighting.sun.shadow.intensity = mode === 'no-shadows' ? 0 : 1;
@@ -377,9 +381,9 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63] };
+    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63], 'founder-desk': [14.8, 4.265, -6.1] };
     const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
     this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
@@ -388,6 +392,8 @@ export class SceneRuntime {
     this.controls.enterExplore(undefined, spawn); this.setMode('explore'); this.temporal?.reset();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
+  inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
+  getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
   setPaused(value: boolean) { this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
   explore() {
     if (!this.controls || this.mode !== 'tour' || this.sceneTransition) return;
@@ -479,6 +485,7 @@ export class SceneRuntime {
     this.diagnostics?.dispose();
     this.controls?.dispose(); this.desert?.dispose(); this.lighting?.dispose();
     this.temporal?.dispose();
+    this.galleryMirror?.dispose();
     this.ktx2?.dispose();
     this.mixers.forEach(({ mixer }) => mixer.stopAllAction());
     this.disposeObject(this.scene); this.textures.forEach(texture => texture.dispose());

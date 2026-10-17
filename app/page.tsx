@@ -150,7 +150,8 @@ export default function Home() {
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
-      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
+      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
+      {debug && runtime.current?.getInteractionState()?.deskStage && <details><summary>Chair inspection</summary><output style={{ display: 'block', maxWidth: 320, overflowWrap: 'anywhere' }}>{JSON.stringify(runtime.current?.getInteractionState())}</output>{(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Chair {view} view</button>)}</details>}
     </aside>}
   </main>;
 }
