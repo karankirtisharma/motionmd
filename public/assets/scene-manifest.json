@@ -542,7 +542,15 @@
       "position": [7.8, 5.8, -5.3],
       "target": [4.995, 5.75, -9.25],
       "fov": 48
-    }
+    },
+    {"id":"QA surface | Entry joins","position":[2.7,5.8,-10.3],"target":[3.6,4.23,-9.6],"fov":55},
+    {"id":"QA surface | Post shadow","position":[10.298810108879247,6.709356518472394,-7.2441308005744505],"target":[9.453547734669838,6.266447860495919,-7.5430679836670755],"fov":54},
+    {"id":"QA surface | Founder seam","position":[10,5.9,-4.2],"target":[9.4,4.23,-2.4],"fov":55},
+    {"id":"QA surface | Stair doorway","position":[18.7,1.65,-25],"target":[19.2,0,-22.7],"fov":55},
+    {"id":"QA surface | Studio edge","position":[7.5,1.7,-21.5],"target":[7.5,0,-23.4],"fov":55},
+    {"id":"QA surface | Ceiling strip","position":[1.6,1.8,-4.5],"target":[3.4,3.88,-3],"fov":65},
+    {"id":"QA surface | Ceiling corner","position":[1.6,1.8,-8.5],"target":[3.4,3.88,-10.4],"fov":65},
+    {"id":"QA surface | Library bronze","position":[10.9,1.7,-33.9],"target":[11.5,1.65,-35.5],"fov":55}
   ],
   "tour": [
     {
@@ -4301,7 +4309,7 @@
       "name": "founder__FR82 | polished ivory large format stone",
       "sourceMaterial": "FR82 | polished ivory large format stone",
       "mode": "baked-procedural",
-      "lightMap": "/assets/material-v20/lighting/founder-architecture-indirect.exr",
+      "lightMap": "/assets/surface-v23/lighting/founder-floor-indirect.exr",
       "lightMapIntensity": 3.141592653589793,
       "lightMapMode": "indirect",
       "uvChannel": 1,

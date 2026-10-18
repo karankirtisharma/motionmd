@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { applyLookInput, cameraLookDirection, cameraShortcut, damping, cameraRelativeMove, smoothAngle, smoothEyeHeight } from '../src/runtime/interaction/movement.ts';
+import { applyLookInput, cameraLookDirection, cameraShortcut, damping, cameraRelativeMove, smoothAngle, smoothEyeHeight, smoothSupportHeight } from '../src/runtime/interaction/movement.ts';
 import { createCollisionWorld } from '../src/runtime/interaction/CollisionWorld.ts';
 import fs from 'node:fs';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -84,6 +84,38 @@ test('damping response is stable across frame rates and heading wraps by shortes
   assert.ok(Math.abs(advance(30) - advance(144)) < 1e-10);
   const a = 179 * Math.PI / 180, b = -179 * Math.PI / 180;
   assert.ok(Math.abs(smoothAngle(a, b, 0.5) - Math.PI) < 1e-10);
+});
+
+test('support smoothing is bounded and bypasses teleports and authored motion', () => {
+  assert.equal(smoothSupportHeight(4.23,4.23,1/60),4.23,'flat ground is unchanged');
+  assert.equal(smoothSupportHeight(0,4.23,1/60),4.23,'teleport resets immediately');
+  assert.equal(smoothSupportHeight(4.23,4.25,1/60,false),4.25,'chair/lift/fall bypass');
+  for(const direction of [-1,1]) {
+    const target=direction*.18;
+    let y=smoothSupportHeight(0,target,1/60);
+    assert.ok(Math.abs(y-target)<=.07500001,'step assist stays within 7.5 cm of collision support');
+    assert.ok(Math.abs(y)<.11,'an 18 cm autostep must not jump the rendered body by almost the whole riser');
+    for(let i=0;i<60;i++)y=smoothSupportHeight(y,target,1/60);
+    assert.ok(Math.abs(y-target)<1e-8,'stopping settles onto the exact support');
+  }
+});
+
+test('released movement stays still on the actual spiral stair', async context => {
+  const physics=await sourceCollision();
+  let worst=0;
+  try {
+    for(const degrees of [40,0,-45,-90,-135,-180,-230]) {
+      const r=degrees*Math.PI/180;
+      const feet=new THREE.Vector3(18.76+1.55*Math.cos(r),3.67/24*((60-degrees)/(315/23)+.5),-(20.2+1.55*Math.sin(r)));
+      feet.y=physics.groundAt(feet);physics.place(feet);
+      for(let i=0;i<30;i++)physics.move(new THREE.Vector3(0,-.5/60,0),1/60,feet);
+      const stopped=feet.clone();
+      for(let i=0;i<600;i++)physics.move(new THREE.Vector3(0,-.5/60,0),1/60,feet);
+      worst=Math.max(worst,feet.distanceTo(stopped));
+    }
+    context.diagnostic(JSON.stringify({maximumTenSecondIdleDrift:worst}));
+    assert.ok(worst<.002,'standing on a tread must not cause automatic downhill movement');
+  } finally {physics.dispose();}
 });
 
 test('capsule stays grounded, climbs a stair, and cannot pass through a wall', async () => {

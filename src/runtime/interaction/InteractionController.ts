@@ -3,11 +3,12 @@ import type { ChairDefinition, SceneManifest, RuntimeHint } from '../../types';
 import { createCollisionWorld } from './CollisionWorld';
 import { createGlassLift } from './GlassLift';
 import { loadAvatar } from './Avatar';
-import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
+import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smoothSupportHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
 import { createPresentationScreen } from '../presentation/PresentationScreen';
 import { assetURL } from '../rendering/assets';
 import { createWorkstation, type Workstation } from './Workstation';
+import { createStairSurfaces } from './StairSurfaces';
 
 type ExtendedChair = ChairDefinition & { seatPosition?: [number, number, number]; forward?: [number, number, number] };
 type Options = {
@@ -42,6 +43,7 @@ export async function createInteractionController(options: Options) {
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
   const workstation = createWorkstation(scene);
+  const stairContact = { sample: createStairSurfaces(scene) };
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
@@ -65,6 +67,7 @@ export async function createInteractionController(options: Options) {
   const virtual = { x: 0, y: 0, sprint: false };
   const feet = new THREE.Vector3().fromArray(manifest.spawn.position);
   const previousFeet = feet.clone(), renderFeet = feet.clone();
+  let supportHeight = feet.y, previousSupportHeight = feet.y;
   const velocity = new THREE.Vector3();
   const displacement = new THREE.Vector3();
   const pivot = new THREE.Vector3(), desiredCamera = new THREE.Vector3();
@@ -79,6 +82,7 @@ export async function createInteractionController(options: Options) {
   let previousBodyYaw = bodyYaw, renderBodyYaw = bodyYaw;
   let cameraView: CameraView = 'thirdPerson';
   let inspectionDistance: number | undefined;
+  let cameraBoom: number | undefined;
   let intentionalUnlock = false, pointerLockUnavailable = false, cameraFloor = feet.y, cameraBlendDuration = 1.15;
   let verticalVelocity = 0, accumulator = 0, transition = 0, seatWeight = 0, cameraBlend = 0;
   let approachTime = 0, lastPrompt = '', dragging = false;
@@ -288,6 +292,9 @@ export async function createInteractionController(options: Options) {
     } else { if (lift) physics.world.step(); return; }
     velocity.x = THREE.MathUtils.lerp(velocity.x, displacement.x, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
     velocity.z = THREE.MathUtils.lerp(velocity.z, displacement.z, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
+    if (displacement.lengthSq() < 0.000001 && Math.hypot(velocity.x, velocity.z) < 0.025) {
+      velocity.x = 0; velocity.z = 0;
+    }
     // A gentle downward component keeps ground snapping active without defeating autostep.
     verticalVelocity = grounded ? -0.5 : Math.max(-16, verticalVelocity - 9.81 * STEP);
     displacement.set(velocity.x * STEP, verticalVelocity * STEP, velocity.z * STEP);
@@ -298,7 +305,7 @@ export async function createInteractionController(options: Options) {
     actualSpeed = THREE.MathUtils.lerp(actualSpeed, achievedSpeed < 0.06 ? 0 : achievedSpeed, damping(16, STEP));
     if (cameraView === 'bodyCam' && mode === 'explore') bodyYaw = smoothAngle(bodyYaw, yaw + Math.PI, damping(14, STEP));
     else if (achievedSpeed > 0.06) bodyYaw = locomotionHeading(bodyYaw, Math.atan2(feet.x - oldX, feet.z - oldZ), achievedSpeed, STEP);
-    if (feet.y < -10) { feet.fromArray(manifest.spawn.position); feet.y = physics.groundAt(feet); physics.place(feet); previousFeet.copy(feet); renderFeet.copy(feet); verticalVelocity = 0; }
+    if (feet.y < -10) { feet.fromArray(manifest.spawn.position); feet.y = physics.groundAt(feet); physics.place(feet); previousFeet.copy(feet); renderFeet.copy(feet); previousSupportHeight = supportHeight = feet.y; verticalVelocity = 0; }
   }
   function updateCamera(dt: number) {
     cameraFloor = smoothEyeHeight(cameraFloor, renderFeet.y, dt);
@@ -328,10 +335,14 @@ export async function createInteractionController(options: Options) {
     }
     if (!firstPerson) {
       const cameraDistance = physics.cameraDistance(pivot, desiredCamera);
+      // Dampen boom recovery, not world-space position. Sideways position lag
+      // cuts across wall corners and makes the camera trail behind a stair turn.
+      cameraBoom = cameraBoom === undefined ? cameraDistance
+        : Math.min(cameraDistance, THREE.MathUtils.lerp(cameraBoom, cameraDistance, damping(6, dt)));
       // Preserve the offset before mutating desiredCamera: copying pivot first
       // would zero the offset and put the camera inside the visitor's body.
       const offset = desiredCamera.clone().sub(pivot).normalize();
-      desiredCamera.copy(pivot).addScaledVector(offset, cameraDistance);
+      desiredCamera.copy(pivot).addScaledVector(offset, cameraBoom);
     }
     cameraMatrix.lookAt(desiredCamera, lookTarget, up); desiredQuaternion.setFromRotationMatrix(cameraMatrix);
     cameraBlend = Math.min(1, cameraBlend + dt / cameraBlendDuration);
@@ -339,8 +350,9 @@ export async function createInteractionController(options: Options) {
       const alpha = smootherStep(cameraBlend);
       camera.position.lerpVectors(cameraStart, desiredCamera, alpha); camera.quaternion.slerpQuaternions(cameraStartQuaternion, desiredQuaternion, alpha);
     } else {
-      // First person stays attached to the body; third person follows gently.
-      camera.position.lerp(desiredCamera, firstPerson ? 1 : damping(12, dt));
+      // The interpolated player and smoothed support already provide follow
+      // damping. Adding another positional filter creates avoidable input lag.
+      camera.position.copy(desiredCamera);
       camera.quaternion.slerp(desiredQuaternion, damping(firstPerson ? 24 : 14, dt));
     }
     // Clamp the *smoothed* camera too, avoiding lag that slips behind furniture.
@@ -349,6 +361,10 @@ export async function createInteractionController(options: Options) {
       const safeDistance = physics.cameraDistance(pivot, camera.position);
       const offset = camera.position.clone().sub(pivot);
       if (offset.length() > safeDistance) camera.position.copy(pivot).addScaledVector(offset.normalize(), safeDistance);
+    }
+    if (!firstPerson && cameraBlend >= 1) {
+      // Aim from the final collision-corrected position, not the unclipped boom.
+      camera.lookAt(lookTarget);
     }
     // Keep the head visible while the camera is still travelling toward the body.
     // Proximity also restores it safely when returning to third person.
@@ -509,7 +525,10 @@ export async function createInteractionController(options: Options) {
       accumulator += delta;
       while (accumulator >= STEP) {
         previousFeet.copy(feet); previousBodyYaw = bodyYaw;
+        previousSupportHeight = supportHeight;
         simulate(); accumulator -= STEP;
+        supportHeight = smoothSupportHeight(supportHeight, feet.y, STEP,
+          mode === 'explore' && !lift?.state.riding && verticalVelocity > -2);
       }
       fixedStepPose = mode === 'explore' || mode === 'approach';
       if (mode === 'explore') {
@@ -526,27 +545,31 @@ export async function createInteractionController(options: Options) {
       // target at the same interpolated instant on 90/120/144/165 Hz displays.
       const alpha = THREE.MathUtils.clamp(accumulator / STEP, 0, 1);
       renderFeet.lerpVectors(previousFeet, feet, alpha);
+      renderFeet.y = THREE.MathUtils.lerp(previousSupportHeight, supportHeight, alpha);
       renderBodyYaw = smoothAngle(previousBodyYaw, bodyYaw, alpha);
     } else {
       previousFeet.copy(feet); renderFeet.copy(feet);
+      previousSupportHeight = supportHeight = feet.y;
       previousBodyYaw = renderBodyYaw = bodyYaw; accumulator = 0;
     }
     lift?.render(fixedStepPose ? THREE.MathUtils.clamp(accumulator / STEP, 0, 1) : 1);
     avatar.root.position.copy(renderFeet); avatar.root.rotation.y = renderBodyYaw;
     const deskContacts = selected?.workstation && deskStage  ? { hands: selected.workstation.wrists, feet: plantedFeet, handWeight, footWeight: 1, upright: seatWeight, stanceWeight, balanceLean, deskHeight: selected.workstation.deskHeight, deskFront: selected.workstation.deskFront, hipOffset: 0.125, feetYaw, grip: gripWeight > 0 ? { hand: entrySide < 0 ? 1 : 0, point: selected.workstation.grip(chairAngle, entrySide), forward: selected.workstation.forward.clone().applyAxisAngle(up, chairAngle), weight: gripWeight } : undefined } : undefined;
-    avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts);
+    avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts,
+      mode === 'explore' && !lift?.state.riding && verticalVelocity > -2 ? stairContact : undefined);
     updateCamera(delta); display?.update();
     return true;
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
-    cameraBlend = 0; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
+    cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
     physics.setDeskClearance(false); pendingNavigationClearance = false; deskStage = undefined; handWeight = 0; inspectionDistance = undefined;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
     feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
     physics.place(feet); velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; accumulator = 0; grounded = false;
     cameraFloor = feet.y;
+    previousSupportHeight = supportHeight = feet.y;
     const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cameraStartQuaternion);
     yaw = inspectionSpawn?.yaw ?? Math.atan2(-direction.x, -direction.z); pitch = 0.16; bodyYaw = yaw + Math.PI;
     previousFeet.copy(feet); renderFeet.copy(feet); previousBodyYaw = renderBodyYaw = bodyYaw;

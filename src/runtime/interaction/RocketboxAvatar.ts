@@ -10,6 +10,7 @@ export type DeskPose = {
   stanceWeight?: number; balanceLean?: number;
   grip?: { hand: number; point: THREE.Vector3; forward: THREE.Vector3; weight: number };
 };
+export type StairContact = { sample: (point: THREE.Vector3, supportY: number, margin?: number) => number | undefined };
 
 /** MIT Rocketbox source motions, with local root drift removed in the export. */
 export function createRocketboxAvatar(gltf: GLTF) {
@@ -265,12 +266,97 @@ export function createRocketboxAvatar(gltf: GLTF) {
     });
   }
   const standingFootRotations = legs.map(l => l.foot.getWorldQuaternion(new THREE.Quaternion()));
+  // Use the actual shoe skin rather than guessing ankle-to-sole offsets.
+  const shoeVertices = legs.map(leg => {
+    const samples: Array<{ mesh: THREE.SkinnedMesh; index: number }> = [];
+    model.traverse(object => {
+      const mesh = object as THREE.SkinnedMesh;
+      if (!mesh.isSkinnedMesh) return;
+      const indices = mesh.geometry.attributes.skinIndex, weights = mesh.geometry.attributes.skinWeight;
+      for (let v=0;v<indices.count;v++) {
+        let weight=0;
+        for(let k=0;k<4;k++) {
+          let joint: THREE.Object3D | null=mesh.skeleton.bones[indices.getComponent(v,k)];
+          while(joint && joint!==leg.foot)joint=joint.parent;
+          if(joint===leg.foot)weight+=weights.getComponent(v,k);
+        }
+        if(weight>.95)samples.push({mesh,index:v});
+      }
+    });
+    const sole = new Map<string, { mesh: THREE.SkinnedMesh; index: number; height: number }>();
+    for(const sample of samples) {
+      const p=sample.mesh.localToWorld(sample.mesh.getVertexPosition(sample.index,new THREE.Vector3()));
+      const key=`${Math.floor(p.x/.035)},${Math.floor(p.z/.035)}`;
+      if(!sole.has(key)||p.y<sole.get(key)!.height)sole.set(key,{...sample,height:p.y});
+    }
+    // The shoe geometry has no morph targets. Cache each vertex in its weighted
+    // bone-local spaces once, rather than multiplying bind matrices hundreds of
+    // times per frame. Attached skinning cancels mesh.matrixWorld/bindInverse.
+    const cached = new Map(samples.map(sample => {
+      const {mesh,index} = sample;
+      const base = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position,index).applyMatrix4(mesh.bindMatrix);
+      const influences: Array<{bone: THREE.Bone; point: THREE.Vector3; weight: number}> = [];
+      if (mesh.bindMode === 'attached' && !mesh.geometry.morphAttributes.position?.length) {
+        for (let k=0;k<4;k++) {
+          const weight=mesh.geometry.attributes.skinWeight.getComponent(index,k);
+          if (!weight) continue;
+          const boneIndex=mesh.geometry.attributes.skinIndex.getComponent(index,k);
+          influences.push({bone:mesh.skeleton.bones[boneIndex],point:base.clone().applyMatrix4(mesh.skeleton.boneInverses[boneIndex]),weight});
+        }
+      }
+      return [`${mesh.uuid}:${index}`, {...sample,influences}];
+    }));
+    return { surface: [...cached.values()], anticipation: [...sole.values()].map(sample=>cached.get(`${sample.mesh.uuid}:${sample.index}`)!) };
+  });
+  const clearance = [0,0];
+  const shoePoint = new THREE.Vector3(), influencePoint = new THREE.Vector3();
+  const sampleShoe = (sample: (typeof shoeVertices)[number]['surface'][number]) => {
+    shoePoint.set(0,0,0);
+    if (sample.influences.length) {
+      for (const influence of sample.influences) shoePoint.addScaledVector(influencePoint.copy(influence.point).applyMatrix4(influence.bone.matrixWorld),influence.weight);
+    } else sample.mesh.getVertexPosition(sample.index,shoePoint).applyMatrix4(sample.mesh.matrixWorld);
+    return shoePoint;
+  };
+  function clearStairs(contact: StairContact | undefined, dt: number) {
+    if (!contact) { clearance.fill(0); return; }
+    // SkinnedMesh refreshes its attached bind inverse in updateMatrixWorld,
+    // not updateWorldMatrix. Sample skin in the current root frame.
+    root.updateMatrixWorld(true);
+    const front=new THREE.Vector3(0,0,1).applyQuaternion(root.quaternion);
+    legs.forEach((leg,i) => {
+      const ankle=leg.foot.getWorldPosition(new THREE.Vector3());
+      let required=0;
+      for(const sample of shoeVertices[i].surface) {
+        const point=sampleShoe(sample);
+        const floor=contact.sample(point,root.position.y);
+        if(floor!==undefined)required=Math.max(required,floor+.002-point.y);
+      }
+      for(const sample of shoeVertices[i].anticipation) {
+        const point=sampleShoe(sample);
+        // A continuous 18 cm edge margin lifts before the toe enters a riser.
+        // The exact top surface takes over at the edge, avoiding a height pop.
+        const floor=contact.sample(point,root.position.y,.18);
+        if(floor!==undefined)required=Math.max(required,floor+.002-point.y);
+      }
+      // Only lift to clear a tread; never pull the swing foot down, lower the
+      // pelvis, change stride length, or steer the ankle sideways.
+      clearance[i]=Math.max(required,THREE.MathUtils.lerp(clearance[i],required,damping(18,dt)));
+      if(clearance[i]<.0001)return;
+      const goal=ankle.clone().add(new THREE.Vector3(0,Math.min(.28,clearance[i]),0));
+      const footQ=leg.foot.getWorldQuaternion(new THREE.Quaternion());
+      const hip=leg.upper.getWorldPosition(new THREE.Vector3());
+      const pole=hip.clone().addScaledVector(front,.7);
+      solveLimb(leg.upper,leg.lower,leg.foot,goal,pole,leg.frames);
+      setWorldQuaternion(leg.foot,footQ);
+    });
+  }
   return {
     root,
     animations: gltf.animations.map((clip) => clip.name),
     view: { eyeHeight, seatedEyeOffset },
     get locomotion() {
       return { phase: gaitPhase, speed: speedSmoothed, forwardLean, sideLean,
+        stairClearance: [...clearance],
         weights: Object.fromEntries(Object.entries(actions).map(([name, value]) => [name, value.getEffectiveWeight()])) };
     },
     setBodyView(active: boolean) {
@@ -278,7 +364,7 @@ export function createRocketboxAvatar(gltf: GLTF) {
       // torso, arms, legs, source rig and the immutable asset stay intact.
       headMeshes.forEach(({ mesh, visible }) => { mesh.visible = active ? false : visible; });
     },
-    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose) {
+    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, stairs?: StairContact) {
       dt = THREE.MathUtils.clamp(dt, 0, 0.1);
       seated = THREE.MathUtils.clamp(seated, 0, 1);
       const oldSpeed = speedSmoothed;
@@ -334,6 +420,7 @@ export function createRocketboxAvatar(gltf: GLTF) {
       }
       plantFeet(seated);
       if (contacts) deskPose(contacts);
+      clearStairs(!contacts && seated===0 ? stairs : undefined,dt);
     },
     dispose() {
       mixer.stopAllAction(); mixer.uncacheRoot(model);

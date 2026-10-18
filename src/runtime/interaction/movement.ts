@@ -66,3 +66,13 @@ export function cameraShortcut(code: string, repeat: boolean, editing: boolean) 
 export function smoothEyeHeight(current: number, target: number, dt: number) {
   return current + (target - current) * damping(18, dt);
 }
+
+/** Soften support-height impulses without changing the capsule or the source gait.
+ * Keep the visual body within 7.5 cm of collision support; never ease a teleport,
+ * falling body, lift ride or authored chair movement through intermediate floors.
+ */
+export function smoothSupportHeight(current: number, target: number, dt: number, active = true) {
+  if (!active || Math.abs(target - current) > 0.35) return target;
+  const smoothed = current + (target - current) * damping(18, dt);
+  return Math.max(target - 0.075, Math.min(target + 0.075, smoothed));
+}

@@ -44,6 +44,7 @@ const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
   .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
+  .replace("from './StairSurfaces'", `from ${JSON.stringify(new URL('../src/runtime/interaction/StairSurfaces.ts', import.meta.url).href)}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
   .replace("from './GlassLift'", `from ${JSON.stringify(new URL('../src/runtime/interaction/GlassLift.ts', import.meta.url).href)}`)
   .replace("from './CollisionWorld'", `from ${JSON.stringify(dataModule(`export const createCollisionWorld=async()=>globalThis.${fixtureKey}.physics;`))}`)
@@ -51,6 +52,66 @@ const controllerSource = transpile('../src/runtime/interaction/InteractionContro
   .replace("from '../presentation/PresentationScreen'", `from ${JSON.stringify(dataModule(`export const createPresentationScreen=()=>globalThis.${fixtureKey}.screen;`))}`)
   .replace("from '../rendering/assets'", `from ${JSON.stringify(new URL('../src/runtime/rendering/assets.ts', import.meta.url).href)}`);
 const { createInteractionController } = await import(dataModule(controllerSource));
+
+test('stair support smoothing preserves the collision route and source gait at 60/144 Hz', async context => {
+  const collisionRoot=new THREE.Group();
+  for(const url of [manifest.collisions.url,...manifest.collisions.additionalUrls])collisionRoot.add((await load(url)).scene);
+  const prior={document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
+  const route=[];
+  for(let i=0;i<=160;i++){const a=(60+315/46)-(315+315/46)*i/160,r=a*Math.PI/180;route.push([18.76+1.55*Math.cos(r),3.67/24*((60-a)/(315/23)+.5),-(20.2+1.55*Math.sin(r))]);}
+  try {
+    for(const hz of [60,144])for(const direction of [1,-1]) {
+      Object.assign(globalThis,prior);
+      const physics=await createCollisionWorld(new THREE.Scene(),undefined,collisionRoot);
+      const avatar=createRocketboxAvatar(await load(manifest.character.url,true));
+      const reference=createRocketboxAvatar(await load(manifest.character.url,true));
+      const updateAvatar=avatar.update.bind(avatar);
+      let frame=0, stairContactEnabled=false;
+      avatar.update=(dt,speed,...args)=>{
+        stairContactEnabled=!!args[3];
+        reference.root.position.copy(avatar.root.position);reference.root.rotation.copy(avatar.root.rotation);
+        updateAvatar(dt,speed,...args);reference.update(dt,speed,...args);
+        if(frame++%30===0)for(const side of ['L','R'])for(const part of ['Thigh','Calf','Foot']) {
+          const name=`Bip01_${side}_${part}`;
+          assert.ok(avatar.root.getObjectByName(name).quaternion.toArray().every((v,i)=>Math.abs(v-reference.root.getObjectByName(name).quaternion.toArray()[i])<1e-9),'stair support must not override any source leg rotation');
+        }
+      };
+      globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
+      globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
+      globalThis[fixtureKey]={physics,avatar};
+      const camera=new THREE.PerspectiveCamera(54,16/9,.1,1800);
+      const controller=await createInteractionController({scene:new THREE.Scene(),camera,canvas:{addEventListener(){},removeEventListener(){},focus(){}},manifest:{...manifest,screen:undefined}});
+      try {
+        const points=direction===1?route:[...route].reverse();
+        controller.enterExplore(undefined,{position:points[0],yaw:0});
+        for(let i=0;i<hz;i++)controller.update(1/hz);
+        for(const target of points.slice(1)) {
+          for(let i=0;i<hz*3;i++) {
+            const p=controller.diagnostics.state.feet,dx=target[0]-p[0],dz=target[2]-p[2],distance=Math.hypot(dx,dz);
+            if(distance<.045)break;
+            controller.setVirtualInput(dx/distance,-dz/distance);controller.update(1/hz);
+          }
+          const p=controller.diagnostics.state.feet;
+          assert.ok(Math.hypot(p[0]-target[0],p[2]-target[2])<.1,'support smoothing cannot change horizontal navigation');
+          assert.ok(Math.abs(p[1]-target[1])<.2,'capsule stays on the authored support');
+        }
+        controller.setVirtualInput(0,0);for(let i=0;i<hz;i++)controller.update(1/hz);
+        assert.ok(Math.abs(controller.player.position.y-controller.diagnostics.state.feet[1])<.001,'render support settles after stopping');
+        assert.ok(Math.abs(controller.player.position.y-(direction>0?3.67:0))<.06,'both landings retain their height');
+        controller.enterExplore(undefined,{position:[20.31,.7,-20.2],yaw:Math.PI});
+        controller.setVirtualInput(0,1);for(let i=0;i<hz/2;i++)controller.update(1/hz);
+        controller.setVirtualInput(0,0);for(let i=0;i<hz;i++)controller.update(1/hz);
+        const resting=controller.player.position.clone();
+        for(let i=0;i<hz*5;i++)controller.update(1/hz);
+        assert.ok(controller.player.position.distanceTo(resting)<.002,'releasing input must brake and hold the stair position');
+        assert.ok(stairContactEnabled,'standing on the ramp must retain shoe clearance rather than enter a falling state');
+        controller.enterExplore(undefined,{position:[16,4.23,-8.7],yaw:0});
+        assert.equal(controller.player.position.y,controller.diagnostics.state.feet[1],'teleport clears support history');
+        context.diagnostic(JSON.stringify({hz,direction,frames:frame}));
+      } finally {controller.dispose();reference.dispose();}
+    }
+  } finally {Object.assign(globalThis,prior);delete globalThis[fixtureKey];}
+});
 
 for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far side',[15.7,4.265,-4.1]]]) test(`founder desk completes collision-aware approach, contact IK, repeated input and stand (${entryLabel})`, async context => {
   const collisionRoot = new THREE.Group();
@@ -480,4 +541,46 @@ test('actual handoff controller keeps third-person outside the body and preserve
     collisionRoot.traverse(object => { if (object.isMesh) { object.geometry.dispose(); (Array.isArray(object.material) ? object.material : [object.material]).forEach(material => material.dispose()); } });
     globalThis.document = priorDocument; globalThis.window = priorWindow; globalThis.matchMedia = priorMatchMedia; delete globalThis[fixtureKey];
   }
+});
+
+
+test('camera orbits tight wall corners without clipping or losing its follow target', async context => {
+  const RAPIER=(await import('@dimforge/rapier3d-compat')).default;
+  const prior={document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
+  const results=[];
+  try {
+    for(const hz of [30,60,144]) {
+      Object.assign(globalThis,prior);
+      const scene=new THREE.Group();
+      for(const [name,size,position] of [['floor',[12,.2,12],[0,-.1,0]],['wall east',[.15,4,8],[2,2,0]],['wall north',[8,4,.15],[0,2,2]]]) {
+        const mesh=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshBasicMaterial());mesh.name=name;mesh.position.set(...position);scene.add(mesh);
+      }
+      const physics=await createCollisionWorld(scene,undefined,scene);
+      const avatar={root:new THREE.Group(),view:{eyeHeight:1.64,seatedEyeOffset:.82},animations:[],update(){},setBodyView(){},dispose(){}};
+      globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
+      globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
+      globalThis[fixtureKey]={physics,avatar};
+      const camera=new THREE.PerspectiveCamera(54,16/9,.1,1800);
+      const controller=await createInteractionController({scene:new THREE.Scene(),camera,canvas:{addEventListener(){},removeEventListener(){},focus(){}},manifest:{spawn:{position:[1.45,0,1.45],yaw:0},chairs:[]}});
+      let minimumAim=1,maximumExtension=0,previousDistance;
+      try {
+        controller.enterExplore(undefined,{position:[1.45,0,1.45],yaw:0});
+        for(let i=0;i<hz*2;i++)controller.update(1/hz);
+        for(let i=0;i<hz*5;i++) {
+          controller.setVirtualInput(0,0,-(Math.PI*2/5/hz)/.0021,0);controller.update(1/hz);
+          const target=controller.player.position.clone().add(new THREE.Vector3(0,1.38,0));
+          minimumAim=Math.min(minimumAim,camera.getWorldDirection(new THREE.Vector3()).dot(target.sub(camera.position).normalize()));
+          const hit=physics.world.intersectionWithShape(camera.position,{x:0,y:0,z:0,w:1},new RAPIER.Ball(.17),undefined,undefined,physics.capsule,physics.body);
+          assert.equal(hit,null,'the final camera volume must stay clear of both walls');
+          const distance=camera.position.distanceTo(controller.player.position.clone().add(new THREE.Vector3(0,1.35,0)));
+          if(previousDistance!==undefined)maximumExtension=Math.max(maximumExtension,(distance-previousDistance)*hz);
+          previousDistance=distance;
+        }
+        assert.ok(minimumAim>.9995,'wall retraction must aim from the corrected camera position');
+        assert.ok(maximumExtension<12,'camera recovery is damped instead of popping to full distance');
+        results.push({hz,minimumAim,maximumExtension});
+      } finally {controller.dispose();scene.traverse(o=>{if(o.isMesh){o.geometry.dispose();o.material.dispose();}});}
+    }
+    context.diagnostic(JSON.stringify(results));
+  } finally {Object.assign(globalThis,prior);delete globalThis[fixtureKey];}
 });

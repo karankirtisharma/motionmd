@@ -6,6 +6,8 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/types';
 import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
+import { repairArchitecturalJoins } from './rendering/architecturalJoins';
+import { repairStudioThreshold } from './rendering/floorThreshold';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import { RenderDiagnostics, type DiagnosticMode } from './rendering/diagnostics';
@@ -114,6 +116,8 @@ export class SceneRuntime {
       this.applyTourCamera(1 / 60, true);
       await this.loadSource();
       if (this.disposed) return;
+      repairArchitecturalJoins(this.content);
+      repairStudioThreshold(this.content);
       // Source clips are available only after loading; apply their initial pose once.
       this.applyTourCamera(0, true);
       // Canonicalize glTF UV-channel clones before node graphs capture their texture references.
@@ -303,9 +307,11 @@ export class SceneRuntime {
   };
 
   private adaptResolution(fps: number) {
-    this.slowWindows = fps < 35 ? this.slowWindows + 1 : 0;
-    this.fastWindows = fps > 56 ? this.fastWindows + 1 : 0;
-    if (this.slowWindows >= 2 && this.resolutionScale > 0.65) { this.resolutionScale = Math.max(0.65, this.resolutionScale - 0.1); this.slowWindows = 0; this.resize(); }
+    // Auto should recover toward 60 Hz, rather than accepting sustained 40 Hz.
+    // Separate thresholds and small changes avoid resolution oscillation.
+    this.slowWindows = fps < 55 ? this.slowWindows + 1 : 0;
+    this.fastWindows = fps > 68 ? this.fastWindows + 1 : 0;
+    if (this.slowWindows >= 2 && this.resolutionScale > 0.65) { this.resolutionScale = Math.max(0.65, this.resolutionScale - 0.05); this.slowWindows = 0; this.resize(); }
     if (this.fastWindows >= 4 && this.resolutionScale < 1) { this.resolutionScale = Math.min(1, this.resolutionScale + 0.05); this.fastWindows = 0; this.resize(); }
   }
 

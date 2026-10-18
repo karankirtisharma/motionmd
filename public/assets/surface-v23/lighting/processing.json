@@ -1,0 +1,51 @@
+[
+  {
+    "zone": "founder-floor",
+    "raw": "external founder-floor-raw.npy",
+    "uv": "C:\\Users\\karan_z7alww2\\.codex\\visualizations\\2026\\10\\17\\01a14a42-20bc-7ca3-a5e8-1779e078f8e0\\founder-floor-rebake\\floor-uv.bin",
+    "filter": "OIDN 2.5.1 RTLightmap, no auxiliary guides, isolated UV coverage components",
+    "chartCount": 6,
+    "filteredCharts": 6,
+    "unfilterablePixels": 0,
+    "coveredPixels": 189769,
+    "paddingPixels": 18191,
+    "seconds": 0.7,
+    "rawMetrics": {
+      "meanRGB": [
+        1.1870696544647217,
+        0.9882447719573975,
+        0.7523849606513977
+      ],
+      "rmsLaplacian": 0.5809703126301976
+    },
+    "old": {
+      "meanRGB": [
+        1.0622485876083374,
+        0.8765555024147034,
+        0.6578724980354309
+      ],
+      "rmsLaplacian": 0.1588325525507623
+    },
+    "clean": {
+      "meanRGB": [
+        1.1865743398666382,
+        0.9880058169364929,
+        0.7524939775466919
+      ],
+      "rmsLaplacian": 0.18414332988094473
+    },
+    "limitations": "Components under 4 covered texels retain raw values; raster-connected UV charts are treated as one island. Laplacian reduction alone does not prove visual fidelity.",
+    "inputVariant": "raw",
+    "atlasMerge": {
+      "receiverPixels": 189769,
+      "replacedPixelsIncludingPadding": 207960,
+      "protectedChartPixels": 1909923,
+      "preservedPixels": 3986344,
+      "maxDifferenceOutsideReplacement": 0,
+      "maxDifferenceOnProtectedCharts": 0
+    },
+    "output": "founder-floor-indirect.exr",
+    "outputSHA256": "8934c02a10543e8567d5d01906f15f03786c2b8f418e8ccf8a4f3bda4280c880",
+    "bytes": 6907959
+  }
+]

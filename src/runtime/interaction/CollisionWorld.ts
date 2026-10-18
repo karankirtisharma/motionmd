@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
+import { repairArchitecturalJoins } from '../rendering/architecturalJoins.ts';
+import { repairStudioThreshold } from '../rendering/floorThreshold.ts';
 
 // Preserve the calibrated full-body capsule and stable stair/contact behavior.
 export const PLAYER_RADIUS = 0.25;
@@ -50,6 +52,9 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     }
   }
   root.updateMatrixWorld(true);
+  // Apply the same measured finish repairs to visible and collision geometry.
+  repairArchitecturalJoins(root);
+  repairStudioThreshold(root);
   const point = new THREE.Vector3();
   const colliderNames = new Map<number, string>();
   const workstationColliders: RAPIER.Collider[] = [];
@@ -134,7 +139,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   const controller = world.createCharacterController(0.015);
   // A 1mm contact nudge avoids float-precision snags on broad triangulated floors.
   controller.setNormalNudgeFactor(0.001);
-  controller.enableAutostep(0.27, 0.18, false);
+  // The short stone treads need a smaller landing probe than the capsule diameter.
+  controller.enableAutostep(0.27, 0.08, false);
   controller.enableSnapToGround(0.32);
   controller.setMaxSlopeClimbAngle(Math.PI * 0.24);
   controller.setMinSlopeSlideAngle(Math.PI * 0.28);
@@ -171,6 +177,16 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     },
     move(displacement: THREE.Vector3, dt: number, output: THREE.Vector3, ignoreWorkstation = false) {
       world.timestep = dt;
+      // Gravity is only a support probe while standing. Do not convert it into
+      // sideways motion down a triangulated stair ramp. Walking still slides
+      // along walls and slopes exactly as before.
+      let restingOnStairRamp = false;
+      if (Math.hypot(displacement.x, displacement.z) <= 0.00001) {
+        const p = body.translation();
+        const support = cast(new THREE.Vector3(p.x,p.y-PLAYER_HALF_HEIGHT+.2,p.z),new THREE.Vector3(0,-1,0),.7);
+        restingOnStairRamp = !!support && /helical stair walking ramp/i.test(colliderNames.get(support.collider.handle) ?? '');
+      }
+      controller.setSlideEnabled(!restingOnStairRamp);
       controller.computeColliderMovement(capsule, displacement, undefined, undefined, (candidate) => candidate.handle !== capsule.handle && (!ignoreWorkstation || !workstationColliders.includes(candidate)));
       const movement = controller.computedMovement();
       const old = body.translation();
@@ -237,7 +253,11 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       cameraShape.radius = clearance;
       // Sweep the entire camera volume, including corners missed by five rays.
       const hit = world.castShape(pivot, identityRotation, direction, cameraShape, 0.01, length, true, undefined, undefined, capsule, body);
-      return hit ? Math.max(0.18, hit.time_of_impact - 0.01) : length;
+      // Never impose a minimum boom length: in a tight corner that would push
+      // the camera through the obstacle that just stopped the sweep.
+      const centerHit = cast(pivot, direction, length);
+      return Math.max(0, Math.min(length, hit ? hit.time_of_impact - 0.01 : length,
+        centerHit ? centerHit.timeOfImpact - clearance : length));
     },
     dispose() {
       world.free();
