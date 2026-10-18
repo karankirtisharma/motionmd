@@ -229,7 +229,7 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
     assert.ok(Math.abs(palms[0]-palms[1])<.001,'both palms share the desk plane');
     assert.ok(penetration<.004,'cushion does not cut through the sampled thigh skin');
     assert.ok(Math.abs(soleMin-4.265)<.002,'actual shoe sole rests on the rug');
-    for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.0976)<.001,'wrist contact height');}
+    for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.1016)<.001,'wrist contact height');}
     controller.handleInteract();
     const exitStages=new Set();
     let riseEnd;

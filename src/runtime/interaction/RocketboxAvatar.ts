@@ -211,11 +211,17 @@ export function createRocketboxAvatar(gltf: GLTF) {
       const thigh = leg.upper.getWorldPosition(new THREE.Vector3());
       const knee = leg.lower.getWorldPosition(new THREE.Vector3());
       const support = THREE.MathUtils.smoothstep(pose.upright, 0, .65);
-      const thighTarget = thigh.lerp(knee, .66).add(new THREE.Vector3(0, .105, 0)).addScaledVector(left, arm.sign * .025);
+      // Center the hand on the thigh, within relaxed elbow reach. The height
+      // is calibrated against the trouser skin and the palm's thickness.
+      const thighTarget = thigh.lerp(knee, .60).add(new THREE.Vector3(0, i === 0 ? .128 : .131, 0));
       start.lerp(thighTarget, support);
       // Tuck the desk-side hand during the narrow walking/turning approach.
       if (pose.deskFront !== undefined) start.x = Math.min(start.x, pose.deskFront - 0.15 - 0.10 * pose.upright);
-      const goal = pose.hands[i], t = pose.handWeight, r = 1 - t;
+      // A small interior-only delay avoids a mirrored, mechanical two-hand
+      // reach. Both endpoints and the controller's reach/exit timing stay exact.
+      const reach = pose.handWeight;
+      const t = reach - (i === 1 ? .055 * Math.sin(Math.PI * reach) ** 2 : 0), r = 1 - t;
+      const goal = pose.hands[i];
       // A lifted Bezier path reaches OVER the edge before the palms settle.
       // The same path runs backwards before standing.
       const c1 = start.clone().setY(Math.max(start.y + 0.24, pose.deskHeight + 0.18));
@@ -232,15 +238,26 @@ export function createRocketboxAvatar(gltf: GLTF) {
       const palmLeft = new THREE.Vector3(palmForward.z, 0, -palmForward.x);
       const across = palmLeft.multiplyScalar(-arm.sign), normal = new THREE.Vector3().crossVectors(palmForward, across);
       const desired = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(across, normal, palmForward)).multiply(arm.localBasis.clone().invert());
-      const palmWeight = Math.max(pose.handWeight, grip?.weight ?? 0);
+      // The Rocketbox finger-base plane slopes relative to the palm skin:
+      // its underside rises 16 mm over the first 90 mm of the hand. Flatten
+      // that skin surface, rather than treating the bone plane as the palm.
+      desired.premultiply(new THREE.Quaternion().setFromAxisAngle(left, (.18 + .16 * (1 - t)) * (1 - (grip?.weight ?? 0))));
+      // Establish palm-down support on the lap, then orient before contact.
+      // Previously orientation followed only desk reach weight, letting wrists
+      // inherit the source gesture while the IK already held them over a thigh.
+      const palmWeight = Math.max(support, THREE.MathUtils.smoothstep(t, 0, .7), grip?.weight ?? 0);
       setWorldQuaternion(arm.hand, beforeQ.slerp(desired, palmWeight));
-      // Aim existing finger phalanges along the desktop. Keep thumb opposition and a small spread.
+      // Keep the fingers gently curved: horizontal finger bones leave the
+      // tapered fingertip skin floating. The lap pose follows the thigh slope;
+      // the desk pose supports both the palm heel and the finger pads.
       arm.fingers.forEach((chain, digit) => chain.forEach((joint, segment) => {
         const child = chain[segment + 1] ?? joint.children.find(o => (o as THREE.Bone).isBone);
         if (!child) return;
         const origin = joint.getWorldPosition(new THREE.Vector3());
         const direction = child.getWorldPosition(new THREE.Vector3()).sub(origin).normalize();
         const desiredDirection = palmForward.clone().addScaledVector(left, digit === 0 ? -arm.sign * 0.6 : arm.sign * (digit - 2.5) * 0.035).normalize();
+        const curl = digit === 0 ? -.03 * t : THREE.MathUtils.lerp((i === 0 ? .44 : .32) + [0, .06, .08][segment], [.14, .23, .20][segment], THREE.MathUtils.smoothstep(t, .55, 1));
+        desiredDirection.y -= curl; desiredDirection.normalize();
         const q = joint.getWorldQuaternion(new THREE.Quaternion());
         const goal = new THREE.Quaternion().setFromUnitVectors(direction, desiredDirection).multiply(q);
         setWorldQuaternion(joint, q.slerp(goal, palmWeight));

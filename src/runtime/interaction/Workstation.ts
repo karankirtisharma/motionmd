@@ -108,7 +108,7 @@ export function createWorkstation(scene: THREE.Object3D) {
     deskHeight: WORKSTATION.desk.max[1],
     deskFront: WORKSTATION.desk.min[0],
     // Wrist is near the front edge; palm and fingers extend onto the desktop.
-    wrists: [new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0396, -5.49), new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0396, -5.11)],
+    wrists: [new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0436, -5.49), new THREE.Vector3(16.145, WORKSTATION.desk.max[1] + 0.0436, -5.11)],
     approach: new THREE.Vector3(15.65, seat.y, -6.02),
     aligned: new THREE.Vector3(15.98, seat.y, -5.3),
     collisionTransform: { offset, rotation: rotationQuaternion, height: chairHeight },

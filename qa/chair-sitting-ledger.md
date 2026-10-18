@@ -1,5 +1,27 @@
 # Founder desk interaction
 
+## Palm skin and finger-pad contact correction — 18 October 2026
+
+The previous refinement's single lowest-vertex check missed the user's visible distal-palm/finger gap. It is superseded by the contact checks below. The source finger-base plane is not parallel to the palm underside: the underside rises approximately 16 mm over 90 mm. The hand now pitches by 0.18 radians at the desk, with a gently curved finger pose and relaxed thumb separation. Raising the wrist target by 4 mm compensates for the changed skin orientation and keeps the heel clear of the tabletop. Lap hands are centered closer to the body over each thigh, with a slightly steeper palm/finger angle and individually measured support heights.
+
+Scope remains hands/arms plus the two wrist-height constants in `Workstation.ts`. Character asset, controller and collision world still match the restored baseline hashes. Chair placement, body/root/leg animation, original entry/exit sequence and timings are unchanged. No new assets, dependencies, Blender edits or GitHub push.
+
+Validation: 65/65 tests and production build pass. New regressions independently check heel, distal palm and finger-pad patches, and ray-test the deformed trouser triangles for lap support. At the desk, these patches have 1.84–2.48 mm clearance; minimum clearance across all sampled hand/finger skin is 0.34 mm, with no sampled penetration. Lap patch clearances range from 0.03–7.12 mm, allowing the natural palm arch over curved thighs. Ray checks of the actual desk mesh confirm the support plane at both hands. The existing full-sequence entry/exit, foot and knee checks pass; reach/withdrawal tests at 60/144 Hz have maximum wrist speed 0.78 m/s and angular speed 0.28 rad/s. These measurements are for the tested rig/poses, not arbitrary character proportions.
+
+Live WebGPU verification after reloading covered settled side/front desk views, withdrawal onto the lap, swivel and stand-up. No browser errors. Proof is outside the website in the existing `chair-hand-polish` directory: `palms-contact-side.png`, `palms-contact-front.png`, `palms-contact-lap.png`, `palms-contact-exit.png`. `pre-contact-fix.ts` preserves the prior hand refinement.
+
+## Isolated hand and palm refinement — 18 October 2026
+
+Baseline: restored GitHub commit `ebe3ec889042d0c881e7fa2039d2f8743c545379`. Scope is the arm section of `RocketboxAvatar.deskPose` only. No asset replacement, retargeting, terrain IK, root-motion change or new animation library. The character GLB, movement controller, collision world and workstation are hash-identical to the restored baseline. The accepted chair angle, positioning steps, lowering, swivel and stand/exit timings remain intact.
+
+The baseline positioned the hands above the thighs while palm orientation still inherited the seated source pose at zero desk-reach weight. Palm-down support now blends in with the existing thigh-support weight. The right hand has a small interior-only delay during reach/withdrawal; both original endpoints are exact. Distal fingers relax slightly in transit and open before the original flat desktop contact pose. Existing wrist targets, elbow targets and the lifted edge-clearance path remain.
+
+Research: [Epic Two Bone IK](https://dev.epicgames.com/documentation/en-us/unreal-engine/animation-blueprint-two-bone-ik-in-unreal-engine) documents separate effector and middle-joint targets; [Anthropic's agent testing guidance](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) supports incremental changes and browser verification. These informed the scoped workflow; no model-generated motion assets were introduced.
+
+Validation: 64/64 tests and production build pass. The new 60/144 Hz palm-support regression fails against the restored baseline and passes with this correction. Both approach fixtures retain their previous foot/root measurements. Existing full-sequence skinned-hand checks measure zero desktop penetration and approximately 1.04 mm final palm clearance. These are fixture measurements, not an exhaustive collision guarantee. Live WebGPU review after a full reload covered original third-person entry, side-view reach/withdrawal, lap support, stand/exit and front-view settled contact; browser error log is empty. Desktop adaptive resolution varied from 90–100%; no new performance benchmark or mobile verification is claimed.
+
+Reversible baseline, hashes and before/after captures are outside the website at `C:/Users/karan_z7alww2/.codex/visualizations/2026/10/17/01a14a42-20bc-7ca3-a5e8-1779e078f8e0/chair-hand-polish/`. Proof: `before-work.png`, `after-work-side.png`, `after-reach-side.png`, `after-lap.png`, `after-front.png`. Changes are local; no push.
+
 ## Open-by-default chair and deliberate entry — 17 October 2026
 
 The user approved the seated inward/outward turns and the exit, but rejected the initial grab/open sequence and rapid entry shuffles. The chair now initializes at the same +45-degree open angle used after standing; both visible geometry and its collision pieces receive that angle before exploration. The fixed pedestal and existing dynamic-shadow setup remain unchanged. No geometry or bake edits are needed.

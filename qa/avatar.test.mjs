@@ -97,7 +97,7 @@ test('desk pose does not inherit the seated gesture loop or its elapsed arrival 
   const avatar=createRocketboxAvatar(await load());
   try {
     avatar.root.position.set(15.62,4.265,-5.3);avatar.root.rotation.y=Math.PI/2;
-    const contacts={feet:[new THREE.Vector3(15.98,4.265,-5.41),new THREE.Vector3(15.98,4.265,-5.19)],hands:[new THREE.Vector3(16.145,5.0976,-5.49),new THREE.Vector3(16.145,5.0976,-5.11)],handWeight:1,footWeight:1,upright:1,deskHeight:5.058,deskFront:16.125,hipOffset:.125};
+    const contacts={feet:[new THREE.Vector3(15.98,4.265,-5.41),new THREE.Vector3(15.98,4.265,-5.19)],hands:[new THREE.Vector3(16.145,5.1016,-5.49),new THREE.Vector3(16.145,5.1016,-5.11)],handWeight:1,footWeight:1,upright:1,deskHeight:5.058,deskFront:16.125,hipOffset:.125};
     const names=['Bip01_Pelvis','Bip01_Head','Bip01_L_Calf','Bip01_R_Calf','Bip01_L_Forearm','Bip01_R_Forearm'];
     const positions=()=>names.map(name=>avatar.root.getObjectByName(name).getWorldPosition(new THREE.Vector3()));
     avatar.update(1/60,0,1,.4414914,contacts);const reference=positions();
@@ -106,6 +106,98 @@ test('desk pose does not inherit the seated gesture loop or its elapsed arrival 
       positions().forEach((p,i)=>assert.ok(p.distanceTo(reference[i])<.00001,`${names[i]} must not be pulled by an unrelated seated gesture`));
     }
   } finally {avatar.dispose();}
+});
+
+test('palm heels, distal palms and finger pads contact the actual support surfaces', async context => {
+  const avatar = createRocketboxAvatar(await load());
+  try {
+    avatar.root.position.set(15.62,4.265,-5.3); avatar.root.rotation.y=Math.PI/2;
+    const contacts={feet:[new THREE.Vector3(15.98,4.265,-5.41),new THREE.Vector3(15.98,4.265,-5.19)],hands:[new THREE.Vector3(16.145,5.1016,-5.49),new THREE.Vector3(16.145,5.1016,-5.11)],handWeight:0,footWeight:1,upright:1,deskHeight:5.058,deskFront:16.125,hipOffset:.125};
+    for (const handWeight of [0,1]) {
+      contacts.handWeight=handWeight;
+      avatar.update(0,0,1,.4414914,contacts); updateSkeletons(avatar.root);
+      const body=avatar.root.getObjectByProperty('isSkinnedMesh',true);
+      const indices=body.geometry.attributes.skinIndex,weights=body.geometry.attributes.skinWeight;
+      const points=Array.from({length:indices.count},(_,v)=>body.getVertexPosition(v,new THREE.Vector3()).applyMatrix4(body.matrixWorld));
+      const weight=(v,pattern)=>{
+        let value=0;
+        for(let k=0;k<4;k++) if(pattern.test(body.skeleton.bones[indices.getComponent(v,k)].name))value+=weights.getComponent(v,k);
+        return value;
+      };
+      for(const side of ['L','R']) {
+        // Ray-test only the deformed trouser triangles: a whole-body ray would
+        // hit the hand itself and incorrectly report that floating is contact.
+        const thigh=points.map((_,v)=>weight(v,new RegExp(`Bip01_${side}_(Thigh|Calf)`))>.5);
+        const triangles=[],index=body.geometry.index;
+        for(let n=0;n<index.count;n+=3) {
+          const vertices=[index.getX(n),index.getX(n+1),index.getX(n+2)];
+          if(vertices.every(v=>thigh[v]))triangles.push(vertices.map(v=>points[v]));
+        }
+        const wrist=avatar.root.getObjectByName(`Bip01_${side}_Hand`).getWorldPosition(new THREE.Vector3());
+        const patches={heel:Infinity,palm:Infinity,fingers:Infinity};
+        let minimum=Infinity;
+        points.forEach((point,v)=>{
+          if(weight(v,new RegExp(`Bip01_${side}_(Hand|Finger)`))<.8)return;
+          let surface=handWeight?contacts.deskHeight:-Infinity;
+          if(!handWeight) {
+            const ray=new THREE.Ray(new THREE.Vector3(point.x,8,point.z),new THREE.Vector3(0,-1,0));
+            for(const triangle of triangles) {
+              const hit=ray.intersectTriangle(...triangle,false,new THREE.Vector3());
+              if(hit)surface=Math.max(surface,hit.y);
+            }
+          }
+          if(!Number.isFinite(surface))return;
+          const gap=point.y-surface,forward=point.x-wrist.x;
+          minimum=Math.min(minimum,gap);
+          if(forward>=0&&forward<.025)patches.heel=Math.min(patches.heel,gap);
+          if(forward>=.06&&forward<.09)patches.palm=Math.min(patches.palm,gap);
+          if(forward>=.14)patches.fingers=Math.min(patches.fingers,gap);
+        });
+        assert.ok(minimum>=-.001,`${side}: hand skin penetrates its ${handWeight?'desk':'thigh'} support by ${-minimum}`);
+        for(const [patch,gap] of Object.entries(patches))assert.ok(gap<(handWeight?.006:.009),`${side} ${patch} floats ${gap} above its support`);
+        context.diagnostic(JSON.stringify({handWeight,side,minimum,patches}));
+      }
+    }
+  } finally {avatar.dispose();}
+});
+
+test('desk hands retain palm support and settle without wrist flips at 60 and 144 Hz', async context => {
+  for (const hz of [60, 144]) {
+    const avatar = createRocketboxAvatar(await load());
+    try {
+      avatar.root.position.set(15.62,4.265,-5.3); avatar.root.rotation.y=Math.PI/2;
+      const contacts={feet:[new THREE.Vector3(15.98,4.265,-5.41),new THREE.Vector3(15.98,4.265,-5.19)],hands:[new THREE.Vector3(16.145,5.1016,-5.49),new THREE.Vector3(16.145,5.1016,-5.11)],handWeight:0,footWeight:1,upright:1,deskHeight:5.058,deskFront:16.125,hipOffset:.125};
+      const point=name=>avatar.root.getObjectByName(name).getWorldPosition(new THREE.Vector3());
+      const palms=()=>['L','R'].map(side=>{
+        const hand=avatar.root.getObjectByName(`Bip01_${side}_Hand`);
+        const forward=point(`Bip01_${side}_Finger2`).sub(hand.getWorldPosition(new THREE.Vector3())).normalize();
+        const across=point(`Bip01_${side}_Finger1`).sub(point(`Bip01_${side}_Finger4`)).normalize();
+        return {point:hand.getWorldPosition(new THREE.Vector3()),q:hand.getWorldQuaternion(new THREE.Quaternion()),normal:forward.cross(across).normalize()};
+      });
+      let previous,maximumSpeed=0,maximumAngularSpeed=0;
+      const smooth=x=>x*x*x*(x*(x*6-15)+10);
+      for (const outward of [false,true]) {
+        for(let frame=0;frame<=Math.ceil(1.2*hz);frame++) {
+          const progress=Math.min(1,frame/(1.2*hz));
+          contacts.handWeight=smooth(outward?1-progress:progress);
+          avatar.update(1/hz,0,1,.4414914,contacts);
+          const current=palms();
+          current.forEach((p,i)=>{
+            assert.ok(Math.abs(p.normal.y)>.94,'palm bones follow the calibrated skin plane without a wrist flip');
+            if(previous) {
+              maximumSpeed=Math.max(maximumSpeed,p.point.distanceTo(previous[i].point)*hz);
+              maximumAngularSpeed=Math.max(maximumAngularSpeed,p.q.angleTo(previous[i].q)*hz);
+            }
+            if(contacts.handWeight===1)assert.ok(p.point.distanceTo(contacts.hands[i])<.001,'unchanged wrist targets are reached');
+          });
+          previous=current;
+        }
+      }
+      assert.ok(maximumSpeed<1.8,'hand motion is bounded through reach and withdrawal');
+      assert.ok(maximumAngularSpeed<4,'no abrupt wrist rotation or flip');
+      context.diagnostic(JSON.stringify({hz,maximumSpeed,maximumAngularSpeed}));
+    } finally {avatar.dispose();}
+  }
 });
 
 for (const [name, speed, seated] of [['Idle', 0, 0], ['Walk', 1.38, 0], ['Run', 3.35, 0], ['Sit', 0, 1]]) {
