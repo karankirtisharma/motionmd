@@ -9,3 +9,4 @@
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 *.webp filter=lfs diff=lfs merge=lfs -text
 *.wasm filter=lfs diff=lfs merge=lfs -text
+*.glb.gz filter=lfs diff=lfs merge=lfs -text
