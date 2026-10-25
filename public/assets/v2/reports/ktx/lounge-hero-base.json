@@ -1,0 +1,23 @@
+{
+  "name": "lounge-hero-base",
+  "ok": true,
+  "sourceSHA256": "6d20a6b59de4c0cc84d50d680696ee615c1057d1818fd289086adc31a56fd5ab",
+  "outputSHA256": "aff6b2e93f3d3d0b317768f7481455c114be3a56ae3dff71d8cba461b965767c",
+  "bytes": 5308535,
+  "sourcePNGBytes": 7191947,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "sRGB",
+  "mipFilter": "Linear-light box, then sRGB encode",
+  "orientation": "rd",
+  "seconds": 64.816,
+  "quality": {
+    "rgbPSNR": 58.71733934267805,
+    "maxChannelError": 6,
+    "alphaMaxError": 0
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "founder-hero-normal",
+  "ok": true,
+  "sourceSHA256": "1b66dc7c209128900b401e5b36e892d3ede6ec17cdab472ff076c89b088f80eb",
+  "outputSHA256": "b0385342c432980f8c04c11f727cf0c9a413a4d15f980da0cce234da6fbf6fc8",
+  "bytes": 8573944,
+  "sourcePNGBytes": 13806374,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 109.153,
+  "quality": {
+    "rgbPSNR": 51.0925179665488,
+    "maxChannelError": 14,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16777216,
+    "normalMeanDegrees": 0.3003495473565303,
+    "normal99PercentileDegrees": 1.7
+  }
+}

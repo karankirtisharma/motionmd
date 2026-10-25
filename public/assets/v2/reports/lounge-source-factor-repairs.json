@@ -1,0 +1,66 @@
+{
+  "zone": "lounge",
+  "geometryBinaryUnchanged": true,
+  "binarySHA256": "9395c83a349715f146b2b08312b89918ba97dfc283305d8d8c5c3d2cee53eabd",
+  "sourceSHA256": "3788c28fe0feb1a8ed147d2cbb044aeefdc8cf1c423e6111936086ef0ac3db9c",
+  "outputSHA256": "eb372bb2943fd33e69592ffe6908ba6cc5878c5dedf337d78058052b1d93c0d5",
+  "changes": [
+    {
+      "material": "lounge__PL78 | circular hand woven wool",
+      "sourceMaterial": "PL78 | circular hand woven wool",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.550000011920929,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.550000011920929,
+        0.550000011920929,
+        0.550000011920929
+      ]
+    },
+    {
+      "material": "lounge__PL78 | ivory aniline upholstery",
+      "sourceMaterial": "PL78 | ivory aniline upholstery",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.1599999964237213,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.1599999964237213,
+        0.1599999964237213,
+        0.1599999964237213
+      ]
+    },
+    {
+      "material": "lounge__PL78 | smoked polished tabletop",
+      "sourceMaterial": "PL78 | smoked polished tabletop",
+      "property": "clearcoatRoughnessFactor",
+      "before": 0,
+      "after": 0.029999999329447746
+    },
+    {
+      "material": "lounge__PL78 | ivory aniline upholstery",
+      "sourceMaterial": "PL78 | ivory aniline upholstery",
+      "property": "clearcoatRoughnessFactor",
+      "before": 0,
+      "after": 0.029999999329447746
+    }
+  ],
+  "previousRepairOutputSHA256": "3788c28fe0feb1a8ed147d2cbb044aeefdc8cf1c423e6111936086ef0ac3db9c",
+  "reason": "Blender5.2 glTF export uses Sheen Weight as presence gate only and omits source-default coat roughness .03 although glTF defaults to zero. Preserve source tint × sheen weight and explicit coat roughness.",
+  "limitation": "glTF and Blender use different BRDFs; parameter preservation cannot guarantee identical grazing response."
+}

@@ -1,0 +1,26 @@
+{
+  "name": "studio-architecture-normal",
+  "ok": true,
+  "sourceSHA256": "a7f96786cad8856594675570c3f9be5467ecbc48aa0cc8f2f0422f2a7ff1efb6",
+  "outputSHA256": "82afe809fe09d486e40089080c1e7c719711173baf32117398eda5215e923d5a",
+  "bytes": 1065571,
+  "sourcePNGBytes": 1058935,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 20.422,
+  "quality": {
+    "rgbPSNR": 70.88133821065126,
+    "maxChannelError": 6,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16777216,
+    "normalMeanDegrees": 0.004769441207554441,
+    "normal99PercentileDegrees": 0.2
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "atlas": "lounge-detail",
+  "ok": true,
+  "samples": 256,
+  "rawSHA256": "7945ff874a8fce4122d1da60d6bf5784f5bf4bbedc136b54fd28914aa0823345",
+  "outputSHA256": "40528e6f61c7dd9eb7a7dd94217a2118acde4d7347ba166ef3afc98e53d0bbbc",
+  "outputBytes": 6815270,
+  "guardWithinHalfULP": true,
+  "interiorRelativeMeanChange": [
+    0.0054062909084760385,
+    0.0024881407466421914,
+    0.0023630611267378954
+  ],
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+  "visualReviewRequired": true
+}

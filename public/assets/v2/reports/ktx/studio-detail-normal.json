@@ -1,0 +1,26 @@
+{
+  "name": "studio-detail-normal",
+  "ok": true,
+  "sourceSHA256": "da5479ec2b0f45ed4374da8625cea26708fe46caa481da4e4b3417f023b3ff44",
+  "outputSHA256": "779755fd3b7b5f7fa3e3fec9865b759197a1c3262ab224f944b1ba4daf328983",
+  "bytes": 1920531,
+  "sourcePNGBytes": 2083598,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 31.794,
+  "quality": {
+    "rgbPSNR": 68.71954726938736,
+    "maxChannelError": 19,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16776740,
+    "normalMeanDegrees": 0.008762804462617197,
+    "normal99PercentileDegrees": 0.5
+  }
+}

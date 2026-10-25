@@ -1,0 +1,167 @@
+[
+  {
+    "name": "EH54 | polished warm-grey cloud marble",
+    "projection": "BOX",
+    "blend": 0.15000000596046448,
+    "ramp": [
+      {
+        "position": 0.10000000149011612,
+        "color": [
+          0.14499999582767487,
+          0.1379999965429306,
+          0.12600000202655792,
+          1.0
+        ]
+      },
+      {
+        "position": 0.6600000262260437,
+        "color": [
+          0.47999998927116394,
+          0.45100000500679016,
+          0.4000000059604645,
+          1.0
+        ]
+      }
+    ],
+    "scale": [
+      0.3571428656578064
+    ],
+    "outputLinks": [
+      [
+        "Principled BSDF",
+        "Material Output",
+        "Surface"
+      ],
+      [
+        "REF76 | grey beige mineral calibration",
+        "Principled BSDF",
+        "Base Color"
+      ]
+    ]
+  },
+  {
+    "name": "FR82 | polished ivory large format stone",
+    "projection": "BOX",
+    "blend": 0.15000000596046448,
+    "ramp": [
+      {
+        "position": 0.10000000149011612,
+        "color": [
+          0.23000000417232513,
+          0.20499999821186066,
+          0.17000000178813934,
+          1.0
+        ]
+      },
+      {
+        "position": 0.6600000262260437,
+        "color": [
+          0.6100000143051147,
+          0.5649999976158142,
+          0.49000000953674316,
+          1.0
+        ]
+      }
+    ],
+    "scale": [
+      0.3571428656578064
+    ],
+    "outputLinks": [
+      [
+        "Principled BSDF",
+        "Material Output",
+        "Surface"
+      ],
+      [
+        "REF76 | grey beige mineral calibration",
+        "Principled BSDF",
+        "Base Color"
+      ]
+    ]
+  },
+  {
+    "name": "FR84 | honed polished table stone",
+    "projection": "BOX",
+    "blend": 0.15000000596046448,
+    "ramp": [
+      {
+        "position": 0.10000000149011612,
+        "color": [
+          0.23000000417232513,
+          0.20499999821186066,
+          0.17000000178813934,
+          1.0
+        ]
+      },
+      {
+        "position": 0.6600000262260437,
+        "color": [
+          0.6100000143051147,
+          0.5649999976158142,
+          0.49000000953674316,
+          1.0
+        ]
+      }
+    ],
+    "scale": [
+      0.3571428656578064
+    ],
+    "outputLinks": [
+      [
+        "Principled BSDF",
+        "Material Output",
+        "Surface"
+      ],
+      [
+        "REF76 | grey beige mineral calibration",
+        "Principled BSDF",
+        "Base Color"
+      ]
+    ]
+  },
+  {
+    "name": "PL86 | ground wing polished existing marble",
+    "projection": "BOX",
+    "blend": 0.15000000596046448,
+    "ramp": [
+      {
+        "position": 0.10000000149011612,
+        "color": [
+          0.14499999582767487,
+          0.1379999965429306,
+          0.12600000202655792,
+          1.0
+        ]
+      },
+      {
+        "position": 0.6600000262260437,
+        "color": [
+          0.47999998927116394,
+          0.45100000500679016,
+          0.4000000059604645,
+          1.0
+        ]
+      }
+    ],
+    "scale": [
+      0.3571428656578064
+    ],
+    "outputLinks": [
+      [
+        "REF76 | grey beige mineral calibration",
+        "Principled BSDF",
+        "Base Color"
+      ],
+      [
+        "REF76 | grey beige mineral calibration",
+        "Principled BSDF.001",
+        "Base Color"
+      ],
+      [
+        "Mix Shader",
+        "Material Output",
+        "Surface"
+      ]
+    ]
+  }
+]

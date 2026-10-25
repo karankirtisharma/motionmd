@@ -1,0 +1,143 @@
+
+> md-lounge-live@0.1.0 test
+> node --test qa/*.test.mjs
+
+✔ walk/run transition shares one foot phase and settles into idle after stopping (122.3777ms)
+ℹ {"minWeight":1,"maxWeight":1,"maximumLeanDegrees":4.010129504131411}
+✔ a reversal has bounded body turning and minor contact corrections preserve full speed (0.4787ms)
+✔ Idle: complete clip loop stays finite, human scale and above the floor (94.7589ms)
+ℹ {"frames":180,"minimumVertexY":-4.780985582986119e-7,"maximumVertexY":1.760072785093052,"minimumAnkleY":0.10022518405577724,"maximumAnkleY":0.10022608203844291}
+✔ Walk: complete clip loop stays finite, human scale and above the floor (82.6456ms)
+ℹ {"frames":180,"minimumVertexY":-0.007495760492328585,"maximumVertexY":1.7599350949826582,"minimumAnkleY":0.0989718586888857,"maximumAnkleY":0.24419229877994786}
+✔ Run: complete clip loop stays finite, human scale and above the floor (93.6792ms)
+ℹ {"frames":180,"minimumVertexY":-0.0020995673976546003,"maximumVertexY":1.7820093206787044,"minimumAnkleY":0.09849917343003584,"maximumAnkleY":0.37540446148138384}
+✔ Sit: complete clip loop stays finite, human scale and above the floor (260.8786ms)
+ℹ {"frames":777,"minimumVertexY":-0.00012672680226688549,"maximumVertexY":1.5116017670141386,"minimumAnkleY":0.10022552458057604,"maximumAnkleY":0.10022574763063996}
+✔ sit and stand blending plants the feet while the body turns toward a source chair (679.6084ms)
+ℹ {"frames":240,"minimumVertexY":-0.00046306985011657087,"maximumVertexY":1.7600832917919185}
+✔ body camera uses source eye calibration and hides only head/hair primitives (45.8675ms)
+ℹ {"eyeHeight":1.6406085418907654,"seatedEyeOffset":0.8214561058554704}
+(node:18988) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/rendering/brushTangents.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ world brushed metal gets finite orthogonal tangents even with collapsed UVs (2.4825ms)
+(node:32652) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/rendering/cinematic.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ complete live tour covers all principal spaces without rewriting the source anchors (2.7507ms)
+✔ room camera and hydraulic ride have bounded motion and a level horizon (19.4115ms)
+✔ camera remains in the cabin, doors close before rising, and opening precedes exit (1.1049ms)
+(node:26300) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ previously omitted glass guards, cabinet and club seats block the complete body (1714.2402ms)
+✔ approved perimeter gallery connects the existing entrance bridge to the helical landing in both directions (683.5307ms)
+✔ the rejected central shortcut is absent and both entrances have solid glass guards (169.637ms)
+✔ full width slab supports the diagonal shortcut and extended steps at walk and sprint speeds (798.4715ms)
+(node:9304) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ actual controller carries and renders the visitor with the cabin, then allows disembarking (2009.6552ms)
+✔ fixed-step locomotion renders uniformly at 60, 90, 144 and 165 Hz (62.9854ms)
+ℹ [{"hz":60,"expected":0.023,"min":0.02285417181466274,"max":0.023239531453148263},{"hz":90,"expected":0.015333333333333332,"min":0.015191879801320389,"max":0.015493020968765654},{"hz":144,"expected":0.009583333333333333,"min":0.009489451584764245,"max":0.009683138105478589},{"hz":165,"expected":0.008363636363636363,"min":0.008310607932604552,"max":0.008450738710235772}]
+✔ actual handoff controller keeps third-person outside the body and preserves usable body/seated views (644.0049ms)
+ℹ [{"label":"third","camera":[7.206858488758673,1.841329602867042,-2.956001998429445],"direction":[0.5252141696094957,-0.18696455861005493,-0.8301772882132801],"feet":[8.5,0.0009999966621399153,-5],"horizontalBodyDistance":2.418706844270286},{"label":"body","camera":[8.54009812663856,1.6416085385529053,-5.063380913846978],"direction":[0.5252141696094961,-0.186964558610055,-0.8301772882132796],"feet":[8.5,0.0009999966621399153,-5],"horizontalBodyDistance":0.07500000000000015},{"label":"third again","camera":[7.213225284457421,1.9090631652566363,-2.9660656438785495],"direction":[0.5222199843147332,-0.21430724142279384,-0.8254445434164989],"feet":[8.5,0.0009999966621399153,-5],"horizontalBodyDistance":2.406798315931533},{"label":"seated third","camera":[9.79140694175203,1.7315499900000004,-3.5259877060662976],"direction":[0.2698510638305097,0.028869885517876785,-0.9624691855117892],"feet":[10.12886143,0.02500000037252903,-4.72957587],"horizontalBodyDistance":1.25},{"label":"seated body","camera":[10.149108699294878,1.4130060958554704,-4.8017911598360214],"direction":[0.26865122576888606,0.09848299412470574,-0.9581897613526814],"feet":[10.12886143,0.02500000037252903,-4.72957587],"horizontalBodyDistance":0.07499999999999943},{"label":"founder cabinet stop","camera":[16.000377648541882,6.07092487359993,-7.185606476979615],"direction":[6.952766849959396e-33,-0.18696455861005473,-0.982366659564415],"feet":[16.000377655029297,4.229870567321778,-9.604907035827637],"horizontalBodyDistance":2.419300558848022},{"label":"gallery follow restored","camera":[14.425356815278583,5.516071470328438,-24.626960754394524],"direction":[-0.982366659564415,-0.1869645586100547,-4.440892098500625e-16],"feet":[12.0066499710083,3.674999961853027,-24.62696075439453],"horizontalBodyDistance":2.4187068442702824}]
+✔ distant terrain meets source ground, leaves a central opening and stays below 40k triangles (47.2154ms)
+✔ context changes only background and identified ground material, then restores them (66.5965ms)
+(node:26752) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ removed vestibule wall and internal railing leave a grounded founder connection (880.8857ms)
+(node:17592) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ walk through presentation doorway, ride up, exit founder floor, reboard and descend (1273.1274ms)
+ℹ {"speed":1.38,"end":[13.350000381469727,0.0009847378730774153,-3.3245718479156494]}
+ℹ {"speed":3.35,"end":[13.349998474121094,0.0009844398498535384,-3.330321788787842]}
+✔ empty-shaft doors block full capsule; remote calls and obstruction reopen safely (443.8161ms)
+✔ terrace is recessed clear of the moving cabin, with a fitted landing sill (306.1761ms)
+✔ interaction remains available against each reachable cabin wall (216.1827ms)
+✔ hydraulic sheave/ram moves at half cabin speed and cable length stays constant (228.6276ms)
+✔ full cinematic stays clear of architecture and the synchronized moving lift (500.915ms)
+(node:10692) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/movement.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all four source chairs have free approach corners and the central table blocks standing (652.4466ms)
+✔ original upper circulation surfaces support the bridge, deck and founder approach (391.0134ms)
+✔ diagonal movement stays at walking speed and respects camera yaw (0.3083ms)
+✔ the approved helical stair supports walking and sprinting in both directions (835.6711ms)
+✔ damping response is stable across frame rates and heading wraps by shortest angle (0.324ms)
+✔ capsule stays grounded, climbs a stair, and cannot pass through a wall (24.8871ms)
+✔ L and V act once per press and do not intercept text or dialog input (0.117ms)
+✔ body-camera look points along movement heading and permits a downward body view (0.1631ms)
+✔ eye-height smoothing removes stair impulses without idle bob or frame-rate drift (0.1288ms)
+✔ physical perimeter blocks all four exits without altering source mesh counts (40.2626ms)
+✔ the original visible context ground is collidable outside the entrance slab (31.3953ms)
+(node:18724) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ placement stays on the rounded landing at float-sensitive triangle seams (234.0232ms)
+(node:31688) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/rendering/specularFiltering.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ diagnostic isolation restores source materials and removes normal-dependent roughness (4.8191ms)
+(node:31480) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ retained balcony/return panes stop walking and sprinting from both sides (1585.5099ms)
+ℹ Checked 36 full-body approaches at walk/run speed.
+✔ source rocks, furniture cores and pedestals block the body without room-sized proxy boxes (259.4293ms)
+ℹ Verified 25 source solids, in addition to existing traversal tests.
+✔ balcony inspection points have walkable ground and clear body space (207.0425ms)
+(node:18320) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/rendering/shadowBounds.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[MD spatial visibility] {
+  sourceMeshes: 1,
+  cells: 16,
+  triangles: 131072,
+  removedTriangles: 0,
+  attributesChanged: false
+}
+✔ spatial cells preserve every triangle, vertex attribute, material and world transform (300.9719ms)
+✔ shadow fit excludes distant context while enclosing every architectural corner (2.5397ms)
+(node:30444) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/rendering/loadingGuard.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+THREE.Clock: This module has been deprecated. Please use THREE.Timer instead.
+✔ moving and idle characters refresh shadows; reference, menu and disabled frames reuse them (2.0769ms)
+✔ hiding and showing the character refreshes once during each frozen fade (0.8101ms)
+✔ stopped cinematic poses are sampled once; source animation and material changes refresh shadows (0.6927ms)
+✔ a swallowed glTF image failure prevents readiness while a fresh retry is clean (1.1435ms)
+✔ shadow diagnostics preserve the live shadow resource across repeated comparisons (0.5168ms)
+✔ root-relative glTF dependencies retain the external asset release prefix (0.4932ms)
+(node:30296) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/karan_z7alww2/Documents/Codex/2026-10-04/i-have-a-detailed-blender-blend/outputs/md-lounge-web/src/runtime/interaction/CollisionWorld.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\karan_z7alww2\Documents\Codex\2026-10-04\i-have-a-detailed-blender-blend\outputs\md-lounge-web\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ all six approved desk positions and eighteen monitors stop the full capsule (862.1143ms)
+✔ source terrace, both entrance steps, threshold and interior agree with the visible surfaces (489.8613ms)
+ℹ [{"speed":1.38,"direction":1,"end":[-0.6238119602203369,0.0009669756889343489,-17.100194931030273],"grounded":true},{"speed":1.38,"direction":-1,"end":[-8.375659942626953,-0.35500048637390136,-17.099977493286133],"grounded":true},{"speed":3.35,"direction":1,"end":[-0.3217814862728119,0.0008374547958374251,-17.099853515625],"grounded":true},{"speed":3.35,"direction":-1,"end":[-8.477124214172363,-0.35399680376052856,-17.099767684936523],"grounded":true}]
+ℹ tests 54
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3620.4213

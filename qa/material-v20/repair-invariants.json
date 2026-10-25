@@ -1,0 +1,17 @@
+[
+  {
+    "zone": "founder-hero",
+    "originalCoveredPixelsUnchanged": 2012954,
+    "maxOriginalPixelChange": 0
+  },
+  {
+    "zone": "studio-hero",
+    "originalCoveredPixelsUnchanged": 2698427,
+    "maxOriginalPixelChange": 0
+  },
+  {
+    "zone": "lounge-hero",
+    "originalCoveredPixelsUnchanged": 1030207,
+    "maxOriginalPixelChange": 0
+  }
+]

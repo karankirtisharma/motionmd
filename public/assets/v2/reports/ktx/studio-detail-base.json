@@ -1,0 +1,23 @@
+{
+  "name": "studio-detail-base",
+  "ok": true,
+  "sourceSHA256": "d205314a9ce9a62dee94725f79069cf4a622c3b5b9e8d4a2702490d8a7aa1abb",
+  "outputSHA256": "6233151476894c9c12d8137f920ad407c09c338d93a8e002825939f5ecf70761",
+  "bytes": 4661311,
+  "sourcePNGBytes": 5685918,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "sRGB",
+  "mipFilter": "Linear-light box, then sRGB encode",
+  "orientation": "rd",
+  "seconds": 69.578,
+  "quality": {
+    "rgbPSNR": 61.10193816732665,
+    "maxChannelError": 8,
+    "alphaMaxError": 0
+  }
+}

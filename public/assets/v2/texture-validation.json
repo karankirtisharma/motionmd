@@ -1,0 +1,743 @@
+{
+  "encoder": "Khronos KTX 4.4.2",
+  "chunks": [
+    {
+      "zone": "studio",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "ec57c41f27e465f603688ce662d91ced3ac7ebca7d7bdf50ad0874fe3c9c94a4",
+      "outputSHA256": "ffac7cf3cb36889975e6b88f066de5584302b734cb3bac6f9842b148451f5847",
+      "originalGLBBytes": 218907600,
+      "glbBytes": 159660792,
+      "textureURLs": [
+        "/assets/v2/textures/studio-hero-normal.ktx2",
+        "/assets/v2/textures/studio-hero-base.ktx2",
+        "/assets/v2/textures/studio-hero-orm.ktx2",
+        "/assets/v2/textures/studio-architecture-normal.ktx2",
+        "/assets/v2/textures/studio-architecture-base.ktx2",
+        "/assets/v2/textures/studio-architecture-orm.ktx2",
+        "/assets/v2/textures/studio-detail-normal.ktx2",
+        "/assets/v2/textures/studio-detail-base.ktx2",
+        "/assets/v2/textures/studio-detail-orm.ktx2"
+      ],
+      "textureBytes": 46744061,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "studio-hero-normal",
+          "imageIndex": 0,
+          "originalBytes": 13873106,
+          "bytes": 9660509,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 51.96907016556159,
+            "maxChannelError": 14,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.29068834672217986,
+            "normal99PercentileDegrees": 1.6
+          }
+        },
+        {
+          "name": "studio-hero-base",
+          "imageIndex": 1,
+          "originalBytes": 11564409,
+          "bytes": 7584030,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 57.835960617800964,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "studio-hero-orm",
+          "imageIndex": 2,
+          "originalBytes": 6444463,
+          "bytes": 5622167,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 68.57173634968112,
+            "maxChannelError": 8,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "studio-architecture-normal",
+          "imageIndex": 3,
+          "originalBytes": 1058935,
+          "bytes": 1065571,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 70.88133821065126,
+            "maxChannelError": 6,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.004769441207554441,
+            "normal99PercentileDegrees": 0.2
+          }
+        },
+        {
+          "name": "studio-architecture-base",
+          "imageIndex": 4,
+          "originalBytes": 10512494,
+          "bytes": 7333152,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 56.336438721620766,
+            "maxChannelError": 8,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "studio-architecture-orm",
+          "imageIndex": 5,
+          "originalBytes": 3093496,
+          "bytes": 3277390,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 70.27337752899538,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "studio-detail-normal",
+          "imageIndex": 8,
+          "originalBytes": 2083598,
+          "bytes": 1920531,
+          "uses": 26,
+          "quality": {
+            "rgbPSNR": 68.71954726938736,
+            "maxChannelError": 19,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16776740,
+            "normalMeanDegrees": 0.008762804462617197,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "studio-detail-base",
+          "imageIndex": 9,
+          "originalBytes": 5685918,
+          "bytes": 4661311,
+          "uses": 26,
+          "quality": {
+            "rgbPSNR": 61.10193816732665,
+            "maxChannelError": 8,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "studio-detail-orm",
+          "imageIndex": 10,
+          "originalBytes": 4934044,
+          "bytes": 5619400,
+          "uses": 26,
+          "quality": {
+            "rgbPSNR": 68.65922728095106,
+            "maxChannelError": 8,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    },
+    {
+      "zone": "lounge",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "506dcdee6dc35be78e95ff07754da3687d7f0938cfe2822442d88856a5d4a976",
+      "outputSHA256": "0728af838106a3fce9064049439c3ac32b26cde11716571df08a66e5554f6bcf",
+      "originalGLBBytes": 51222940,
+      "glbBytes": 17549236,
+      "textureURLs": [
+        "/assets/v2/textures/lounge-architecture-normal.ktx2",
+        "/assets/v2/textures/lounge-architecture-base.ktx2",
+        "/assets/v2/textures/lounge-architecture-orm.ktx2",
+        "/assets/v2/textures/lounge-detail-normal.ktx2",
+        "/assets/v2/textures/lounge-detail-base.ktx2",
+        "/assets/v2/textures/lounge-detail-orm.ktx2",
+        "/assets/v2/textures/lounge-hero-normal.ktx2",
+        "/assets/v2/textures/lounge-hero-base.ktx2",
+        "/assets/v2/textures/lounge-hero-orm.ktx2"
+      ],
+      "textureBytes": 26424601,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "lounge-architecture-normal",
+          "imageIndex": 0,
+          "originalBytes": 1355707,
+          "bytes": 1121619,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 70.77086950959404,
+            "maxChannelError": 4,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.005181150461460607,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "lounge-architecture-base",
+          "imageIndex": 1,
+          "originalBytes": 1416616,
+          "bytes": 1059325,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 67.31126519444827,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "lounge-architecture-orm",
+          "imageIndex": 2,
+          "originalBytes": 2759817,
+          "bytes": 2299829,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 72.67358196657435,
+            "maxChannelError": 6,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "lounge-detail-normal",
+          "imageIndex": 3,
+          "originalBytes": 972377,
+          "bytes": 805608,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 72.17235394767185,
+            "maxChannelError": 7,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.003909962261815086,
+            "normal99PercentileDegrees": 0.1
+          }
+        },
+        {
+          "name": "lounge-detail-base",
+          "imageIndex": 4,
+          "originalBytes": 7780158,
+          "bytes": 5508722,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 58.58192650511907,
+            "maxChannelError": 6,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "lounge-detail-orm",
+          "imageIndex": 5,
+          "originalBytes": 4793212,
+          "bytes": 4585223,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 70.3211507731799,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "lounge-hero-normal",
+          "imageIndex": 6,
+          "originalBytes": 2727059,
+          "bytes": 1724256,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 75.9234136153367,
+            "maxChannelError": 7,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777107,
+            "normalMeanDegrees": 0.0020792235780639984,
+            "normal99PercentileDegrees": 0.1
+          }
+        },
+        {
+          "name": "lounge-hero-base",
+          "imageIndex": 7,
+          "originalBytes": 7191947,
+          "bytes": 5308535,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 58.71733934267805,
+            "maxChannelError": 6,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "lounge-hero-orm",
+          "imageIndex": 8,
+          "originalBytes": 4677503,
+          "bytes": 4011484,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 71.25344371465272,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    },
+    {
+      "zone": "founder",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "dbfb203da88a11519fe63df9f8c9515797ba9c3aeb33ae30181de92ccaaed5b9",
+      "outputSHA256": "74dfa95f066c3f0e7cad63dfe4ff535bed8e99f881a00c43ce524acb743ed0a2",
+      "originalGLBBytes": 124688168,
+      "glbBytes": 71720828,
+      "textureURLs": [
+        "/assets/v2/textures/founder-architecture-normal.ktx2",
+        "/assets/v2/textures/founder-architecture-base.ktx2",
+        "/assets/v2/textures/founder-architecture-orm.ktx2",
+        "/assets/v2/textures/founder-detail-normal.ktx2",
+        "/assets/v2/textures/founder-detail-base.ktx2",
+        "/assets/v2/textures/founder-detail-orm.ktx2",
+        "/assets/v2/textures/founder-hero-normal.ktx2",
+        "/assets/v2/textures/founder-hero-base.ktx2",
+        "/assets/v2/textures/founder-hero-orm.ktx2"
+      ],
+      "textureBytes": 39550341,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "founder-architecture-normal",
+          "imageIndex": 0,
+          "originalBytes": 1160855,
+          "bytes": 1103756,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 71.88975051302658,
+            "maxChannelError": 6,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.004141780466204258,
+            "normal99PercentileDegrees": 0.1
+          }
+        },
+        {
+          "name": "founder-architecture-base",
+          "imageIndex": 1,
+          "originalBytes": 9534837,
+          "bytes": 6605495,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 56.83972021564774,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "founder-architecture-orm",
+          "imageIndex": 2,
+          "originalBytes": 3452868,
+          "bytes": 3261205,
+          "uses": 6,
+          "quality": {
+            "rgbPSNR": 71.80160244013366,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "founder-detail-normal",
+          "imageIndex": 4,
+          "originalBytes": 1352723,
+          "bytes": 1389487,
+          "uses": 33,
+          "quality": {
+            "rgbPSNR": 70.78064230959922,
+            "maxChannelError": 9,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.005256974501662492,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "founder-detail-base",
+          "imageIndex": 5,
+          "originalBytes": 3576397,
+          "bytes": 3089634,
+          "uses": 33,
+          "quality": {
+            "rgbPSNR": 62.28817290973826,
+            "maxChannelError": 12,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "founder-detail-orm",
+          "imageIndex": 6,
+          "originalBytes": 2836837,
+          "bytes": 2906714,
+          "uses": 33,
+          "quality": {
+            "rgbPSNR": 71.59320590676293,
+            "maxChannelError": 9,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "founder-hero-normal",
+          "imageIndex": 7,
+          "originalBytes": 13806374,
+          "bytes": 8573944,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 51.0925179665488,
+            "maxChannelError": 14,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.3003495473565303,
+            "normal99PercentileDegrees": 1.7
+          }
+        },
+        {
+          "name": "founder-hero-base",
+          "imageIndex": 8,
+          "originalBytes": 11427216,
+          "bytes": 7462792,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 49.790742905949884,
+            "maxChannelError": 13,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "founder-hero-orm",
+          "imageIndex": 9,
+          "originalBytes": 5824019,
+          "bytes": 5157314,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 70.21919604631299,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    },
+    {
+      "zone": "entrance",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "964b6129a9b0e1e2ba686035a295fb7cc3efa1d9783b0bc0957543159b3cd08b",
+      "outputSHA256": "b0b6ba8e883cb86092463f7e0902f27641a84d85b045e80fd3230c96722b66d5",
+      "originalGLBBytes": 55803540,
+      "glbBytes": 10468984,
+      "textureURLs": [
+        "/assets/v2/textures/entrance-architecture-normal.ktx2",
+        "/assets/v2/textures/entrance-architecture-base.ktx2",
+        "/assets/v2/textures/entrance-architecture-orm.ktx2",
+        "/assets/v2/textures/entrance-detail-normal.ktx2",
+        "/assets/v2/textures/entrance-detail-base.ktx2",
+        "/assets/v2/textures/entrance-detail-orm.ktx2"
+      ],
+      "textureBytes": 35192281,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "entrance-architecture-normal",
+          "imageIndex": 0,
+          "originalBytes": 1174147,
+          "bytes": 1091287,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 70.00901341907954,
+            "maxChannelError": 8,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.006000296283428626,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "entrance-architecture-base",
+          "imageIndex": 1,
+          "originalBytes": 15533588,
+          "bytes": 10935234,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 54.76844895414654,
+            "maxChannelError": 9,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "entrance-architecture-orm",
+          "imageIndex": 2,
+          "originalBytes": 3357168,
+          "bytes": 3317166,
+          "uses": 7,
+          "quality": {
+            "rgbPSNR": 70.82903581568523,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "entrance-detail-normal",
+          "imageIndex": 9,
+          "originalBytes": 14091261,
+          "bytes": 9936311,
+          "uses": 1,
+          "quality": {
+            "rgbPSNR": 54.554390154854566,
+            "maxChannelError": 25,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16776829,
+            "normalMeanDegrees": 0.21065122193009625,
+            "normal99PercentileDegrees": 1.1
+          }
+        },
+        {
+          "name": "entrance-detail-base",
+          "imageIndex": 10,
+          "originalBytes": 10917856,
+          "bytes": 9866441,
+          "uses": 1,
+          "quality": {
+            "rgbPSNR": 57.80771450013535,
+            "maxChannelError": 6,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "entrance-detail-orm",
+          "imageIndex": 11,
+          "originalBytes": 261186,
+          "bytes": 45842,
+          "uses": 1,
+          "quality": {
+            "rgbPSNR": 999,
+            "maxChannelError": 0,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    },
+    {
+      "zone": "gallery",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "481349443c9b8126fc00ca125477c565d6e8d35f7ee59fec71f7fc6233391c6f",
+      "outputSHA256": "007d38a16847ba0c5d0d12086bfb0d8bc3a390de55de9f49e383d6ac93426ee3",
+      "originalGLBBytes": 27677284,
+      "glbBytes": 379660,
+      "textureURLs": [
+        "/assets/v2/textures/gallery-architecture-normal.ktx2",
+        "/assets/v2/textures/gallery-architecture-base.ktx2",
+        "/assets/v2/textures/gallery-architecture-orm.ktx2",
+        "/assets/v2/textures/gallery-detail-normal.ktx2",
+        "/assets/v2/textures/gallery-detail-base.ktx2",
+        "/assets/v2/textures/gallery-detail-orm.ktx2"
+      ],
+      "textureBytes": 21498474,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "gallery-architecture-normal",
+          "imageIndex": 0,
+          "originalBytes": 533651,
+          "bytes": 360395,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 75.34204755140595,
+            "maxChannelError": 8,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.0016948802859220334,
+            "normal99PercentileDegrees": 0.1
+          }
+        },
+        {
+          "name": "gallery-architecture-base",
+          "imageIndex": 1,
+          "originalBytes": 19238204,
+          "bytes": 13660809,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 54.01393610204717,
+            "maxChannelError": 9,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "gallery-architecture-orm",
+          "imageIndex": 2,
+          "originalBytes": 2022138,
+          "bytes": 1691967,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 73.13153073970992,
+            "maxChannelError": 3,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "gallery-detail-normal",
+          "imageIndex": 3,
+          "originalBytes": 1975811,
+          "bytes": 1757502,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 69.05413542971115,
+            "maxChannelError": 14,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.00835456984011803,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "gallery-detail-base",
+          "imageIndex": 4,
+          "originalBytes": 300907,
+          "bytes": 76580,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 89.13404727873112,
+            "maxChannelError": 4,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "gallery-detail-orm",
+          "imageIndex": 5,
+          "originalBytes": 3227325,
+          "bytes": 3951221,
+          "uses": 3,
+          "quality": {
+            "rgbPSNR": 71.94933179398862,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    },
+    {
+      "zone": "shell",
+      "geometryBytesUnchanged": true,
+      "geometryObjectsUnchanged": true,
+      "materialsUnchanged": true,
+      "sourceSHA256": "354a052e82f0188695506249646776603a90d541b5b7e2c1b636b61392eb9d86",
+      "outputSHA256": "e567b87f231d12016d25e82078c6304d5d02dd6ac9cd24a40d6908e1dfd07cfa",
+      "originalGLBBytes": 44171304,
+      "glbBytes": 1556664,
+      "textureURLs": [
+        "/assets/v2/textures/shell-architecture-normal.ktx2",
+        "/assets/v2/textures/shell-architecture-base.ktx2",
+        "/assets/v2/textures/shell-architecture-orm.ktx2",
+        "/assets/v2/textures/shell-detail-normal.ktx2",
+        "/assets/v2/textures/shell-detail-base.ktx2",
+        "/assets/v2/textures/shell-detail-orm.ktx2"
+      ],
+      "textureBytes": 32576046,
+      "originalSamplers": 1,
+      "samplers": 1,
+      "replaced": [
+        {
+          "name": "shell-architecture-normal",
+          "imageIndex": 0,
+          "originalBytes": 842731,
+          "bytes": 753210,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 72.86138875028827,
+            "maxChannelError": 6,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.0031934372071309915,
+            "normal99PercentileDegrees": 0.1
+          }
+        },
+        {
+          "name": "shell-architecture-base",
+          "imageIndex": 1,
+          "originalBytes": 16099946,
+          "bytes": 11340286,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 54.429900416283985,
+            "maxChannelError": 8,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "shell-architecture-orm",
+          "imageIndex": 2,
+          "originalBytes": 2914481,
+          "bytes": 2623470,
+          "uses": 4,
+          "quality": {
+            "rgbPSNR": 71.02282914657545,
+            "maxChannelError": 7,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "shell-detail-normal",
+          "imageIndex": 3,
+          "originalBytes": 2793708,
+          "bytes": 1782983,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 64.85023379289652,
+            "maxChannelError": 3,
+            "alphaMaxError": 0,
+            "validNormalPixels": 16777216,
+            "normalMeanDegrees": 0.025672466389224196,
+            "normal99PercentileDegrees": 0.5
+          }
+        },
+        {
+          "name": "shell-detail-base",
+          "imageIndex": 4,
+          "originalBytes": 18874614,
+          "bytes": 15053399,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 55.23343356894961,
+            "maxChannelError": 5,
+            "alphaMaxError": 0
+          }
+        },
+        {
+          "name": "shell-detail-orm",
+          "imageIndex": 5,
+          "originalBytes": 1089642,
+          "bytes": 1022698,
+          "uses": 2,
+          "quality": {
+            "rgbPSNR": 88.79940711471892,
+            "maxChannelError": 3,
+            "alphaMaxError": 0
+          }
+        }
+      ],
+      "written": true
+    }
+  ]
+}

@@ -1,0 +1,258 @@
+{
+  "ok": true,
+  "zone": "lounge",
+  "triangles": 643488,
+  "sourceTriangleCount": 643488,
+  "sourceNodeNamesUnchanged": true,
+  "atlases": [
+    {
+      "id": "lounge-architecture",
+      "giSize": 2048,
+      "pbrSize": 4096,
+      "summedUVAreaFraction": 0.13562831613341234,
+      "triangles": 201024,
+      "materials": [
+        {
+          "name": "lounge__EH54 | scanned cream limestone panels",
+          "triangles": 3752,
+          "uvArea": 0.026274890915316304,
+          "pbrPixelArea": 440819.52026269934,
+          "giPixelArea": 110204.88006567484,
+          "worldArea": 144.3113555908203,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL86 | satin warm bronze wall panels",
+          "triangles": 7584,
+          "uvArea": 0.013300437770565221,
+          "pbrPixelArea": 223144.31737133116,
+          "giPixelArea": 55786.07934283279,
+          "worldArea": 74.80001831054688,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL86 | brushed champagne ceiling panels",
+          "triangles": 36856,
+          "uvArea": 0.07702742091975895,
+          "pbrPixelArea": 1292305.6786937146,
+          "giPixelArea": 323076.41967342864,
+          "worldArea": 424.59173583984375,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL86 | satin architectural bronze",
+          "triangles": 152832,
+          "uvArea": 0.01902556652777186,
+          "pbrPixelArea": 319196.0391587985,
+          "giPixelArea": 79799.00978969963,
+          "worldArea": 109.30248260498047,
+          "zeroUVTriangles": 1759,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 4.766671901172529,
+          "blackAreaWeightedPercent": 0.1730134668111735,
+          "baseTexCoord": 1
+        }
+      ]
+    },
+    {
+      "id": "lounge-detail",
+      "giSize": 2048,
+      "pbrSize": 4096,
+      "summedUVAreaFraction": 0.671055680075576,
+      "triangles": 68576,
+      "materials": [
+        {
+          "name": "lounge__PL86 | ground wing polished existing marble",
+          "triangles": 188,
+          "uvArea": 0.2896492946943552,
+          "pbrPixelArea": 4859508.781334851,
+          "giPixelArea": 1214877.1953337127,
+          "worldArea": 34.92654800415039,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__Blackened bronze",
+          "triangles": 1504,
+          "uvArea": 0.13236114984650782,
+          "pbrPixelArea": 2220651.6009832285,
+          "giPixelArea": 555162.9002458071,
+          "worldArea": 16.0379581451416,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | brushed champagne bronze",
+          "triangles": 3456,
+          "uvArea": 0.08584421072392345,
+          "pbrPixelArea": 1440226.8656647801,
+          "giPixelArea": 360056.71641619503,
+          "worldArea": 22.309986352920532,
+          "zeroUVTriangles": 384,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | smoked polished tabletop",
+          "triangles": 2300,
+          "uvArea": 0.08228002961532255,
+          "pbrPixelArea": 1380429.8293426633,
+          "giPixelArea": 345107.4573356658,
+          "worldArea": 9.942464828491211,
+          "zeroUVTriangles": 0,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 0,
+          "blackAreaWeightedPercent": 0,
+          "baseTexCoord": null
+        },
+        {
+          "name": "lounge__PL78 | brushed champagne bronze",
+          "triangles": 15282,
+          "uvArea": 0.020230252419119656,
+          "pbrPixelArea": 339407.314570093,
+          "giPixelArea": 84851.82864252325,
+          "worldArea": 22.309986352920532,
+          "zeroUVTriangles": 128,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 2.28373249574663,
+          "blackAreaWeightedPercent": 0.0029992251407413603,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | brushed champagne bronze",
+          "triangles": 15282,
+          "uvArea": 0.02023027343401649,
+          "pbrPixelArea": 339407.6671415564,
+          "giPixelArea": 84851.9167853891,
+          "worldArea": 22.309986352920532,
+          "zeroUVTriangles": 129,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 2.329538018583955,
+          "blackAreaWeightedPercent": 0.003647653514467942,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | brushed champagne bronze",
+          "triangles": 15282,
+          "uvArea": 0.02023023846257138,
+          "pbrPixelArea": 339407.080418068,
+          "giPixelArea": 84851.770104517,
+          "worldArea": 22.309986352920532,
+          "zeroUVTriangles": 132,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 2.054704881560005,
+          "blackAreaWeightedPercent": 0.004864010740228684,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | brushed champagne bronze",
+          "triangles": 15282,
+          "uvArea": 0.02023023087975948,
+          "pbrPixelArea": 339406.9531995948,
+          "giPixelArea": 84851.7382998987,
+          "worldArea": 22.309986352920532,
+          "zeroUVTriangles": 134,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 2.3360816647035727,
+          "blackAreaWeightedPercent": 0.020734294550838386,
+          "baseTexCoord": 1
+        }
+      ]
+    },
+    {
+      "id": "lounge-hero",
+      "giSize": 2048,
+      "pbrSize": 4096,
+      "summedUVAreaFraction": 0.24572625784854069,
+      "triangles": 161496,
+      "materials": [
+        {
+          "name": "lounge__PL78 | circular hand woven wool",
+          "triangles": 49040,
+          "uvArea": 0.19802774926909894,
+          "pbrPixelArea": 3322354.323481515,
+          "giPixelArea": 830588.5808703788,
+          "worldArea": 63.740814208984375,
+          "zeroUVTriangles": 384,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 76.34991843393149,
+          "blackAreaWeightedPercent": 0.07136623550179386,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | ivory aniline upholstery",
+          "triangles": 28114,
+          "uvArea": 0.011924624389542518,
+          "pbrPixelArea": 200061.99910222297,
+          "giPixelArea": 50015.49977555574,
+          "worldArea": 16.9237003326416,
+          "zeroUVTriangles": 10,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 1.5472718218681083,
+          "blackAreaWeightedPercent": 0.007147945859879745,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | ivory aniline upholstery",
+          "triangles": 28114,
+          "uvArea": 0.011924637340462674,
+          "pbrPixelArea": 200062.21638260782,
+          "giPixelArea": 50015.554095651954,
+          "worldArea": 16.9237003326416,
+          "zeroUVTriangles": 6,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 1.1737924165895994,
+          "blackAreaWeightedPercent": 0.00311805076106133,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | ivory aniline upholstery",
+          "triangles": 28114,
+          "uvArea": 0.011924622605043234,
+          "pbrPixelArea": 200061.96916329302,
+          "giPixelArea": 50015.492290823255,
+          "worldArea": 16.9237003326416,
+          "zeroUVTriangles": 12,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 1.0457423347798251,
+          "blackAreaWeightedPercent": 0.002291151414371184,
+          "baseTexCoord": 1
+        },
+        {
+          "name": "lounge__PL78 | ivory aniline upholstery",
+          "triangles": 28114,
+          "uvArea": 0.011924624244393334,
+          "pbrPixelArea": 200061.99666702375,
+          "giPixelArea": 50015.49916675594,
+          "worldArea": 16.9237003326416,
+          "zeroUVTriangles": 8,
+          "zeroUVGeometryArea": 0,
+          "blackCentroidPercent": 1.397880059756705,
+          "blackAreaWeightedPercent": 0.006731148450267652,
+          "baseTexCoord": 1
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

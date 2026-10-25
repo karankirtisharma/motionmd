@@ -152,11 +152,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };
     body.setTranslation(center, true); body.setNextKinematicTranslation(center); world.step();
   }
-  const castRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
   function cast(origin: THREE.Vector3, direction: THREE.Vector3, distance: number) {
-    castRay.origin.x = origin.x; castRay.origin.y = origin.y; castRay.origin.z = origin.z;
-    castRay.dir.x = direction.x; castRay.dir.y = direction.y; castRay.dir.z = direction.z;
-    return world.castRay(castRay, distance, true, undefined, undefined, capsule, body);
+    return world.castRay(new RAPIER.Ray(origin, direction), distance, true, undefined, undefined, capsule, body);
   }
   const cameraShape = new RAPIER.Ball(0.19);
   const cameraDirection = new THREE.Vector3();

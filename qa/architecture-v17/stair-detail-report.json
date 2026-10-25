@@ -1,0 +1,168 @@
+{
+  "removedPreparedFaces": 2687,
+  "newObjects": 233,
+  "steps": [
+    {
+      "step": 1,
+      "top": 0.15291666984558105,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 2,
+      "top": 0.3058333396911621,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 3,
+      "top": 0.45875000953674316,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 4,
+      "top": 0.6116666793823242,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 5,
+      "top": 0.7645833492279053,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 6,
+      "top": 0.9175000190734863,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 7,
+      "top": 1.0704166889190674,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 8,
+      "top": 1.2233333587646484,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 9,
+      "top": 1.3762500286102295,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 10,
+      "top": 1.5291666984558105,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 11,
+      "top": 1.6820833683013916,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 12,
+      "top": 1.8350000381469727,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 13,
+      "top": 1.9879167079925537,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 14,
+      "top": 2.1408333778381348,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 15,
+      "top": 2.293750047683716,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 16,
+      "top": 2.446666717529297,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 17,
+      "top": 2.599583387374878,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 18,
+      "top": 2.752500057220459,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 19,
+      "top": 2.90541672706604,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 20,
+      "top": 3.058333396911621,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 21,
+      "top": 3.211250066757202,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 22,
+      "top": 3.364166736602783,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    },
+    {
+      "step": 23,
+      "top": 3.5170834064483643,
+      "radius": 2.48,
+      "arcSegments": 64,
+      "thickness": 0.064
+    }
+  ],
+  "sourceBackup": "outputs/architecture-v16/MD_Presentation_Lounge_v16.blend"
+}

@@ -1,0 +1,17 @@
+{
+  "atlas": "studio-hero",
+  "ok": true,
+  "samples": 256,
+  "rawSHA256": "9e3b0944dddf16f0128c51e718759f2c9cfe303d21e2e21f6142bd4c4dad78a5",
+  "outputSHA256": "39f3712eca9f35d4fc2d5323fd4c5a6f328258be84d7f9f0e01130ea1d3a5b76",
+  "outputBytes": 8729331,
+  "guardWithinHalfULP": true,
+  "interiorRelativeMeanChange": [
+    7.1644486733319245e-06,
+    0.0014922400523000529,
+    0.0024241038851505066
+  ],
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "bakeOrientation": "Closed negative-volume components reversed in baking copy; exact source positions and UV attachments preserved",
+  "visualReviewRequired": true
+}

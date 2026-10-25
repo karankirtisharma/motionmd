@@ -19,8 +19,7 @@ if(process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
   collect(manifest);
   for(const url of required){
     const file=path.resolve(root,'public','.'+url);
-    // A deployment may ship only the gzip twin of a large GLB (scripts/compress-assets.mjs).
-    if(!file.startsWith(assets+path.sep)||!(fs.existsSync(file)||(url.endsWith('.glb')&&fs.existsSync(file+'.gz'))))throw new Error(`Missing scene asset: ${url}. Run git lfs pull before building.`);
+    if(!file.startsWith(assets+path.sep)||!fs.existsSync(file))throw new Error(`Missing scene asset: ${url}. Run git lfs pull before building.`);
   }
   const pointers=[];let files=0,bytes=0;
   function inspect(dir){

@@ -23,11 +23,3 @@ README.md
 public/assets/textures/*-base.png
 public/assets/textures/*-orm.png
 public/assets/textures/*-normal.png
-# Large scene GLBs deploy as their .glb.gz twins (byte-identical after decompression).
-public/assets/architecture-v16/studio.glb
-public/assets/architecture-v16/lounge.glb
-public/assets/architecture-v19/entrance.glb
-public/assets/architecture-v19/v13.glb
-public/assets/architecture-v21/founder.glb
-# Screen OS test clips are third-party downloads for local testing only; never deploy them.
-public/screen-os/media/

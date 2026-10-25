@@ -1,0 +1,55 @@
+{
+  "unchangedObjects": 9151,
+  "retired": [
+    "EH52 east vestibule rear jamb",
+    "Front wing curtain wall mullion.027",
+    "UG52 Founder approach inner extension glass",
+    "V13 | round rail | UC47 Founder bridge join remaining rail",
+    "V18 | Continuous curved bronze handrail",
+    "V18 | Continuous curved clear glass guard",
+    "V18 | Curved underside bronze edge beam",
+    "V18 | Unified curved pavement and rounded short steps"
+  ],
+  "new": [
+    "V19 | Continuous curved bronze handrail",
+    "V19 | Continuous curved clear glass guard",
+    "V19 | Curved underside bronze edge beam",
+    "V19 | Founder guard after connected landing",
+    "V19 | Founder handrail after connected landing",
+    "V19 | Unified curved pavement and rounded short steps"
+  ],
+  "unexpectedChanges": [],
+  "closedSolids": [
+    {
+      "object": "V19 | Founder handrail after connected landing",
+      "nonManifold": 0,
+      "degenerate": 0,
+      "volume": 0.003208005965282569
+    },
+    {
+      "object": "V19 | Unified curved pavement and rounded short steps",
+      "nonManifold": 0,
+      "degenerate": 0,
+      "volume": 87.74658627926785
+    },
+    {
+      "object": "V19 | Curved underside bronze edge beam",
+      "nonManifold": 0,
+      "degenerate": 0,
+      "volume": 0.5929350920286816
+    },
+    {
+      "object": "V19 | Continuous curved clear glass guard",
+      "nonManifold": 0,
+      "degenerate": 0,
+      "volume": 0.19914930579029616
+    },
+    {
+      "object": "V19 | Founder guard after connected landing",
+      "nonManifold": 0,
+      "degenerate": 0,
+      "volume": 0.002764823172019204
+    }
+  ],
+  "backupHashVerified": true
+}

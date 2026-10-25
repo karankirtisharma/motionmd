@@ -1,0 +1,82 @@
+{
+  "removed": [
+    {
+      "name": "Side curtain wall pane.028",
+      "min": [
+        9.663749694824219,
+        2.394749641418457,
+        0.03000009059906006
+      ],
+      "max": [
+        11.055000305175781,
+        2.40524959564209,
+        3.869999885559082
+      ],
+      "materials": [
+        "Low iron glass | 12 mm"
+      ]
+    },
+    {
+      "name": "Side curtain wall pane.029",
+      "min": [
+        11.107500076293945,
+        2.394749641418457,
+        0.03000009059906006
+      ],
+      "max": [
+        12.498750686645508,
+        2.40524959564209,
+        3.869999885559082
+      ],
+      "materials": [
+        "Low iron glass | 12 mm"
+      ]
+    },
+    {
+      "name": "Side curtain wall pane.042",
+      "min": [
+        12.551249504089355,
+        -0.0052504767663776875,
+        4.230000019073486
+      ],
+      "max": [
+        13.942500114440918,
+        0.005249523092061281,
+        8.270000457763672
+      ],
+      "materials": [
+        "Low iron glass | 12 mm"
+      ]
+    },
+    {
+      "name": "Side curtain wall mullion.029",
+      "min": [
+        11.052811622619629,
+        2.3562495708465576,
+        0.0
+      ],
+      "max": [
+        11.109686851501465,
+        2.4437496662139893,
+        3.9000000953674316
+      ],
+      "materials": [
+        "Blackened bronze"
+      ]
+    }
+  ],
+  "base": 0.035,
+  "top": 4.23,
+  "rise": 0.16134615384615386,
+  "risers": 26,
+  "going": 0.32,
+  "flightWidth": 1.6,
+  "midLandingDepth": 1.6,
+  "flightCenters": [
+    10.8,
+    13.246875
+  ],
+  "renderObjects": 150,
+  "colliders": 81,
+  "source": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\outputs\\scene-repair-v6\\MD_Presentation_Lounge_Repaired.blend"
+}
