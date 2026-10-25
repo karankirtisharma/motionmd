@@ -60,7 +60,11 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   scene.environmentIntensity = manifest.environment?.intensity ?? 0.65;
   scene.environmentRotation.y = manifest.environment?.rotation ?? 0;
   const background = manifest.environment?.background === false ? neutralWorld() : environment;
-  if (background !== environment) owned.push(background);
+  if (background !== environment) {
+    owned.push(background);
+    // Only the filtered copy is sampled; the equirect source is not drawn as the background.
+    owned.splice(owned.indexOf(environment), 1); environment.dispose();
+  }
   scene.background = background;
   scene.backgroundIntensity = 0.65;
   scene.backgroundBlurriness = 0.1;
@@ -68,10 +72,19 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
 
   // The shader chooses the region per fragment and corrects each reflected ray against its box.
   const probes: RoomProbe[] = [];
-  for (const probe of manifest.reflectionProbes ?? []) {
-    const source = await loadEnvironment(probe.url, signal);
+  const probeSpecs = manifest.reflectionProbes ?? [];
+  const probeLoads = await Promise.allSettled(probeSpecs.map(probe => loadEnvironment(probe.url, signal)));
+  const failedProbe = probeLoads.find(result => result.status === 'rejected');
+  if (failedProbe) {
+    probeLoads.forEach(result => { if (result.status === 'fulfilled') result.value.dispose(); });
+    throw (failedProbe as PromiseRejectedResult).reason;
+  }
+  for (const [index, probe] of probeSpecs.entries()) {
+    const source = (probeLoads[index] as PromiseFulfilledResult<Texture>).value;
     const capture = pmrem.fromEquirectangular(source);
-    owned.push(source, capture);
+    // The shader samples only the PMREM capture; release the 2:1 source (CPU and GPU).
+    source.dispose();
+    owned.push(capture);
     const region = new Box3(new Vector3().fromArray(probe.bounds.min), new Vector3().fromArray(probe.bounds.max));
     probes.push({ id: probe.id, region, position: probe.position ? new Vector3().fromArray(probe.position) : region.getCenter(new Vector3()), texture: capture.texture, intensity: probe.intensity ?? 1 });
   }

@@ -1,17 +1,18 @@
 import * as THREE from 'three';
 
-type Page = 'home' | 'work' | 'services' | 'studio' | 'partners' | 'project';
-type Region = { x: number; y: number; w: number; h: number; action: string };
-export type ScreenContent = {
-  title: string; subtitle?: string; image?: HTMLImageElement;
-  video?: HTMLVideoElement; buttons?: { label: string; action: string }[];
-};
+/** The project the Screen OS has in focus, as it reports it over postMessage. */
+export type ScreenFocus = { id: string; title: string; niche?: string; poster?: string };
+export type ScreenRect = { left: number; top: number; width: number; height: number };
 type Options = {
   scene: THREE.Object3D; camera: THREE.Camera; canvas: HTMLCanvasElement;
-  objectName: string; onAction?: (action: string) => void;
+  objectName: string; onOpen?: () => void;
 };
 
-/** The texture is drawn on the source curved LED mesh; screen hits use its UV map. */
+/*
+ * The source curved LED mesh shows a still of the Screen OS (public/screen-os): the
+ * project it last had in focus, in the OS's own type and palette. The live OS is HTML;
+ * clicking the screen asks the page to open it over the scene (see ScreenOS.tsx).
+ */
 export function createPresentationScreen(options: Options) {
   const width = 2400, height = 800;
   const surface = document.createElement('canvas');
@@ -38,147 +39,105 @@ export function createPresentationScreen(options: Options) {
       meshes.push(mesh); originals.set(mesh, mesh.material);
     }
   });
-  let page: Page = 'home';
   let active = false;
   let activated = false;
-  let hovered = '';
-  let customContent: ScreenContent | undefined;
-  let lastVideoTime = -1;
-  let regions: Region[] = [];
+  let hovered = false;
+  let focus: ScreenFocus | undefined;
+  let poster: HTMLImageElement | undefined;
   const raycaster = new THREE.Raycaster();
+  let worldCenter: THREE.Vector3 | undefined;
   const pointer = new THREE.Vector2();
-  const gold = '#efcf9c', white = '#f5f3ed', muted = '#b7b7b1';
+  // Screen OS tokens (public/screen-os/styles.css).
+  const ink = '#070504', ivory = '#fff4e2', ivory60 = 'rgba(255,244,226,.6)', champagne = '#e8c890', gold = '#ffd382';
+  const face = (name: string, fallback: string) => {
+    const family = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return family ? `${family}, ${fallback}` : fallback;
+  };
+  const serif = face('--font-screen-serif', 'Georgia, serif');
+  const sans = face('--font-screen-sans', 'Arial, sans-serif');
+  const mono = face('--font-screen-mono', 'Consolas, monospace');
+  let fontsRequested = false;
 
-  function text(value: string, x: number, y: number, size: number, color = white, weight = 400) {
-    ctx!.font = `${weight} ${size}px Arial, sans-serif`; ctx!.fillStyle = color;
-    ctx!.textAlign = 'left'; ctx!.fillText(value, x, y);
+  function text(value: string, x: number, y: number, font: string, color: string, spacing = 0, align: CanvasTextAlign = 'left') {
+    ctx!.font = font; ctx!.fillStyle = color; ctx!.textAlign = align;
+    ctx!.letterSpacing = `${spacing}px`; ctx!.fillText(value, x, y); ctx!.letterSpacing = '0px';
   }
-  function roundRect(x: number, y: number, w: number, h: number, radius = 22) {
-    ctx!.beginPath(); ctx!.roundRect(x, y, w, h, radius);
+  function mark(x: number, y: number, size: number, align: CanvasTextAlign = 'left') {
+    ctx!.font = `400 ${size}px ${serif}`;
+    const md = ctx!.measureText('md').width, dot = ctx!.measureText('.').width;
+    const start = align === 'center' ? x - (md + dot) / 2 : x;
+    text('md', start, y, ctx!.font, ivory); text('.', start + md, y, ctx!.font, gold);
   }
-  function button(label: string, x: number, y: number, w: number, action: string, filled = false) {
-    const hover = hovered === action;
-    roundRect(x, y, w, 74);
-    ctx!.fillStyle = filled ? gold : hover ? '#493b2b' : '#101213'; ctx!.fill();
-    ctx!.strokeStyle = hover || filled ? '#ffdfa9' : '#8a7860'; ctx!.lineWidth = 1.6; ctx!.stroke();
-    text(label, x + 26, y + 47, 28, filled ? '#161412' : white, filled ? 500 : 400);
-    regions.push({ x, y, w, h: 74, action });
-  }
-  function backdrop() {
-    const gradient = ctx!.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, '#080b0c'); gradient.addColorStop(0.55, '#121719'); gradient.addColorStop(1, '#050505');
-    ctx!.fillStyle = gradient; ctx!.fillRect(0, 0, width, height);
-    ctx!.save();
-    const glow = ctx!.createRadialGradient(2010, 215, 10, 1950, 330, 800);
-    glow.addColorStop(0, '#7c604433'); glow.addColorStop(0.5, '#4c352122'); glow.addColorStop(1, '#080b0c00');
-    ctx!.fillStyle = glow; ctx!.fillRect(350, 0, 2050, 800);
-    for (let i = 0; i < 22; i++) {
-      ctx!.beginPath(); ctx!.moveTo(1560 + i * 5, -100);
-      ctx!.bezierCurveTo(1990 - i * 13, 160, 1650 + i * 9, 370, 2440, 730 + i * 5);
-      ctx!.strokeStyle = `rgba(232,189,129,${0.02 + i * 0.003})`;
-      ctx!.lineWidth = 3 + i * 1.3; ctx!.stroke();
-    }
-    ctx!.restore();
-  }
-  function chrome() {
-    text('md.', 64, 100, 64, white, 600); text('motiondesign.ad', 208, 94, 27, muted);
-    const tabs: [Page, string][] = [['home', 'Home'], ['work', 'Work'], ['services', 'Services'], ['studio', 'Studio'], ['partners', 'Partners']];
-    tabs.forEach(([id, label], i) => {
-      const y = 218 + i * 83, chosen = page === id;
-      if (chosen || hovered === id) {
-        roundRect(46, y - 41, 280, 68, 23); ctx!.fillStyle = chosen ? '#6f563544' : '#ffffff0b'; ctx!.fill();
-      }
-      text(['⌂', '◇', '✧', '○', '⋈'][i], 73, y + 1, 33, chosen ? gold : muted);
-      text(label, 132, y, 28, chosen ? gold : muted, chosen ? 500 : 400);
-      regions.push({ x: 46, y: y - 41, w: 280, h: 68, action: id });
-    });
-    text('A MOTION DESIGN AGENCY', 65, 698, 16, '#8a8d89');
-    text('FOR A BRIGHTER TOMORROW', 65, 726, 16, '#8a8d89');
-    text(active ? 'Click the display to explore' : 'Take a seat to explore', 1925, 738, 20, muted);
+  function pill() {
+    const label = active ? 'Click the screen to open' : 'Take a seat to explore';
+    ctx!.font = `500 26px ${sans}`;
+    // Top centre: the seated view frames the middle of the curve (its far ends fall outside)
+    // and the visitor's head covers the lower middle in the third-person view.
+    const w = ctx!.measureText(label).width + 104, h = 68, x = (width - w) / 2, y = 84;
+    ctx!.beginPath(); ctx!.roundRect(x, y, w, h, h / 2);
+    ctx!.fillStyle = hovered ? 'rgba(255,211,130,.16)' : 'rgba(255,244,226,.07)'; ctx!.fill();
+    ctx!.strokeStyle = hovered ? gold : 'rgba(255,244,226,.22)'; ctx!.lineWidth = 2; ctx!.stroke();
+    ctx!.beginPath(); ctx!.arc(x + 40, y + h / 2, 6, 0, Math.PI * 2); ctx!.fillStyle = active ? gold : ivory60; ctx!.fill();
+    text(label, x + 66, y + h / 2 + 9, ctx!.font, hovered ? ivory : 'rgba(255,244,226,.86)');
   }
   function draw() {
-    regions = []; backdrop(); chrome();
-    if (customContent) {
-      text(customContent.title, 418, 217, 62); text(customContent.subtitle ?? '', 423, 266, 27, muted);
-      const media = customContent.video ?? customContent.image;
-      if (media && (!(media instanceof HTMLVideoElement) || media.readyState >= 2)) {
-        ctx!.drawImage(media, 430, 302, 1470, 360);
-      }
-      customContent.buttons?.forEach((item, i) => button(item.label, 430 + i * 335, 690, 310, item.action));
-    } else if (page === 'home') {
-      text('Ideas', 417, 278, 96); text('deserve to move.', 417, 383, 96);
-      text('Design. Stories. Experiences.', 425, 462, 40, gold);
-      button('Explore Work  →', 427, 548, 340, 'work');
-      button('Discover our Studio', 793, 548, 357, 'studio');
-      button('Start a Project  →', 1177, 548, 343, 'project', true);
-    } else if (page === 'work') {
-      text('Selected Work', 417, 227, 68); text('A glimpse of what’s possible.', 422, 283, 32, muted);
-      const cards = [ ['The Horizon Within', 'Brand Film'], ['Fragments of Tomorrow', 'CGI'], ['A More Human Web', 'Interactive'], ['Kinetic Objects', 'Product Film'] ];
-      cards.forEach(([title, type], i) => {
-        const x = 425 + i * 452;
-        roundRect(x, 340, 423, 334); ctx!.fillStyle = i % 2 ? '#18252a' : '#302b22'; ctx!.fill();
-        ctx!.strokeStyle = '#75654b'; ctx!.lineWidth = 1; ctx!.stroke();
-        text(`0${i + 1}`, x + 25, 395, 23, gold);
-        text(title, x + 25, 566, 28); text(type, x + 25, 609, 25, muted);
-        text('View project  →', x + 25, 650, 23, gold);
-        regions.push({ x, y: 340, w: 423, h: 334, action: `work:${i}` });
-      });
-    } else if (page === 'services') {
-      text('Services', 417, 227, 68); text('Different disciplines. A more meaningful tomorrow.', 422, 283, 32, muted);
-      ['Brand & Motion', 'CGI & Product Films', 'Film & Storytelling', 'Interactive & Immersive', 'Creative Direction'].forEach((label, i) => {
-        const x = 425 + i * 361; roundRect(x, 348, 338, 310);
-        ctx!.fillStyle = i % 2 ? '#142127' : '#27231d'; ctx!.fill(); ctx!.strokeStyle = '#716147'; ctx!.stroke();
-        text(`0${i + 1}`, x + 24, 403, 25, gold);
-        const split = label.split(' & '); text(split[0], x + 24, 545, 28);
-        if (split[1]) text(`& ${split[1]}`, x + 24, 586, 28);
-        text('Learn more  →', x + 24, 631, 23, gold);
-        regions.push({ x, y: 348, w: 338, h: 310, action: `service:${i}` });
-      });
-    } else if (page === 'project') {
-      text('Let’s make', 417, 244, 77); text('something extraordinary.', 417, 335, 77, gold);
-      text('Choose a discipline to begin exploring.', 423, 401, 32, muted);
-      ['Brand & Motion', 'CGI & Product', 'Film & Storytelling', 'Interactive'].forEach((label, i) => {
-        button(label, 426 + i * 448, 505, 422, `project:${i}`);
-      });
-      text('Project enquiries will be connected when contact details are provided.', 428, 650, 24, muted);
+    ctx!.fillStyle = ink; ctx!.fillRect(0, 0, width, height);
+    if (focus && poster?.complete && poster.naturalWidth) {
+      // Full-bleed poster (cover), shaded like the OS backdrop so the type stays legible.
+      const scale = Math.max(width / poster.naturalWidth, height / poster.naturalHeight);
+      const w = poster.naturalWidth * scale, h = poster.naturalHeight * scale;
+      ctx!.drawImage(poster, (width - w) / 2, (height - h) / 2, w, h);
+      const side = ctx!.createLinearGradient(0, 0, width, 0);
+      side.addColorStop(0, 'rgba(7,5,4,.92)'); side.addColorStop(0.45, 'rgba(7,5,4,.55)'); side.addColorStop(1, 'rgba(7,5,4,.12)');
+      ctx!.fillStyle = side; ctx!.fillRect(0, 0, width, height);
+      const floor = ctx!.createLinearGradient(0, height * 0.45, 0, height);
+      floor.addColorStop(0, 'rgba(7,5,4,0)'); floor.addColorStop(1, 'rgba(7,5,4,.7)');
+      ctx!.fillStyle = floor; ctx!.fillRect(0, 0, width, height);
+      mark(96, 132, 76);
+      text('motiondesign.ad', 236, 124, `400 26px ${sans}`, ivory60);
+      if (focus.niche) text(focus.niche.toUpperCase(), 96, 560, `500 24px ${mono}`, champagne, 4.8);
+      ctx!.font = `500 104px ${sans}`;
+      const size = Math.min(104, Math.floor(104 * 820 / Math.max(1, ctx!.measureText(focus.title).width))); // clear of the pill
+      text(focus.title, 92, 668, `500 ${size}px ${sans}`, ivory, -2);
     } else {
-      text(page === 'studio' ? 'A space for extraordinary ideas.' : 'Better, together.', 417, 254, 65);
-      text(page === 'studio' ? 'Design. Stories. Experiences.' : 'Creating meaningful experiences through collaboration.', 425, 337, 34, gold);
-      text('Explore the architectural lounge and discover our work.', 425, 403, 28, muted);
-      button('Explore our Work  →', 427, 522, 383, 'work');
-      button('Start a Project  →', 840, 522, 360, 'project', true);
+      const glow = ctx!.createRadialGradient(width / 2, height * 0.45, 20, width / 2, height * 0.45, 900);
+      glow.addColorStop(0, 'rgba(232,166,74,.16)'); glow.addColorStop(1, 'rgba(7,5,4,0)');
+      ctx!.fillStyle = glow; ctx!.fillRect(0, 0, width, height);
+      mark(width / 2, 420, 240, 'center');
+      text('motiondesign.ad', width / 2, 500, `400 30px ${sans}`, ivory60, 1, 'center');
     }
+    pill();
     texture.needsUpdate = true;
   }
-  function activate(action: string) {
-    if (['home', 'work', 'services', 'studio', 'partners', 'project'].includes(action)) {
-      page = action as Page; customContent = undefined;
-    } else if (action.startsWith('work:')) {
-      const titles = ['The Horizon Within', 'Fragments of Tomorrow', 'A More Human Web', 'Kinetic Objects'];
-      customContent = { title: titles[Number(action.split(':')[1])] ?? 'Selected Work', subtitle: 'Project presentation — content can be connected here.', buttons: [{ label: '← All work', action: 'work' }] };
-    } else if (action.startsWith('service:') || action.startsWith('project:')) {
-      page = 'project'; customContent = undefined;
-    }
-    options.onAction?.(action); draw();
+  function requestFonts() {
+    if (fontsRequested || !document.fonts) return;
+    fontsRequested = true;
+    void Promise.allSettled([`400 76px ${serif}`, `500 26px ${sans}`, `500 24px ${mono}`].map(font => document.fonts.load(font))).then(draw);
+  }
+  function setFocus(next: ScreenFocus) {
+    if (focus?.id === next.id) return;
+    focus = next;
+    if (!next.poster) { poster = undefined; draw(); return; }
+    const image = new Image();
+    image.decoding = 'async';
+    image.onload = () => { if (poster === image) draw(); };
+    image.src = next.poster; poster = image;
+    draw();
   }
   function hit(event: PointerEvent) {
     const rect = options.canvas.getBoundingClientRect();
     pointer.set((event.clientX - rect.left) / rect.width * 2 - 1, -(event.clientY - rect.top) / rect.height * 2 + 1);
     raycaster.setFromCamera(pointer, options.camera);
-    const intersection = raycaster.intersectObjects(meshes, false)[0];
-    if (!intersection?.uv) return undefined;
-    // glTF material texture coordinates are top-left, and CanvasTexture.flipY=false preserves them.
-    const x = intersection.uv.x * width, y = intersection.uv.y * height;
-    return regions.find((region) => x >= region.x && x <= region.x + region.w && y >= region.y && y <= region.y + region.h);
+    return raycaster.intersectObjects(meshes, false).length > 0;
   }
   function onMove(event: PointerEvent) {
     if (!active) return;
-    const next = hit(event)?.action ?? '';
+    const next = hit(event);
     if (next !== hovered) { hovered = next; options.canvas.style.cursor = next ? 'pointer' : 'default'; draw(); }
   }
   function onClick(event: PointerEvent) {
-    if (!active || event.button !== 0) return;
-    const region = hit(event); if (region) activate(region.action);
+    if (!active || event.button !== 0 || !hit(event)) return;
+    options.onOpen?.();
   }
   options.canvas.addEventListener('pointermove', onMove);
   options.canvas.addEventListener('pointerup', onClick);
@@ -189,18 +148,32 @@ export function createPresentationScreen(options: Options) {
       active = value;
       // The authored display stays intact throughout the cinematic showcase.
       if (value && !activated) { meshes.forEach((mesh) => { mesh.material = material; }); activated = true; }
-      hovered = ''; options.canvas.style.cursor = 'default'; draw();
+      if (value) requestFonts();
+      hovered = false; options.canvas.style.cursor = 'default'; draw();
     },
-    setContent(content?: ScreenContent) { customContent = content; draw(); },
-    setAction: activate,
-    update() {
-      if (customContent?.video && !customContent.video.paused && customContent.video.currentTime !== lastVideoTime) {
-        lastVideoTime = customContent.video.currentTime; draw();
+    setFocus,
+    /** The screen's on-page bounds (client px) from the current camera, for the open/close zoom. */
+    getScreenRect(): ScreenRect | undefined {
+      const position = meshes[0]?.geometry.attributes.position;
+      if (!position?.count) return undefined;
+      const rect = options.canvas.getBoundingClientRect(), point = new THREE.Vector3();
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const mesh of meshes) {
+        const vertices = mesh.geometry.attributes.position;
+        for (let i = 0; i < vertices.count; i++) {
+          point.fromBufferAttribute(vertices, i).applyMatrix4(mesh.matrixWorld).project(options.camera);
+          minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x); minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y);
+        }
       }
+      const left = rect.left + (minX + 1) / 2 * rect.width, right = rect.left + (maxX + 1) / 2 * rect.width;
+      const top = rect.top + (1 - maxY) / 2 * rect.height, bottom = rect.top + (1 - minY) / 2 * rect.height;
+      return { left, top, width: right - left, height: bottom - top };
     },
     getWorldCenter(target = new THREE.Vector3()) {
       if (!meshes.length) return target.set(11.6, 1.95, -9.9);
-      return new THREE.Box3().setFromObject(meshes[0]).getCenter(target);
+      // The LED surface never moves; measure it once instead of every seated frame.
+      worldCenter ??= new THREE.Box3().setFromObject(meshes[0]).getCenter(new THREE.Vector3());
+      return target.copy(worldCenter);
     },
     dispose() {
       options.canvas.removeEventListener('pointermove', onMove); options.canvas.removeEventListener('pointerup', onClick);

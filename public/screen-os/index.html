@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>motiondesign.ad — Screen OS</title>
+  <meta name="description" content="Motion design project browser. Sample content.">
+  <meta name="theme-color" content="#070504">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wdth,wght@75..100,400..700&family=Instrument+Serif&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="os is-booting" id="os" data-view="home">
+
+    <!-- Backdrop: ambient wash of the focused project -->
+    <div class="backdrop" aria-hidden="true">
+      <div class="backdrop__layer" data-layer="0"></div>
+      <div class="backdrop__layer" data-layer="1"></div>
+      <div class="backdrop__shade"></div>
+    </div>
+
+    <header class="topbar enter">
+      <div class="brand">
+        <span class="brand__mark" id="brandMark">md<b>.</b></span>
+        <span class="brand__name">motiondesign.ad</span>
+      </div>
+
+      <nav class="views lg" aria-label="View">
+        <span class="thumb" aria-hidden="true"></span>
+        <button class="view-btn" data-nav data-view-btn="home" aria-pressed="true">Home</button>
+        <button class="view-btn" data-nav data-view-btn="library" aria-pressed="false">Library</button>
+      </nav>
+
+      <div class="status">
+        <button class="menu-btn lg" data-nav id="menuBtn" aria-label="Quick menu" aria-haspopup="dialog">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- HOME: looping 3D carousel, caption with the primary action, category chips -->
+    <main class="home" id="home" aria-label="Home">
+      <section class="stage" id="stage" aria-label="Projects" aria-roledescription="carousel">
+        <div class="carousel" id="carousel"></div>
+      </section>
+
+      <div class="caption enter">
+        <div class="caption__text" aria-live="polite">
+          <p class="caption__niche" id="capNiche"></p>
+          <h1 class="caption__title" id="capTitle"></h1>
+          <p class="caption__purpose" id="capPurpose"></p>
+        </div>
+        <button class="watch lg" data-nav id="playBtn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+          <span>Watch</span>
+        </button>
+      </div>
+
+      <nav class="cats enter" id="cats" aria-label="Categories"></nav>
+
+      <p class="hints enter" aria-hidden="true">
+        <span><kbd>←</kbd><kbd>→</kbd> Browse</span>
+        <span><kbd>Enter</kbd> Watch</span>
+        <span><kbd>L</kbd> Library</span>
+        <span><kbd>M</kbd> Menu</span>
+      </p>
+    </main>
+
+    <!-- LIBRARY: everything on one screen -->
+    <main class="library" id="library" aria-label="Library" hidden>
+      <div class="grid" id="grid"></div>
+    </main>
+
+    <!-- Quick menu -->
+    <aside class="quick" id="quick" role="dialog" aria-modal="true" aria-label="Quick menu" hidden>
+      <div class="quick__panel lg">
+        <p class="quick__label">Quick menu</p>
+        <button class="quick__item" data-nav data-go="home">Home</button>
+        <button class="quick__item" data-nav data-go="library">Library</button>
+        <button class="quick__item" data-nav id="soundToggle" aria-pressed="true">Sound</button>
+        <button class="quick__item" data-nav id="motionToggle" aria-pressed="false">Reduce motion</button>
+        <button class="quick__item" data-nav id="leaveBtn" hidden>Back to the lounge</button>
+      </div>
+    </aside>
+
+    <!-- Player: full-screen clip with sound, opened out of the card -->
+    <div class="cinema" id="cinema" role="dialog" aria-modal="true" aria-labelledby="cinemaTitle" hidden>
+      <img class="cinema__fill" id="cinemaFill" alt="" aria-hidden="true">
+      <video class="cinema__video" id="cinemaVideo" playsinline preload="auto"></video>
+      <img class="cinema__still" id="cinemaStill" alt="" aria-hidden="true">
+      <div class="cinema__shade" aria-hidden="true"></div>
+      <div class="cinema__info">
+        <p class="cinema__niche" id="cinemaNiche"></p>
+        <h2 class="cinema__title" id="cinemaTitle"></h2>
+        <p class="cinema__meta" id="cinemaMeta"></p>
+        <span class="cinema__progress" aria-hidden="true"><i id="cinemaProgress"></i></span>
+      </div>
+      <div class="cinema__controls">
+        <button class="cinema-btn lg" id="cinemaToggle" aria-label="Pause">
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.6" height="14" rx="1.2"/><rect x="13.9" y="5" width="3.6" height="14" rx="1.2"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.4-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+        </button>
+        <button class="cinema-exit lg" id="cinemaExit">Back <kbd>Esc</kbd></button>
+      </div>
+    </div>
+
+    <div class="boot" id="boot" aria-hidden="true"><span class="boot__mark" id="bootMark">md<b>.</b></span></div>
+  </div>
+
+  <script src="vendor/gsap.min.js"></script>
+  <script src="data.js"></script>
+  <script src="posters.js"></script>
+  <script src="sound.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
