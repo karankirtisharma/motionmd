@@ -1,0 +1,23 @@
+{
+  "name": "shell-detail-orm",
+  "ok": true,
+  "sourceSHA256": "d8bc6dc7677c55737e3240331f623f4a81d35005796b939dcf6a6f1caf37d379",
+  "outputSHA256": "1069eae9673aad5405089716a974a10888fcaae19e3a29cb11e2ab8757d9a77d",
+  "bytes": 1022698,
+  "sourcePNGBytes": 1089642,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "Linear box",
+  "orientation": "rd",
+  "seconds": 17.654,
+  "quality": {
+    "rgbPSNR": 88.79940711471892,
+    "maxChannelError": 3,
+    "alphaMaxError": 0
+  }
+}

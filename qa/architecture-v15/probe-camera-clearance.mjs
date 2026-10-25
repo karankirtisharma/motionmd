@@ -1,0 +1,5 @@
+import fs from 'node:fs';import * as T from 'three';import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';import {createCollisionWorld} from '../../src/runtime/interaction/CollisionWorld.ts';
+const m=JSON.parse(fs.readFileSync('public/assets/scene-manifest.json')),root=new T.Group();
+for(const u of [m.collisions.url,...m.collisions.additionalUrls]){const b=fs.readFileSync('public'+u);root.add((await new GLTFLoader().parseAsync(b.buffer.slice(b.byteOffset,b.byteOffset+b.length),'')).scene)}
+const p=await createCollisionWorld(root,undefined,root);
+for(const [x,z] of [[3,-10.65],[5,-10.65],[-1.1,-10],[-1.1,-11.2],[12,-24.63],[18.6,-24.63]]){const feet=new T.Vector3(x,4.23,z);feet.y=p.groundAt(feet);let a=[];for(const yaw of [0,Math.PI/2,Math.PI,-Math.PI/2]){const pivot=feet.clone().add(new T.Vector3(0,1.35,0)),cam=pivot.clone().add(new T.Vector3(Math.sin(yaw)*2.45,.1,Math.cos(yaw)*2.45));a.push({yaw,distance:p.cameraDistance(pivot,cam)})}console.log(JSON.stringify({feet:feet.toArray(),stand:p.canStandAt(feet),camera:a}))}p.dispose();

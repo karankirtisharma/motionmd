@@ -1,0 +1,36 @@
+{
+  "scope": "Side-conversation material and geometry repairs",
+  "sourceBlendSaved": false,
+  "implemented": [
+    "Lossless float Meshopt geometry across six chunks; source topology, UVs and node transforms preserved",
+    "Entrance reflection volume extended to the actual MD sculpture",
+    "Studio reflection volume extended through the height of the suspended MD sculpture",
+    "Original photographic limestone textures with authored world-scale mapping",
+    "Original greige marble image and authored color ramp sampled independently of the unique lighting atlas"
+  ],
+  "verified": [
+    "TypeScript typecheck passed",
+    "All six active GLB hashes match the manifest; all referenced external texture files exist",
+    "WebGPU and WebGL source floor/wall shaders compiled and rendered",
+    "Full live entrance, studio, founder and lounge reference views inspected",
+    "MD chrome orb now visibly reflects the room; gold trim and bevels are continuous",
+    "Founder chair and desktop screen images are visible with current source-material assets"
+  ],
+  "remaining": [
+    "Lounge pier shading still contains visible mottling in the current shared GI asset set",
+    "Authored procedural dark stone still looks soft at very close range because its unique atlas has limited texel density",
+    "Captured room reflections are static; moving avatars and changing displays are not reflected",
+    "Motion was spot-checked, not every prop at every camera angle"
+  ],
+  "sharedChangesPreserved": [
+    "Original founder chair texture promotion",
+    "Orientation-v3 lighting and the main runtime policy retaining those bakes"
+  ],
+  "preview": "http://127.0.0.1:3017/?debug=1",
+  "screenshots": [
+    "browser-previews/sculpture-precision-reflections-v3.jpg",
+    "browser-previews/sculpture-precision-reflections-v3-webgl.jpg",
+    "browser-previews/founder-precision-source-materials-v3.jpg",
+    "browser-previews/studio-precision-source-materials-v3.jpg"
+  ]
+}

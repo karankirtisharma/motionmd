@@ -6,24 +6,20 @@ import { screenUV, texture } from 'three/tsl';
  * The stock r186 ReflectorNode oblique projection assumes forward depth. Keep
  * the existing scene's reversed-depth precision by deriving the row from P^-1.
  */
-// Scratch values reused every frame (the mirror renders per frame while visible).
-const _position = new Vector3(), _direction = new Vector3(), _offset = new Vector3(), _target = new Vector3();
-const _plane = new Plane(), _clip = new Vector4(), _farCorner = new Vector4();
-
 export function mirrorCamera(source: PerspectiveCamera, camera: PerspectiveCamera, point: Vector3, normal: Vector3) {
   source.updateMatrixWorld();
   camera.copy(source, false);
-  const position = source.getWorldPosition(_position);
-  const direction = source.getWorldDirection(_direction);
-  camera.position.copy(position).addScaledVector(normal, -2 * _offset.copy(position).sub(point).dot(normal));
+  const position = source.getWorldPosition(new Vector3());
+  const direction = source.getWorldDirection(new Vector3());
+  camera.position.copy(position).addScaledVector(normal, -2 * position.clone().sub(point).dot(normal));
   camera.up.copy(source.up).transformDirection(source.matrixWorld).reflect(normal);
-  camera.lookAt(_target.copy(camera.position).add(direction.reflect(normal)));
+  camera.lookAt(camera.position.clone().add(direction.reflect(normal)));
   camera.updateMatrixWorld();
-  const plane = _plane.setFromNormalAndCoplanarPoint(normal, point).applyMatrix4(camera.matrixWorldInverse);
-  const clip = _clip.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
+  const plane = new Plane().setFromNormalAndCoplanarPoint(normal, point).applyMatrix4(camera.matrixWorldInverse);
+  const clip = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
   const reversed = source.reversedDepth;
   const glForward = source.coordinateSystem === WebGLCoordinateSystem && !reversed;
-  const farCorner = _farCorner.set(Math.sign(clip.x) || 1, Math.sign(clip.y) || 1, reversed ? 0 : 1, 1)
+  const farCorner = new Vector4(Math.sign(clip.x) || 1, Math.sign(clip.y) || 1, reversed ? 0 : 1, 1)
     .applyMatrix4(source.projectionMatrixInverse);
   clip.multiplyScalar((glForward ? 2 : 1) / clip.dot(farCorner));
   const p = camera.projectionMatrix.elements;
@@ -84,7 +80,6 @@ export function createGalleryMirror(root: Object3D) {
   }
   const camera = new PerspectiveCamera(), frustum = new Frustum(), matrix = new Matrix4(), size = new Vector2();
   const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
-  const visibility: boolean[] = [];
   return {
     update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera) {
       if (!material.visible) return;
@@ -106,7 +101,8 @@ export function createGalleryMirror(root: Object3D) {
       mirrorCamera(view, camera, point, normal);
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
-      for (let i = 0; i < panes.length; i++) { visibility[i] = panes[i].visible; panes[i].visible = false; }
+      const visibility = panes.map(surface => surface.visible);
+      panes.forEach(surface => { surface.visible = false; });
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target); renderer.autoClear = true;
         renderer.render(scene, camera);

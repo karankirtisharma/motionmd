@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
-import ScreenOS from '@/components/ScreenOS';
 import type { SceneRuntime } from '@/runtime/SceneRuntime';
 import type { DiagnosticMode } from '@/runtime/rendering/diagnostics';
 import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats } from '@/types';
@@ -26,8 +25,6 @@ export default function Home() {
   const [stats, setStats] = useState<RuntimeStats | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [screenActive, setScreenActive] = useState(false);
-  const [screenOpen, setScreenOpen] = useState(false);
-  const screenOpenRef = useRef(false);
   const [debug, setDebug] = useState(false);
   const [referenceCameras, setReferenceCameras] = useState<string[]>([]);
   const [referenceCamera, setReferenceCamera] = useState('');
@@ -59,8 +56,7 @@ export default function Home() {
         onHint: value => { if (!cancelled) setHint(value); },
         onStats: value => { if (!cancelled) setStats(value); },
         onError: value => { if (!cancelled) setError(value); },
-        onScreenMode: value => { if (!cancelled) { setScreenActive(value); if (!value) { screenOpenRef.current = false; setScreenOpen(false); } } },
-        onScreenOpen: () => { if (!cancelled && !menuRef.current) { screenOpenRef.current = true; setScreenOpen(true); } },
+        onScreenMode: value => { if (!cancelled) setScreenActive(value); },
         onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
         onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
         onCameraViewChange: value => { if (!cancelled) setCameraView(value); },
@@ -86,7 +82,6 @@ export default function Home() {
     const keydown = (event: KeyboardEvent) => {
       if (transitionRef.current || welcomeRef.current) return;
       if (event.key === 'Escape') {
-        if (screenOpenRef.current) { screenOpenRef.current = false; setScreenOpen(false); return; }
         if (menuRef.current || isField(event.target)) return;
         openMenu(); return;
       }
@@ -129,11 +124,6 @@ export default function Home() {
       onTouchLook={value => sendTouch(value.x, value.y)}
       onTouchSprint={value => { touch.current.sprint = value; sendTouch(); }} onTouchExit={openMenu}
     /></div>
-    <ScreenOS open={screenOpen} reducedMotion={reducedMotion}
-      getScreenRect={() => runtime.current?.getScreenRect()}
-      onFocus={focus => runtime.current?.setScreenFocus(focus)}
-      onClose={() => { screenOpenRef.current = false; setScreenOpen(false); }}
-      onCovered={value => runtime.current?.setCovered(value)} />
     <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
     {debug && <aside aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
       <div>Render diagnostics</div>
@@ -160,7 +150,7 @@ export default function Home() {
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
-      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk', 'lounge-chair'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
+      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
       {debug && runtime.current?.getInteractionState()?.deskStage && <details><summary>Chair inspection</summary><output style={{ display: 'block', maxWidth: 320, overflowWrap: 'anywhere' }}>{JSON.stringify(runtime.current?.getInteractionState())}</output>{(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Chair {view} view</button>)}</details>}
     </aside>}
   </main>;

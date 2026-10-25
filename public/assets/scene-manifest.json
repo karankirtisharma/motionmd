@@ -18,7 +18,7 @@
     {
       "id": "lounge",
       "url": "/assets/architecture-v16/lounge.glb",
-      "bytes": 24881476,
+      "bytes": 26212432,
       "objects": 6,
       "textureURLs": [
         "/assets/v2/textures/lounge-architecture-normal.ktx2",
@@ -32,12 +32,12 @@
         "/assets/v2/textures/lounge-hero-orm.ktx2"
       ],
       "textureBytes": 26424601,
-      "sha256": "6589486192db5560ea8f81ed5861d75b5bd05c755240ebe746e91bc6afc32f8b"
+      "sha256": "7591440300646f6910d1f3a0da8e0dd4d989f772ce3861f6dc7a872da03a036a"
     },
     {
       "id": "entrance",
       "url": "/assets/architecture-v19/entrance.glb",
-      "bytes": 13419456,
+      "bytes": 15790368,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/entrance-architecture-normal.ktx2",
@@ -48,7 +48,7 @@
         "/assets/v2/textures/entrance-detail-orm.ktx2"
       ],
       "textureBytes": 35192281,
-      "sha256": "4e80f3840e8e4018dbde3c0e2226ed47528e94517ddf9ed3d5c66ed83d3b5dc8"
+      "sha256": "2e40225a229a8f9da678857250f55d25b44ad5e361ddb5d9229a02fdab54756e"
     },
     {
       "id": "shell",
@@ -85,7 +85,7 @@
     {
       "id": "founder",
       "url": "/assets/architecture-v21/founder.glb",
-      "bytes": 98970100,
+      "bytes": 100150584,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/founder-architecture-normal.ktx2",
@@ -102,12 +102,12 @@
         "/assets/source-materials/founder-native-chair-normal.png"
       ],
       "textureBytes": 49398656,
-      "sha256": "9d7a6aa7e9853bf4f23e60998845723dbaa5a2f3218ffee4c8250b7b0e2f7608"
+      "sha256": "48d53008eda6f43849bce1ffd8b81d6eb995011c36e0410db62a2049f9d9e499"
     },
     {
       "id": "studio",
       "url": "/assets/architecture-v16/studio.glb",
-      "bytes": 218861292,
+      "bytes": 300537632,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/studio-hero-normal.ktx2",
@@ -121,7 +121,7 @@
         "/assets/v2/textures/studio-detail-orm.ktx2"
       ],
       "textureBytes": 46744061,
-      "sha256": "4cd4dd7c37e76e28e40293113d2afdee14ea05925b7e108193b495d64968938c"
+      "sha256": "9ace9b8189d937fb2dd8cd592530ef05741ecbc18fa4aca933dfe5899a2efb29"
     },
     {
       "id": "founder-lift",

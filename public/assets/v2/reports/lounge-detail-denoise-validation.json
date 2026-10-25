@@ -1,0 +1,28 @@
+{
+  "atlas": "lounge-detail",
+  "ok": true,
+  "rawSHA256": "dcbddcb48a69389358e047c9f47f7179f8ab4ccb8261dd155fbdf8f34ad1e3c2",
+  "outputSHA256": "16eeedb2ef6fa6475f07851d7e249d535ce64cf9d06551f419db2608d983cf56",
+  "protectedPixels": 1580932,
+  "guardWithinHalfULP": true,
+  "protectedHalfQuantizationMaxError": 0.0,
+  "interiorMeanBefore": [
+    0.3036277986649383,
+    0.22059997528316302,
+    0.13790094682101012
+  ],
+  "interiorMeanAfter": [
+    0.30643049212494117,
+    0.22167104864511,
+    0.13872424115338053
+  ],
+  "interiorRelativeMeanChange": [
+    0.009230687942034393,
+    0.004855274170235712,
+    0.0059701862195262086
+  ],
+  "outputBytes": 3268047,
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "liveFilesModified": false,
+  "visualReviewRequired": true
+}

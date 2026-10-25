@@ -1,0 +1,23 @@
+{
+  "name": "gallery-detail-orm",
+  "ok": true,
+  "sourceSHA256": "483d5d72c5ea5cbebe2ee9bd561db58a537386c07ce8efe038d5f244d70ef3e7",
+  "outputSHA256": "ef5884371a95dafd282ba90046d9853bd8ec82e86937be8e2401a80648c9178d",
+  "bytes": 3951221,
+  "sourcePNGBytes": 3227325,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "Linear box",
+  "orientation": "rd",
+  "seconds": 54.333,
+  "quality": {
+    "rgbPSNR": 71.94933179398862,
+    "maxChannelError": 5,
+    "alphaMaxError": 0
+  }
+}

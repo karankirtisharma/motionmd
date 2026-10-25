@@ -1,0 +1,16 @@
+{
+  "samples": 256,
+  "size": 2048,
+  "seconds": 170.8504798412323,
+  "contains": [
+    "indirect diffuse",
+    "direct practical lights"
+  ],
+  "excludes": [
+    "base color",
+    "direct sun",
+    "view-dependent reflections"
+  ],
+  "uv": "BakeUV",
+  "source": "C:\\Users\\karan_z7alww2\\Documents\\Codex\\2026-10-04\\i-have-a-detailed-blender-blend\\work\\founder-stair-v7\\Stair_Bake_Working.blend"
+}

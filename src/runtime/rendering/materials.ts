@@ -75,18 +75,6 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
     return cache.get(key)!;
   };
   try {
-  // Start every texture download together (lightmap EXRs were fetched one by one).
-  // The loop below still resolves them from the cache in manifest order, so the
-  // material assignment is unchanged; failures surface where they are awaited.
-  const prefetch = (url: string | undefined, usage: 'color'|'linear'|'data') => { if (url) void texture(url, usage).catch(() => undefined); };
-  for (const entry of manifest.materials ?? []) {
-    if (entry.sourcePBR) {
-      for (const slot of ['map', 'normalMap', 'roughnessMap', 'metalnessMap'] as const) prefetch(entry.sourcePBR[slot], slot === 'map' ? 'color' : 'data');
-      continue;
-    }
-    for (const key of textureKeys) prefetch(entry[key], key === 'map' || key === 'emissiveMap' ? 'color' : 'data');
-    prefetch(entry.lightMap, 'linear');
-  }
   for (const entry of manifest.materials ?? []) {
     signal?.throwIfAborted();
     if (entry.sourcePBR) {

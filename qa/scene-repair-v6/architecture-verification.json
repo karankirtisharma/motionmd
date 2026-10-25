@@ -1,0 +1,29 @@
+{
+  "visibleSourceObjects": 8782,
+  "visibleObjectsMoved": 757,
+  "objectInventoryPreserved": true,
+  "vertexCountsPreserved": true,
+  "materialAssignmentsPreserved": true,
+  "unintendedTransformChanges": 0,
+  "before": {
+    "furnitureCount": 10,
+    "structuralCount": 190,
+    "candidateIntersections": [
+      {
+        "furniture": "MF bench 04 stone bronze desktop",
+        "structure": "R9 limestone gallery pier.001",
+        "overlapMeters": [
+          0.45999908447265625,
+          0.37999725341796875,
+          0.04999995231628418
+        ]
+      }
+    ]
+  },
+  "after": {
+    "furnitureCount": 10,
+    "structuralCount": 190,
+    "candidateIntersections": []
+  },
+  "scope": "All visible objects checked for inventory, vertex count, material assignments and unintended movement. Large tables/desktops checked against tall architectural walls/piers/columns by source-space AABB; candidates require visual review. This is not an exhaustive triangle-intersection proof for 8,782 nested decorative components."
+}

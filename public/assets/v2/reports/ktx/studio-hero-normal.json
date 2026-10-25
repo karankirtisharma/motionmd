@@ -1,0 +1,26 @@
+{
+  "name": "studio-hero-normal",
+  "ok": true,
+  "sourceSHA256": "d5a589506c4725d195df671a5dffe2df787667f66c6cd7d0449c38c7ff4c34f0",
+  "outputSHA256": "488344fa2eb55a3cc96cde1662065eaf09365710ab6be44a8c1103d22befef01",
+  "bytes": 9660509,
+  "sourcePNGBytes": 13873106,
+  "width": 4096,
+  "height": 4096,
+  "levels": 13,
+  "encoder": "Official Khronos KTX 4.4.2 portable WASM",
+  "mode": "UASTC level 3 / slower, no RDO, Zstd 9",
+  "channelPacking": "RGBA preserved; normal RGB is not swizzled or reduced",
+  "colorSpace": "linear data",
+  "mipFilter": "XYZ average then renormalize",
+  "orientation": "rd",
+  "seconds": 174.564,
+  "quality": {
+    "rgbPSNR": 51.96907016556159,
+    "maxChannelError": 14,
+    "alphaMaxError": 0,
+    "validNormalPixels": 16777216,
+    "normalMeanDegrees": 0.29068834672217986,
+    "normal99PercentileDegrees": 1.6
+  }
+}

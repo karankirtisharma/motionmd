@@ -16,7 +16,7 @@
     "test:rendering": "node --test qa/rendering.test.mjs",
     "test:scene-repair": "node --test qa/scene-repair.test.mjs",
     "benchmark:collision": "node qa/benchmark-collision.mjs",
-    "prebuild": "node scripts/verify-assets.mjs && node scripts/compress-assets.mjs && node scripts/asset-versions.mjs",
+    "prebuild": "node scripts/verify-assets.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
     "test": "node --test qa/*.test.mjs"
   },

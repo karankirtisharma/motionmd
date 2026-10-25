@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650&display=swap');
 
 :root {
   color-scheme: dark;
@@ -9,7 +10,7 @@
   --gold-light: #f2dcc0;
   --line: rgba(235, 223, 202, .18);
   --gutter: clamp(22px, 3.2vw, 64px);
-  --font-sans: var(--font-dm-sans), 'DM Sans', 'Segoe UI', sans-serif;
+  --font-sans: 'DM Sans', 'Segoe UI', sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -228,6 +229,3 @@ kbd { display: inline-flex; align-items: center; justify-content: center; min-wi
   .experience-choice { padding: 13px 16px; }
   .welcome-panel .panel-note { margin-top: 15px; }
 }
-.screen-os { position: fixed; inset: 0; z-index: 30; background: #070504; transform-origin: 50% 50%; will-change: transform, clip-path, opacity; }
-.screen-os[hidden] { display: none; }
-.screen-os iframe { display: block; width: 100%; height: 100%; border: 0; background: #070504; }

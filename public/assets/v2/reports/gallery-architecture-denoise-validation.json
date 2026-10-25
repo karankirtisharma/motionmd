@@ -1,0 +1,28 @@
+{
+  "atlas": "gallery-architecture",
+  "ok": true,
+  "rawSHA256": "9b07b993453089918b16bc5219267fdf6ebd954307b75484e39995709c3924d5",
+  "outputSHA256": "0127d27fc98e90a2e75a7cf76006c3c3511d8e797dc84d36355357b1e59c0071",
+  "protectedPixels": 1531969,
+  "guardWithinHalfULP": true,
+  "protectedHalfQuantizationMaxError": 0.0,
+  "interiorMeanBefore": [
+    0.32412231602210445,
+    0.25518860297721313,
+    0.19822966452629945
+  ],
+  "interiorMeanAfter": [
+    0.32507923858519805,
+    0.2553026855759983,
+    0.19836173431828266
+  ],
+  "interiorRelativeMeanChange": [
+    0.0029523501338560667,
+    0.0004470520918809797,
+    0.0006662463577225686
+  ],
+  "outputBytes": 11389793,
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "liveFilesModified": false,
+  "visualReviewRequired": true
+}

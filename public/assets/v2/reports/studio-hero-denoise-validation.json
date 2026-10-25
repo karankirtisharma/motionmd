@@ -1,0 +1,28 @@
+{
+  "atlas": "studio-hero",
+  "ok": true,
+  "rawSHA256": "7628de98f6b8776d853e77576899b7b2ce9996ef409d67d36fa1b67d9089a7b6",
+  "outputSHA256": "767c1b64d8469b97b5086d8ef43936b68083469dca6c91aa8461ef558a83e96f",
+  "protectedPixels": 1716264,
+  "guardWithinHalfULP": true,
+  "protectedHalfQuantizationMaxError": 0.0,
+  "interiorMeanBefore": [
+    0.5915528599658152,
+    0.483842431931069,
+    0.3621945562527136
+  ],
+  "interiorMeanAfter": [
+    0.5931292108841724,
+    0.48435533215368826,
+    0.36308959451226025
+  ],
+  "interiorRelativeMeanChange": [
+    0.0026647676396125727,
+    0.001060056309183544,
+    0.0024711532630605926
+  ],
+  "outputBytes": 8711726,
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "liveFilesModified": false,
+  "visualReviewRequired": true
+}

@@ -1,0 +1,16 @@
+{
+  "counts": {
+    "Side curtain wall pane.030": 12,
+    "Side curtain wall pane.042": 12
+  },
+  "report": [
+    {
+      "chunk": "shell",
+      "removedTriangles": 24,
+      "originalBinaryPrefixUnchanged": true,
+      "bytes": 2318720
+    }
+  ],
+  "colliderRemoved": 2,
+  "addedRenderTriangles": 6096
+}

@@ -5,7 +5,7 @@ import { createGlassLift } from './GlassLift';
 import { loadAvatar } from './Avatar';
 import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smoothSupportHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
-import { createPresentationScreen, type ScreenFocus } from '../presentation/PresentationScreen';
+import { createPresentationScreen } from '../presentation/PresentationScreen';
 import { assetURL } from '../rendering/assets';
 import { createWorkstation, type Workstation } from './Workstation';
 import { createStairSurfaces } from './StairSurfaces';
@@ -18,7 +18,6 @@ type Options = {
   onStateChange?: (mode: 'explore' | 'seated') => void;
   onPrompt?: (prompt: RuntimeHint | null) => void;
   onScreenMode?: (active: boolean) => void;
-  onScreenOpen?: () => void;
   onCameraViewChange?: (view: CameraView) => void;
 };
 type Chair = {
@@ -48,35 +47,7 @@ export async function createInteractionController(options: Options) {
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
-  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, onOpen: () => options.onScreenOpen?.() }) : undefined;
-  // Moving shadow casters: avatar bones, the founder swivel and the lift parts. The sun
-  // shadow covers the whole building, so it is re-rendered only once one of them has moved
-  // by more than a fraction of a shadow texel since the last re-render; smaller motion
-  // (idle breathing between frames) cannot change the filtered shadow visibly.
-  const casterNodes: THREE.Object3D[] = [avatar.root];
-  avatar.root.traverse((object) => { if ((object as THREE.Bone).isBone) casterNodes.push(object); });
-  if (workstation) casterNodes.push(workstation.swivel);
-  scene.traverse((object) => { if (object.userData.liftRole) casterNodes.push(object); });
-  const casterSnapshot = new Float64Array(casterNodes.length * 12).fill(NaN);
-  const casterVisibility = { avatar: avatar.root.visible };
-  let shadowTolerance = 0.003;
-  function shadowCastersMoved() {
-    avatar.root.updateMatrixWorld(true);
-    let moved = avatar.root.visible !== casterVisibility.avatar;
-    for (let i = 0; i < casterNodes.length && !moved; i++) {
-      const e = casterNodes[i].matrixWorld.elements, o = i * 12;
-      // Basis columns (unit length) are compared as metres at one metre from the joint,
-      // a conservative bound for limbs shorter than that.
-      for (let k = 0; k < 12; k++) if (!(Math.abs(e[k < 3 ? k : k < 6 ? k + 1 : k < 9 ? k + 2 : k + 3] - casterSnapshot[o + k]) <= shadowTolerance)) { moved = true; break; }
-    }
-    if (!moved) return false;
-    for (let i = 0; i < casterNodes.length; i++) {
-      const e = casterNodes[i].matrixWorld.elements, o = i * 12;
-      for (let k = 0; k < 12; k++) casterSnapshot[o + k] = e[k < 3 ? k : k < 6 ? k + 1 : k < 9 ? k + 2 : k + 3];
-    }
-    casterVisibility.avatar = avatar.root.visible;
-    return true;
-  }
+  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName }) : undefined;
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
     const forward = item.forward ? new THREE.Vector3().fromArray(item.forward) : new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion().fromArray(item.quaternion));
@@ -586,8 +557,8 @@ export async function createInteractionController(options: Options) {
     const deskContacts = selected?.workstation && deskStage  ? { hands: selected.workstation.wrists, feet: plantedFeet, handWeight, footWeight: 1, upright: seatWeight, stanceWeight, balanceLean, deskHeight: selected.workstation.deskHeight, deskFront: selected.workstation.deskFront, hipOffset: 0.125, feetYaw, grip: gripWeight > 0 ? { hand: entrySide < 0 ? 1 : 0, point: selected.workstation.grip(chairAngle, entrySide), forward: selected.workstation.forward.clone().applyAxisAngle(up, chairAngle), weight: gripWeight } : undefined } : undefined;
     avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts,
       mode === 'explore' && !lift?.state.riding && verticalVelocity > -2 ? stairContact : undefined);
-    updateCamera(delta);
-    return shadowCastersMoved();
+    updateCamera(delta); display?.update();
+    return true;
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
@@ -613,10 +584,7 @@ export async function createInteractionController(options: Options) {
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
   }
   return {
-    player: avatar.root,
-    /** Objects whose geometry is read after load (raycasts, skinning); their CPU buffers must stay. */
-    readableObjects: [avatar.root, ...(workstation ? [workstation.group] : []), ...(display?.meshes ?? [])] as THREE.Object3D[],
-    update, enterExplore, exitExplore, handleInteract, leaveSeat, togglePointerLock, toggleCameraView,
+    player: avatar.root, update, enterExplore, exitExplore, handleInteract, leaveSeat, togglePointerLock, toggleCameraView,
     inspectDeskView(view: 'third-person' | 'side' | 'front') {
       cameraView = 'thirdPerson'; yaw = view === 'side' ? Math.PI : view === 'front' ? Math.PI / 2 : -Math.PI / 2;
       pitch = view === 'side' ? 0.04 : 0.16; inspectionDistance = view === 'third-person' ? undefined : 3.6;
@@ -630,10 +598,7 @@ export async function createInteractionController(options: Options) {
       display?.setActive(value && mode === 'seated' && !selected?.workstation);
       if (value) canvas.focus({ preventScroll: true });
     },
-    setScreenFocus(focus: ScreenFocus) { display?.setFocus(focus); },
-    getScreenRect() { return display?.getScreenRect(); },
-    /** Movement (m) below which a caster cannot change the filtered sun shadow. */
-    setShadowTolerance(metres: number) { shadowTolerance = metres; },
+    setScreenAction(action: string) { display?.setAction(action); },
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },

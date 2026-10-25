@@ -1,0 +1,133 @@
+{
+  "zone": "founder",
+  "geometryBinaryUnchanged": true,
+  "binarySHA256": "2df8cdff73a77185a067124896217a23577c6149c8c47a05a3384e09a43709c0",
+  "sourceSHA256": "2cfc1fd0c11593f3025bc67227b2222d62a9e54b721edb6783c8c10cc133111f",
+  "outputSHA256": "dbfb203da88a11519fe63df9f8c9515797ba9c3aeb33ae30181de92ccaaed5b9",
+  "changes": [
+    {
+      "material": "founder__FR79 | antique bronze hand knotted rug",
+      "sourceMaterial": "FR79 | antique bronze hand knotted rug",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.10000000149011612,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.10000000149011612,
+        0.10000000149011612,
+        0.10000000149011612
+      ]
+    },
+    {
+      "material": "founder__FR79 | reference wool fiber",
+      "sourceMaterial": "FR79 | reference wool fiber",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.11999999731779099,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.11999999731779099,
+        0.11999999731779099,
+        0.11999999731779099
+      ]
+    },
+    {
+      "material": "founder__FR79 | FR83 natural taupe wool",
+      "sourceMaterial": "FR79 | FR83 natural taupe wool",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.15000000596046448,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.15000000596046448,
+        0.15000000596046448,
+        0.15000000596046448
+      ]
+    },
+    {
+      "material": "founder__HF89 | ivory wool boucle upholstery",
+      "sourceMaterial": "HF89 | ivory wool boucle upholstery",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.3799999952316284,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.3799999952316284,
+        0.3799999952316284,
+        0.3799999952316284
+      ]
+    },
+    {
+      "material": "founder__HF89 | warm taupe fine woven cushions",
+      "sourceMaterial": "HF89 | warm taupe fine woven cushions",
+      "before": [
+        1,
+        1,
+        1
+      ],
+      "sourceWeight": 0.30000001192092896,
+      "sourceTint": [
+        1,
+        1,
+        1
+      ],
+      "after": [
+        0.30000001192092896,
+        0.30000001192092896,
+        0.30000001192092896
+      ]
+    },
+    {
+      "material": "founder__HF89 | warm porcelain satin glaze",
+      "sourceMaterial": "HF89 | warm porcelain satin glaze",
+      "property": "clearcoatRoughnessFactor",
+      "before": 0,
+      "after": 0.029999999329447746
+    },
+    {
+      "material": "founder__PR94 | warm porcelain glaze",
+      "sourceMaterial": "PR94 | warm porcelain glaze",
+      "property": "clearcoatRoughnessFactor",
+      "before": 0,
+      "after": 0.029999999329447746
+    },
+    {
+      "material": "founder__PR94 | muted celadon glaze",
+      "sourceMaterial": "PR94 | muted celadon glaze",
+      "property": "clearcoatRoughnessFactor",
+      "before": 0,
+      "after": 0.029999999329447746
+    }
+  ],
+  "previousRepairOutputSHA256": "2cfc1fd0c11593f3025bc67227b2222d62a9e54b721edb6783c8c10cc133111f",
+  "reason": "Blender5.2 glTF export uses Sheen Weight as presence gate only and omits source-default coat roughness .03 although glTF defaults to zero. Preserve source tint × sheen weight and explicit coat roughness.",
+  "limitation": "glTF and Blender use different BRDFs; parameter preservation cannot guarantee identical grazing response."
+}

@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/types';
-import { assetURL, fetchBuffer, pruneSceneCache, resolveAssetDependency, setAssetVersions } from './rendering/assets';
+import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
 import { repairArchitecturalJoins } from './rendering/architecturalJoins';
 import { repairStudioThreshold } from './rendering/floorThreshold';
@@ -19,12 +19,7 @@ import { createTemporalRenderer } from './rendering/TemporalRenderer';
 import { filterSourceSpecular } from './rendering/specularFiltering';
 import { partitionSourceGeometry } from './rendering/spatialVisibility';
 import { createGalleryMirror } from './rendering/galleryMirror';
-import { releaseUploadedData } from './rendering/releaseUploadedData';
 import { createInteractionController } from './interaction/InteractionController';
-import type { ScreenFocus } from './presentation/PresentationScreen';
-
-/** Frames a frozen view keeps rendering so temporal AA converges before rendering pauses (2 s at 60 Hz). */
-const STATIC_CONVERGE_FRAMES = 120;
 
 type InteractionController = Awaited<ReturnType<typeof createInteractionController>>;
 
@@ -59,13 +54,6 @@ export class SceneRuntime {
   private clock = new Clock(false);
   private quality: Quality = 'auto';
   private resolutionScale = 1;
-  private displayFps = 0;
-  private staticFrames = 0;
-  private holdDisabled = false;
-  private readonly lastView = new Float64Array(16);
-  private readonly lastProjection = new Float64Array(16);
-  private failedScale = 2;
-  private failedAt = -Infinity;
   private statsFrames = 0;
   private statsTime = 0;
   private frameSamples: number[] = [];
@@ -74,7 +62,6 @@ export class SceneRuntime {
   private renderErrorReported = false;
   private sceneTransition?: { elapsed: number; moved: boolean; progress: number; destination: 'tour' | 'explore' };
   private paused = false;
-  private covered = false;
   private reducedMotion = false;
   private diagnostics?: RenderDiagnostics;
   private referenceCamera = '';
@@ -92,8 +79,6 @@ export class SceneRuntime {
       const query = new URLSearchParams(window.location.search);
       this.inspectionEnabled = query.get('debug') === '1';
       const forceWebGL = this.inspectionEnabled && query.get('renderer') === 'webgl';
-      // Inspection only: keep rendering frozen views (A/B captures at a fixed frame count).
-      this.holdDisabled = this.inspectionEnabled && query.get('hold') === '0';
       this.renderer = new WebGPURenderer({ antialias: false, alpha: false, samples: 0, reversedDepthBuffer: true, forceWebGL });
       this.renderer.toneMapping = AgXToneMapping;
       this.renderer.outputColorSpace = SRGBColorSpace;
@@ -119,14 +104,9 @@ export class SceneRuntime {
       this.resize();
       document.addEventListener('visibilitychange', this.onVisibility);
 
-      // Content hashes for cache-busting URLs (absent in dev: assets stay unversioned).
-      const versionsRequest = fetch(assetURL('/assets/asset-versions.json'), { signal: this.abort.signal, cache: 'no-store' })
-        .then(r => (r.ok ? r.json() as Promise<{ files?: Record<string, string> }> : undefined)).catch(() => undefined);
       const response = await fetch(assetURL('/assets/scene-manifest.json'), { signal: this.abort.signal });
       if (!response.ok) throw new Error('The architectural scene is not available. Please try again.');
       this.manifest = await response.json() as SceneManifest;
-      setAssetVersions((await versionsRequest)?.files);
-      void pruneSceneCache();
       this.validateManifest();
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
       const colorLUT = await configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal);
@@ -166,10 +146,8 @@ export class SceneRuntime {
         onStateChange: (mode: 'explore' | 'seated') => this.setMode(mode),
         onPrompt: (hint: {text: string; target?: string} | null) => this.callbacks.onHint?.(hint),
         onScreenMode: (active: boolean) => this.callbacks.onScreenMode?.(active),
-        onScreenOpen: () => this.callbacks.onScreenOpen?.(),
         onCameraViewChange: view => this.callbacks.onCameraViewChange?.(view),
       });
-      this.applyShadowTolerance();
       if (this.disposed || this.abort.signal.aborted) { this.controls.dispose(); return; }
       this.controls.setEnabled(false);
       this.lighting.refreshProbeLighting(this.controls.player, true);
@@ -204,9 +182,6 @@ export class SceneRuntime {
       });
       console.info('[MD warmup] shader compilation complete', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
       this.shaderValidation.assertCompiled();
-      // Everything is resident on the GPU now; return the decoded CPU copies to the heap.
-      const released = releaseUploadedData(this.renderer, this.scene, this.textures, this.controls.readableObjects);
-      console.info('[MD memory] released uploaded CPU data', { ...released, mebibytes: Math.round(released.bytes / 1048576) });
       this.abort.signal.throwIfAborted();
       // Source architecture and sunset are fixed. Reuse their shadow map throughout the
       // cinematic; character motion invalidates it during exploration below.
@@ -232,9 +207,6 @@ export class SceneRuntime {
   private async loadSource() {
     const loadGuard = createAssetLoadGuard(resolveAssetDependency);
     const loader = new GLTFLoader(loadGuard.manager);
-    // Decode meshopt buffers off the main thread (same WASM, identical output) so the
-    // loading screen and texture transcoding keep running while large chunks unpack.
-    MeshoptDecoder.useWorkers(Math.max(2, Math.min(4, (navigator.hardwareConcurrency || 4) - 2)));
     loader.setMeshoptDecoder(MeshoptDecoder);
     this.ktx2 = new KTX2Loader(loadGuard.manager).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
@@ -253,7 +225,7 @@ export class SceneRuntime {
           lastProgressAt = now;
           const received = [...bytes.values()].reduce((sum, value) => sum + value, 0);
           this.callbacks.onProgress?.({ phase: 'Loading the architecture', progress: total > 0 ? Math.min(received / total, 1) : undefined, detail: `${(received / 1048576).toFixed(1)} MB${total ? ` / ${(total / 1048576).toFixed(1)} MB` : ''}` });
-        }, chunk.bytes);
+        });
         if (this.disposed) return;
         const absolute = new URL(assetURL(chunk.url), window.location.href).href;
         const gltf = await loader.parseAsync(buffer, absolute.slice(0, absolute.lastIndexOf('/') + 1));
@@ -305,7 +277,7 @@ export class SceneRuntime {
   private tick = () => {
     if (this.disposed || this.mode === 'error') return;
     const elapsed = this.clock.getDelta();
-    if (document.hidden || this.covered) return;
+    if (document.hidden) return;
     const dt = Math.min(elapsed, 0.05);
     let characterAdvanced = false;
     if (this.sceneTransition) this.updateSceneTransition(dt);
@@ -316,7 +288,6 @@ export class SceneRuntime {
     // Idle breathing and seated motion still cast changing shadows. Frozen reference
     // views, menus and fades reuse the map until an explicit scene change below.
     if (characterAdvanced && this.lighting) this.lighting.sun.shadow.needsUpdate = true;
-    if (this.holdStaticFrame()) return;
     try { this.galleryMirror?.update(this.renderer, this.scene, this.camera); if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
     this.statsFrames++; this.statsTime += elapsed;
@@ -327,7 +298,7 @@ export class SceneRuntime {
       const fps = this.statsFrames / this.statsTime;
       if (this.quality === 'auto' && !this.paused) this.adaptResolution(fps);
       const samples = this.frameSamples.sort((a, b) => a - b);
-      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
+      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: this.renderer.backend.constructor.name.includes('WebGPU') ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
         frameP50Ms: samples[Math.floor(samples.length * .5)], frameP95Ms: samples[Math.floor(samples.length * .95)],
         resourceMiB: (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 });
       this.frameSamples.length = 0;
@@ -335,46 +306,17 @@ export class SceneRuntime {
     }
   };
 
-  /**
-   * Frozen views (menu pause, reference camera, the welcome view before the tour plays) stop
-   * re-rendering once temporal AA has converged; the canvas keeps presenting that last frame.
-   * Any camera, size, setting or shadow change renders again immediately.
-   */
-  private holdStaticFrame() {
-    if (this.holdDisabled) return false;
-    const frozen = this.paused || !!this.referenceCamera || (this.mode === 'tour' && !this.cinematicPlaying && !this.sceneTransition);
-    this.camera.updateMatrixWorld();
-    const view = this.camera.matrixWorld.elements, projection = this.camera.projectionMatrix.elements;
-    let same = frozen && !this.lighting?.sun.shadow.needsUpdate;
-    for (let i = 0; i < 16 && same; i++) same = view[i] === this.lastView[i] && projection[i] === this.lastProjection[i];
-    for (let i = 0; i < 16; i++) { this.lastView[i] = view[i]; this.lastProjection[i] = projection[i]; }
-    this.staticFrames = same ? this.staticFrames + 1 : 0;
-    if (this.staticFrames <= STATIC_CONVERGE_FRAMES) return false;
-    this.clock.getDelta(); // do not count the idle span as one long frame when rendering resumes
-    return true;
-  }
-  /** Re-render after a change that the camera comparison cannot see (materials, size, quality). */
-  private invalidateFrame() { this.staticFrames = 0; }
-
   private adaptResolution(fps: number) {
     // Auto should recover toward 60 Hz, rather than accepting sustained 40 Hz.
     // Separate thresholds and small changes avoid resolution oscillation.
-    // A vsync-limited 60 Hz display never exceeds ~60 fps, so "fast" means holding the
-    // display's own best observed rate, not beating a fixed 68 fps. A scale that has just
-    // proven too slow is not retried for 30 s, which keeps the two thresholds from oscillating.
-    this.displayFps = Math.max(this.displayFps * 0.999, fps);
-    const now = performance.now();
     this.slowWindows = fps < 55 ? this.slowWindows + 1 : 0;
-    this.fastWindows = fps >= Math.min(68, this.displayFps * 0.97) ? this.fastWindows + 1 : 0;
-    if (this.slowWindows >= 2 && this.resolutionScale > 0.65) { this.failedScale = this.resolutionScale; this.failedAt = now; this.resolutionScale = Math.max(0.65, this.resolutionScale - 0.05); this.slowWindows = 0; this.resize(); }
-    const next = Math.min(1, this.resolutionScale + 0.05);
-    const blocked = now - this.failedAt < 30000 && next >= this.failedScale - 1e-6;
-    if (this.fastWindows >= 4 && this.resolutionScale < 1 && !blocked) { this.resolutionScale = next; this.fastWindows = 0; this.resize(); }
+    this.fastWindows = fps > 68 ? this.fastWindows + 1 : 0;
+    if (this.slowWindows >= 2 && this.resolutionScale > 0.65) { this.resolutionScale = Math.max(0.65, this.resolutionScale - 0.05); this.slowWindows = 0; this.resize(); }
+    if (this.fastWindows >= 4 && this.resolutionScale < 1) { this.resolutionScale = Math.min(1, this.resolutionScale + 0.05); this.fastWindows = 0; this.resize(); }
   }
 
   private resize() {
     if (!this.renderer || this.disposed) return;
-    this.invalidateFrame();
     const width = Math.max(1, this.container.clientWidth), height = Math.max(1, this.container.clientHeight);
     this.camera.aspect = width / height; this.camera.updateProjectionMatrix();
     const cap = this.quality === 'balanced' ? 1.25 : 2;
@@ -445,9 +387,9 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk' | 'lounge-chair') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63], 'founder-desk': [14.8, 4.265, -6.1], 'lounge-chair': [12.53, .03, -7.13] };
+    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63], 'founder-desk': [14.8, 4.265, -6.1] };
     const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
     this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
@@ -523,10 +465,7 @@ export class SceneRuntime {
   togglePointerLock() { this.controls?.togglePointerLock(); }
   consumeIntentionalUnlock() { return this.controls?.consumeIntentionalUnlock() ?? false; }
   stand() { this.controls?.leaveSeat?.(); }
-  setScreenFocus(focus: ScreenFocus) { this.controls?.setScreenFocus(focus); }
-  getScreenRect() { return this.controls?.getScreenRect(); }
-  /** An opaque page layer (the open Screen OS) hides the scene: skip simulation and rendering. */
-  setCovered(value: boolean) { this.covered = value; if (!value) this.invalidateFrame(); }
+  setScreenAction(action: string) { this.controls?.setScreenAction?.(action); }
   setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) { this.controls?.setVirtualInput?.(moveX, moveY, lookX, lookY, sprint); }
   setQuality(quality: Quality) {
     this.quality = quality; this.resolutionScale = 1; this.slowWindows = this.fastWindows = 0;
@@ -535,15 +474,7 @@ export class SceneRuntime {
       if (this.lighting.sun.shadow.mapSize.x !== size) this.lighting.sun.shadow.mapSize.set(size, size);
       this.lighting.sun.shadow.needsUpdate = true;
     }
-    this.applyShadowTolerance();
     this.resize();
-  }
-  /** A quarter of one sun-shadow texel: caster motion below this cannot change the filtered shadow. */
-  private applyShadowTolerance() {
-    const shadow = this.lighting?.sun.shadow, cam = shadow?.camera as { left?: number; right?: number; zoom?: number } | undefined;
-    if (!shadow || !cam || cam.left === undefined || cam.right === undefined || !shadow.mapSize?.x) return;
-    const texel = (cam.right - cam.left) / (cam.zoom || 1) / shadow.mapSize.x;
-    if (texel > 0) this.controls?.setShadowTolerance?.(texel * 0.25);
   }
   private disposeObject(root: Object3D, disposeTextures = false) {
     const geometries = new Set<Mesh['geometry']>(), materials = new Set<Material>();

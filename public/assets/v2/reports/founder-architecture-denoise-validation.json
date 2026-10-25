@@ -1,0 +1,28 @@
+{
+  "atlas": "founder-architecture",
+  "ok": true,
+  "rawSHA256": "9f1f807373d2f0829aeeacd9070c7d34251d3c37b26fc05095cf1922fcbee1d2",
+  "outputSHA256": "f82175af33ed4c81533110163d96b48e612d9ca226bfbc94385ecee46defae8f",
+  "protectedPixels": 2303401,
+  "guardWithinHalfULP": true,
+  "protectedHalfQuantizationMaxError": 0.0,
+  "interiorMeanBefore": [
+    0.3388665211472501,
+    0.27028666138074525,
+    0.1957340190074506
+  ],
+  "interiorMeanAfter": [
+    0.34531301127117114,
+    0.2736032961781033,
+    0.19687106780126823
+  ],
+  "interiorRelativeMeanChange": [
+    0.019023685497452338,
+    0.01227080456140602,
+    0.005809152642874731
+  ],
+  "outputBytes": 5729554,
+  "format": "linear RGB half-float OpenEXR ZIP",
+  "liveFilesModified": false,
+  "visualReviewRequired": true
+}

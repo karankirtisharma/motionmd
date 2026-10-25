@@ -52,8 +52,6 @@ export type RuntimeCallbacks = {
   onError?: (message: string) => void;
   onStats?: (stats: RuntimeStats) => void;
   onScreenMode?: (active: boolean) => void;
-  /** The seated visitor clicked the lounge screen: open the Screen OS over the scene. */
-  onScreenOpen?: () => void;
   onTransition?: (active: boolean) => void;
   onPlaybackChange?: (playing: boolean) => void;
   onCameraViewChange?: (view: 'thirdPerson' | 'bodyCam') => void;
