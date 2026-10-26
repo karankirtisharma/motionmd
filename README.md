@@ -40,6 +40,20 @@ The runtime closes measured gaps around the founder-room floor, forms a shallow 
 
 ## Performance audit — 26 October 2026
 
-This audit was implemented and verified in a separate local backup, preserving the original working copy. The rendering changes preserve all shipped scene/Blender/character assets. Frozen views settle temporal antialiasing before stopping GPU submissions; live animation continues normally. Mirrors render a cropped reflected view at the original texel density. Lighting maps decode in two bounded background jobs. The initial live mirror frame finishes behind the loading screen; broad offscreen shader warmup was rejected after it increased startup time.
+This backup is the active performance working copy; `D:\Motion Design MD FINAL` remains the safety snapshot. The rendering changes preserve all shipped scene/Blender/character assets. Frozen views settle temporal antialiasing before stopping GPU submissions; live animation continues normally. Mirrors render a cropped reflected view at the original texel density. Lighting maps decode in two bounded background jobs. The initial live mirror frame finishes behind the loading screen; broad offscreen shader warmup was rejected after it increased startup time.
 
 For reproducible measurements, use `npm run build` then `npm start -- --port 3001`, open `/?debug=1&profile=1`, expand Performance capture and select Lock full quality. Capture a 15-second fixed view or the opening tour. `&renderer=webgl` checks the fallback. Diagnostics report CPU submission time and renderer-tracked allocations, not total GPU execution time or total VRAM. See `qa/performance-ledger.md` for measured results and limitations.
+
+## Lossless delivery and progressive preparation — 27 October 2026
+
+The backup builds Brotli and gzip static variants for all eleven scene GLBs. Next's narrow GLB proxy negotiates br/gzip/identity, preserves the original asset URLs and image-relative paths, and revalidates caches. It rewrites to static files; model bodies do not pass through a serverless response function. No production source asset is overwritten.
+
+`npm run build` (and `npm run dev`) first generates ignored `public/asset-delivery/` variants and `src/generated/asset-delivery.json`. Every compressed file is decompressed and SHA-256 checked. A storage-only GLB pass reuses byte-identical blocks in lounge, v13 and mirror exports; all referenced bytes and non-offset metadata are asserted unchanged. No decimation, quantization or animation edits. Set `MD_GEOMETRY_STORAGE=0` before rebuilding to disable this compaction. Original GLBs remain the safety masters.
+
+Scene source payload: 458.50 MB → 454.05 MB after exact storage deduplication → 267.53 MB over Brotli (290.24 MB gzip). The earlier Next server already delivered gzip, so 41.6% is the reduction against **uncompressed GLBs**, not an additional saving over the previous HTTP transfer. Textures and other assets are additional; repository disk size is not reduced. Generated static variants trade extra build/deployment storage for less network and request-time compression work; they are not committed to Git.
+
+Loading prepares one room at a time, can prefetch one small successor within a 128 MiB source-buffer budget, and keeps oversized rooms exclusive. Two owned workers decode Meshopt buffers; only their active jobs copy transferable inputs. Workers are terminated on success, failure and cancellation. Decoded GLB downloads use one preallocated buffer when the decoded size is known. This is staged preparation, **not room-on-demand streaming**: the complete scene still finishes before Ready so the guided tour, mirrors and all interactions remain intact.
+
+After starting the production server, run `npm run verify:delivery` to check all eleven chunks in br/gzip/identity, byte hashes, MIME, content negotiation, HEAD, ETag revalidation and byte ranges. Use `MD_VERIFY_ORIGIN` to target another authorized preview. `NEXT_PUBLIC_ASSET_BASE_URL` bypasses local delivery rewrites; an external CDN must supply its own Brotli/gzip negotiation, correct Content-Encoding/MIME/Vary and CORS headers. That hosting configuration is not automatically changed by this code.
+
+See `qa/delivery-ledger.md` for measurements, checks, remaining shader costs and visual evidence.

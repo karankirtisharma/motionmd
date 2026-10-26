@@ -16,9 +16,13 @@
     "test:rendering": "node --test qa/rendering.test.mjs",
     "test:scene-repair": "node --test qa/scene-repair.test.mjs",
     "benchmark:collision": "node qa/benchmark-collision.mjs",
-    "prebuild": "node scripts/verify-assets.mjs",
+    "prebuild": "node scripts/verify-assets.mjs && node scripts/prepare-delivery.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
-    "test": "node --test qa/*.test.mjs"
+    "test": "node --test qa/*.test.mjs",
+    "prepare:delivery": "node scripts/prepare-delivery.mjs",
+    "predev": "node scripts/prepare-delivery.mjs",
+    "pretypecheck": "node scripts/prepare-delivery.mjs",
+    "verify:delivery": "node qa/verify-delivery-http.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

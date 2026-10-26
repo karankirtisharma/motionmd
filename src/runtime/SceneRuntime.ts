@@ -2,7 +2,9 @@ import { AgXToneMapping, AnimationMixer, Box3, Clock, Group, Material, MathUtils
 import { WebGPURenderer } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { createMeshoptDecoder } from './rendering/meshoptDecode';
+import { loadProgressively } from './rendering/progressiveLoad';
+import { architectureProgress } from './rendering/loadingProgress';
 import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/types';
 import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
@@ -238,25 +240,22 @@ export class SceneRuntime {
   private async loadSource() {
     const loadGuard = createAssetLoadGuard(resolveAssetDependency);
     const loader = new GLTFLoader(loadGuard.manager);
-    loader.setMeshoptDecoder(MeshoptDecoder);
+    const decoder = createMeshoptDecoder(this.abort.signal);
+    loader.setMeshoptDecoder(decoder);
     this.ktx2 = new KTX2Loader(loadGuard.manager).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
     const chunks = [...this.manifest.chunks].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
     const bytes = new Map<string, number>();
     const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0);
-    let next = 0;
     let lastProgressAt = 0;
-    const worker = async () => {
-      while (next < chunks.length && !this.disposed) {
-        const chunk = chunks[next++];
-        const buffer = await fetchBuffer(chunk.url, this.abort.signal, loaded => {
+    try { await loadProgressively(chunks, this.abort.signal, (chunk, signal) => fetchBuffer(chunk.url, signal, (loaded, _decodedTotal, delivery) => {
           bytes.set(chunk.id, loaded);
           const now = performance.now();
           if (now - lastProgressAt < 80) return;
           lastProgressAt = now;
           const received = [...bytes.values()].reduce((sum, value) => sum + value, 0);
-          this.callbacks.onProgress?.({ phase: 'Loading the architecture', progress: total > 0 ? Math.min(received / total, 1) : undefined, detail: `${(received / 1048576).toFixed(1)} MB${total ? ` / ${(total / 1048576).toFixed(1)} MB` : ''}` });
-        });
+          this.callbacks.onProgress?.(architectureProgress(received, total, delivery));
+        }, chunk.bytes), async (chunk, buffer) => {
         if (this.disposed) return;
         const absolute = new URL(assetURL(chunk.url), window.location.href).href;
         const gltf = await loader.parseAsync(buffer, absolute.slice(0, absolute.lastIndexOf('/') + 1));
@@ -275,10 +274,9 @@ export class SceneRuntime {
           for (const clip of gltf.animations) { mixer.clipAction(clip).play(); duration = Math.max(duration, clip.duration); }
           this.mixers.push({ mixer, duration });
         }
-      }
-    };
-    await Promise.all([worker(), worker()]);
-    loadGuard.assertLoaded();
+      });
+      loadGuard.assertLoaded();
+    } finally { decoder.dispose(); }
   }
 
   private prepareCamera() {

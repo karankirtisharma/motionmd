@@ -1,3 +1,4 @@
+import type { SceneDeliverySize } from './loadingProgress.ts';
 import { TextureLoader, Texture, NoColorSpace, SRGBColorSpace, LinearSRGBColorSpace, EquirectangularReflectionMapping } from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { loadEXRInWorker } from './exrDecode.ts';
@@ -23,7 +24,7 @@ export function resolveAssetDependency(url: string, base = process.env.NEXT_PUBL
   return url;
 }
 
-export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (loaded: number, total: number) => void): Promise<ArrayBuffer> {
+export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (loaded: number, total: number, delivery?: SceneDeliverySize) => void, expectedBytes?: number): Promise<ArrayBuffer> {
   const response = await fetch(assetURL(url), { signal });
   if (!response.ok) throw new Error(`Could not load ${url.split('/').pop()} (${response.status}).`);
   const total = Number(response.headers.get('content-length')) || 0;
@@ -33,7 +34,9 @@ export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (l
   // Content-Length describes decoded bytes only for unencoded responses.
   // Fill one destination instead of retaining a second complete GLB in chunks.
   const encoding = response.headers.get('content-encoding');
-  let direct = total > 0 && total <= 512 * 1024 * 1024 && (!encoding || encoding === 'identity') ? new Uint8Array(total) : undefined;
+  const delivery: SceneDeliverySize = { encodedBytes: Number(response.headers.get('x-scene-encoded-length')) || 0, decodedBytes: Number(response.headers.get('x-scene-decoded-length')) || 0, encoding: encoding || 'identity' };
+  const decodedLength = Number(response.headers.get('x-asset-decoded-length')) || expectedBytes || ((!encoding || encoding === 'identity') ? total : 0);
+  let direct = decodedLength > 0 && decodedLength <= 512 * 1024 * 1024 ? new Uint8Array(decodedLength) : undefined;
   const parts: Uint8Array[] = [];
   let loaded = 0;
   try {
@@ -46,7 +49,7 @@ export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (l
         if (direct) { parts.push(direct.subarray(0, loaded)); direct = undefined; }
         parts.push(value);
       }
-      loaded += value.byteLength; onBytes(loaded, total);
+      loaded += value.byteLength; onBytes(loaded, decodedLength || total, delivery);
     }
     if (direct) return loaded === direct.length ? direct.buffer : direct.buffer.slice(0, loaded);
     const bytes = new Uint8Array(loaded);
