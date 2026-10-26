@@ -9,6 +9,7 @@ import { sourceUVNormal } from './sourceNormals';
 import { restoreSourceStoneWalls } from './sourceStoneWalls';
 import { restoreSourceStoneFloors } from './sourceStoneFloors';
 import { restoreSourceBronze } from './sourceBronze';
+import { createLoadQueue } from './loadQueue.ts';
 import { repairCollapsedBrushFrame } from './brushTangents';
 
 const textureKeys = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'] as const;
@@ -69,12 +70,29 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
   const ownedTextures: Texture[] = [];
   const cache = new Map<string, Promise<Texture>>();
   const uvViews = new Map<string, Texture>();
+  const enqueue = createLoadQueue(2);
+  const loadingAbort = new AbortController();
+  const cancelLoads = () => loadingAbort.abort(signal?.reason);
+  signal?.addEventListener('abort', cancelLoads, { once: true });
+  if (signal?.aborted) cancelLoads();
   const texture = (url: string, usage: 'color'|'linear'|'data') => {
     const key = `${url}:${usage}`;
-    if (!cache.has(key)) cache.set(key, loadTexture(url, usage, signal).then(t => { t.flipY = false; ownedTextures.push(t); return t; }));
+    if (!cache.has(key)) cache.set(key, enqueue(() => loadTexture(url, usage, loadingAbort.signal).then(t => { t.flipY = false; ownedTextures.push(t); return t; })));
     return cache.get(key)!;
   };
   try {
+  // Queue unique maps ahead of application. Only two fetch/decode jobs run at once;
+  // ordered material patches below retain their original precedence and UV semantics.
+  for (const entry of manifest.materials ?? []) {
+    if (entry.sourcePBR) {
+      for (const slot of ['map', 'normalMap', 'roughnessMap', 'metalnessMap'] as const) {
+        const url = entry.sourcePBR[slot]; if (url) void texture(url, slot === 'map' ? 'color' : 'data');
+      }
+    } else {
+      for (const slot of textureKeys) if (entry[slot]) void texture(entry[slot]!, slot === 'map' || slot === 'emissiveMap' ? 'color' : 'data');
+      if (entry.lightMap) void texture(entry.lightMap, 'linear');
+    }
+  }
   for (const entry of manifest.materials ?? []) {
     signal?.throwIfAborted();
     if (entry.sourcePBR) {
@@ -196,7 +214,9 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
   ownedTextures.push(...await restoreSourceBronze(root, signal));
   return ownedTextures;
   } catch (error) {
+    loadingAbort.abort(error);
+    await Promise.allSettled(cache.values());
     ownedTextures.forEach(texture => texture.dispose());
     throw error;
-  }
+  } finally { signal?.removeEventListener('abort', cancelLoads); }
 }

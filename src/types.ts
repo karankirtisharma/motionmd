@@ -50,6 +50,7 @@ export type RuntimeCallbacks = {
   onTourProgress?: (progress: number) => void;
   onHint?: (hint: RuntimeHint | null) => void;
   onError?: (message: string) => void;
+  onProfile?: (report: string) => void;
   onStats?: (stats: RuntimeStats) => void;
   onScreenMode?: (active: boolean) => void;
   onTransition?: (active: boolean) => void;

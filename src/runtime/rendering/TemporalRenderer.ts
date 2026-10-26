@@ -27,6 +27,12 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
       pipeline.render();
     },
     render() { pipeline.render(); },
+    async finishFirstFrame() {
+      // One asynchronous pixel read is a public, backend-neutral completion fence.
+      // Submitting a frame alone does not mean its driver compilation is finished.
+      // Keep the loading screen until prior GPU work completes; never read per frame.
+      await renderer.readRenderTargetPixelsAsync(scenePass.renderTarget, 0, 0, 1, 1);
+    },
     reset() {
       // TRAANode.setSize is a public implementation method in pinned r186.
       // A size mismatch reseeds history from the current frame on the next resolve.

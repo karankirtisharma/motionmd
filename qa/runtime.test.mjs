@@ -18,7 +18,7 @@ const { SceneRuntime } = await import(`data:text/javascript;base64,${Buffer.from
 function fixture(mode = 'explore') {
   globalThis.document = { hidden: false, pointerLockElement: null };
   const runtime = new SceneRuntime({ clientWidth: 1280, clientHeight: 720 });
-  const stats = { shadowPasses: 0, characterFrames: 0, samples: 0, mixerTimes: [] };
+  const stats = { renders: 0, shadowPasses: 0, characterFrames: 0, samples: 0, mixerTimes: [] };
   const shadow = { needsUpdate: false };
   const controls = {
     enabled: true, visible: mode !== 'tour',
@@ -34,7 +34,7 @@ function fixture(mode = 'explore') {
   runtime.lighting = { sun: { shadow }, refreshProbeLighting() {} };
   runtime.renderer = {
     domElement: { style: {} },
-    render() { if (shadow.needsUpdate) { stats.shadowPasses++; shadow.needsUpdate = false; } },
+    render() { stats.renders++; if (shadow.needsUpdate) { stats.shadowPasses++; shadow.needsUpdate = false; } },
   };
   runtime.manifest = { cameras: [{ id: 'audit', position: [3, 2, 1], target: [0, 1, 0], fov: 45 }] };
   runtime.cinematic = { sample(progress) { stats.samples++; return { position: new Vector3(progress, 2, 3), quaternion: new Quaternion(), fov: 54 }; } };
@@ -133,4 +133,14 @@ test('root-relative glTF dependencies retain the external asset release prefix',
   assert.equal(resolveAssetDependency('/assets/v2/a.ktx2', '', page), '/assets/v2/a.ktx2');
   const guard = createAssetLoadGuard(url => resolveAssetDependency(url, base, page));
   assert.equal(guard.manager.resolveURL('https://cdn.example.com/assets/a.ktx2'), `${base}/assets/a.ktx2`);
+});
+
+test('frozen scenes stop submitting frames after temporal convergence and resume on changes',()=>{
+  const {runtime,stats,frames}=fixture('tour');
+  frames(200);assert.equal(stats.renders,128);
+  frames(200);assert.equal(stats.renders,128,'a stopped tour must not consume the GPU indefinitely');
+  runtime.setTourProgress(.2);frames(200);assert.equal(stats.renders,256);
+  runtime.setReferenceCamera('audit');frames(200);assert.equal(stats.renders,384);
+  runtime.setCinematicPlaying(true);runtime.setReferenceCamera('');frames(10);
+  assert.equal(stats.renders,394,'playing camera must continue rendering every frame');
 });

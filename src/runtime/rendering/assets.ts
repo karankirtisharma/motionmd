@@ -1,5 +1,6 @@
 import { TextureLoader, Texture, NoColorSpace, SRGBColorSpace, LinearSRGBColorSpace, EquirectangularReflectionMapping } from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { loadEXRInWorker } from './exrDecode.ts';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 /** Use a public object-storage origin for large deployments; local assets work unchanged. */
@@ -26,19 +27,34 @@ export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (l
   const response = await fetch(assetURL(url), { signal });
   if (!response.ok) throw new Error(`Could not load ${url.split('/').pop()} (${response.status}).`);
   const total = Number(response.headers.get('content-length')) || 0;
-  if (!response.body) return response.arrayBuffer();
+  // Without progress reporting, let the browser manage its buffer directly.
+  if (!onBytes || !response.body) return response.arrayBuffer();
   const reader = response.body.getReader();
+  // Content-Length describes decoded bytes only for unencoded responses.
+  // Fill one destination instead of retaining a second complete GLB in chunks.
+  const encoding = response.headers.get('content-encoding');
+  let direct = total > 0 && total <= 512 * 1024 * 1024 && (!encoding || encoding === 'identity') ? new Uint8Array(total) : undefined;
   const parts: Uint8Array[] = [];
   let loaded = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    parts.push(value); loaded += value.byteLength; onBytes?.(loaded, total);
-  }
-  const bytes = new Uint8Array(loaded);
-  let offset = 0;
-  for (const part of parts) { bytes.set(part, offset); offset += part.byteLength; }
-  return bytes.buffer;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (direct && loaded + value.byteLength <= direct.length) direct.set(value, loaded);
+      else {
+        // A proxy may omit or misreport the length. Preserve every byte.
+        if (direct) { parts.push(direct.subarray(0, loaded)); direct = undefined; }
+        parts.push(value);
+      }
+      loaded += value.byteLength; onBytes(loaded, total);
+    }
+    if (direct) return loaded === direct.length ? direct.buffer : direct.buffer.slice(0, loaded);
+    const bytes = new Uint8Array(loaded);
+    let offset = 0;
+    for (const part of parts) { bytes.set(part, offset); offset += part.byteLength; }
+    return bytes.buffer;
+  } catch (error) { await reader.cancel().catch(() => {}); throw error; }
+  finally { reader.releaseLock(); }
 }
 
 export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data' = 'data', signal?: AbortSignal): Promise<Texture> {
@@ -46,7 +62,7 @@ export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data
   const resolved = assetURL(url);
   const extension = url.split('?')[0].toLowerCase();
   let texture: Texture;
-  if (extension.endsWith('.exr')) texture = await new EXRLoader().loadAsync(resolved);
+  if (extension.endsWith('.exr')) texture = typeof Worker === 'undefined' ? await new EXRLoader().loadAsync(resolved) : await loadEXRInWorker(resolved, signal);
   else if (extension.endsWith('.hdr')) texture = await new RGBELoader().loadAsync(resolved);
   else texture = await new TextureLoader().loadAsync(resolved);
   if (signal?.aborted) { texture.dispose(); signal.throwIfAborted(); }

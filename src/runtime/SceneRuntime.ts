@@ -21,6 +21,12 @@ import { partitionSourceGeometry } from './rendering/spatialVisibility';
 import { createGalleryMirror } from './rendering/galleryMirror';
 import { createInteractionController } from './interaction/InteractionController';
 
+import { RuntimeProfiler } from './rendering/RuntimeProfiler';
+
+// r186 TRAA retains 95% of history per static sample. 128 frames leave <0.15%
+// of the initial history before a genuinely frozen view stops drawing.
+const TEMPORAL_SETTLE_FRAMES = 128;
+
 type InteractionController = Awaited<ReturnType<typeof createInteractionController>>;
 
 export class SceneRuntime {
@@ -66,6 +72,8 @@ export class SceneRuntime {
   private diagnostics?: RenderDiagnostics;
   private referenceCamera = '';
   private inspectionEnabled = false;
+  private profiler?: RuntimeProfiler;
+  private settleFrames = TEMPORAL_SETTLE_FRAMES;
 
   constructor(container: HTMLElement, callbacks: RuntimeCallbacks = {}) {
     this.container = container; this.callbacks = callbacks;
@@ -78,6 +86,15 @@ export class SceneRuntime {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
       this.inspectionEnabled = query.get('debug') === '1';
+      if (this.inspectionEnabled && query.get('profile') === '1') {
+        this.profiler = new RuntimeProfiler(report => this.callbacks.onProfile?.(report), () => ({
+          backend: this.renderer && 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', mode: this.mode, reference: this.referenceCamera, progress: this.progress, quality: this.quality, scale: this.resolutionScale,
+          viewport: [this.container.clientWidth, this.container.clientHeight], dpr: window.devicePixelRatio,
+          drawingBuffer: this.renderer ? [this.renderer.domElement.width, this.renderer.domElement.height] : [],
+          trackedMiB: this.renderer ? (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 : 0,
+          draws: this.renderer?.info.render.drawCalls, triangles: this.renderer?.info.render.triangles, userAgent: navigator.userAgent, visibility: document.visibilityState
+        }));
+      }
       const forceWebGL = this.inspectionEnabled && query.get('renderer') === 'webgl';
       this.renderer = new WebGPURenderer({ antialias: false, alpha: false, samples: 0, reversedDepthBuffer: true, forceWebGL });
       this.renderer.toneMapping = AgXToneMapping;
@@ -114,6 +131,7 @@ export class SceneRuntime {
       this.abort.signal.throwIfAborted();
       this.prepareCamera();
       this.applyTourCamera(1 / 60, true);
+      this.profiler?.phase('geometry and embedded textures');
       await this.loadSource();
       if (this.disposed) return;
       repairArchitecturalJoins(this.content);
@@ -124,13 +142,16 @@ export class SceneRuntime {
       prepareSourceMaterials(this.content, this.renderer).forEach(t => this.textures.add(t));
 
       this.callbacks.onProgress?.({ phase: 'Preparing the light', detail: 'Loading source materials and room illumination' });
+      this.profiler?.phase('material maps and lightmaps');
       const materialTextures = await applyMaterialManifest(this.content, this.manifest, this.abort.signal);
       materialTextures.forEach(t => this.textures.add(t));
       this.abort.signal.throwIfAborted();
       prepareSourceMaterials(this.content, this.renderer).forEach(t => this.textures.add(t));
       const bounds = new Box3().setFromObject(this.content);
+      this.profiler?.phase('lighting and reflection probes');
       this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal);
       if (this.disposed || this.abort.signal.aborted) { this.lighting.dispose(); return; }
+      this.profiler?.phase('spatial preparation and desert');
       this.galleryMirror = createGalleryMirror(this.content);
       // Preserve each source material's complete probe graph before subdividing
       // its visibility bounds; every cell then shares that same final shader.
@@ -140,6 +161,7 @@ export class SceneRuntime {
       this.setQuality(this.quality);
 
       this.callbacks.onProgress?.({ phase: 'Preparing exploration', detail: 'Loading movement, collisions and interactions' });
+      this.profiler?.phase('movement, collisions and avatar');
       this.controls = await createInteractionController({
         scene: this.scene, camera: this.camera, renderer: this.renderer,
         canvas, manifest: this.manifest, signal: this.abort.signal,
@@ -153,6 +175,7 @@ export class SceneRuntime {
       this.lighting.refreshProbeLighting(this.controls.player, true);
       filterSourceSpecular(this.scene);
 
+      this.profiler?.phase('texture upload');
       const warmStarted = performance.now();
       const activeTextures = prepareSourceMaterials(this.scene, this.renderer);
       activeTextures.forEach(texture => this.textures.add(texture));
@@ -171,6 +194,7 @@ export class SceneRuntime {
         }
         this.abort.signal.throwIfAborted();
       }
+      this.profiler?.phase('shader compilation');
       const compileStarted = performance.now();
       this.callbacks.onProgress?.({ phase: 'Preparing materials', detail: 'Compiling the scene for your graphics device' });
       console.info('[MD warmup] shader compilation started');
@@ -180,6 +204,12 @@ export class SceneRuntime {
         this.callbacks.onProgress?.({ phase: 'Preparing materials', detail: `Compiled ${event.loaded} of ${event.total} render objects`, progress: event.lengthComputable && event.total ? event.loaded / event.total : undefined });
         if (event.loaded % 12 === 0 || event.loaded === event.total) console.info('[MD warmup] shader compilation', { loaded: event.loaded, total: event.total, seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
       });
+      this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: 'Finishing the first live reflection' });
+      this.profiler?.phase('first reflection frame');
+      this.galleryMirror?.update(this.renderer, this.scene, this.camera);
+      this.temporal.render();
+      this.profiler?.phase('first GPU frame completion');
+      await this.temporal.finishFirstFrame();
       console.info('[MD warmup] shader compilation complete', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
       this.shaderValidation.assertCompiled();
       this.abort.signal.throwIfAborted();
@@ -189,6 +219,7 @@ export class SceneRuntime {
       this.setMode('tour');
       this.callbacks.onProgress?.({ phase: 'Ready', progress: 1 });
       this.callbacks.onReady?.();
+      this.profiler?.ready();
       this.clock.start();
       this.renderer.setAnimationLoop(this.tick);
     } catch (error) {
@@ -278,6 +309,8 @@ export class SceneRuntime {
     if (this.disposed || this.mode === 'error') return;
     const elapsed = this.clock.getDelta();
     if (document.hidden) return;
+    const profileStart = this.profiler ? performance.now() : 0;
+    const priorProgress = this.progress;
     const dt = Math.min(elapsed, 0.05);
     let characterAdvanced = false;
     if (this.sceneTransition) this.updateSceneTransition(dt);
@@ -288,17 +321,22 @@ export class SceneRuntime {
     // Idle breathing and seated motion still cast changing shadows. Frozen reference
     // views, menus and fades reuse the map until an explicit scene change below.
     if (characterAdvanced && this.lighting) this.lighting.sun.shadow.needsUpdate = true;
-    try { this.galleryMirror?.update(this.renderer, this.scene, this.camera); if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); }
+    if (characterAdvanced || this.sceneTransition || priorProgress !== this.progress || this.lighting?.sun.shadow.needsUpdate) this.invalidate();
+    const shouldRender = this.settleFrames > 0;
+    const simulationDone = this.profiler ? performance.now() : 0;
+    let mirrorDone = simulationDone;
+    try { if (shouldRender) { this.settleFrames--; this.galleryMirror?.update(this.renderer, this.scene, this.camera); mirrorDone = this.profiler ? performance.now() : 0; if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); } }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
+    this.profiler?.frame(elapsed * 1000, simulationDone - profileStart, mirrorDone - simulationDone, shouldRender ? performance.now() - mirrorDone : 0, shouldRender);
     this.statsFrames++; this.statsTime += elapsed;
     if (this.inspectionEnabled) this.frameSamples.push(elapsed * 1000);
     if (this.statsTime > 2) {
       try { this.shaderValidation?.assertCompiled(); }
       catch { return; }
       const fps = this.statsFrames / this.statsTime;
-      if (this.quality === 'auto' && !this.paused) this.adaptResolution(fps);
+      if (this.quality === 'auto' && !this.paused && shouldRender) this.adaptResolution(fps);
       const samples = this.frameSamples.sort((a, b) => a - b);
-      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: this.renderer.backend.constructor.name.includes('WebGPU') ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
+      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
         frameP50Ms: samples[Math.floor(samples.length * .5)], frameP95Ms: samples[Math.floor(samples.length * .95)],
         resourceMiB: (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 });
       this.frameSamples.length = 0;
@@ -315,7 +353,10 @@ export class SceneRuntime {
     if (this.fastWindows >= 4 && this.resolutionScale < 1) { this.resolutionScale = Math.min(1, this.resolutionScale + 0.05); this.fastWindows = 0; this.resize(); }
   }
 
+  private invalidate() { this.settleFrames = TEMPORAL_SETTLE_FRAMES; }
+
   private resize() {
+    this.invalidate();
     if (!this.renderer || this.disposed) return;
     const width = Math.max(1, this.container.clientWidth), height = Math.max(1, this.container.clientHeight);
     this.camera.aspect = width / height; this.camera.updateProjectionMatrix();
@@ -323,7 +364,7 @@ export class SceneRuntime {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap) * this.resolutionScale);
     this.renderer.setSize(width, height);
   }
-  private onVisibility = () => { this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
+  private onVisibility = () => { this.profiler?.visibility(); this.invalidate(); this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
   private setMode(mode: RuntimeMode) { if (!this.disposed) { this.mode = mode; this.callbacks.onModeChange?.(mode); } }
   private fail(message: string) {
     if (this.disposed || this.mode === 'error') return;
@@ -336,7 +377,11 @@ export class SceneRuntime {
     if (document.pointerLockElement === this.renderer?.domElement) document.exitPointerLock();
   }
 
+  startProfile(label: string) { this.profiler?.start(label); }
+  noteUICommit() { this.profiler?.uiCommit(); }
+
   setTourProgress(progress: number) {
+    this.invalidate();
     if (Math.abs(progress - this.targetProgress) > 0.01) this.temporal?.reset();
     this.targetProgress = MathUtils.clamp(progress, 0, 1);
     if (this.sceneTransition?.destination === 'tour') this.sceneTransition.progress = this.targetProgress;
@@ -361,6 +406,7 @@ export class SceneRuntime {
   }
   setReducedMotion(value: boolean) { this.reducedMotion = value; }
   setDiagnosticMode(mode: DiagnosticMode) {
+    this.invalidate();
     if (!this.inspectionEnabled || !this.manifest) return;
     // Interactive furniture is reparented into the scene after loading.
     this.diagnostics ??= new RenderDiagnostics(this.scene);
@@ -371,6 +417,7 @@ export class SceneRuntime {
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
   setReferenceCamera(id: string) {
+    this.invalidate();
     if (!this.inspectionEnabled || !this.manifest) return;
     this.temporal?.reset();
     if (!id) {
@@ -400,7 +447,7 @@ export class SceneRuntime {
   }
   inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
   getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
-  setPaused(value: boolean) { this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
+  setPaused(value: boolean) { this.invalidate(); this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
   explore() {
     if (!this.controls || this.mode !== 'tour' || this.sceneTransition) return;
     if (this.progress < 0.999) { this.exploreDirectly(); return; }
@@ -485,6 +532,7 @@ export class SceneRuntime {
   }
   dispose() {
     if (this.disposed) return;
+    this.profiler?.dispose();
     this.disposed = true; this.abort.abort(); this.observer?.disconnect();
     this.shaderValidation?.dispose();
     document.removeEventListener('visibilitychange', this.onVisibility);

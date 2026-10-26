@@ -36,3 +36,10 @@ The original founder floor now uses a targeted v23 indirect-light rebake against
 The runtime closes measured gaps around the founder-room floor, forms a shallow transition at the studio threshold, and separates the overlapping canopy/fascia undersides. Collision geometry receives the same floor changes. Degenerate UVs on anisotropic bronze now receive stable brush tangents while retaining their original textures and material values. These are initialization-only repairs; the accepted character and chair animation code is unchanged by this work.
 
 `scripts/repair-architectural-joins.py` reproduces the geometry changes in a separate Blender file; it refuses to overwrite the open source file. The original local v21 source and shipped GLBs remain intact. See `qa/surface-repair-ledger.md` for the per-image diagnosis, external Blender backup/derived source, visual evidence and validation. The `QA surface` debug cameras reproduce the inspection views.
+
+
+## Performance audit — 26 October 2026
+
+This audit was implemented and verified in a separate local backup, preserving the original working copy. The rendering changes preserve all shipped scene/Blender/character assets. Frozen views settle temporal antialiasing before stopping GPU submissions; live animation continues normally. Mirrors render a cropped reflected view at the original texel density. Lighting maps decode in two bounded background jobs. The initial live mirror frame finishes behind the loading screen; broad offscreen shader warmup was rejected after it increased startup time.
+
+For reproducible measurements, use `npm run build` then `npm start -- --port 3001`, open `/?debug=1&profile=1`, expand Performance capture and select Lock full quality. Capture a 15-second fixed view or the opening tour. `&renderer=webgl` checks the fallback. Diagnostics report CPU submission time and renderer-tracked allocations, not total GPU execution time or total VRAM. See `qa/performance-ledger.md` for measured results and limitations.

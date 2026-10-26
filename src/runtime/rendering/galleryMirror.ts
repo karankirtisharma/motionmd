@@ -1,6 +1,8 @@
 import { Box3, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
-import { screenUV, texture } from 'three/tsl';
+import { screenUV, texture, uniform } from 'three/tsl';
+
+import { reflectionCrop, cropReflectionCamera } from './reflectionCrop.ts';
 
 /** Reflect the camera and clip at the real mirror plane, including reversed depth.
  * The stock r186 ReflectorNode oblique projection assumes forward depth. Keep
@@ -73,32 +75,43 @@ export function createGalleryMirror(root: Object3D) {
   });
   const target = new RenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
   const material = new MeshBasicNodeMaterial({ name: 'V21 | live silver mirror' });
-  material.colorNode = texture(target.texture, screenUV.flipX()).rgb.mul(0.94);
+  const crop = new Vector4(0, 0, 1, 1), cropNode = uniform(crop);
+  material.colorNode = texture(target.texture, screenUV.flipX().sub(cropNode.xy).div(cropNode.zw)).rgb.mul(0.94);
   for (const surface of panes) {
     surface.material = material;
     surface.castShadow = false; surface.receiveShadow = false; surface.userData.castShadow = false;
   }
   const camera = new PerspectiveCamera(), frustum = new Frustum(), matrix = new Matrix4(), size = new Vector2();
+  const fullSize = new Vector2(), targetSize = new Vector2();
   const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
+  function prepareReflection(renderer: WebGPURenderer, view: PerspectiveCamera) {
+    if (!material.visible) return false;
+    // Only mirror ancestry is needed before deciding whether to render a reflection.
+    for (const surface of surfaces) surface.pane.updateWorldMatrix(true, false);
+    view.updateMatrixWorld();
+    frustum.setFromProjectionMatrix(matrix.multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse), view.coordinateSystem, view.reversedDepth);
+    // Opposite faces cannot both face the viewer; share one bounded target
+    // and render only the visible side, at the physical surface of that side.
+    const active = surfaces.find(surface => {
+      point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
+      normal.copy(surface.normal).transformDirection(surface.pane.matrixWorld);
+      eye.setFromMatrixPosition(view.matrixWorld);
+      return surface.pane.visible && eye.sub(point).dot(normal) > 0.01 && frustum.intersectsObject(surface.pane);
+    });
+    if (!active) return false;
+    renderer.getDrawingBufferSize(size);
+    const scale = Math.min(0.85, 1536 / Math.max(size.x, size.y));
+    fullSize.set(Math.max(1, Math.round(size.x * scale)), Math.max(1, Math.round(size.y * scale)));
+    reflectionCrop(active.pane.geometry.boundingBox!, active.pane.matrixWorld, view, fullSize, targetSize.set(target.width, target.height), crop);
+    const width = Math.round(fullSize.x * crop.z), height = Math.round(fullSize.y * crop.w);
+    if (target.width !== width || target.height !== height) target.setSize(width, height);
+    mirrorCamera(view, camera, point, normal);
+    cropReflectionCamera(camera, crop);
+    return true;
+  }
   return {
     update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera) {
-      if (!material.visible) return;
-      scene.updateMatrixWorld(); view.updateMatrixWorld();
-      frustum.setFromProjectionMatrix(matrix.multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse), view.coordinateSystem, view.reversedDepth);
-      // Opposite faces cannot both face the viewer; share one bounded target
-      // and render only the visible side, at the physical surface of that side.
-      const active = surfaces.find(surface => {
-        point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
-        normal.copy(surface.normal).transformDirection(surface.pane.matrixWorld);
-        eye.setFromMatrixPosition(view.matrixWorld);
-        return surface.pane.visible && eye.sub(point).dot(normal) > 0.01 && frustum.intersectsObject(surface.pane);
-      });
-      if (!active) return;
-      renderer.getDrawingBufferSize(size);
-      const scale = Math.min(0.85, 1536 / Math.max(size.x, size.y));
-      const width = Math.max(1, Math.round(size.x * scale)), height = Math.max(1, Math.round(size.y * scale));
-      if (target.width !== width || target.height !== height) target.setSize(width, height);
-      mirrorCamera(view, camera, point, normal);
+      if (!prepareReflection(renderer, view)) return;
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
       const visibility = panes.map(surface => surface.visible);

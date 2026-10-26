@@ -25,6 +25,9 @@ export default function Home() {
   const [stats, setStats] = useState<RuntimeStats | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [screenActive, setScreenActive] = useState(false);
+  const [profileReport, setProfileReport] = useState('');
+  const [profiling, setProfiling] = useState(false);
+  useEffect(() => { runtime.current?.noteUICommit(); });
   const [debug, setDebug] = useState(false);
   const [referenceCameras, setReferenceCameras] = useState<string[]>([]);
   const [referenceCamera, setReferenceCamera] = useState('');
@@ -45,7 +48,9 @@ export default function Home() {
     modeRef.current = 'loading';
     const preferredReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     setReducedMotion(preferredReduced);
-    setDebug(new URLSearchParams(window.location.search).get('debug') === '1');
+    setProfiling(new URLSearchParams(window.location.search).get('profile') === '1');
+    const diagnosticsEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
+    setDebug(diagnosticsEnabled);
     import('@/runtime/SceneRuntime').then(async ({ SceneRuntime }) => {
       if (cancelled || !viewport.current) return;
       const instance = new SceneRuntime(viewport.current, {
@@ -54,7 +59,8 @@ export default function Home() {
         onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { menuRef.current = false; setMenu(false); } } },
         onTourProgress: value => { if (!cancelled) setProgress(value); },
         onHint: value => { if (!cancelled) setHint(value); },
-        onStats: value => { if (!cancelled) setStats(value); },
+        onProfile: value => { if (!cancelled) setProfileReport(value); },
+        onStats: diagnosticsEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
         onError: value => { if (!cancelled) setError(value); },
         onScreenMode: value => { if (!cancelled) setScreenActive(value); },
         onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
@@ -127,6 +133,12 @@ export default function Home() {
     <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
     {debug && <aside aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
       <div>Render diagnostics</div>
+      {profiling && <details><summary>Performance capture</summary>
+        <button onClick={() => changeQuality("high")}>Lock full quality</button>
+        <button onClick={() => runtime.current?.startProfile(referenceCamera || mode)}>Capture 15 seconds</button>
+        <button onClick={() => { dismissWelcome(); resume(); setReferenceCamera(""); runtime.current?.setReferenceCamera(""); runtime.current?.returnToTour(); runtime.current?.setTourProgress(0); runtime.current?.setCinematicPlaying(true); runtime.current?.startProfile("tour first 15s"); }}>Capture tour</button>
+        <pre data-testid="performance-report" style={{ maxHeight: 210, maxWidth: 420, overflow: "auto", fontSize: 10 }}>{profileReport}</pre>
+      </details>}
       <div>Phase: {mode}</div>
       <div>Renderer: {stats?.renderer ?? 'Preparing'}</div>
       <div>FPS: {stats?.fps ?? '—'} · Draw calls: {stats?.drawCalls ?? '—'}</div>
