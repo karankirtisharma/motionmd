@@ -1,0 +1,35 @@
+# Character collision audit — 27 October 2026
+
+Working copy: D:/Motion Design MD BACKUP 26-10-2026. Baseline: GitHub b04b8ea. D:/Motion Design MD FINAL and every original Blender/GLB remain unchanged. No new GitHub publication was requested.
+
+Evidence folder: C:/Users/karan_z7alww2/.codex/visualizations/2026/10/17/01a14a42-20bc-7ca3-a5e8-1779e078f8e0/collision-2026-10-27. Pre-change source snapshots are in before/. Device: Windows, RTX 4070 12GB; Rapier 0.21.0, Three 0.186.1, fixed 60 Hz simulation.
+
+## Measurements and corrections
+
+- Original capsule was 1.70 m tall and 0.50 m wide. The actual shipping skin reaches 1.886 m during running; idle hands span 0.648 m. Raised the physical head envelope to 1.90 m and added a 0.70 m wide upper-body guard while retaining the original 0.25 m foot radius for stairs. A trial widening the whole capsule was rejected because it interfered with narrow landings.
+- Navigation now decelerates using a swept shoulder volume and the measured 0.60 m forward shoe reach. The original clips, rig, gait phase, normal speed and accepted chair choreography are retained. Near obstacles the stride settles before the shoes reach the surface. Tests sample actual skinned vertices, not just capsule positions.
+- Autostep could move the lower capsule after the shoulder solve, creeping into an ivory cabinet edge. A final upper-body sweep checks the achieved movement. Shoulder contact cannot contribute upward movement; the foot capsule owns ground/step height. Sweeps permit movement away from existing near-contact, preserving chair exit.
+- Near-zero-time upward floor contacts could consume horizontal movement. A support-only tangent retry still checks every obstacle with the capsule. A bounded 25 mm physical support reconciliation prevents millimetre sinking on nearby flat tops; ramps, falls and normal step-height changes retain the existing controller.
+- Exact rectangular solids use cuboids only after verifying all vertices are box corners and every face has the expected area. Open meshes, bevels, curves and holes remain source meshes. Authored swivel pieces retain their vertex-space representation.
+- The foot IK sampler previously omitted ordinary floors. It now samples the shipped marble, founder ivory stone, exterior ground and rug surfaces as well as visible stair treads. Large triangles use a bounded secondary list instead of allocating millions of grid cells. Single-material geometry follows Three's group semantics. Baseline skin sank about 13.8 mm into a flat floor; the test now measures minimum sole height 2.0 mm with a maximum correction of 15.6 mm.
+- The founder chair collision export omitted its backrest and headrest. Two source-derived hulls add 1,524 triangles (342,104 -> 343,628; 674 -> 676 source collision pieces). Maximum outward source error is 7.35 mm / 5.19 mm, below the 15 mm contact margin. They follow the original placement and swivel. Reproduce with node qa/inspect-chair-collision.mjs --write. No visible chair geometry, UVs, materials or lighting was modified.
+- The added headrest exposed a seated camera boom starting inside the chair. Its collision anchor is now derived from the actual headrest height plus the camera clearance; the viewing target remains at the character. This does not hide the model or disable the chair collider. Tests check third-person, side and front views.
+- Moved the gallery-return debug spawn 15 cm away from the rail to fit the actual upper body. Normal routes and room layouts are unchanged.
+
+## Verification
+
+- npm test: 95/95 passed (full-suite.log). Includes the source mirror and glass guards from both sides, all six desks and eighteen monitors, 25 source furniture/rock/pedestal solids, perimeter and landing routes, all four lounge-chair approach options, source stair skin contact at walk/sprint speeds, idle stairs, lift travel and disembarkation, founder desk entry/work/exit, camera corners, rendering and asset delivery regressions.
+- Final targeted run: 16/16 passed (final-targeted.log), after the founder-floor, spawn and seated-camera refinements. It also verifies exact source support heights at ten room locations. The total suite now contains 96 tests; the new source-height test was part of this final targeted run.
+- Full source skin tested on wall approaches at 0/45/90/180 degrees and 1.38 / 3.35 m/s. No wall penetration in sampled frames; minimum measured skin-to-wall clearance was 76 mm during the sprint approach. Root stops 0.52–0.63 m from a flat wall, preserving room for the stride to settle.
+- Fixed-step render translation passed at 60/90/144/165 Hz. Founder hand/desk penetration remained zero in sampled vertices; foot target errors remained below 0.002 m. All 442,344 visible chair triangles and UVs are preserved.
+- Production build and TypeScript passed; asset verification and lossless delivery generation passed.
+- Visual review completed in the actual WebGPU scene at High / 100% resolution: entrance traversal, cabinet approach, seated third-person/side/front views, chair exit, and upper landing movement. Evidence: final-chair-third-person.png, final-chair-side.png, final-chair-front.png, final-chair-exit.png, final-cabinet-clearance.png and final-landing-contact.png. The first chair screenshot exposed the headrest/camera conflict; the final screenshots show the corrected anchor.
+- Background windows throttled the initial visual run to 1 FPS; those readings are not representative performance results. The foreground high-quality chair view ran above 60 FPS, but this is not a controlled before/after FPS benchmark. After the user's request, verification uses in-site controls and background numerical tests only, without raising windows or desktop keyboard/mouse input.
+
+## Cost and limits
+
+Same-machine before/after CPU microbenchmark (performance-comparison.json): physics 0.070 -> 0.134 ms per step; full avatar/contact updates 0.104–0.116 -> 0.207–0.389 ms in four sampled rooms. Contact indexing 57 -> 122 ms once at initialization. These are CPU timings, not a whole-scene FPS claim. Existing GPU/shader/loading costs are separate; no render-quality setting or source asset was reduced.
+
+Coverage is finite, not an exhaustive proof for every possible animation frame, arbitrary spawn and decorative concavity. The accepted authored seating paths still use their calibrated contact poses rather than a new ragdoll/cloth solver; this work does not promise physically simulated jacket fabric or individual finger collisions against every prop. No collision failure remains in the listed regression routes. Runtime body guards, existing stair IK and source furniture envelopes are retained as the practical architecture.
+
+Rollback: restore only the changed runtime files from before/ and remove the two new collision source files (chairCollision.ts, exactBox.ts, plus any specifically introduced QA files as desired); source Blender and shipped assets need no restoration. Do not reset the protected original or unrelated performance/delivery changes.

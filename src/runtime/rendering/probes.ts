@@ -4,6 +4,15 @@ import { Fn, If, float, max, min, mix, pmremTexture, positionWorld, smoothstep, 
 
 export type RoomProbe = { id: string; region: Box3; position: Vector3; texture: Texture; intensity: number };
 
+export const PROBE_INFLUENCE_MARGIN = 0.4;
+
+/** Broad-phase selection must include the same blended border as the shader.
+ * Otherwise adjoining meshes can select different captures at the same position. */
+export function probesForBounds<T extends { region: Box3 }>(probes: T[], bounds: Box3): T[] {
+  const influence = new Box3();
+  return probes.filter(probe => influence.copy(probe.region).expandByScalar(PROBE_INFLUENCE_MARGIN).intersectsBox(bounds));
+}
+
 /** Finite-volume parallax correction. Room geometry is approximated by the exported box. */
 export function roomEnvironment(global: Texture, globalIntensity: number, probes: RoomProbe[]) {
   const volumes = [...probes].sort((a, b) => b.region.getSize(new Vector3()).lengthSq() - a.region.getSize(new Vector3()).lengthSq()).map(probe => ({
@@ -17,8 +26,8 @@ export function roomEnvironment(global: Texture, globalIntensity: number, probes
     for (const probe of volumes) {
       // Influence extends slightly beyond the box so a floor/wall on its boundary still
       // receives the capture. The original box remains the reflection intersection volume.
-      const minimumDistance = positionWorld.sub(probe.minimum.sub(0.4));
-      const maximumDistance = probe.maximum.add(0.4).sub(positionWorld);
+      const minimumDistance = positionWorld.sub(probe.minimum.sub(PROBE_INFLUENCE_MARGIN));
+      const maximumDistance = probe.maximum.add(PROBE_INFLUENCE_MARGIN).sub(positionWorld);
       const inside = minimumDistance.greaterThanEqual(vec3(0)).all().and(maximumDistance.greaterThanEqual(vec3(0)).all());
       If(inside, () => {
         const signs = vec3(direction.x.greaterThanEqual(0).select(1, -1), direction.y.greaterThanEqual(0).select(1, -1), direction.z.greaterThanEqual(0).select(1, -1));

@@ -29,6 +29,7 @@ export type SceneManifest = {
   baking?: { mode: 'none' | 'indirect' | 'combined'; description?: string; bakedPracticals?: boolean };
   character?: { url: string; scale?: number };
   colorPipeline?: { url: string; rawURL?: string; compression?: 'gzip'; size: number; format: 'rgba16f-le'; minEV: number; maxEV: number; output: 'display-linear-srgb'; validated: boolean };
+  exteriorFinish?: { metadata: string; uv: string; lightMap: string };
   materials?: Array<{
     name: string; objectNames?: string[]; lightMap?: string; lightMapIntensity?: number;
     lightMapMode?: 'indirect' | 'combined'; uvChannel?: number;

@@ -1,7 +1,7 @@
 # Performance audit — 26 October 2026
 
 ## Contract and rollback
-The audit was performed in a separate local backup, preserving the original working copy. Baseline: e5338c17d5c53dab745e09d7c45035c8273b27ae. Publication was authorized after the audit; only the performance changes, tests and documentation are included.
+Working copy: D:\Motion Design MD BACKUP 26-10-2026. The original D:\Motion Design MD FINAL is the untouched safety copy. Baseline is the verified e5338c17d5c53dab745e09d7c45035c8273b27ae snapshot recorded in BACKUP-VERIFICATION.json. No publication is authorized for this audit.
 
 Preserve geometry, materials, lighting, antialiasing, full-resolution quality, character/chair/stair animation, collision and camera behavior. No Blender edits or asset recompression. Pinned Next 16.3.8, React 19.3.0 and Three r186. Evidence is outside the working copy at:
 C:/Users/karan_z7alww2/.codex/visualizations/2026/10/17/01a14a42-20bc-7ca3-a5e8-1779e078f8e0/performance-2026-10-26
@@ -66,4 +66,4 @@ Final foreground evidence: accepted-load.json, accepted-tour.json, accepted-stat
 
 Run `npm run build`, then `npm start -- --port 3001`. Open /?debug=1&profile=1, expand Performance capture, Lock full quality. Capture tour from its initial state; use QA surface | Post shadow and wait for draw calls 0 before the stationary capture. Test founder-desk movement reproduces the animated-idle view. Use &renderer=webgl for fallback QA. Do not benchmark while running tests/builds or another 3D tab.
 
-The original local working copy remains untouched and is the rollback source. The publishing checkout was based on GitHub main f1c70b7; its tree matched the audit baseline. No asset deletions, Blender changes, dependencies or unrelated changes are included in this update.
+The original D:/Motion Design MD FINAL remains untouched and is the rollback source. Only this backup contains the performance changes. No GitHub push or deployment was performed.

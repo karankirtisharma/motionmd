@@ -76,7 +76,7 @@ test('source rocks, furniture cores and pedestals block the body without room-si
 test('balcony inspection points have walkable ground and clear body space', async () => {
   const p = await fixture();
   try {
-    for (const point of [[11,4.23,-10.25], [8.14,3.675,-24.63]]) {
+    for (const point of [[11,4.23,-10.25], [8.14,3.675,-24.48]]) {
       const feet = new T.Vector3(...point);
       const ground = p.groundAt(feet, 1);
       assert.ok(Math.abs(ground-feet.y)<.05, 'inspection point must be on the gallery: '+ground);

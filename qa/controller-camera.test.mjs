@@ -241,6 +241,13 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
     }
     context.diagnostic(JSON.stringify({stages:[...stages],state:controller.diagnostics.state,maximumStep,hint}));
     assert.equal(controller.diagnostics.state.mode,'seated');
+    for(const view of ['third-person','side','front']) {
+      controller.inspectDeskView(view);
+      for(let i=0;i<90;i++)controller.update(1/60);
+      assert.ok(Math.hypot(camera.position.x-controller.player.position.x,camera.position.z-controller.player.position.z)>.75,`${view}: solid headrest must not push the camera into the body`);
+    }
+    controller.inspectDeskView('third-person');
+
     assert.ok(maximumStep<0.06,'root has no teleportation');
     assert.ok(turnMotion.length > 0 && turnMotion.length / 60 < 2.5,'turn and positioning form one short movement');
     assert.equal(entryFootfalls,2,'normal entry uses two deliberate steps instead of micro-step pairs');

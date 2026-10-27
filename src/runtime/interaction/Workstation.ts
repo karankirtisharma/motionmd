@@ -100,6 +100,9 @@ export function createWorkstation(scene: THREE.Object3D) {
   });
   return {
     id: WORKSTATION.id, group, swivel, pedestalMeshes, meshes, pivot, seat: seat.clone().addScaledVector(forward, 0.20), forward,
+    // The camera's swept volume must begin above the actual headrest rather
+    // than inside the newly complete chair collision shell.
+    cameraPivotHeight: new THREE.Box3().setFromObject(group).max.y - seat.y + .24,
     pointAt,
     grip(angle: number, side: number) { return pointAt(grips[side < 0 ? 0 : 1], angle); },
     setSwivel(angle: number) { swivel.rotation.y = angle; group.updateMatrixWorld(true); },

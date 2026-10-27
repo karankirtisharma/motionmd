@@ -11,6 +11,7 @@ import { restoreSourceStoneFloors } from './sourceStoneFloors';
 import { restoreSourceBronze } from './sourceBronze';
 import { createLoadQueue } from './loadQueue.ts';
 import { repairCollapsedBrushFrame } from './brushTangents';
+import { repairGlassNormals } from './glassNormals.ts';
 
 const textureKeys = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'] as const;
 
@@ -21,6 +22,7 @@ export function prepareSourceMaterials(root: Object3D, renderer: WebGPURenderer)
   let references = 0, replaced = 0;
   root.traverse(object => {
     if (!(object instanceof Mesh)) return;
+    repairGlassNormals(object);
     repairCollapsedBrushFrame(object);
     const materials: Material[] = Array.isArray(object.material) ? object.material : [object.material];
     if (!object.userData.contextOnly && !object.geometry.userData.contextOnly) {

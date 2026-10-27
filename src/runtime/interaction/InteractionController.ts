@@ -290,6 +290,10 @@ export async function createInteractionController(options: Options) {
       if (approachTime > 7) { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; prompt({ text: 'Move closer to the front of the chair' }); return; }
       displacement.multiplyScalar(Math.min(1.0, distance * 2.5) / distance);
     } else { if (lift) physics.world.step(); return; }
+    if (mode === 'explore' && displacement.lengthSq() > 0.001) {
+      const requested = displacement.length();
+      displacement.multiplyScalar(physics.speedForClearance(displacement, requested) / requested);
+    }
     velocity.x = THREE.MathUtils.lerp(velocity.x, displacement.x, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
     velocity.z = THREE.MathUtils.lerp(velocity.z, displacement.z, damping(displacement.lengthSq() > 0.001 ? 8 : 12, STEP));
     if (displacement.lengthSq() < 0.000001 && Math.hypot(velocity.x, velocity.z) < 0.025) {
@@ -312,7 +316,9 @@ export async function createInteractionController(options: Options) {
     const seatedView = selected && (mode === 'seated' || mode === 'sitting' || mode === 'standing');
     const eyeHeight = selected ? THREE.MathUtils.lerp(avatar.view.eyeHeight, selected.height + avatar.view.seatedEyeOffset, seatWeight) : avatar.view.eyeHeight;
     const eyePosition = new THREE.Vector3(renderFeet.x, cameraFloor + eyeHeight, renderFeet.z);
-    pivot.copy(renderFeet).setY(cameraFloor + (selected ? THREE.MathUtils.lerp(1.35, selected.height + 0.68, seatWeight) : 1.35));
+    const focusHeight = selected ? THREE.MathUtils.lerp(1.35, selected.height + .68, seatWeight) : 1.35;
+    const boomHeight = selected?.workstation ? THREE.MathUtils.lerp(1.35, selected.workstation.cameraPivotHeight, seatWeight) : focusHeight;
+    pivot.copy(renderFeet).setY(cameraFloor + boomHeight);
     const followDistance = inspectionDistance ?? (lift?.inside(renderFeet) ? 1.05 : 2.45);
     desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * followDistance, Math.sin(pitch) * followDistance + 0.10, Math.cos(yaw) * Math.cos(pitch) * followDistance).add(pivot);
     // Obstructions shorten the follow boom below; only explicit V input changes
@@ -331,7 +337,7 @@ export async function createInteractionController(options: Options) {
       desiredCamera.copy(pivot).addScaledVector(viewDirection, -1.25).addScaledVector(up, 0.46);
       lookTarget.copy(screenPosition).lerp(pivot.clone().addScaledVector(up, 0.35), 0.12);
     } else {
-      lookTarget.copy(pivot).addScaledVector(up, 0.03);
+      lookTarget.copy(renderFeet).setY(cameraFloor + focusHeight + .03);
     }
     if (!firstPerson) {
       const cameraDistance = physics.cameraDistance(pivot, desiredCamera);

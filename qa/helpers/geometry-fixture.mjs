@@ -6,7 +6,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 export async function geometryFixture(url) {
   const b=fs.readFileSync(new URL('../../public'+url,import.meta.url));
   const length=b.readUInt32LE(12), json=JSON.parse(b.subarray(20,20+length));
-  const sourceMaterials=json.materials;
+  const sourceMaterials=json.materials ?? [];
   delete json.images; delete json.textures; delete json.samplers;
   json.materials=sourceMaterials.map(m=>({name:m.name,doubleSided:m.doubleSided}));
   let data=Buffer.from(JSON.stringify(json));
@@ -16,5 +16,5 @@ export async function geometryFixture(url) {
   const blob=Buffer.concat([header,data,b.subarray(20+length)]);
   const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(blob.buffer.slice(blob.byteOffset,blob.byteOffset+blob.length),'');
   gltf.scene.updateMatrixWorld(true);
-  return {root:gltf.scene,sourceMaterials};
+  return {root:gltf.scene,sourceMaterials,gltf};
 }

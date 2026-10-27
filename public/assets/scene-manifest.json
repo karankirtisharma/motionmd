@@ -312,7 +312,7 @@
     },
     {
       "id": "founder-lift-exterior",
-      "name": "Glass lift � exterior",
+      "name": "Glass lift ï¿½ exterior",
       "position": [
         21,
         6,
@@ -327,7 +327,7 @@
     },
     {
       "id": "founder-lift-arrival",
-      "name": "Glass lift � arrival",
+      "name": "Glass lift ï¿½ arrival",
       "position": [
         13.35,
         5.95,
@@ -539,18 +539,242 @@
     },
     {
       "id": "V22 mirror founder side",
-      "position": [7.8, 5.8, -5.3],
-      "target": [4.995, 5.75, -9.25],
+      "position": [
+        7.8,
+        5.8,
+        -5.3
+      ],
+      "target": [
+        4.995,
+        5.75,
+        -9.25
+      ],
       "fov": 48
     },
-    {"id":"QA surface | Entry joins","position":[2.7,5.8,-10.3],"target":[3.6,4.23,-9.6],"fov":55},
-    {"id":"QA surface | Post shadow","position":[10.298810108879247,6.709356518472394,-7.2441308005744505],"target":[9.453547734669838,6.266447860495919,-7.5430679836670755],"fov":54},
-    {"id":"QA surface | Founder seam","position":[10,5.9,-4.2],"target":[9.4,4.23,-2.4],"fov":55},
-    {"id":"QA surface | Stair doorway","position":[18.7,1.65,-25],"target":[19.2,0,-22.7],"fov":55},
-    {"id":"QA surface | Studio edge","position":[7.5,1.7,-21.5],"target":[7.5,0,-23.4],"fov":55},
-    {"id":"QA surface | Ceiling strip","position":[1.6,1.8,-4.5],"target":[3.4,3.88,-3],"fov":65},
-    {"id":"QA surface | Ceiling corner","position":[1.6,1.8,-8.5],"target":[3.4,3.88,-10.4],"fov":65},
-    {"id":"QA surface | Library bronze","position":[10.9,1.7,-33.9],"target":[11.5,1.65,-35.5],"fov":55}
+    {
+      "id": "QA surface | Entry joins",
+      "position": [
+        2.7,
+        5.8,
+        -10.3
+      ],
+      "target": [
+        3.6,
+        4.23,
+        -9.6
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA surface | Post shadow",
+      "position": [
+        10.298810108879247,
+        6.709356518472394,
+        -7.2441308005744505
+      ],
+      "target": [
+        9.453547734669838,
+        6.266447860495919,
+        -7.5430679836670755
+      ],
+      "fov": 54
+    },
+    {
+      "id": "QA surface | Founder seam",
+      "position": [
+        10,
+        5.9,
+        -4.2
+      ],
+      "target": [
+        9.4,
+        4.23,
+        -2.4
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA surface | Stair doorway",
+      "position": [
+        18.7,
+        1.65,
+        -25
+      ],
+      "target": [
+        19.2,
+        0,
+        -22.7
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA surface | Studio edge",
+      "position": [
+        7.5,
+        1.7,
+        -21.5
+      ],
+      "target": [
+        7.5,
+        0,
+        -23.4
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA surface | Ceiling strip",
+      "position": [
+        1.6,
+        1.8,
+        -4.5
+      ],
+      "target": [
+        3.4,
+        3.88,
+        -3
+      ],
+      "fov": 65
+    },
+    {
+      "id": "QA surface | Ceiling corner",
+      "position": [
+        1.6,
+        1.8,
+        -8.5
+      ],
+      "target": [
+        3.4,
+        3.88,
+        -10.4
+      ],
+      "fov": 65
+    },
+    {
+      "id": "QA surface | Library bronze",
+      "position": [
+        10.9,
+        1.7,
+        -33.9
+      ],
+      "target": [
+        11.5,
+        1.65,
+        -35.5
+      ],
+      "fov": 55
+    },
+    {
+      "id": "QA exterior | Lift walkway",
+      "position": [
+        11.7,
+        1.8,
+        3.8
+      ],
+      "target": [
+        13.5,
+        0,
+        -0.9
+      ],
+      "fov": 52
+    },
+    {
+      "id": "QA exterior | Northwest join",
+      "position": [
+        -3,
+        1.8,
+        0.1
+      ],
+      "target": [
+        0.7,
+        -0.01,
+        -2.2
+      ],
+      "fov": 48
+    },
+    {
+      "id": "QA exterior | Southwest join",
+      "position": [
+        -4.3,
+        1.7,
+        -39.2
+      ],
+      "target": [
+        -1.5,
+        -0.01,
+        -36.5
+      ],
+      "fov": 48
+    },
+    {
+      "id": "QA exterior | Southeast join",
+      "position": [
+        26.3,
+        1.7,
+        -39.2
+      ],
+      "target": [
+        22.7,
+        -0.01,
+        -36.5
+      ],
+      "fov": 48
+    },
+    {
+      "id": "QA exterior | Entrance apron",
+      "position": [
+        -4,
+        2,
+        -7.5
+      ],
+      "target": [
+        -0.5,
+        0,
+        -10
+      ],
+      "fov": 48
+    },
+    {
+      "id": "QA glass | Studio guard",
+      "position": [
+        10.6,
+        5.55,
+        -24.05
+      ],
+      "target": [
+        10.1,
+        3.4,
+        -28.2
+      ],
+      "fov": 62
+    },
+    {
+      "id": "QA glass | Stair guard",
+      "position": [
+        21.2,
+        2.8,
+        -24.5
+      ],
+      "target": [
+        18.76,
+        2,
+        -20.2
+      ],
+      "fov": 62
+    },
+    {
+      "id": "QA glass | Founder guard",
+      "position": [
+        9.8,
+        5.9,
+        -9.75
+      ],
+      "target": [
+        9.6,
+        4.65,
+        -13.1
+      ],
+      "fov": 62
+    }
   ],
   "tour": [
     {
@@ -2117,9 +2341,9 @@
         -7.126309871673584
       ],
       "quaternion": [
-        4.806787038308434e-16,
+        4.806787038308434E-16,
         -0.3826834559440613,
-        1.672762728333055e-8,
+        1.672762728333055E-08,
         0.9238795638084412
       ],
       "seatHeight": 0.59154999,
@@ -2149,9 +2373,9 @@
         -7.126309871673584
       ],
       "quaternion": [
-        4.806787038308434e-16,
+        4.806787038308434E-16,
         0.3826834559440613,
-        -1.672762728333055e-8,
+        -1.672762728333055E-08,
         0.9238795638084412
       ],
       "seatHeight": 0.59154999,
@@ -2181,9 +2405,9 @@
         -5.273690223693848
       ],
       "quaternion": [
-        -9.613574076616869e-16,
+        -9.613574076616869E-16,
         0.9238795638084412,
-        -4.038405521100685e-8,
+        -4.038405521100685E-08,
         0.3826834559440613
       ],
       "seatHeight": 0.59154999,
@@ -2215,7 +2439,7 @@
       "quaternion": [
         0,
         -0.9238795638084412,
-        4.038405521100685e-8,
+        4.038405521100685E-08,
         0.3826833963394165
       ],
       "seatHeight": 0.59154999,
@@ -7783,5 +8007,10 @@
     },
     "reflection": "Live planar mirror faces on gallery and founder-room sides. Runtime reuses the exported face and bronze reveals around the structural backing centre. One shared bounded render target renders only the facing surface; existing local probes retained for surrounding materials.",
     "lightingLimitation": "Previous v20 diffuse bakes are retained. Removal-specific indirect-light rebake pending."
+  },
+  "exteriorFinish": {
+    "metadata": "/assets/exterior-finish-v24/lighting.json",
+    "uv": "/assets/exterior-finish-v24/lighting-uv-47d6a44a5f91.bin",
+    "lightMap": "/assets/exterior-finish-v24/exterior-finish-92cd40f3673c.exr"
   }
 }

@@ -4,10 +4,18 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { repairArchitecturalJoins } from '../rendering/architecturalJoins.ts';
 import { repairStudioThreshold } from '../rendering/floorThreshold.ts';
+import { repairEntranceApron } from '../rendering/entranceApron.ts';
+import { chairCollision } from './chairCollision.ts';
+import { exactBox } from './exactBox.ts';
+import { exteriorCollision } from './exteriorCollision.ts';
+import { exteriorCollisionGeometry } from '../rendering/exteriorSurfaces.ts';
+import { facadeCollision } from './facadeCollision.ts';
+import { clubCollision } from './clubCollision.ts';
 
-// Preserve the calibrated full-body capsule and stable stair/contact behavior.
+// Measured shipping rig: idle hands span 0.648 m; running crown reaches 1.886 m.
+// Keep the support offset separate from the visual sole and cover the actual body.
 export const PLAYER_RADIUS = 0.25;
-export const PLAYER_HALF_SEGMENT = 0.60;
+export const PLAYER_HALF_SEGMENT = 0.70;
 export const PLAYER_HALF_HEIGHT = PLAYER_HALF_SEGMENT + PLAYER_RADIUS;
 export type ExplorationBounds = { minX: number; maxX: number; minZ: number; maxZ: number; height?: number };
 
@@ -55,6 +63,7 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   // Apply the same measured finish repairs to visible and collision geometry.
   repairArchitecturalJoins(root);
   repairStudioThreshold(root);
+  repairEntranceApron(root);
   const point = new THREE.Vector3();
   const colliderNames = new Map<number, string>();
   const workstationColliders: RAPIER.Collider[] = [];
@@ -92,6 +101,11 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       const size = box.getSize(new THREE.Vector3()).multiplyScalar(0.5), center = box.getCenter(new THREE.Vector3());
       descriptor = RAPIER.ColliderDesc.cuboid(size.x, size.y, size.z).setTranslation(center.x, center.y, center.z);
     }
+    const box = mesh.userData.collisionShape === 'convexHull' || /^FC91 Installed \|/.test(String(mesh.userData.sourceName ?? '')) ? undefined : exactBox(vertices, triangles);
+    if (box) {
+      const half=box.getSize(new THREE.Vector3()).multiplyScalar(.5), center=box.getCenter(new THREE.Vector3());
+      descriptor=RAPIER.ColliderDesc.cuboid(half.x,half.y,half.z).setTranslation(center.x,center.y,center.z);
+    }
     if (!descriptor) throw new Error(`Invalid collision envelope: ${mesh.name}`);
     let obstacle: RAPIER.Collider;
     try { obstacle = world.createCollider(descriptor.setFriction(0.6)); }
@@ -101,6 +115,40 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     triangleCount += triangles.length / 3;
     meshCount++;
   }); } catch (error) { world.free(); disposeLoaded(); throw error; }
+  // These two leather components were absent from the export's collision selection.
+  // Their source-derived hull error stays below the existing 15 mm contact offset.
+  if (workstationColliders.length) for (const piece of chairCollision) {
+    const descriptor = RAPIER.ColliderDesc.convexMesh(new Float32Array(piece.vertices), new Uint32Array(piece.indices));
+    if (!descriptor) throw new Error(`Invalid chair ${piece.name} collision envelope`);
+    const collider = world.createCollider(descriptor);
+    workstationColliders.push(collider); colliderNames.set(collider.handle, `FC91 Installed | ${piece.name} contact envelope`);
+    meshCount++; triangleCount += piece.indices.length / 3;
+  }
+  // The source collision export omitted five finished exterior slabs. Use their
+  // exact closed source surfaces (including bevels), with outward winding.
+  if ([...colliderNames.values()].includes('Main FFL continuous floor')) {
+    // The four decorative club chairs had only their cushions in the export.
+    // Their outer hulls protect the wraparound backs/arms; they are not sit targets.
+    for (const piece of clubCollision) {
+      const descriptor = RAPIER.ColliderDesc.convexMesh(new Float32Array(piece.vertices), new Uint32Array(piece.indices));
+      if (!descriptor) throw new Error(`Invalid club-chair envelope: ${piece.name}`);
+      const collider = world.createCollider(descriptor);
+      colliderNames.set(collider.handle, piece.name);
+      meshCount++; triangleCount += piece.indices.length / 3;
+    }
+    for (const piece of facadeCollision) {
+      const collider = world.createCollider(RAPIER.ColliderDesc.trimesh(new Float32Array(piece.vertices), new Uint32Array(piece.indices), RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES));
+      colliderNames.set(collider.handle, `Source facade | ${piece.name}`);
+      meshCount++; triangleCount += piece.indices.length / 3;
+    }
+    for (const piece of exteriorCollision) {
+      if (piece.existingCollider) continue;
+      const fixed = exteriorCollisionGeometry(piece);
+      const collider = world.createCollider(RAPIER.ColliderDesc.trimesh(fixed.vertices, fixed.indices, RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES));
+      colliderNames.set(collider.handle, `Source exterior | ${piece.name}`);
+      meshCount++; triangleCount += piece.indices.length / 3;
+    }
+  }
   if (triangleCount < 1) { world.free(); disposeLoaded(); throw new Error('No architectural collision surfaces were available.'); }
   // The founder rug's visible pile was omitted from the architectural hulls.
   // Support soles at its measured surface instead of the stone 35 mm below it.
@@ -134,8 +182,23 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       colliderNames.set(perimeter.handle, `Exploration perimeter ${name}`); perimeterColliders++;
     }
   }
+  // Predicting a horizontal torso path through a staircase ignores the height
+  // gained by stepping up. Only the authored tread/ramp/landing solids skip
+  // this speed prediction; rails, posts and every physical KCC sweep remain.
+  const stairSupportColliders = new Set([...colliderNames].filter(([, name]) =>
+    /^(?:V13 \| helical stair (?:walking ramp|landing)|V16 \| Unified marble landing and short steps|V(?:18|19) \| Unified curved pavement and rounded short steps|EXT77 \| entry stair (?:lower|upper)|EH42 stair (?:(?:lower|upper) (?:closed tread|nosing) \d+|intermediate landing|top landing))$/.test(name),
+  ).map(([handle]) => handle));
+  const predictiveObstacle = (candidate: RAPIER.Collider) => !stairSupportColliders.has(candidate.handle);
   const body = world.createRigidBody(RAPIER.RigidBodyDesc.kinematicPositionBased());
   const capsule = world.createCollider(RAPIER.ColliderDesc.capsule(PLAYER_HALF_SEGMENT, PLAYER_RADIUS), body);
+  // Keep the established hand/shoulder guard; remove the extra stopping reserve,
+  // rather than shrinking protection around the skin or changing stair support.
+  const torsoShape = new RAPIER.Capsule(0.35, 0.35);
+  const torsoOffset = 1.05 - PLAYER_HALF_HEIGHT;
+  const torso = world.createCollider(RAPIER.ColliderDesc.capsule(0.35, 0.35).setTranslation(0, torsoOffset, 0), body);
+  const torsoController = world.createCharacterController(0.015);
+  torsoController.setNormalNudgeFactor(0.001);
+  let deskClearance = false;
   const controller = world.createCharacterController(0.015);
   // A 1mm contact nudge avoids float-precision snags on broad triangulated floors.
   controller.setNormalNudgeFactor(0.001);
@@ -160,10 +223,11 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   const identityRotation = { x: 0, y: 0, z: 0, w: 1 };
   return {
     meshCount, triangleCount, perimeterColliders,
-    world, capsule, body, controller, place, colliderNames,
+    world, capsule, body, controller, place, colliderNames, torso,
     setDeskClearance(active: boolean) {
-      // The normal navigation capsule includes generous arm clearance. During the
-      // measured front-of-seat approach use the torso depth, keeping its full height.
+      // Authored desk contact IK owns body placement during the measured approach.
+      // Keep head clearance, use torso depth, and suspend only the shoulder guard.
+      deskClearance = active; torso.setEnabled(!active);
       const radius = active ? 0.10 : PLAYER_RADIUS;
       capsule.setShape(new RAPIER.Capsule(PLAYER_HALF_HEIGHT - radius, radius));
     },
@@ -173,7 +237,9 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       const shape = new RAPIER.Capsule(PLAYER_HALF_HEIGHT - PLAYER_RADIUS, PLAYER_RADIUS);
       const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };
       if (world.intersectionWithShape(center, { x: 0, y: 0, z: 0, w: 1 }, shape, undefined, undefined, capsule, body)) return false;
-      capsule.setShape(shape); return true;
+      const shoulderCenter = { x: center.x, y: center.y + torsoOffset, z: center.z };
+      if (world.intersectionWithShape(shoulderCenter, identityRotation, torsoShape, undefined, undefined, capsule, body)) return false;
+      capsule.setShape(shape); deskClearance = false; torso.setEnabled(true); return true;
     },
     move(displacement: THREE.Vector3, dt: number, output: THREE.Vector3, ignoreWorkstation = false) {
       world.timestep = dt;
@@ -187,14 +253,81 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
         restingOnStairRamp = !!support && /helical stair walking ramp/i.test(colliderNames.get(support.collider.handle) ?? '');
       }
       controller.setSlideEnabled(!restingOnStairRamp);
-      controller.computeColliderMovement(capsule, displacement, undefined, undefined, (candidate) => candidate.handle !== capsule.handle && (!ignoreWorkstation || !workstationColliders.includes(candidate)));
+      const keep = (candidate: RAPIER.Collider) => candidate.parent()?.handle !== body.handle && (!ignoreWorkstation || !workstationColliders.includes(candidate));
+      let desired: { x: number; y: number; z: number } = displacement;
+      if (!deskClearance) {
+        torsoController.computeColliderMovement(torso, displacement, undefined, undefined, keep);
+        const guarded=torsoController.computedMovement();
+        // The foot capsule owns support/step height. Shoulder contact must not
+        // turn a cabinet bevel into a ramp for the whole character.
+        desired={x:guarded.x,y:displacement.y,z:guarded.z};
+      }
+      controller.computeColliderMovement(capsule, desired, undefined, undefined, keep);
       const movement = controller.computedMovement();
+      const grounded = controller.computedGrounded();
+      const horizontal = Math.hypot(desired.x, desired.z);
+      // A near-zero-time, purely upward support contact can consume Rapier's
+      // horizontal iteration on large slabs. Resolve the tangent separately;
+      // it still queries every wall/obstacle with the same full capsule.
+      if (horizontal > .0001 && Math.hypot(movement.x,movement.z) < horizontal * .95 && controller.numComputedCollisions() > 0) {
+        let supportOnly = true;
+        for(let i=0;i<controller.numComputedCollisions();i++) {
+          const hit=controller.computedCollision(i);
+          if(!hit || hit.normal1.y < .9999) { supportOnly=false; break; }
+        }
+        if(supportOnly) {
+          controller.computeColliderMovement(capsule,{x:desired.x,y:0,z:desired.z},undefined,undefined,keep);
+          const tangent=controller.computedMovement();
+          movement.x=tangent.x; movement.z=tangent.z;
+        }
+      }
+      // Autostep may adjust the lower capsule's result. Sweep the upper body
+      // through that final displacement as well, so it cannot creep into a
+      // cabinet lip or overhang after the first shoulder solve.
+      if(!deskClearance && Math.hypot(movement.x,movement.y,movement.z) > 1e-8) {
+        const limit=world.castShape(torso.translation(),identityRotation,movement,torsoShape,.015,1,false,undefined,undefined,capsule,body,keep);
+        if(limit) {
+          const t=Math.max(0,Math.min(1,limit.time_of_impact));
+          movement.x*=t;movement.y*=t;movement.z*=t;
+        }
+      }
       const old = body.translation();
-      body.setNextKinematicTranslation({ x: old.x + movement.x, y: old.y + movement.y, z: old.z + movement.z });
+      const next={x:old.x+movement.x,y:old.y+movement.y,z:old.z+movement.z};
+      // At metre-scale floor extents the f32 convex contact can settle a few
+      // millimetres below its support. Reconcile only a nearby horizontal top;
+      // stair risers, ramps, falling and step-height changes keep the KCC result.
+      if(grounded && displacement.y <= 0) {
+        const footY=next.y-PLAYER_HALF_HEIGHT-.015;
+        const oldFootY=old.y-PLAYER_HALF_HEIGHT-.015;
+        // Sweep from the previous support height. Rapier's snap can occasionally
+        // cross a flat top by more than the local 25 mm reconciliation window.
+        // Starting above the old foot catches that crossing, not a slab underside.
+        const rayY=Math.max(oldFootY,footY)+.03;
+        const support=world.castRayAndGetNormal(new RAPIER.Ray({x:next.x,y:rayY,z:next.z},{x:0,y:-1,z:0}),rayY-footY+.03,true,undefined,undefined,capsule,body,keep);
+        if(support && support.normal.y > .9999) {
+          const surface=rayY-support.timeOfImpact;
+          if(surface-footY > -.002 && surface <= Math.max(oldFootY,footY)+.025) next.y=Math.max(next.y,surface+PLAYER_HALF_HEIGHT+.016);
+        }
+      }
+      body.setNextKinematicTranslation(next);
       world.step();
       const value = body.translation();
       output.set(value.x, value.y - PLAYER_HALF_HEIGHT - 0.015, value.z);
-      return controller.computedGrounded();
+      return grounded;
+    },
+    speedForClearance(direction: THREE.Vector3, requestedSpeed: number) {
+      if (deskClearance || direction.lengthSq() < 1e-8) return requestedSpeed;
+      const length = Math.hypot(direction.x, direction.z);
+      const velocity = { x: direction.x / length, y: 0, z: direction.z / length };
+      const hit = world.castShape(torso.translation(), identityRotation, velocity, torsoShape, .015, 1.2, false, undefined, undefined, capsule, body, predictiveObstacle);
+      // Slow the stride progressively, then approach the actual body contact.
+      // A permanent stride-length reserve creates an invisible wall after the
+      // gait has already settled. Keep the physical guard and contact skin.
+      if (!hit) return requestedSpeed;
+      const gap = Math.max(0, hit.time_of_impact);
+      // Quadratic braking settles long strides early; the bounded final approach
+      // avoids an asymptotic crawl while still reaching zero at physical contact.
+      return Math.min(requestedSpeed, 3 * gap, Math.max(.12, 2.5 * gap * gap));
     },
     groundAt(position: THREE.Vector3, maximumDrop = 8) {
       const origin = position.clone().add(new THREE.Vector3(0, 0.6, 0));
@@ -212,7 +345,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
     },
     canStandAt(feet: THREE.Vector3) {
       const center = { x: feet.x, y: feet.y + PLAYER_HALF_HEIGHT + 0.015, z: feet.z };
-      return !world.intersectionWithShape(center, { x: 0, y: 0, z: 0, w: 1 }, capsule.shape, undefined, undefined, capsule, body);
+      if (world.intersectionWithShape(center, identityRotation, capsule.shape, undefined, undefined, capsule, body)) return false;
+      return deskClearance || !world.intersectionWithShape({ x: center.x, y: center.y + torsoOffset, z: center.z }, identityRotation, torsoShape, undefined, undefined, capsule, body);
     },
     configureWorkstation(offset: THREE.Vector3, rotation: THREE.Quaternion, height: (y: number) => number) {
       if (workstationConfigured) return;
@@ -235,8 +369,7 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
         const turn = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), angle);
         const offset = workstationPlacement.offset.clone().sub(pivot).applyQuaternion(turn).add(pivot);
         const rotation = turn.multiply(workstationPlacement.rotation);
-        // These named collision pieces are the cushion and the armrest rims /
-        // pads, all above the fixed pedestal joint.
+        // Cushion, armrests, backrest and headrest all turn above the fixed spindle.
         for (const collider of workstationColliders) { collider.setTranslation(offset); collider.setRotation(rotation); }
         workstationAngle = angle; world.step();
       },

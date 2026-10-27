@@ -345,8 +345,13 @@ export function createRocketboxAvatar(gltf: GLTF) {
       const goal=ankle.clone().add(new THREE.Vector3(0,Math.min(.28,clearance[i]),0));
       const footQ=leg.foot.getWorldQuaternion(new THREE.Quaternion());
       const hip=leg.upper.getWorldPosition(new THREE.Vector3());
-      const pole=hip.clone().addScaledVector(front,.7);
-      solveLimb(leg.upper,leg.lower,leg.foot,goal,pole,leg.frames);
+      // Preserve the animated knee plane and axial roll. Even a 2 mm sole
+      // correction must not replace the source gait with the seated hinge frame.
+      const pole=leg.lower.getWorldPosition(new THREE.Vector3());
+      const axis=goal.clone().sub(hip).normalize();
+      const bend=pole.clone().sub(hip); bend.addScaledVector(axis,-bend.dot(axis));
+      if(bend.lengthSq()<1e-8)pole.copy(hip).addScaledVector(front,.7);
+      solveLimb(leg.upper,leg.lower,leg.foot,goal,pole);
       setWorldQuaternion(leg.foot,footQ);
     });
   }

@@ -4,7 +4,7 @@ import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTextu
 import type { SceneManifest } from '@/types';
 import { assetURL, loadEnvironment } from './assets';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial';
-import { roomEnvironment, type RoomProbe } from './probes';
+import { roomEnvironment, probesForBounds, type RoomProbe } from './probes';
 import { architecturalShadowBounds, fitSunShadow } from './shadowBounds';
 
 function authoredColor(value: string | [number, number, number]): Color {
@@ -81,7 +81,7 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
       const objectBounds = moving ? null : new Box3().setFromObject(object);
       // Moving people retain one shader through room boundaries. The fragment
       // shader already evaluates probe influence and blends its boundary.
-      const candidates = moving ? probes : probes.filter(candidate => candidate.region.intersectsBox(objectBounds!));
+      const candidates = moving ? probes : probesForBounds(probes, objectBounds!);
       const key = candidates.map(probe => probe.id).join('|');
       const list = Array.isArray(object.material) ? object.material : [object.material];
       const updated = list.map(material => {

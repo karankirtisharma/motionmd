@@ -9,7 +9,10 @@ import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/ty
 import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
 import { repairArchitecturalJoins } from './rendering/architecturalJoins';
+import { repairExteriorWinding, repairExteriorOverlap, repairExteriorGroove } from './rendering/exteriorSurfaces';
+import { repairFounderExteriorWinding, installExteriorLighting } from './rendering/exteriorLighting';
 import { repairStudioThreshold } from './rendering/floorThreshold';
+import { repairEntranceApron } from './rendering/entranceApron';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import { RenderDiagnostics, type DiagnosticMode } from './rendering/diagnostics';
@@ -74,6 +77,7 @@ export class SceneRuntime {
   private diagnostics?: RenderDiagnostics;
   private referenceCamera = '';
   private inspectionEnabled = false;
+  private inspectionWalkTime = 0;
   private profiler?: RuntimeProfiler;
   private settleFrames = TEMPORAL_SETTLE_FRAMES;
 
@@ -136,8 +140,13 @@ export class SceneRuntime {
       this.profiler?.phase('geometry and embedded textures');
       await this.loadSource();
       if (this.disposed) return;
+      repairExteriorWinding(this.content);
+      repairExteriorOverlap(this.content);
+      repairExteriorGroove(this.content);
+      repairFounderExteriorWinding(this.content);
       repairArchitecturalJoins(this.content);
       repairStudioThreshold(this.content);
+      repairEntranceApron(this.content);
       // Source clips are available only after loading; apply their initial pose once.
       this.applyTourCamera(0, true);
       // Canonicalize glTF UV-channel clones before node graphs capture their texture references.
@@ -147,6 +156,8 @@ export class SceneRuntime {
       this.profiler?.phase('material maps and lightmaps');
       const materialTextures = await applyMaterialManifest(this.content, this.manifest, this.abort.signal);
       materialTextures.forEach(t => this.textures.add(t));
+      const exteriorTextures = await installExteriorLighting(this.content, this.abort.signal);
+      exteriorTextures.forEach(t => this.textures.add(t));
       this.abort.signal.throwIfAborted();
       prepareSourceMaterials(this.content, this.renderer).forEach(t => this.textures.add(t));
       const bounds = new Box3().setFromObject(this.content);
@@ -314,7 +325,13 @@ export class SceneRuntime {
     if (this.sceneTransition) this.updateSceneTransition(dt);
     else if (!this.paused && !this.referenceCamera) {
       if (this.mode === 'tour') this.applyTourCamera(dt);
-      else characterAdvanced = this.controls?.update(dt) ?? false;
+      else {
+        if (this.inspectionWalkTime > 0) {
+          this.inspectionWalkTime = Math.max(0, this.inspectionWalkTime - dt);
+          if (!this.inspectionWalkTime) this.controls?.setVirtualInput(0, 0);
+        }
+        characterAdvanced = this.controls?.update(dt) ?? false;
+      }
     }
     // Idle breathing and seated motion still cast changing shadows. Frozen reference
     // views, menus and fades reuse the map until an explicit scene change below.
@@ -432,16 +449,21 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk' | 'exterior-east' | 'exterior-west' | 'lounge-chair' | 'spiral-stair' | 'rounded-stair') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const positions = { entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.63], 'founder-desk': [14.8, 4.265, -6.1] };
-    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
-    this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
+    const positions = { 'spiral-stair': [20.31, .7, -20.2], 'rounded-stair': [8.3, 3.675, -23], 'exterior-east': [23, -.01, -25], 'exterior-west': [-1.6, -.01, -28], 'lounge-chair': [11.9, 4.265, -3.8], entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.48], 'founder-desk': [14.8, 4.265, -6.1] };
+    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'rounded-stair' ? Math.PI / 2 : location === 'spiral-stair' ? Math.PI : location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
+    this.inspectionWalkTime = 0; this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
     this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));
     this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
     this.controls.enterExplore(undefined, spawn); this.setMode('explore'); this.temporal?.reset();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
+  }
+  inspectWalk(x: number, y: number, sprint = false) {
+    if (!this.inspectionEnabled || this.mode !== 'explore' || this.paused) return;
+    this.inspectionWalkTime = (x || y) ? 1 : 0;
+    this.controls?.setVirtualInput(x, y, 0, 0, sprint);
   }
   inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
   getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
