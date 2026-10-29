@@ -28,7 +28,7 @@ function request(url,headers,method='GET') {
     req.on('error',reject);req.end();
   });
 }
-for(const chunk of manifest.chunks){
+for(const chunk of [...manifest.chunks,{id:'character',url:manifest.character.url}]){
   const entry=index[chunk.url];
   assert.ok(entry,'Generate delivery variants first');
   const expected=fs.readFileSync(new URL('../public'+(entry.identity||chunk.url),import.meta.url));
@@ -41,8 +41,8 @@ for(const chunk of manifest.chunks){
     assert.match(result.headers.vary,/Accept-Encoding/i);
     assert.match(result.headers['cache-control'],/must-revalidate/);
     assert.equal(result.decoded,entry.decodedBytes);
-    assert.equal(Number(result.headers['x-scene-decoded-length']),Object.values(index).reduce((sum,item)=>sum+item.decodedBytes,0));
-    assert.equal(Number(result.headers['x-scene-encoded-length']),Object.values(index).reduce((sum,item)=>sum+(encoding==='identity'?item.decodedBytes:item[encoding+'Bytes']),0));
+    assert.equal(Number(result.headers['x-scene-decoded-length']),manifest.chunks.map(chunk=>index[chunk.url]).reduce((sum,item)=>sum+item.decodedBytes,0));
+    assert.equal(Number(result.headers['x-scene-encoded-length']),manifest.chunks.map(chunk=>index[chunk.url]).reduce((sum,item)=>sum+(encoding==='identity'?item.decodedBytes:item[encoding+'Bytes']),0));
     records.push({id:chunk.id,encoding,...result});
   }
   console.log('Verified br / gzip / identity:',chunk.id);

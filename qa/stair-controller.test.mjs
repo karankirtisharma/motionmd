@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createCollisionWorld } from '../src/runtime/interaction/CollisionWorld.ts';
+import { createStairSurfaces } from '../src/runtime/interaction/StairSurfaces.ts';
 import { CinematicPath, CINEMATIC_HANDOFF } from '../src/runtime/rendering/cinematic.ts';
 
 const manifest = JSON.parse(fs.readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url), 'utf8'));
@@ -55,15 +56,19 @@ const { createInteractionController } = await import(dataModule(controllerSource
 
 
 
-test('full-scene stair controller preserves forward progress and running through ascent and descent',async context=>{
+test('full-scene stair controller uses controlled walking and preserves forward progress through ascent and descent',async context=>{
  const collisionRoot=new THREE.Group(),scene=new THREE.Scene();
  for(const url of [manifest.collisions.url,...manifest.collisions.additionalUrls])collisionRoot.add((await load(url)).scene);
  for(const id of ['v13','v18','v19','entrance','shell'])scene.add((await load(manifest.chunks.find(c=>c.id===id).url,true)).scene);
+ const surface=createStairSurfaces(scene);
  const prior={document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
  const reports=[];
  try{for(const routeType of ['rounded','spiral','entrance'])for(const sprint of [false,true])for(const reverse of [false,true]){
   const physics=await createCollisionWorld(scene,undefined,collisionRoot,[],manifest.explorationBounds);
   const avatar=createRocketboxAvatar(await load(manifest.character.url,true));
+  const shoeSamples=[];avatar.root.traverse(mesh=>{if(!mesh.isSkinnedMesh)return;const w=mesh.geometry.attributes.skinWeight,j=mesh.geometry.attributes.skinIndex;
+   for(let v=0;v<w.count;v++){let weight=0;for(let k=0;k<4;k++)if(/foot|toe/i.test(mesh.skeleton.bones[j.getComponent(v,k)].name))weight+=w.getComponent(v,k);if(weight>.95)shoeSamples.push([mesh,v]);}});
+  const shoePoint=new THREE.Vector3();let shoePenetration=0;
   const original=physics.speedForClearance.bind(physics);let requested=0,allowed=0,queries=0;
   physics.speedForClearance=(direction,speed)=>{const result=original(direction,speed);requested+=speed;allowed+=result;queries++;return result;};
   globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
@@ -88,16 +93,19 @@ test('full-scene stair controller preserves forward progress and running through
      const p=controller.diagnostics.state.feet,dx=target[0]-p[0],dz=target[2]-p[2],distance=Math.hypot(dx,dz);
      if(distance<.045){reached=true;break;}
      controller.setVirtualInput((Math.cos(yaw)*dx-Math.sin(yaw)*dz)/distance,(-Math.sin(yaw)*dx-Math.cos(yaw)*dz)/distance,0,0,sprint);
-     controller.update(1/60);steps++;maximumRun=Math.max(maximumRun,avatar.locomotion.weights.run);maximumAnimationSpeed=Math.max(maximumAnimationSpeed,avatar.locomotion.speed);
+     controller.update(1/60);steps++;
+     if(steps%6===0){avatar.root.updateMatrixWorld(true);for(const[mesh,v]of shoeSamples){mesh.getVertexPosition(v,shoePoint).applyMatrix4(mesh.matrixWorld);const top=surface(shoePoint,avatar.root.position.y);if(top!==undefined)shoePenetration=Math.max(shoePenetration,top-shoePoint.y);}}
+     maximumRun=Math.max(maximumRun,avatar.locomotion.weights.run);maximumAnimationSpeed=Math.max(maximumAnimationSpeed,avatar.locomotion.speed);
     }
     assert.ok(reached,`${routeType} ${sprint?'sprint':'walk'} reverse=${reverse}: stuck at waypoint${index}, feet=${controller.diagnostics.state.feet}`);
    }
-   const seconds=steps/60,budget=routeType==='spiral'?(sprint?5.5:12):(sprint?3:5.5);
+   const seconds=steps/60,budget=routeType==='spiral'?12:5.5;
    assert.ok(seconds<budget,`${routeType} must make continuous progress: ${seconds}s`);
    assert.ok(allowed/requested>.9,`${routeType}: floor/landing must not be treated as an approaching wall (${allowed/requested})`);
-   // The tight spiral legitimately blends walk/run to the achieved curved path speed.
-   if(sprint)assert.ok(maximumRun>(routeType==='spiral'?.35:.75),`${routeType}: sprint must reach the source run animation, got ${maximumRun}`);
-   reports.push({routeType,sprint,reverse,seconds,allowedRatio:allowed/requested,maximumRun,maximumAnimationSpeed,feet:controller.diagnostics.state.feet});
+   // Shift is a brisk walk on stairs. The ordinary flat-ground run is tested separately.
+   if(sprint && routeType==='spiral')assert.ok(maximumRun<.01,`spiral keeps the normal walk cycle, got run weight ${maximumRun}`);
+   assert.ok(shoePenetration<.005,`${routeType} ${sprint?'sprint':'walk'} reverse=${reverse}: visible shoe penetration ${shoePenetration}m`);
+   reports.push({shoePenetration,routeType,sprint,reverse,seconds,allowedRatio:allowed/requested,maximumRun,maximumAnimationSpeed,feet:controller.diagnostics.state.feet});
   }finally{controller.dispose()}
  }
  context.diagnostic(JSON.stringify(reports));

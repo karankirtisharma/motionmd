@@ -22,7 +22,9 @@
     "prepare:delivery": "node scripts/prepare-delivery.mjs",
     "predev": "node scripts/prepare-delivery.mjs",
     "pretypecheck": "node scripts/prepare-delivery.mjs",
-    "verify:delivery": "node qa/verify-delivery-http.mjs"
+    "verify:delivery": "node qa/verify-delivery-http.mjs",
+    "verify:images": "node qa/verify-image-delivery.mjs",
+    "verify:stairs": "node qa/stair-contact-audit.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",

@@ -29,6 +29,7 @@ export default function Home() {
   const [profiling, setProfiling] = useState(false);
   useEffect(() => { runtime.current?.noteUICommit(); });
   const [debug, setDebug] = useState(false);
+  const [routeReverse,setRouteReverse]=useState(false),[routeSprint,setRouteSprint]=useState(false);
   const [referenceCameras, setReferenceCameras] = useState<string[]>([]);
   const [referenceCamera, setReferenceCamera] = useState('');
   const [diagnosticMode, setDiagnosticMode] = useState<DiagnosticMode>('full');
@@ -164,7 +165,10 @@ export default function Home() {
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
       {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk', 'exterior-east', 'exterior-west', 'lounge-chair', 'spiral-stair', 'rounded-stair'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
       {debug && mode === 'explore' && <details><summary>Character inspection</summary>
-        {(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Character {view} view</button>)}
+        <div><label><input type="checkbox" checked={routeReverse} onChange={e=>setRouteReverse(e.target.checked)}/>Descending route</label><label><input type="checkbox" checked={routeSprint} onChange={e=>setRouteSprint(e.target.checked)}/>Running route</label>{(['spiral','rounded','entrance'] as const).map(kind=><button key={kind} onClick={()=>runtime.current?.inspectStairRoute(kind,routeReverse,routeSprint)}>Prepare {kind} route</button>)}<button onClick={()=>runtime.current?.playInspectionRoute()}>Play prepared route</button></div>
+        <button onClick={()=>runtime.current?.inspectStepMotion()}>Walk +0.1 s / freeze</button><button onClick={()=>runtime.current?.inspectStepMotion(true)}>Run +0.1 s / freeze</button>
+        <output aria-label="Character motion diagnostics" style={{display:'block',maxWidth:420,maxHeight:90,overflow:'auto',fontSize:10}}>{JSON.stringify(runtime.current?.getInteractionState()?.locomotion)}</output>
+        {(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectCharacterView(view)}>Character {view} view</button>)}
         <div>{([['Forward', 0, 1], ['Back', 0, -1], ['Left', -1, 0], ['Right', 1, 0], ['Stop', 0, 0]] as const).map(([label,x,y]) => <button key={label} onClick={() => runtime.current?.inspectWalk(x,y)}>{label} {label === 'Stop' ? '' : '1 s'}</button>)}<button onClick={() => runtime.current?.inspectWalk(0,1,true)}>Sprint 1 s</button></div>
       </details>}
       {debug && runtime.current?.getInteractionState()?.deskStage && <details><summary>Chair inspection</summary><output style={{ display: 'block', maxWidth: 320, overflowWrap: 'anywhere' }}>{JSON.stringify(runtime.current?.getInteractionState())}</output>{(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Chair {view} view</button>)}</details>}

@@ -4,6 +4,7 @@ import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTextu
 import type { SceneManifest } from '@/types';
 import { assetURL, loadEnvironment } from './assets';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial';
+import { filterTemporaryEnvironment } from './temporaryEnvironment';
 import { roomEnvironment, probesForBounds, type RoomProbe } from './probes';
 import { architecturalShadowBounds, fitSunShadow } from './shadowBounds';
 
@@ -52,9 +53,10 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   if (manifest.environment?.url) environment = await loadEnvironment(manifest.environment.url, signal);
   else if (manifest.environment?.faces?.length === 6) environment = await new CubeTextureLoader().loadAsync(manifest.environment.faces.map(assetURL));
   else environment = neutralWorld();
-  owned.push(environment);
-  signal?.throwIfAborted();
-  const filtered = 'isCubeTexture' in environment ? pmrem.fromCubemap(environment) : pmrem.fromEquirectangular(environment);
+  const keepSource = manifest.environment?.background !== false;
+  if (keepSource) owned.push(environment);
+  const filter = (source: Texture) => 'isCubeTexture' in source ? pmrem.fromCubemap(source) : pmrem.fromEquirectangular(source);
+  const filtered = keepSource ? filter(environment) : filterTemporaryEnvironment(environment, filter);
   owned.push(filtered);
   scene.environment = filtered.texture;
   scene.environmentIntensity = manifest.environment?.intensity ?? 0.65;
@@ -70,8 +72,8 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   const probes: RoomProbe[] = [];
   for (const probe of manifest.reflectionProbes ?? []) {
     const source = await loadEnvironment(probe.url, signal);
-    const capture = pmrem.fromEquirectangular(source);
-    owned.push(source, capture);
+    const capture = filterTemporaryEnvironment(source, texture => pmrem.fromEquirectangular(texture));
+    owned.push(capture);
     const region = new Box3(new Vector3().fromArray(probe.bounds.min), new Vector3().fromArray(probe.bounds.max));
     probes.push({ id: probe.id, region, position: probe.position ? new Vector3().fromArray(probe.position) : region.getCenter(new Vector3()), texture: capture.texture, intensity: probe.intensity ?? 1 });
   }

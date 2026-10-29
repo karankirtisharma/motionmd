@@ -12,10 +12,12 @@ import { restoreSourceBronze } from './sourceBronze';
 import { createLoadQueue } from './loadQueue.ts';
 import { repairCollapsedBrushFrame } from './brushTangents';
 import { repairGlassNormals } from './glassNormals.ts';
+import { restoreStairLandingGlass } from './stairLandingGlass.ts';
 
 const textureKeys = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'] as const;
 
 export function prepareSourceMaterials(root: Object3D, renderer: WebGPURenderer): Set<Texture> {
+  restoreStairLandingGlass(root);
   const textures = new Set<Texture>();
   const canonical = new Map<string, Texture>();
   const anisotropy = Math.min(16, renderer.getMaxAnisotropy());

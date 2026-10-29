@@ -221,7 +221,8 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
   try {
     controller.enterExplore(undefined,{position:initialPosition,yaw:-Math.PI/2});
     for(let i=0;i<120;i++)controller.update(1/60);
-    ankleHeight=avatar.root.getObjectByName('Bip01_L_Foot').getWorldPosition(new THREE.Vector3()).y-controller.player.position.y;
+    // Calibrate the rig ankle, excluding locomotion-only whole-model floor lift.
+    ankleHeight=avatar.root.getObjectByName('Bip01_L_Foot').getWorldPosition(new THREE.Vector3()).y-controller.player.position.y-(avatar.locomotion.soleLift ?? 0);
     assert.equal(hint?.target,'founder-desk');
     assert.equal(controller.diagnostics.state.chairAngle,Math.PI/4,'chair starts at the approved open angle');
     controller.handleInteract();

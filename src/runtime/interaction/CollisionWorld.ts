@@ -281,6 +281,39 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
           movement.x=tangent.x; movement.z=tangent.z;
         }
       }
+      // Rapier can reject the rounded edge of an authored tread at low speed:
+      // its capsule contact normal is diagonal before the centre clears the
+      // nosing. Retry the standard up/forward/down step path, without ever
+      // advancing farther than the requested horizontal displacement.
+      const progress = horizontal > 0 ? (movement.x*desired.x + movement.z*desired.z)/(horizontal*horizontal) : 1;
+      if (!deskClearance && horizontal > .0001 && progress < .5 && grounded && displacement.y <= 0 && displacement.y >= -.02 && controller.numComputedCollisions() > 0) {
+        let authoredStairOnly = true;
+        for (let i=0;i<controller.numComputedCollisions();i++) {
+          const hit=controller.computedCollision(i);
+          if (!hit || !hit.collider || !stairSupportColliders.has(hit.collider.handle)) { authoredStairOnly=false; break; }
+        }
+        if (authoredStairOnly) {
+          const current=body.translation(), stepHeight=.27;
+          const up=world.castShape(current,identityRotation,{x:0,y:1,z:0},capsule.shape,.015,stepHeight,false,undefined,undefined,capsule,body,keep);
+          if (!up || up.time_of_impact >= stepHeight-.001) {
+            const raised={x:current.x,y:current.y+stepHeight,z:current.z};
+            const forward={x:desired.x,y:0,z:desired.z};
+            const obstacle=world.castShape(raised,identityRotation,forward,capsule.shape,.015,1,false,undefined,undefined,capsule,body,keep);
+            if (!obstacle || obstacle.time_of_impact >= .999) {
+              const ahead={x:raised.x+desired.x,y:raised.y,z:raised.z+desired.z};
+              const landing=world.castShape(ahead,identityRotation,{x:0,y:-1,z:0},capsule.shape,.015,stepHeight+.002,false,undefined,undefined,capsule,body,keep);
+              if (landing && stairSupportColliders.has(landing.collider.handle) && landing.normal1.y > .15) {
+                const rise=stepHeight-landing.time_of_impact;
+                // Keep only an actual upward step. The three probes do not move
+                // the body: only this final supported pose is committed below.
+                if (rise > .0001 && rise <= stepHeight) {
+                  movement.x=desired.x; movement.z=desired.z; movement.y=rise;
+                }
+              }
+            }
+          }
+        }
+      }
       // Autostep may adjust the lower capsule's result. Sweep the upper body
       // through that final displacement as well, so it cannot creep into a
       // cabinet lip or overhang after the first shoulder solve.

@@ -43,7 +43,7 @@ export async function createInteractionController(options: Options) {
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
   const workstation = createWorkstation(scene);
-  const stairContact = { sample: createStairSurfaces(scene) };
+  const stairContact = { sample: createStairSurfaces(scene), sprint: false };
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
@@ -70,6 +70,8 @@ export async function createInteractionController(options: Options) {
   let supportHeight = feet.y, previousSupportHeight = feet.y;
   const velocity = new THREE.Vector3();
   const displacement = new THREE.Vector3();
+  const stairAhead = new THREE.Vector3();
+  let stairWalkHold = 0;
   const pivot = new THREE.Vector3(), desiredCamera = new THREE.Vector3();
   const lookTarget = new THREE.Vector3(), desiredQuaternion = new THREE.Quaternion();
   const cameraMatrix = new THREE.Matrix4();
@@ -270,6 +272,14 @@ export async function createInteractionController(options: Options) {
       moveY = Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) + virtual.y;
       const relative = cameraRelativeMove(moveX, moveY, yaw);
       speed = keys.has('ShiftLeft') || keys.has('ShiftRight') || virtual.sprint ? 3.35 : 1.38;
+      stairContact.sprint = !!(keys.has('ShiftLeft') || keys.has('ShiftRight') || virtual.sprint);
+      // Short treads need a walk, not the long airborne flat-ground run cycle.
+      // Look ahead before the first riser; retain the cap briefly over landings
+      // so adjacent tread boundaries cannot alternate walk/run every frame.
+      stairAhead.set(feet.x + relative.x * .45, feet.y, feet.z + relative.z * .45);
+      if (stairContact.sample.isStair(feet, feet.y) || stairContact.sample.isStair(stairAhead, feet.y)) stairWalkHold = .3;
+      else stairWalkHold = Math.max(0, stairWalkHold - STEP);
+      if (stairWalkHold > 0) speed = stairContact.sprint ? 1.65 : 1.38;
       displacement.set(relative.x * speed, 0, relative.z * speed);
       if (cameraView === 'thirdPerson' && displacement.lengthSq() > 0.001) {
         displacement.multiplyScalar(turnSpeedFactor(bodyYaw, Math.atan2(displacement.x, displacement.z)));
@@ -591,6 +601,20 @@ export async function createInteractionController(options: Options) {
   }
   return {
     player: avatar.root, update, enterExplore, exitExplore, handleInteract, leaveSeat, togglePointerLock, toggleCameraView,
+    inspectWorldTarget(target: THREE.Vector3, sprint: boolean) {
+      const dx=target.x-feet.x,dz=target.z-feet.z,distance=Math.hypot(dx,dz);
+      keys.clear();
+      virtual.x=distance>.035 ? (Math.cos(yaw)*dx-Math.sin(yaw)*dz)/distance : 0;
+      virtual.y=distance>.035 ? (-Math.sin(yaw)*dx-Math.cos(yaw)*dz)/distance : 0;
+      virtual.sprint=sprint;
+      return distance;
+    },
+    inspectCharacterView(view: 'third-person' | 'side' | 'front') {
+      cameraView='thirdPerson'; yaw=bodyYaw-Math.PI+(view==='side'?Math.PI/2:view==='front'?Math.PI:0);
+      pitch=view==='side'?.04:.16; inspectionDistance=view==='third-person'?undefined:3.6;
+      options.onCameraViewChange?.(cameraView);
+      for(let i=0;i<20;i++)updateCamera(1/60);
+    },
     inspectDeskView(view: 'third-person' | 'side' | 'front') {
       cameraView = 'thirdPerson'; yaw = view === 'side' ? Math.PI : view === 'front' ? Math.PI / 2 : -Math.PI / 2;
       pitch = view === 'side' ? 0.04 : 0.16; inspectionDistance = view === 'third-person' ? undefined : 3.6;
@@ -608,7 +632,7 @@ export async function createInteractionController(options: Options) {
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },
-    diagnostics: { get state() { return { mode, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
+    diagnostics: { get state() { return { mode, locomotion: 'locomotion' in avatar ? avatar.locomotion : undefined, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
     dispose() {
       if (disposed) return; exitExplore(); disposed = true;
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);

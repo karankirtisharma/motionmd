@@ -78,6 +78,7 @@ export class SceneRuntime {
   private referenceCamera = '';
   private inspectionEnabled = false;
   private inspectionWalkTime = 0;
+  private inspectionRoute?: { points: Vector3[]; index: number; sprint: boolean };
   private profiler?: RuntimeProfiler;
   private settleFrames = TEMPORAL_SETTLE_FRAMES;
 
@@ -330,6 +331,7 @@ export class SceneRuntime {
           this.inspectionWalkTime = Math.max(0, this.inspectionWalkTime - dt);
           if (!this.inspectionWalkTime) this.controls?.setVirtualInput(0, 0);
         }
+        this.advanceInspectionRoute();
         characterAdvanced = this.controls?.update(dt) ?? false;
       }
     }
@@ -453,7 +455,7 @@ export class SceneRuntime {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
     const positions = { 'spiral-stair': [20.31, .7, -20.2], 'rounded-stair': [8.3, 3.675, -23], 'exterior-east': [23, -.01, -25], 'exterior-west': [-1.6, -.01, -28], 'lounge-chair': [11.9, 4.265, -3.8], entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.48], 'founder-desk': [14.8, 4.265, -6.1] };
     const spawn = { position: positions[location] as [number, number, number], yaw: location === 'rounded-stair' ? Math.PI / 2 : location === 'spiral-stair' ? Math.PI : location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
-    this.inspectionWalkTime = 0; this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
+    this.inspectionRoute=undefined; this.inspectionWalkTime = 0; this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
     this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));
     this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
@@ -461,10 +463,40 @@ export class SceneRuntime {
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
   inspectWalk(x: number, y: number, sprint = false) {
-    if (!this.inspectionEnabled || this.mode !== 'explore' || this.paused) return;
+    if (!this.inspectionEnabled || this.mode !== 'explore') return;
+    this.inspectionRoute=undefined; this.paused=false; this.controls?.setEnabled(true);
     this.inspectionWalkTime = (x || y) ? 1 : 0;
     this.controls?.setVirtualInput(x, y, 0, 0, sprint);
   }
+  inspectStepMotion(sprint = false) {
+    if(!this.inspectionEnabled || this.mode!=='explore' || !this.controls)return;
+    this.inspectionWalkTime=0; this.controls.setEnabled(true);
+    if(!this.inspectionRoute)this.controls.setVirtualInput(0,1,0,0,sprint);
+    for(let i=0;i<6;i++){this.advanceInspectionRoute();this.controls.update(1/60);}
+    this.controls.setVirtualInput(0,0); this.paused=true;
+    this.invalidate(); if(this.lighting)this.lighting.sun.shadow.needsUpdate=true;
+  }
+  private advanceInspectionRoute() {
+    const route=this.inspectionRoute;if(!route || !this.controls)return;
+    while(route.index<route.points.length && this.controls.inspectWorldTarget(route.points[route.index],route.sprint)<.045)route.index++;
+    if(route.index>=route.points.length)this.controls.setVirtualInput(0,0);
+  }
+  inspectStairRoute(kind: 'spiral' | 'rounded' | 'entrance', reverse: boolean, sprint: boolean) {
+    if(!this.inspectionEnabled || !this.controls || this.mode!=='explore')return;
+    let points: number[][];
+    if(kind==='rounded')points=Array.from({length:36},(_,i)=>[8.3-i*.09,3.675,-23]);
+    else if(kind==='entrance')points=Array.from({length:29},(_,i)=>[-7+i*.09,-.355,-17.1]);
+    else points=Array.from({length:81},(_,i)=>{const a=(60+315/46)-(315+315/46)*i/80,r=a*Math.PI/180;return[18.76+1.55*Math.cos(r),3.67/24*((60-a)/(315/23)+.5),-(20.2+1.55*Math.sin(r))]});
+    if(reverse)points.reverse();
+    const direction=new Vector3(...points[1]).sub(new Vector3(...points[0]));
+    this.referenceCamera='';this.inspectionWalkTime=0;this.controls.exitExplore();
+    this.controls.enterExplore(undefined,{position:points[0] as [number,number,number],yaw:Math.atan2(-direction.x,-direction.z)});
+    for(let i=0;i<60;i++)this.controls.update(1/60);
+    this.inspectionRoute={points:points.map(p=>new Vector3(...p)),index:1,sprint};
+    this.paused=true;this.invalidate();
+  }
+  playInspectionRoute(){if(this.inspectionEnabled && this.inspectionRoute){this.paused=false;this.controls?.setEnabled(true);}}
+  inspectCharacterView(view:'third-person'|'side'|'front'){if(this.inspectionEnabled){this.controls?.inspectCharacterView(view);this.invalidate();}}
   inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
   getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
   setPaused(value: boolean) { this.invalidate(); this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }

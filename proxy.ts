@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import delivery from './src/generated/asset-delivery.json';
+import manifest from './public/assets/scene-manifest.json';
 import { selectAssetEncoding } from './src/server/assetEncoding';
 
 type DeliveryEntry = { br: string; gzip: string; identity?: string; decodedBytes: number; brBytes: number; gzipBytes: number };
 const entries = delivery as Record<string, DeliveryEntry>;
-const totals = Object.values(entries).reduce((sum, entry) => ({ br: sum.br + entry.brBytes, gzip: sum.gzip + entry.gzipBytes, identity: sum.identity + entry.decodedBytes }), { br: 0, gzip: 0, identity: 0 });
+const totals = manifest.chunks.map(chunk => entries[chunk.url]).filter(Boolean).reduce((sum, entry) => ({ br: sum.br + entry.brBytes, gzip: sum.gzip + entry.gzipBytes, identity: sum.identity + entry.decodedBytes }), { br: 0, gzip: 0, identity: 0 });
 
 export function proxy(request: NextRequest) {
   const entry = entries[request.nextUrl.pathname];

@@ -46,3 +46,14 @@ test('ordinary raised ledges do not gain unreachable stair anticipation',()=>{
  assert.equal(sample(new T.Vector3(0,0,0),0,.18),undefined);
  assert.equal(sample(new T.Vector3(0,0,0),0),undefined);
 });
+
+test('batched shoe clearance matches individual surface queries at stair edges',()=>{
+ const group=top('v19__EH54 | polished warm-grey cloud marble');
+ const next=top('v13__V17 | optical low iron laminated glass');next.position.set(.85,.15,0);group.add(next);
+ const sample=createStairSurfaces(group);
+ for(const support of [0,.04,.18,.3])for(let x=-1.2;x<1.3;x+=.07){
+  const points=Array.from({length:25},(_,i)=>new T.Vector3(x+(i%5)*.025,.03+(i%7)*.018,-.08+Math.floor(i/5)*.03));
+  const expected=Math.max(0,...points.map(p=>{const y=sample(p,support,.08);return y===undefined?0:y+.003-p.y;}));
+  assert.ok(Math.abs(sample.clearance(points,support,.08)-expected)<1e-7,`batch differs at ${x}, support ${support}`);
+ }
+});

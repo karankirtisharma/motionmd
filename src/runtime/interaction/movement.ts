@@ -68,11 +68,13 @@ export function smoothEyeHeight(current: number, target: number, dt: number) {
 }
 
 /** Soften support-height impulses without changing the capsule or the source gait.
- * Keep the visual body within 7.5 cm of collision support; never ease a teleport,
+ * Never ease the visual body below collision support while stepping up.
+ * A short downward settle is safe; upward lag puts the shoes inside the stair.
+ * Never ease a teleport,
  * falling body, lift ride or authored chair movement through intermediate floors.
  */
 export function smoothSupportHeight(current: number, target: number, dt: number, active = true) {
   if (!active || Math.abs(target - current) > 0.35) return target;
   const smoothed = current + (target - current) * damping(18, dt);
-  return Math.max(target - 0.075, Math.min(target + 0.075, smoothed));
+  return Math.max(target, Math.min(target + 0.075, smoothed));
 }

@@ -80,3 +80,21 @@ A targeted v24 illumination atlas uses a separate UV channel, with horizontal pa
 The active backup removes the permanent stride-length stopping reserve while retaining the established physical body collider. Close approach now brakes progressively to actual body contact; a flat-support crossing guard prevents slow diagonal movement from snapping through the floor. Locomotion foot clearance preserves the source knee plane, and authored stair targets enter smoothly across the render-support lag band. The seated IK/chair sequence is unchanged.
 
 Malformed guard-glass normals are repaired before material setup, and room-reflection candidate bounds match the shader influence border. Glass color, IOR, transmission and geometry positions stay intact. See `qa/contact-clearance-ledger.md`, `qa/stair-walking-ledger.md`, and `qa/glass-reflection-ledger.md` for measurements and verification. All 121 integrated regression tests passed. Debug controls include spiral/rounded stair inspection points and one-second sprint input for browser-only checks.
+
+
+## Simplified original character - 30 October 2026
+
+The original character and Idle/Walk/Run/Sit clips are restored. Experimental replacement rigs, stair foot planners and locomotion leg IK are removed, including the `motion=candidate` selector. Normal walk/run cycles now follow collision-supported stair movement without changing individual knees or feet. A small, bounded whole-model sole correction handles ordinary floor clearance; the existing chair interaction remains separate. This supersedes the earlier locomotion foot-correction descriptions above. All 123 current tests and the production build pass. See `qa/simple-locomotion-ledger.md` for recovery files, validation and the deliberate per-tread contact limitation.
+
+## Performance and stair contact — 30 October 2026
+
+The active backup now delivers 20 embedded images as pixel-exact lossless WebP, includes the character in Brotli/gzip negotiation, and uses verified quality-9 Brotli variants. Scene-plus-character transfer is 264.29 MB versus 288.62 MB before this pass (24.33 MB / 8.43% saved); external maps and other resources are additional. Original source assets remain intact. Unused HDR input textures are released after reflection filtering, reducing measured renderer-tracked resources by 80 MiB without changing the filtered lighting.
+
+The original character rig/clips are retained. Stair support no longer renders below physical support; a vertical-only shoe clearance solve handles discrete visible treads without changing horizontal strides or source foot direction. Queries are batched per shoe. Regression tests cover unchanged flat-floor and seated poses plus actual controller ascent/descent at walking and running speeds. See `qa/performance-2026-10-30.md` for measurements, trade-offs and remaining startup/geometry bottlenecks. Timing observations are not a controlled cross-device benchmark.
+
+Delivery preparation retains earlier generated variants by default so a running old build keeps working. Prune only with the server stopped using `MD_PRUNE_DELIVERY=1`; unset it afterwards. `MD_GEOMETRY_STORAGE=0` disables both lossless image conversion and GLB storage compaction for comparison builds.
+
+
+### Final stair and landing-glass refinement
+
+Stairs now use the source walk cycle, with Shift giving a modest brisk walk instead of the airborne flat-ground sprint. The foot-clearance solve uses a stable forward knee plane: the old animated-knee pole could flip backwards after an ankle was raised. Flat-ground sprinting and the chair sequence are unchanged. The omitted 2.4 m upper stair landing guard pane is restored from its existing collision coordinates with matching low-iron glass. The final regression suite has 132 passing tests; see `qa/performance-2026-10-30.md` for reproduction and limits.

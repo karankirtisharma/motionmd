@@ -27,7 +27,7 @@ test('animated shoes clear an ordinary floor with a small measured correction',a
  const meshes=skinned(avatar);let min=Infinity,maxLift=0;
  try{for(const speed of[0,1.38,3.35]) for(let frame=0;frame<150;frame++){
   avatar.update(1/60,speed,0,undefined,undefined,{sample});avatar.root.updateMatrixWorld(true);
-  maxLift=Math.max(maxLift,...avatar.locomotion.stairClearance);
+  maxLift=Math.max(maxLift,avatar.locomotion.soleLift);
   for(const mesh of meshes)for(let i=0;i<mesh.geometry.attributes.position.count;i++){
    mesh.getVertexPosition(i,point).applyMatrix4(mesh.matrixWorld);min=Math.min(min,point.y);
   }

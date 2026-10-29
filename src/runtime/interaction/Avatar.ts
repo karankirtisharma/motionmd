@@ -7,6 +7,7 @@ import { resolveAssetDependency } from '../rendering/assets';
 
 /** Licensed rigged character. Architecture is always loaded separately from the user's export. */
 export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb') {
+  // The rejected candidate query no longer selects a different rig or gait.
   const guard = createAssetLoadGuard(resolveAssetDependency);
   const gltf = await new GLTFLoader(guard.manager).loadAsync(url);
   try { guard.assertLoaded(); }

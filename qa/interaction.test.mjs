@@ -94,7 +94,8 @@ test('support smoothing is bounded and bypasses teleports and authored motion', 
     const target=direction*.18;
     let y=smoothSupportHeight(0,target,1/60);
     assert.ok(Math.abs(y-target)<=.07500001,'step assist stays within 7.5 cm of collision support');
-    assert.ok(Math.abs(y)<.11,'an 18 cm autostep must not jump the rendered body by almost the whole riser');
+    if(direction<0)assert.ok(Math.abs(y)<.11,'descending support retains its short settle');
+    else assert.equal(y,target,'upward smoothing must not lower shoes into a solid riser');
     for(let i=0;i<60;i++)y=smoothSupportHeight(y,target,1/60);
     assert.ok(Math.abs(y-target)<1e-8,'stopping settles onto the exact support');
   }

@@ -10,7 +10,7 @@ export type DeskPose = {
   stanceWeight?: number; balanceLean?: number;
   grip?: { hand: number; point: THREE.Vector3; forward: THREE.Vector3; weight: number };
 };
-export type StairContact = { sample: (point: THREE.Vector3, supportY: number, margin?: number) => number | undefined };
+export type StairContact = { sample: ((point: THREE.Vector3, supportY: number, margin?: number) => number | undefined) & { isStair?: (point: THREE.Vector3, supportY: number) => boolean; clearance?: (points: readonly THREE.Vector3[], supportY: number, margin?: number) => number }; sprint?: boolean };
 
 /** MIT Rocketbox source motions, with local root drift removed in the export. */
 export function createRocketboxAvatar(gltf: GLTF) {
@@ -66,7 +66,7 @@ export function createRocketboxAvatar(gltf: GLTF) {
       const basis = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(direction, hinge, direction.clone().cross(hinge)));
       return joint.getWorldQuaternion(new THREE.Quaternion()).invert().multiply(basis).invert();
     };
-    return { upper, lower, foot, ankleHeight: c.y, frames: { upper: frame(upper, b.clone().sub(a)), lower: frame(lower, c.clone().sub(b)) } };
+    return { upper, lower, foot, toe: bone(`Bip01 ${side} Toe0`), ankleHeight: c.y, frames: { upper: frame(upper, b.clone().sub(a)), lower: frame(lower, c.clone().sub(b)) } };
   });
   const uprightSpine = [spine, bone('Bip01 Spine1'), bone('Bip01 Spine2')].map(b => ({ bone: b, orientation: b.getWorldQuaternion(new THREE.Quaternion()) }));
   const uprightHead = [bone('Bip01 Neck'), bone('Bip01 Head')].map(b => ({ bone: b, orientation: b.getWorldQuaternion(new THREE.Quaternion()) }));
@@ -266,102 +266,58 @@ export function createRocketboxAvatar(gltf: GLTF) {
     });
   }
   const standingFootRotations = legs.map(l => l.foot.getWorldQuaternion(new THREE.Quaternion()));
-  // Use the actual shoe skin rather than guessing ankle-to-sole offsets.
-  const shoeVertices = legs.map(leg => {
-    const samples: Array<{ mesh: THREE.SkinnedMesh; index: number }> = [];
-    model.traverse(object => {
-      const mesh = object as THREE.SkinnedMesh;
-      if (!mesh.isSkinnedMesh) return;
-      const indices = mesh.geometry.attributes.skinIndex, weights = mesh.geometry.attributes.skinWeight;
-      for (let v=0;v<indices.count;v++) {
-        let weight=0;
-        for(let k=0;k<4;k++) {
-          let joint: THREE.Object3D | null=mesh.skeleton.bones[indices.getComponent(v,k)];
-          while(joint && joint!==leg.foot)joint=joint.parent;
-          if(joint===leg.foot)weight+=weights.getComponent(v,k);
-        }
-        if(weight>.95)samples.push({mesh,index:v});
+  // Cache the real shoe skin once. The capsule support plane and visible
+  // stair treads are different surfaces; measure both without rebuilding a gait.
+  const soleSamples: Array<{ mesh: THREE.SkinnedMesh; indices: number[]; sides: number[]; points: THREE.Vector3[] }> = [];
+  const solePoint = new THREE.Vector3();
+  const footPoints: THREE.Vector3[][] = [[], []];
+  const stairGateSamples: Array<{ mesh: THREE.SkinnedMesh; index: number }> = [];
+  const stairGateJoints = [root, ...legs.flatMap(leg => [leg.foot, leg.toe])];
+  let soleLift = 0;
+  const stairLift = [0, 0], clearance = [0, 0];
+  model.traverse(object => {
+    const mesh = object as THREE.SkinnedMesh;
+    if (!mesh.isSkinnedMesh) return;
+    const weights = mesh.geometry.getAttribute('skinWeight');
+    const joints = mesh.geometry.getAttribute('skinIndex');
+    const indices: number[] = [], sides: number[] = [];
+    for (let v = 0; v < weights.count; v++) {
+      let footWeight = 0;
+      for (let slot = 0; slot < 4; slot++) {
+        if (/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(v, slot)].name)) footWeight += weights.getComponent(v, slot);
       }
-    });
-    const sole = new Map<string, { mesh: THREE.SkinnedMesh; index: number; height: number }>();
-    for(const sample of samples) {
-      const p=sample.mesh.localToWorld(sample.mesh.getVertexPosition(sample.index,new THREE.Vector3()));
-      const key=`${Math.floor(p.x/.035)},${Math.floor(p.z/.035)}`;
-      if(!sole.has(key)||p.y<sole.get(key)!.height)sole.set(key,{...sample,height:p.y});
+      if (footWeight > .95) {
+        let leftWeight = 0;
+        for (let slot = 0; slot < 4; slot++) if (/bip01l(?:foot|toe)/.test(normalize(mesh.skeleton.bones[joints.getComponent(v, slot)].name))) leftWeight += weights.getComponent(v, slot);
+        indices.push(v); sides.push(leftWeight > .5 ? 0 : 1);
+      }
     }
-    // The shoe geometry has no morph targets. Cache each vertex in its weighted
-    // bone-local spaces once, rather than multiplying bind matrices hundreds of
-    // times per frame. Attached skinning cancels mesh.matrixWorld/bindInverse.
-    const cached = new Map(samples.map(sample => {
-      const {mesh,index} = sample;
-      const base = new THREE.Vector3().fromBufferAttribute(mesh.geometry.attributes.position,index).applyMatrix4(mesh.bindMatrix);
-      const influences: Array<{bone: THREE.Bone; point: THREE.Vector3; weight: number}> = [];
-      if (mesh.bindMode === 'attached' && !mesh.geometry.morphAttributes.position?.length) {
-        for (let k=0;k<4;k++) {
-          const weight=mesh.geometry.attributes.skinWeight.getComponent(index,k);
-          if (!weight) continue;
-          const boneIndex=mesh.geometry.attributes.skinIndex.getComponent(index,k);
-          influences.push({bone:mesh.skeleton.bones[boneIndex],point:base.clone().applyMatrix4(mesh.skeleton.boneInverses[boneIndex]),weight});
+    if (indices.length) {
+      const points=indices.map((_,i)=>{const point=new THREE.Vector3();footPoints[sides[i]].push(point);return point;});
+      soleSamples.push({ mesh, indices, sides, points });
+      // Include the actual toe/heel silhouette: the toe joint itself is inside
+      // the shoe and can still be outside a tread when its toe cap reaches it.
+      for (const side of [0, 1]) for (const axis of ['x', 'z'] as const) for (const sign of [-1, 1]) {
+        let value = -Infinity, extremum = -1;
+        for (let i = 0; i < indices.length; i++) if (sides[i] === side) {
+          mesh.getVertexPosition(indices[i], solePoint).applyMatrix4(mesh.matrixWorld);
+          if (sign * solePoint[axis] > value) { value = sign * solePoint[axis]; extremum = indices[i]; }
         }
+        if (extremum >= 0) stairGateSamples.push({ mesh, index: extremum });
       }
-      return [`${mesh.uuid}:${index}`, {...sample,influences}];
-    }));
-    return { surface: [...cached.values()], anticipation: [...sole.values()].map(sample=>cached.get(`${sample.mesh.uuid}:${sample.index}`)!) };
+    }
   });
-  const clearance = [0,0];
-  const shoePoint = new THREE.Vector3(), influencePoint = new THREE.Vector3();
-  const sampleShoe = (sample: (typeof shoeVertices)[number]['surface'][number]) => {
-    shoePoint.set(0,0,0);
-    if (sample.influences.length) {
-      for (const influence of sample.influences) shoePoint.addScaledVector(influencePoint.copy(influence.point).applyMatrix4(influence.bone.matrixWorld),influence.weight);
-    } else sample.mesh.getVertexPosition(sample.index,shoePoint).applyMatrix4(sample.mesh.matrixWorld);
-    return shoePoint;
-  };
-  function clearStairs(contact: StairContact | undefined, dt: number) {
-    if (!contact) { clearance.fill(0); return; }
-    // SkinnedMesh refreshes its attached bind inverse in updateMatrixWorld,
-    // not updateWorldMatrix. Sample skin in the current root frame.
-    root.updateMatrixWorld(true);
-    const front=new THREE.Vector3(0,0,1).applyQuaternion(root.quaternion);
-    legs.forEach((leg,i) => {
-      const ankle=leg.foot.getWorldPosition(new THREE.Vector3());
-      let required=0;
-      for(const sample of shoeVertices[i].surface) {
-        const point=sampleShoe(sample);
-        const floor=contact.sample(point,root.position.y);
-        if(floor!==undefined)required=Math.max(required,floor+.002-point.y);
-      }
-      for(const sample of shoeVertices[i].anticipation) {
-        const point=sampleShoe(sample);
-        // A continuous 18 cm edge margin lifts before the toe enters a riser.
-        // The exact top surface takes over at the edge, avoiding a height pop.
-        const floor=contact.sample(point,root.position.y,.18);
-        if(floor!==undefined)required=Math.max(required,floor+.002-point.y);
-      }
-      // Only lift to clear a tread; never pull the swing foot down, lower the
-      // pelvis, change stride length, or steer the ankle sideways.
-      clearance[i]=Math.max(required,THREE.MathUtils.lerp(clearance[i],required,damping(18,dt)));
-      if(clearance[i]<.0001)return;
-      const goal=ankle.clone().add(new THREE.Vector3(0,Math.min(.28,clearance[i]),0));
-      const footQ=leg.foot.getWorldQuaternion(new THREE.Quaternion());
-      const hip=leg.upper.getWorldPosition(new THREE.Vector3());
-      // Preserve the animated knee plane and axial roll. Even a 2 mm sole
-      // correction must not replace the source gait with the seated hinge frame.
-      const pole=leg.lower.getWorldPosition(new THREE.Vector3());
-      const axis=goal.clone().sub(hip).normalize();
-      const bend=pole.clone().sub(hip); bend.addScaledVector(axis,-bend.dot(axis));
-      if(bend.lengthSq()<1e-8)pole.copy(hip).addScaledVector(front,.7);
-      solveLimb(leg.upper,leg.lower,leg.foot,goal,pole);
-      setWorldQuaternion(leg.foot,footQ);
-    });
-  }
+
+  // Keep the original gait and horizontal foot paths. Only penetrating shoes
+  // receive a vertical clearance lift, solved in a stable forward knee plane.
+  // No foot re-timing, pelvis offset, planted-foot history or new rig is involved.
   return {
     root,
     animations: gltf.animations.map((clip) => clip.name),
     view: { eyeHeight, seatedEyeOffset },
     get locomotion() {
       return { phase: gaitPhase, speed: speedSmoothed, forwardLean, sideLean,
-        stairClearance: [...clearance],
+        stairClearance: [...stairLift], soleLift,
         weights: Object.fromEntries(Object.entries(actions).map(([name, value]) => [name, value.getEffectiveWeight()])) };
     },
     setBodyView(active: boolean) {
@@ -423,9 +379,52 @@ export function createRocketboxAvatar(gltf: GLTF) {
         model.position.y += root.position.y + height - pelvis.getWorldPosition(new THREE.Vector3()).y;
         model.updateWorldMatrix(true, true);
       }
+      soleLift = 0;
+      if (!contacts && seated === 0) {
+        root.updateMatrixWorld(true);
+        let lowest = Infinity;
+        clearance.fill(0);
+        const onStair = !!stairs?.sample.isStair && (
+          stairGateJoints.some(joint => stairs.sample.isStair!(joint.getWorldPosition(solePoint), root.position.y)) ||
+          stairGateSamples.some(({ mesh, index }) => stairs.sample.isStair!(mesh.getVertexPosition(index, solePoint).applyMatrix4(mesh.matrixWorld), root.position.y)));
+        for (const { mesh, indices, sides, points } of soleSamples) for (let i = 0; i < indices.length; i++) {
+          const solePoint=points[i];
+          mesh.getVertexPosition(indices[i], solePoint).applyMatrix4(mesh.matrixWorld);
+          lowest = Math.min(lowest, solePoint.y);
+          // No anticipatory tread is more than 35 cm above root support. Skip
+          // vertices that cannot increase this foot's existing clearance.
+          if (onStair && !stairs?.sample.clearance && solePoint.y < root.position.y + .353 - clearance[sides[i]]) {
+            // A small edge margin raises the shoe before it reaches the riser.
+            // The query uses the indexed visible treads, not a room-wide raycast.
+            const height = stairs!.sample(solePoint, root.position.y, .08);
+            if (height !== undefined) clearance[sides[i]] = Math.max(clearance[sides[i]], height + .003 - solePoint.y);
+          }
+        }
+        if (onStair && stairs?.sample.clearance) for(const i of [0,1]) clearance[i]=stairs.sample.clearance(footPoints[i],root.position.y,.08);
+        // Rapier support can settle 9 mm below the rendered floor. Include that
+        // existing contact tolerance, with a strict 4 cm bound on source bob.
+        soleLift = THREE.MathUtils.clamp(root.position.y + .01 - lowest, 0, .04);
+        model.position.y += soleLift;
+        root.updateMatrixWorld(true);
+        for (const [i, leg] of legs.entries()) {
+          const required = THREE.MathUtils.clamp(clearance[i] - soleLift, 0, .27);
+          // Never smooth through a solid tread. Release gently after clearance;
+          // each solve starts from the fresh source animation above.
+          stairLift[i] = Math.max(required, stairLift[i] * Math.exp(-18 * dt));
+          if (stairLift[i] < .0001) { stairLift[i] = 0; continue; }
+          const ankle = leg.foot.getWorldPosition(new THREE.Vector3());
+          // The old pole was the animated knee position. Raising the ankle can
+          // move that point behind the new hip-to-ankle axis and flip the knee
+          // backwards. Use the character's anatomical forward plane instead.
+          const pole = leg.upper.getWorldPosition(new THREE.Vector3())
+            .add(new THREE.Vector3(i === 0 ? .035 : -.035, 0, 1).applyQuaternion(worldRotation));
+          const orientation = leg.foot.getWorldQuaternion(new THREE.Quaternion());
+          solveLimb(leg.upper, leg.lower, leg.foot, ankle.add(new THREE.Vector3(0, stairLift[i], 0)), pole);
+          setWorldQuaternion(leg.foot, orientation);
+        }
+      } else stairLift.fill(0);
       plantFeet(seated);
       if (contacts) deskPose(contacts);
-      clearStairs(!contacts && seated===0 ? stairs : undefined,dt);
     },
     dispose() {
       mixer.stopAllAction(); mixer.uncacheRoot(model);
