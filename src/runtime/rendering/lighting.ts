@@ -7,6 +7,7 @@ import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial';
 import { filterTemporaryEnvironment } from './temporaryEnvironment';
 import { roomEnvironment, probesForBounds, type RoomProbe } from './probes';
 import { architecturalShadowBounds, fitSunShadow } from './shadowBounds';
+import { receiverPlanePCF } from './receiverPlanePCF';
 
 function authoredColor(value: string | [number, number, number]): Color {
   return Array.isArray(value) ? new Color().setRGB(...value, LinearSRGBColorSpace) : new Color(value);
@@ -118,6 +119,8 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   sun.shadow.normalBias = 0.008;
   sun.shadow.bias = -0.000025;
   sun.shadow.radius = 2;
+  // LightShadow.filterNode is a supported r186 hook, missing from the pinned types.
+  (sun.shadow as typeof sun.shadow & { filterNode: typeof receiverPlanePCF }).filterNode = receiverPlanePCF;
   scene.add(sun, sun.target);
   installed.push(sun, sun.target); owned.push(sun.shadow);
 

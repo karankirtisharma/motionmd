@@ -43,7 +43,7 @@ export async function createInteractionController(options: Options) {
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
   const workstation = createWorkstation(scene);
-  const stairContact = { sample: createStairSurfaces(scene), sprint: false };
+  const stairContact = { sample: createStairSurfaces(scene), sprint: false, active: false };
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
@@ -279,6 +279,7 @@ export async function createInteractionController(options: Options) {
       stairAhead.set(feet.x + relative.x * .45, feet.y, feet.z + relative.z * .45);
       if (stairContact.sample.isStair(feet, feet.y) || stairContact.sample.isStair(stairAhead, feet.y)) stairWalkHold = .3;
       else stairWalkHold = Math.max(0, stairWalkHold - STEP);
+      stairContact.active = stairWalkHold > 0;
       if (stairWalkHold > 0) speed = stairContact.sprint ? 1.65 : 1.38;
       displacement.set(relative.x * speed, 0, relative.z * speed);
       if (cameraView === 'thirdPerson' && displacement.lengthSq() > 0.001) {
@@ -579,6 +580,7 @@ export async function createInteractionController(options: Options) {
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
+    stairWalkHold = 0; stairContact.active = false;
     cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
     physics.setDeskClearance(false); pendingNavigationClearance = false; deskStage = undefined; handWeight = 0; inspectionDistance = undefined;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);

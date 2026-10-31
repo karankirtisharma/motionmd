@@ -10,7 +10,7 @@ export type DeskPose = {
   stanceWeight?: number; balanceLean?: number;
   grip?: { hand: number; point: THREE.Vector3; forward: THREE.Vector3; weight: number };
 };
-export type StairContact = { sample: ((point: THREE.Vector3, supportY: number, margin?: number) => number | undefined) & { isStair?: (point: THREE.Vector3, supportY: number) => boolean }; sprint?: boolean };
+export type StairContact = { sample: ((point: THREE.Vector3, supportY: number, margin?: number) => number | undefined) & { isStair?: (point: THREE.Vector3, supportY: number) => boolean }; sprint?: boolean; active?: boolean };
 
 /** MIT Rocketbox source motions, with local root drift removed in the export. */
 export function createRocketboxAvatar(gltf: GLTF) {
@@ -99,8 +99,9 @@ export function createRocketboxAvatar(gltf: GLTF) {
   const worldRotation = new THREE.Quaternion(), leanRotation = new THREE.Quaternion();
   const rightAxis = new THREE.Vector3(), forwardAxis = new THREE.Vector3();
 
+  const setterParentRotation = new THREE.Quaternion();
   function setWorldQuaternion(object: THREE.Object3D, quaternion: THREE.Quaternion) {
-    const parent = object.parent?.getWorldQuaternion(new THREE.Quaternion()) ?? new THREE.Quaternion();
+    const parent = object.parent ? object.parent.getWorldQuaternion(setterParentRotation) : setterParentRotation.identity();
     object.quaternion.copy(parent.invert().multiply(quaternion));
     object.updateWorldMatrix(false, true);
   }
@@ -271,6 +272,9 @@ export function createRocketboxAvatar(gltf: GLTF) {
   const soleSamples: Array<{ mesh: THREE.SkinnedMesh; indices: number[] }> = [];
   const solePoint = new THREE.Vector3();
   let soleLift = 0;
+  let stairBodyLift = 0, stairGaitWeight = 0;
+  const stairClearance = [0, 0];
+  const stairSoles: Array<Array<{ mesh: THREE.SkinnedMesh; index: number; point: THREE.Vector3 }>> = [[], []];
   model.traverse(object => {
     const mesh = object as THREE.SkinnedMesh;
     if (!mesh.isSkinnedMesh) return;
@@ -282,21 +286,88 @@ export function createRocketboxAvatar(gltf: GLTF) {
       for (let slot = 0; slot < 4; slot++) {
         if (/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(v, slot)].name)) footWeight += weights.getComponent(v, slot);
       }
-      if (footWeight > .95) indices.push(v);
+      if (footWeight > .95) {
+        indices.push(v);
+        let leftWeight = 0, rightWeight = 0;
+        for (let slot = 0; slot < 4; slot++) {
+          const name = mesh.skeleton.bones[joints.getComponent(v, slot)].name;
+          if (/L[_ ](?:Foot|Toe)/i.test(name)) leftWeight += weights.getComponent(v, slot);
+          if (/R[_ ](?:Foot|Toe)/i.test(name)) rightWeight += weights.getComponent(v, slot);
+        }
+        stairSoles[leftWeight > rightWeight ? 0 : 1].push({ mesh, index: v, point: new THREE.Vector3() });
+      }
     }
     if (indices.length) soleSamples.push({ mesh, indices });
   });
 
-  // Locomotion is the original authored walk/run/idle. Terrain moves the
-  // collision-supported root; it does not rewrite knees, feet or pelvis.
-  // Chair contact IK remains isolated in plantFeet/deskPose above.
+  // Keep the authored foot rotation and horizontal stride. Only recover vertical
+  // tread clearance. The knee plane comes from the ORIGINAL chain, before the
+  // target is raised: deriving it from the raised target can reverse a knee.
+  const stairProbe = new THREE.Vector3();
+  function nearStairs(stairs: StairContact) {
+    if (stairs.active) return true;
+    const isStair = stairs.sample.isStair;
+    if (!isStair) return false;
+    for (const offset of [0, .45, -.45]) {
+      stairProbe.set(0,0,offset).applyQuaternion(root.quaternion).add(root.position);
+      if (isStair(stairProbe, root.position.y)) return true;
+    }
+    return false;
+  }
+  const stairPoints = stairSoles.map(sole => sole.map(v => v.point));
+  const required = [0, 0];
+  const contactA = new THREE.Vector3(), contactB = new THREE.Vector3(), contactC = new THREE.Vector3();
+  const contactAxis = new THREE.Vector3(), contactBend = new THREE.Vector3(), contactGoal = new THREE.Vector3();
+  const contactKnee = new THREE.Vector3(), contactFrom = new THREE.Vector3(), contactTo = new THREE.Vector3();
+  const contactFootQ = new THREE.Quaternion(), contactJointQ = new THREE.Quaternion(), contactSwingQ = new THREE.Quaternion();
+  function stairContact(stairs: StairContact, dt: number) {
+    const surface = stairs.sample as StairContact['sample'] & { clearance?: (points: THREE.Vector3[], supportY: number, margin?: number) => number };
+    for (const [i, sole] of stairSoles.entries()) {
+      for (const v of sole) v.mesh.getVertexPosition(v.index, v.point).applyMatrix4(v.mesh.matrixWorld);
+      required[i] = 0;
+      if (surface.clearance) required[i] = Math.max(0, surface.clearance(stairPoints[i], root.position.y, .07));
+      else for (const point of stairPoints[i]) required[i] = Math.max(required[i], (surface(point, root.position.y, .07) ?? point.y) - point.y + .003);
+    }
+    // A shared support deficit belongs to the body, not two crouching knees.
+    const common = Math.min(.24, ...required);
+    stairBodyLift = Math.max(common, THREE.MathUtils.lerp(stairBodyLift, common, damping(16, dt)));
+    model.position.y += stairBodyLift;
+    root.updateMatrixWorld(true);
+    for (const [i, leg] of legs.entries()) {
+      const lift = Math.max(0, Math.min(.24, required[i] - stairBodyLift));
+      stairClearance[i] = lift;
+      if (lift < .0001) continue;
+      const a = leg.upper.getWorldPosition(contactA);
+      const b = leg.lower.getWorldPosition(contactB);
+      const c = leg.foot.getWorldPosition(contactC);
+      leg.foot.getWorldQuaternion(contactFootQ);
+      const originalAxis = contactAxis.subVectors(c,a).normalize();
+      const bend = contactBend.subVectors(b,a);
+      bend.addScaledVector(originalAxis,-bend.dot(originalAxis));
+      if (bend.lengthSq() < .00001) bend.set(0,0,1).applyQuaternion(root.quaternion);
+      bend.normalize();
+      const goal = contactGoal.copy(c); goal.y += lift;
+      const l1 = a.distanceTo(b), l2 = b.distanceTo(c), axis = contactAxis.subVectors(goal,a);
+      const distance = THREE.MathUtils.clamp(axis.length(), Math.abs(l1-l2)+.0001, l1+l2-.0001);
+      axis.normalize(); bend.addScaledVector(axis, -bend.dot(axis)).normalize();
+      const along = (l1*l1+distance*distance-l2*l2)/(2*distance);
+      const knee = contactKnee.copy(a).addScaledVector(axis,along).addScaledVector(bend, Math.sqrt(Math.max(0,l1*l1-along*along)));
+      setWorldQuaternion(leg.upper, contactSwingQ.setFromUnitVectors(contactFrom.subVectors(b,a).normalize(),contactTo.subVectors(knee,a).normalize()).multiply(leg.upper.getWorldQuaternion(contactJointQ)));
+      leg.lower.getWorldPosition(b); leg.foot.getWorldPosition(c);
+      setWorldQuaternion(leg.lower, contactSwingQ.setFromUnitVectors(contactFrom.subVectors(c,b).normalize(),contactTo.subVectors(goal,b).normalize()).multiply(leg.lower.getWorldQuaternion(contactJointQ)));
+      setWorldQuaternion(leg.foot, contactFootQ);
+    }
+  }
+  // Preserve source clips and horizontal gait; stair correction only lifts a
+  // penetrating shoe and uses the shared support deficit for body height.
+  // Chair contact remains isolated in plantFeet/deskPose above.
   return {
     root,
     animations: gltf.animations.map((clip) => clip.name),
     view: { eyeHeight, seatedEyeOffset },
     get locomotion() {
       return { phase: gaitPhase, speed: speedSmoothed, forwardLean, sideLean,
-        stairClearance: [0,0], soleLift,
+        stairClearance: [...stairClearance], stairBodyLift, soleLift,
         weights: Object.fromEntries(Object.entries(actions).map(([name, value]) => [name, value.getEffectiveWeight()])) };
     },
     setBodyView(active: boolean) {
@@ -304,12 +375,14 @@ export function createRocketboxAvatar(gltf: GLTF) {
       // torso, arms, legs, source rig and the immutable asset stay intact.
       headMeshes.forEach(({ mesh, visible }) => { mesh.visible = active ? false : visible; });
     },
-    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, _stairs?: StairContact) {
+    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, stairs?: StairContact) {
       dt = THREE.MathUtils.clamp(dt, 0, 0.1);
       seated = THREE.MathUtils.clamp(seated, 0, 1);
       const oldSpeed = speedSmoothed;
       speedSmoothed = THREE.MathUtils.lerp(speedSmoothed, Math.max(0, speed), damping(speed < speedSmoothed ? 14 : 9, dt));
-      const running = THREE.MathUtils.smoothstep(speedSmoothed, 1.8, 3.4);
+      const onStairs = !contacts && seated === 0 && !!stairs && nearStairs(stairs);
+      stairGaitWeight = THREE.MathUtils.lerp(stairGaitWeight, onStairs ? 1 : 0, damping(14, dt));
+      const running = (1 - stairGaitWeight) * THREE.MathUtils.smoothstep(speedSmoothed, 1.8, 3.4);
       const walking = THREE.MathUtils.smoothstep(speedSmoothed, 0.02, 0.6);
       actions.idle.setEffectiveWeight((1 - walking) * (1 - seated));
       actions.walk.setEffectiveWeight(walking * (1 - running) * (1 - seated));
@@ -372,6 +445,9 @@ export function createRocketboxAvatar(gltf: GLTF) {
         model.position.y += soleLift;
         root.updateMatrixWorld(true);
       }
+      stairClearance.fill(0);
+      if (onStairs) stairContact(stairs!, dt);
+      else stairBodyLift = 0;
       plantFeet(seated);
       if (contacts) deskPose(contacts);
     },

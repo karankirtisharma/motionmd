@@ -1,5 +1,7 @@
 # Production performance audit — 31 October 2026
 
+Follow-up: this microstutter checkpoint was published as `bb23118`. The later stair-contact and studio-shadow repair supersedes its tread-contact limitation; see `stair-and-shadow-2026-10-31.md`. Measurements below describe this checkpoint and remain unchanged.
+
 Status: the follow-up microstutter pass is implemented; **182 regression tests and the production build pass**. Exact static-shadow reuse reduces CPU render submission by 46.45% and 70.00% in two same-session fixed-pose WebGPU comparisons, with zero changed HDR pixels. These are rendering-cost measurements, not whole-site FPS gains. Earlier slower browser captures remain recorded below; foreground FPS and loading-time improvements are not claimed.
 
 ## Scope and preserved work
