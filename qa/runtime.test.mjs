@@ -13,7 +13,9 @@ const threeImport = source.split(/\r?\n/)[0].replace("'three'", JSON.stringify(i
 const body = source.replace(/^import .*;\r?$/gm, '');
 const compiled = ts.transpileModule(body, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
 const cinematicImport = `import { CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from ${JSON.stringify(new URL('../src/runtime/rendering/cinematic.ts', import.meta.url).href)};`;
-const { SceneRuntime } = await import(`data:text/javascript;base64,${Buffer.from(`${threeImport}\n${cinematicImport}\n${compiled}`).toString('base64')}`);
+const resizeImport = `import { createDrawingBufferResizer } from ${JSON.stringify(new URL('../src/runtime/rendering/resizeDrawingBuffer.ts', import.meta.url).href)};`;
+const adaptiveImport = `import { qualifiesAdaptiveWindow } from ${JSON.stringify(new URL('../src/runtime/rendering/adaptiveWindow.ts', import.meta.url).href)};`;
+const { SceneRuntime } = await import(`data:text/javascript;base64,${Buffer.from(`${threeImport}\n${cinematicImport}\n${resizeImport}\n${adaptiveImport}\n${compiled}`).toString('base64')}`);
 
 function fixture(mode = 'explore') {
   globalThis.document = { hidden: false, pointerLockElement: null };
@@ -143,4 +145,72 @@ test('frozen scenes stop submitting frames after temporal convergence and resume
   runtime.setReferenceCamera('audit');frames(200);assert.equal(stats.renders,384);
   runtime.setCinematicPlaying(true);runtime.setReferenceCamera('');frames(10);
   assert.equal(stats.renders,394,'playing camera must continue rendering every frame');
+});
+
+test('runtime mirror revisions stay stable while settling and invalidate for every visible scene change', () => {
+  const { runtime, shadow, frames } = fixture('tour');
+  const revisions = [];
+  runtime.galleryMirror = { update(renderer, scene, camera, revision) {
+    assert.equal(renderer, runtime.renderer); assert.equal(scene, runtime.scene); assert.equal(camera, runtime.camera);
+    assert.equal(typeof revision, 'number', 'tick must supply the cache invalidation revision');
+    revisions.push(revision);
+  } };
+  const capture = count => { revisions.length = 0; frames(count); return [...revisions]; };
+  const stable = (values, label) => { assert.ok(values.length > 1); assert.equal(new Set(values).size, 1, label); return values.at(-1); };
+  const advancing = (values, previous, label) => {
+    assert.ok(values.length > 1);
+    for (const revision of values) { assert.ok(revision > previous, label); previous = revision; }
+    return previous;
+  };
+
+  let previous = stable(capture(12), 'an unchanged stopped tour shares one mirror revision across settle frames');
+  runtime.setTourProgress(.4);
+  let current = stable(capture(12), 'settling a new cinematic pose must not continually invalidate its mirror');
+  assert.ok(current > previous, 'tour camera changes invalidate the reflection'); previous = current;
+
+  runtime.setReferenceCamera('audit');
+  current = stable(capture(12), 'the reference camera is frozen after its initial refresh');
+  assert.ok(current > previous, 'switching reference cameras invalidates the reflection'); previous = current;
+
+  runtime.diagnostics = { setMode() {} };
+  runtime.setDiagnosticMode('albedo');
+  current = stable(capture(12), 'unchanged diagnostic materials reuse their mirror');
+  assert.ok(current > previous, 'material changes invalidate the reflection'); previous = current;
+
+  runtime.setReferenceCamera('');
+  current = stable(capture(3), 'restoring the stopped tour settles with one revision');
+  assert.ok(current > previous); previous = current;
+  runtime.setCinematicPlaying(true);
+  previous = advancing(capture(8), previous, 'every cinematic camera/clip frame invalidates the reflection');
+  runtime.setCinematicPlaying(false); capture(1);
+
+  runtime.mode = 'explore';
+  previous = advancing(capture(8), previous, 'every character animation frame invalidates the reflection');
+  runtime.setPaused(true);
+  current = stable(capture(12), 'pausing the character lets temporal settle frames reuse the reflection');
+  assert.ok(current > previous); previous = current;
+
+  shadow.needsUpdate = true;
+  current = stable(capture(12), 'an explicit scene/shadow edit refreshes once while paused');
+  assert.ok(current > previous, 'lift, lighting and other scene changes cannot retain a stale reflection'); previous = current;
+  runtime.returnToTour();
+  advancing(capture(12), previous, 'scene transitions refresh the reflection before hidden/visible characters change');
+});
+
+
+test('background callback gaps do not lower quality; active slow frames still adapt', () => {
+  const { runtime, frames } = fixture();
+  runtime.quality = 'auto';
+  const adaptations = [];
+  runtime.adaptResolution = fps => adaptations.push(fps);
+  runtime.slowWindows = 1;
+  runtime.clock.getDelta = () => 1;
+  frames(9);
+  assert.equal(adaptations.length, 0);
+  assert.equal(runtime.slowWindows, 0);
+  assert.equal(runtime.statsLongGaps, 0);
+  runtime.clock.getDelta = () => 1 / 30;
+  frames(65);
+  assert.equal(adaptations.length, 1);
+  assert.ok(Math.abs(adaptations[0] - 30) < .001);
 });

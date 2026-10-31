@@ -98,3 +98,10 @@ Delivery preparation retains earlier generated variants by default so a running 
 ### Final stair and landing-glass refinement
 
 Stairs now use the source walk cycle, with Shift giving a modest brisk walk instead of the airborne flat-ground sprint. The foot-clearance solve uses a stable forward knee plane: the old animated-knee pole could flip backwards after an ankle was raised. Flat-ground sprinting and the chair sequence are unchanged. The omitted 2.4 m upper stair landing guard pane is restored from its existing collision coordinates with matching low-iron glass. The final regression suite has 132 passing tests; see `qa/performance-2026-10-30.md` for reproduction and limits.
+
+
+## Production microstutter follow-up — 31 October 2026
+
+The active BACKUP restores the older simple character controller, preserves the existing chair IK, skips one always-replaced 13.03 MiB gallery atlas, and fixes cancelled texture-loader cleanup. Immutable architecture transforms and unchanged mirror frames are reused. WebGPU now reuses exact static sun-shadow color/depth while continuing to render live character, chair and lift shadows; unsupported paths keep stock rendering. Canvas resize calls no longer reset an unchanged buffer, and sparse background callbacks cannot trigger quality reductions.
+
+Two same-session full-quality comparisons had zero changed HDR pixels and 46.45% / 70.00% lower CPU render-submission cost. These are fixed-view rendering measurements, not overall FPS gains. The High-quality shadow cache adds approximately 128 MiB of tracked texture storage. All 182 regression tests and the production build pass; startup compilation and exact shoe/tread contact remain limitations. This supersedes the October 30 terrain-foot-IK descriptions above. See `qa/performance-2026-10-31.md` and `qa/animation-recovery-2026-10-31.md` for evidence, fallback behavior and remaining issues. The protected FINAL copy and source Blender/assets remain untouched.

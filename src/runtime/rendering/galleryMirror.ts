@@ -3,6 +3,7 @@ import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { screenUV, texture, uniform } from 'three/tsl';
 
 import { reflectionCrop, cropReflectionCamera } from './reflectionCrop.ts';
+import { ReflectionFrameCache } from './reflectionFrameCache.ts';
 
 /** Reflect the camera and clip at the real mirror plane, including reversed depth.
  * The stock r186 ReflectorNode oblique projection assumes forward depth. Keep
@@ -84,6 +85,7 @@ export function createGalleryMirror(root: Object3D) {
   const camera = new PerspectiveCamera(), frustum = new Frustum(), matrix = new Matrix4(), size = new Vector2();
   const fullSize = new Vector2(), targetSize = new Vector2();
   const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
+  const frameCache = new ReflectionFrameCache();
   function prepareReflection(renderer: WebGPURenderer, view: PerspectiveCamera) {
     if (!material.visible) return false;
     // Only mirror ancestry is needed before deciding whether to render a reflection.
@@ -110,8 +112,9 @@ export function createGalleryMirror(root: Object3D) {
     return true;
   }
   return {
-    update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera) {
-      if (!prepareReflection(renderer, view)) return;
+    update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, revision?: number) {
+      if (!prepareReflection(renderer, view)) { frameCache.invalidate(); return; }
+      if (frameCache.matches(scene, revision, camera.matrixWorld, camera.projectionMatrix, crop, target.width, target.height)) return;
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
       const visibility = panes.map(surface => surface.visible);
@@ -119,6 +122,7 @@ export function createGalleryMirror(root: Object3D) {
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target); renderer.autoClear = true;
         renderer.render(scene, camera);
+        frameCache.record(scene, revision, camera.matrixWorld, camera.projectionMatrix, crop, target.width, target.height);
       } finally {
         renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT); renderer.autoClear = oldClear;
         panes.forEach((surface, i) => { surface.visible = visibility[i]; });

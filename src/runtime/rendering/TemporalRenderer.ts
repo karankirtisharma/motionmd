@@ -27,6 +27,8 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
       pipeline.render();
     },
     render() { pipeline.render(); },
+    // Debug parity uses the identical glass viewport-copy format and render context.
+    getAuditTarget() { return { target: scenePass.renderTarget, mrt: sceneMRT }; },
     async finishFirstFrame() {
       // One asynchronous pixel read is a public, backend-neutral completion fence.
       // Submitting a frame alone does not mean its driver compilation is finished.

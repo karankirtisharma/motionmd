@@ -1,7 +1,8 @@
 import { AgXToneMapping, AnimationMixer, Box3, Clock, Group, Material, MathUtils, Mesh, Object3D, PCFShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, Texture, Vector3 } from 'three';
 import { WebGPURenderer } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { KTX2Loader } from 'three/addons/loaders/KTX2Loader.js';
+import { SceneKTX2Loader } from './rendering/SceneKTX2Loader';
+import { createReplacedGalleryAlbedoPlugin } from './rendering/replacedGalleryAlbedo';
 import { createMeshoptDecoder } from './rendering/meshoptDecode';
 import { loadProgressively } from './rendering/progressiveLoad';
 import { architectureProgress } from './rendering/loadingProgress';
@@ -24,6 +25,10 @@ import { createTemporalRenderer } from './rendering/TemporalRenderer';
 import { filterSourceSpecular } from './rendering/specularFiltering';
 import { partitionSourceGeometry } from './rendering/spatialVisibility';
 import { createGalleryMirror } from './rendering/galleryMirror';
+import { freezeArchitectureTransforms } from './rendering/staticTransforms';
+import { StaticSunShadowCache } from './rendering/staticSunShadowCache';
+import { createDrawingBufferResizer } from './rendering/resizeDrawingBuffer';
+import { qualifiesAdaptiveWindow } from './rendering/adaptiveWindow';
 import { createInteractionController } from './interaction/InteractionController';
 
 import { RuntimeProfiler } from './rendering/RuntimeProfiler';
@@ -53,8 +58,12 @@ export class SceneRuntime {
   private shaderValidation?: ReturnType<typeof guardShaderCompilation>;
   private temporal?: ReturnType<typeof createTemporalRenderer>;
   private galleryMirror?: ReturnType<typeof createGalleryMirror>;
+  private staticTransforms?: ReturnType<typeof freezeArchitectureTransforms>;
+  private reflectionRevision = 0;
+  private staticSunShadowCache?: StaticSunShadowCache;
+  private auditBusy = false;
   private textures = new Set<Texture>();
-  private ktx2?: KTX2Loader;
+  private ktx2?: SceneKTX2Loader;
   private mixers: Array<{ mixer: AnimationMixer; duration: number }> = [];
   private cinematic?: CinematicPath;
   private cinematicPlaying = false;
@@ -65,8 +74,11 @@ export class SceneRuntime {
   private clock = new Clock(false);
   private quality: Quality = 'auto';
   private resolutionScale = 1;
+  private resizeDrawingBuffer = createDrawingBufferResizer();
   private statsFrames = 0;
   private statsTime = 0;
+  private statsLongGaps = 0;
+  private statsLongGapTime = 0;
   private frameSamples: number[] = [];
   private slowWindows = 0;
   private fastWindows = 0;
@@ -99,7 +111,7 @@ export class SceneRuntime {
           viewport: [this.container.clientWidth, this.container.clientHeight], dpr: window.devicePixelRatio,
           drawingBuffer: this.renderer ? [this.renderer.domElement.width, this.renderer.domElement.height] : [],
           trackedMiB: this.renderer ? (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 : 0,
-          draws: this.renderer?.info.render.drawCalls, triangles: this.renderer?.info.render.triangles, userAgent: navigator.userAgent, visibility: document.visibilityState
+          shadowCache: this.staticSunShadowCache?.stats, draws: this.renderer?.info.render.drawCalls, triangles: this.renderer?.info.render.triangles, userAgent: navigator.userAgent, visibility: document.visibilityState
         }));
       }
       const forceWebGL = this.inspectionEnabled && query.get('renderer') === 'webgl';
@@ -118,6 +130,7 @@ export class SceneRuntime {
       this.rendererReady = true;
       if (this.disposed) { void this.renderer.dispose().catch(error => console.warn('[MD cleanup]', error)); return; }
       this.shaderValidation = guardShaderCompilation(this.renderer, message => this.fail(message));
+      this.profiler?.attachRenderer(this.renderer);
       const canvas = this.renderer.domElement as HTMLCanvasElement;
       canvas.className = 'scene-canvas';
       canvas.setAttribute('aria-label', 'Live 3D architectural scene');
@@ -188,6 +201,10 @@ export class SceneRuntime {
       this.controls.setEnabled(false);
       this.lighting.refreshProbeLighting(this.controls.player, true);
       filterSourceSpecular(this.scene);
+      this.staticTransforms = freezeArchitectureTransforms(this.content, this.mixers.map(({ mixer }) => mixer.getRoot() as Object3D));
+      console.info('[MD static transforms]', { cached: this.staticTransforms.count });
+      this.staticSunShadowCache = new StaticSunShadowCache(this.lighting.sun, { isStatic: this.staticTransforms.has, enabled: query.get('shadowCache') !== '0' });
+      this.lighting.sun.shadow.shadowNode = this.staticSunShadowCache;
 
       this.profiler?.phase('texture upload');
       const warmStarted = performance.now();
@@ -254,7 +271,7 @@ export class SceneRuntime {
     const loader = new GLTFLoader(loadGuard.manager);
     const decoder = createMeshoptDecoder(this.abort.signal);
     loader.setMeshoptDecoder(decoder);
-    this.ktx2 = new KTX2Loader(loadGuard.manager).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
+    this.ktx2 = new SceneKTX2Loader(loadGuard.manager, this.abort.signal).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
     const chunks = [...this.manifest.chunks].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
     const bytes = new Map<string, number>();
@@ -270,7 +287,10 @@ export class SceneRuntime {
         }, chunk.bytes), async (chunk, buffer) => {
         if (this.disposed) return;
         const absolute = new URL(assetURL(chunk.url), window.location.href).href;
-        const gltf = await loader.parseAsync(buffer, absolute.slice(0, absolute.lastIndexOf('/') + 1));
+        const omitSuperseded = createReplacedGalleryAlbedoPlugin(chunk.url);
+        loader.register(omitSuperseded);
+        const gltf = await loader.parseAsync(buffer, absolute.slice(0, absolute.lastIndexOf('/') + 1))
+          .finally(() => loader.unregister(omitSuperseded));
         if (this.disposed || this.abort.signal.aborted) { this.disposeObject(gltf.scene, true); return; }
         try { loadGuard.assertLoaded(); }
         catch (error) { this.disposeObject(gltf.scene, true); throw error; }
@@ -316,7 +336,7 @@ export class SceneRuntime {
   }
 
   private tick = () => {
-    if (this.disposed || this.mode === 'error') return;
+    if (this.disposed || this.mode === 'error' || this.auditBusy) return;
     const elapsed = this.clock.getDelta();
     if (document.hidden) return;
     const profileStart = this.profiler ? performance.now() : 0;
@@ -342,22 +362,24 @@ export class SceneRuntime {
     const shouldRender = this.settleFrames > 0;
     const simulationDone = this.profiler ? performance.now() : 0;
     let mirrorDone = simulationDone;
-    try { if (shouldRender) { this.settleFrames--; this.galleryMirror?.update(this.renderer, this.scene, this.camera); mirrorDone = this.profiler ? performance.now() : 0; if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); } }
+    try { if (shouldRender) { this.settleFrames--; this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision); mirrorDone = this.profiler ? performance.now() : 0; if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); } }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
     this.profiler?.frame(elapsed * 1000, simulationDone - profileStart, mirrorDone - simulationDone, shouldRender ? performance.now() - mirrorDone : 0, shouldRender);
     this.statsFrames++; this.statsTime += elapsed;
+    if (elapsed >= .25) { this.statsLongGaps++; this.statsLongGapTime += elapsed; }
     if (this.inspectionEnabled) this.frameSamples.push(elapsed * 1000);
     if (this.statsTime > 2) {
       try { this.shaderValidation?.assertCompiled(); }
       catch { return; }
       const fps = this.statsFrames / this.statsTime;
-      if (this.quality === 'auto' && !this.paused && shouldRender) this.adaptResolution(fps);
+      if (!qualifiesAdaptiveWindow(this.statsFrames, this.statsTime, this.statsLongGaps, this.statsLongGapTime)) this.slowWindows = this.fastWindows = 0;
+      else if (this.quality === 'auto' && !this.paused && shouldRender) this.adaptResolution(fps);
       const samples = this.frameSamples.sort((a, b) => a - b);
       this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
         frameP50Ms: samples[Math.floor(samples.length * .5)], frameP95Ms: samples[Math.floor(samples.length * .95)],
         resourceMiB: (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 });
       this.frameSamples.length = 0;
-      this.statsFrames = 0; this.statsTime = 0;
+      this.statsFrames = 0; this.statsTime = 0; this.statsLongGaps = 0; this.statsLongGapTime = 0;
     }
   };
 
@@ -370,18 +392,19 @@ export class SceneRuntime {
     if (this.fastWindows >= 4 && this.resolutionScale < 1) { this.resolutionScale = Math.min(1, this.resolutionScale + 0.05); this.fastWindows = 0; this.resize(); }
   }
 
-  private invalidate() { this.settleFrames = TEMPORAL_SETTLE_FRAMES; }
+  private invalidate() { this.reflectionRevision++; this.settleFrames = TEMPORAL_SETTLE_FRAMES; }
 
   private resize() {
-    this.invalidate();
-    if (!this.renderer || this.disposed) return;
+    if (!this.renderer || this.disposed || this.auditBusy) return;
     const width = Math.max(1, this.container.clientWidth), height = Math.max(1, this.container.clientHeight);
-    this.camera.aspect = width / height; this.camera.updateProjectionMatrix();
     const cap = this.quality === 'balanced' ? 1.25 : 2;
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap) * this.resolutionScale);
-    this.renderer.setSize(width, height);
+    const changed = this.resizeDrawingBuffer(this.renderer, width, height, Math.min(window.devicePixelRatio, cap) * this.resolutionScale);
+    const projectionChanged = this.camera.aspect !== width / height;
+    if (!changed && !projectionChanged) return;
+    this.camera.aspect = width / height; this.camera.updateProjectionMatrix();
+    this.invalidate();
   }
-  private onVisibility = () => { this.profiler?.visibility(); this.invalidate(); this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
+  private onVisibility = () => { this.profiler?.visibility(); this.invalidate(); this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.statsLongGaps = 0; this.statsLongGapTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
   private setMode(mode: RuntimeMode) { if (!this.disposed) { this.mode = mode; this.callbacks.onModeChange?.(mode); } }
   private fail(message: string) {
     if (this.disposed || this.mode === 'error') return;
@@ -394,7 +417,32 @@ export class SceneRuntime {
     if (document.pointerLockElement === this.renderer?.domElement) document.exitPointerLock();
   }
 
-  startProfile(label: string) { this.profiler?.start(label); }
+  startProfile(label: string) { if (!this.auditBusy) this.profiler?.start(label); }
+  inspectShadowCaching(enabled: boolean) {
+    if (!this.inspectionEnabled || this.auditBusy) return;
+    this.staticSunShadowCache?.setEnabled(enabled); this.invalidate();
+  }
+  async inspectShadowParity() {
+    if (!this.inspectionEnabled || this.auditBusy || !this.staticSunShadowCache || !this.lighting || !this.temporal) return;
+    const paused = this.paused;
+    this.setPaused(true); this.auditBusy = true;
+    this.callbacks.onProfile?.(JSON.stringify({ shadowAudit: 'Comparing fixed-pose GPU output' }));
+    try {
+      const { auditShadowCache } = await import('./rendering/shadowCacheAudit');
+      const result = await auditShadowCache({ renderer: this.renderer, scene: this.scene, camera: this.camera,
+        cache: this.staticSunShadowCache, shadow: this.lighting.sun.shadow, signal: this.abort.signal,
+        pass: this.temporal.getAuditTarget(), benchmarkFrames: 16 });
+      this.callbacks.onProfile?.(JSON.stringify({ shadowAudit: result }, null, 2));
+    } catch (error) {
+      if (!this.disposed) this.callbacks.onProfile?.(JSON.stringify({ shadowAuditError: error instanceof Error ? error.message : String(error) }));
+    } finally {
+      this.auditBusy = false;
+      if (!this.disposed) {
+        this.clock.getDelta(); this.lighting.sun.shadow.needsUpdate = true;
+        this.temporal?.reset(); this.setPaused(paused); this.resize();
+      }
+    }
+  }
   noteUICommit() { this.profiler?.uiCommit(); }
 
   setTourProgress(progress: number) {
@@ -428,6 +476,7 @@ export class SceneRuntime {
     // Interactive furniture is reparented into the scene after loading.
     this.diagnostics ??= new RenderDiagnostics(this.scene);
     this.diagnostics.setMode(mode);
+    this.staticSunShadowCache?.invalidate('material diagnostic');
     // Keep the cached ShadowNode/render target alive when comparing modes.
     if (this.lighting) this.lighting.sun.shadow.intensity = mode === 'no-shadows' ? 0 : 1;
     this.temporal?.reset();
@@ -570,8 +619,11 @@ export class SceneRuntime {
     this.quality = quality; this.resolutionScale = 1; this.slowWindows = this.fastWindows = 0;
     if (this.lighting) {
       const size = quality === 'balanced' ? 2048 : 4096;
-      if (this.lighting.sun.shadow.mapSize.x !== size) this.lighting.sun.shadow.mapSize.set(size, size);
-      this.lighting.sun.shadow.needsUpdate = true;
+      if (this.lighting.sun.shadow.mapSize.x !== size) {
+        this.lighting.sun.shadow.mapSize.set(size, size);
+        this.lighting.sun.shadow.needsUpdate = true;
+        this.staticSunShadowCache?.invalidate('shadow quality'); this.invalidate();
+      }
     }
     this.resize();
   }
@@ -589,6 +641,8 @@ export class SceneRuntime {
     this.shaderValidation?.dispose();
     document.removeEventListener('visibilitychange', this.onVisibility);
     this.diagnostics?.dispose();
+    this.staticSunShadowCache?.dispose();
+    this.staticTransforms?.restore();
     this.controls?.dispose(); this.desert?.dispose(); this.lighting?.dispose();
     this.temporal?.dispose();
     this.galleryMirror?.dispose();

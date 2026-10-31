@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
 import type { SceneRuntime } from '@/runtime/SceneRuntime';
+import { createLoadingProgressPublisher } from '@/runtime/loadingProgressPublisher';
 import type { DiagnosticMode } from '@/runtime/rendering/diagnostics';
 import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats } from '@/types';
 
 export default function Home() {
   const viewport = useRef<HTMLDivElement>(null);
   const runtime = useRef<SceneRuntime | null>(null);
+  const loadingPublisher = useRef<ReturnType<typeof createLoadingProgressPublisher> | null>(null);
   const modeRef = useRef<RuntimeMode>('loading');
   const menuRef = useRef(false);
   const transitionRef = useRef(false);
@@ -41,6 +43,8 @@ export default function Home() {
 
   useEffect(() => {
     let cancelled = false;
+    const progressUpdates = createLoadingProgressPublisher(value => { if (!cancelled) setLoading(value); });
+    loadingPublisher.current = progressUpdates;
     setMode('loading'); setLoading({ phase: 'Preparing your visit' }); setError(''); setProgress(0);
     setReferenceCameras([]); setReferenceCamera(''); setDiagnosticMode('full');
     transitionRef.current = false; setTransitioning(false);
@@ -55,14 +59,14 @@ export default function Home() {
     import('@/runtime/SceneRuntime').then(async ({ SceneRuntime }) => {
       if (cancelled || !viewport.current) return;
       const instance = new SceneRuntime(viewport.current, {
-        onProgress: value => { if (!cancelled) setLoading(value); },
-        onReady: () => { if (!cancelled) { setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
-        onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { menuRef.current = false; setMenu(false); } } },
+        onProgress: progressUpdates.push,
+        onReady: () => { progressUpdates.flush(); progressUpdates.dispose(); if (!cancelled) { setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
+        onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { progressUpdates.dispose(); menuRef.current = false; setMenu(false); } } },
         onTourProgress: value => { if (!cancelled) setProgress(value); },
         onHint: value => { if (!cancelled) setHint(value); },
         onProfile: value => { if (!cancelled) setProfileReport(value); },
         onStats: diagnosticsEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
-        onError: value => { if (!cancelled) setError(value); },
+        onError: value => { progressUpdates.dispose(); if (!cancelled) setError(value); },
         onScreenMode: value => { if (!cancelled) setScreenActive(value); },
         onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
         onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
@@ -73,8 +77,8 @@ export default function Home() {
       instance.setReducedMotion(preferredReduced);
       await instance.init();
       if (cancelled) instance.dispose();
-    }).catch(reason => { if (!cancelled) { setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
-    return () => { cancelled = true; runtime.current?.dispose(); runtime.current = null; };
+    }).catch(reason => { progressUpdates.dispose(); if (!cancelled) { setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
+    return () => { cancelled = true; progressUpdates.dispose(); if (loadingPublisher.current === progressUpdates) loadingPublisher.current = null; runtime.current?.dispose(); runtime.current = null; };
   }, [generation]);
 
   const openMenu = useCallback(() => {
@@ -121,7 +125,7 @@ export default function Home() {
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}
       onRestart={tour}
       onExploreDirect={exploreDirect}
-      onRetry={() => { resume(); setGeneration(value => value + 1); }}
+      onRetry={() => { loadingPublisher.current?.dispose(); resume(); setGeneration(value => value + 1); }}
       onInteract={() => runtime.current?.interact()} onLeaveSeat={() => runtime.current?.stand()}
       interactionLabel={hint?.text} seatedChair={mode === 'seated' ? hint?.target : undefined}
       error={error} quality={quality} qualityLabel={qualityLabel} onQualityChange={changeQuality}
@@ -138,6 +142,7 @@ export default function Home() {
         <button onClick={() => changeQuality("high")}>Lock full quality</button>
         <button onClick={() => runtime.current?.startProfile(referenceCamera || mode)}>Capture 15 seconds</button>
         <button onClick={() => { dismissWelcome(); resume(); setReferenceCamera(""); runtime.current?.setReferenceCamera(""); runtime.current?.returnToTour(); runtime.current?.setTourProgress(0); runtime.current?.setCinematicPlaying(true); runtime.current?.startProfile("tour first 15s"); }}>Capture tour</button>
+        <div><button onClick={() => runtime.current?.inspectShadowCaching(false)}>Use full shadow pass</button><button onClick={() => runtime.current?.inspectShadowCaching(true)}>Use cached static shadows</button><button onClick={() => void runtime.current?.inspectShadowParity()}>Verify shadow pixels</button></div>
         <pre data-testid="performance-report" style={{ maxHeight: 210, maxWidth: 420, overflow: "auto", fontSize: 10 }}>{profileReport}</pre>
       </details>}
       <div>Phase: {mode}</div>
