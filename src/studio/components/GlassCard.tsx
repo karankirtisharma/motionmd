@@ -10,7 +10,7 @@ import {
   type Transition,
   type Variants,
 } from "motion/react";
-import type { CSSProperties, PointerEvent } from "react";
+import { useEffect, type CSSProperties, type PointerEvent } from "react";
 import { heroFor, type Film } from "@/studio/data/catalog";
 import { EASE_OUT, FOCUS_MOVE, PRESS } from "@/studio/lib/motion";
 import { usePlayer } from "@/studio/store/player";
@@ -95,16 +95,33 @@ export function GlassCard({
   const sx = useSpring(mx, SPRING);
   const sy = useSpring(my, SPRING);
   const transform = useMotionTemplate`translate3d(${sx}%, ${sy}%, 0)`;
+  const tiltX = useSpring(0, SPRING);
+  const tiltY = useSpring(0, SPRING);
+  const canTilt = layout && mode === "card" && !hidden && !dim && !upNext;
+
+  // Keep hover rotation separate from the outer card's layout projection.
+  // Clear it immediately when opening a film or changing the browse selection.
+  useEffect(() => {
+    tiltX.jump(0);
+    tiltY.jump(0);
+  }, [canTilt, layoutKey, tiltX, tiltY]);
 
   // Values are % of the 200%-sized spec layer, so they stay resolution-independent.
   function track(e: PointerEvent<HTMLDivElement>) {
-    if (e.pointerType !== "mouse") return;
+    if (!canTilt || e.pointerType !== "mouse" || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
     const r = e.currentTarget.getBoundingClientRect();
-    mx.set(((e.clientX - r.left) / r.width - 0.5) * 50);
-    my.set(((e.clientY - r.top) / r.height - 0.5) * 50);
+    if (!r.width || !r.height) return;
+    const x = Math.max(-0.5, Math.min(0.5, (e.clientX - r.left) / r.width - 0.5));
+    const y = Math.max(-0.5, Math.min(0.5, (e.clientY - r.top) / r.height - 0.5));
+    mx.set(x * 50);
+    my.set(y * 50);
+    tiltX.set(-y * 6);
+    tiltY.set(x * 8);
   }
 
   function rest() {
+    tiltX.set(0);
+    tiltY.set(0);
     mx.set(REST.x * 50);
     my.set(REST.y * 50);
   }
@@ -136,7 +153,14 @@ export function GlassCard({
       onPointerEnter={track}
     >
       <span className="glass__glow" aria-hidden />
-      <span className="glass">
+      <motion.span
+        className="glass"
+        style={{
+          transformPerspective: 900,
+          rotateX: canTilt ? tiltX : 0,
+          rotateY: canTilt ? tiltY : 0,
+        }}
+      >
         <motion.span
           className="card__media-wrap"
           layout={layout}
@@ -193,7 +217,7 @@ export function GlassCard({
           {mode === "panel" && <PanelContent key="panel" film={film} />}
           {mode === "theater" && <TheaterContent key="theater" film={film} />}
         </AnimatePresence>
-      </span>
+      </motion.span>
     </motion.div>
   );
 }

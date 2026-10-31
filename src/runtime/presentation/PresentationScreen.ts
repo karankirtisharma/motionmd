@@ -36,16 +36,12 @@ export function createPresentationScreen(options: Options) {
     if (disposed) return;
     ctx!.fillStyle = '#292014'; ctx!.fillRect(0, 0, width, height);
     if (poster.complete && poster.naturalWidth) {
-      const scale = Math.max(width / poster.naturalWidth, height / poster.naturalHeight);
-      ctx!.drawImage(poster, (width-poster.naturalWidth*scale)/2, (height-poster.naturalHeight*scale)/2, poster.naturalWidth*scale, poster.naturalHeight*scale);
+      // Captured from the actual studio at the TV's 3:1 aspect ratio.
+      ctx!.drawImage(poster, 0, 0, width, height);
+    } else {
+      ctx!.textAlign='center'; ctx!.fillStyle='#f6f1e7'; ctx!.font='88px Arial, sans-serif';
+      ctx!.fillText('AURELLE Launch Film',width/2,height/2);
     }
-    const shade = ctx!.createLinearGradient(0,0,0,height);
-    shade.addColorStop(0,'rgba(10,9,7,.08)'); shade.addColorStop(.5,'rgba(10,9,7,.55)'); shade.addColorStop(1,'rgba(10,9,7,.08)');
-    ctx!.fillStyle=shade; ctx!.fillRect(0,0,width,height);
-    ctx!.textAlign='center'; ctx!.fillStyle='#f6f1e7';ctx!.font='88px Arial, sans-serif';
-    ctx!.fillText('motiondesign.ad',width/2,390);
-    ctx!.fillStyle='#efcf9c';ctx!.font='38px Arial, sans-serif';
-    ctx!.fillText('Click to open',width/2,460);
     texture.needsUpdate=true;
   }
   poster.onload = draw; poster.onerror = draw;
@@ -85,7 +81,7 @@ export function createPresentationScreen(options: Options) {
   options.canvas.addEventListener('pointermove',onMove);
   options.canvas.addEventListener('pointerup',onUp);
   meshes.forEach(mesh=>{mesh.material=material});
-  poster.src='/studio/media/plate/wall-ledge-marble.jpg';
+  poster.src='/studio/media/presentation/aurelle-studio.webp';
   draw();
   return {
     meshes,texture,

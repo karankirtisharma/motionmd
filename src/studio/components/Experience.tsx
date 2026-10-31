@@ -8,6 +8,7 @@ import { cursorFromParams, cursorToSearch, type Cursor } from "@/studio/store/cu
 import { PlayerProvider, usePlayer } from "@/studio/store/player";
 import { usePrefs } from "@/studio/store/prefs";
 import { UIProvider, useUI, useUIStore } from "@/studio/store/ui";
+import { WheelBrowse } from "./WheelBrowse";
 import { CardRow } from "./CardRow";
 import { Brief } from "./Brief";
 import { CaseStudy } from "./CaseStudy";
@@ -35,6 +36,7 @@ export function Experience({
         <Motion>
           <Scene showSplash={showSplash} />
           <Keyboard embedded={embedded} />
+          <WheelBrowse />
           <LoungeBridge embedded={embedded} />
           <UrlSync />
         </Motion>
@@ -141,7 +143,7 @@ function Scene({ showSplash }: { showSplash: boolean }) {
       <AnimatePresence>{view === "studio" && <Studio key="studio" />}</AnimatePresence>
 
       <HintLine>
-        <SwapHint text={HINTS[view] ?? `← → browse · ↑ ↓ ${axis === "format" ? "format" : "industry"} · Press Z to see all 50`} />
+        <SwapHint text={HINTS[view] ?? `← → / scroll browse · ↑ ↓ ${axis === "format" ? "format" : "industry"} · Press Z to see all 50`} />
       </HintLine>
       <Minimap />
       <Overlays />

@@ -62,10 +62,11 @@ export default function LoungeStudioOverlay({ open, bounds, reducedMotion, scene
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose(); }
     if (event.key === 'Tab' && event.target === event.currentTarget) { event.preventDefault(); frame.current?.focus(); }
   }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: '#241b13', transformOrigin: '0 0', overflow: 'hidden' }}>
+    {!ready && <img src="/studio/media/presentation/aurelle-studio.webp" alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />}
     {!ready && <p role="status" style={{ position: 'absolute', inset: '45% 0 auto', textAlign: 'center', color: '#f6f1e7' }}>Opening the studio…</p>}
-    <iframe ref={frame} src="/studio?embed=lounge" title="Motion Design studio" allowFullScreen onLoad={() => {
+    <iframe ref={frame} src="/studio?embed=lounge&f=1&i=3" title="Motion Design studio" allowFullScreen onLoad={() => {
       frame.current?.contentWindow?.postMessage({ type: openRef.current ? 'md-studio:resume' : 'md-studio:suspend' }, location.origin);
-    }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }} />
+    }} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, opacity: ready ? 1 : 0, transition: reducedMotion ? 'none' : 'opacity 180ms ease' }} />
     {!ready && <button type="button" className="button button-quiet" onClick={onClose} style={{ position: 'absolute', top: 20, right: 20 }}>Back to the lounge</button>}
   </div>;
 }

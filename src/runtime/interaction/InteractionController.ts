@@ -48,7 +48,7 @@ export async function createInteractionController(options: Options) {
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
-  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, onOpen: bounds => { if (enabled && mode === 'seated' && !selected?.workstation) options.onStudioOpen?.(bounds); } }) : undefined;
+  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, onOpen: bounds => { if (enabled && (mode === 'explore' || (mode === 'seated' && !selected?.workstation))) options.onStudioOpen?.(bounds); } }) : undefined;
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
     const forward = item.forward ? new THREE.Vector3().fromArray(item.forward) : new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion().fromArray(item.quaternion));
@@ -163,7 +163,7 @@ export async function createInteractionController(options: Options) {
     else if (shortcut === 'cameraView') toggleCameraView();
     else if (event.code === 'Enter' && !event.repeat && mode === 'seated' && !selected?.workstation) { event.preventDefault(); display?.setAction('studio'); }
     else if (event.code === 'KeyE' && !event.repeat) handleInteract();
-    else if (event.code === 'Escape') { releaseCursor(); if (mode === 'approach') { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; } }
+    else if (event.code === 'Escape') { releaseCursor(); if (mode === 'approach') { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; display?.setActive(enabled); } }
     else keys.add(event.code);
   }
   function keyUp(event: KeyboardEvent) { keys.delete(event.code); }
@@ -300,7 +300,7 @@ export async function createInteractionController(options: Options) {
         releaseCursor(true);
         return;
       }
-      if (approachTime > 7) { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; prompt({ text: 'Move closer to the front of the chair' }); return; }
+      if (approachTime > 7) { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; display?.setActive(enabled); prompt({ text: 'Move closer to the front of the chair' }); return; }
       displacement.multiplyScalar(Math.min(1.0, distance * 2.5) / distance);
     } else { if (lift) physics.world.step(); return; }
     if (mode === 'explore' && displacement.lengthSq() > 0.001) {
@@ -449,7 +449,7 @@ export async function createInteractionController(options: Options) {
       }
       if (t === 1) {
         if (enteringSeat && Math.hypot(feet.x - aligned.x, feet.z - aligned.z) > .04) {
-          physics.setDeskClearance(false); mode = 'explore'; selected = undefined; deskStage = undefined;
+          physics.setDeskClearance(false); mode = 'explore'; selected = undefined; display?.setActive(enabled); deskStage = undefined;
           prompt({ text: 'Move to the open side of the chair and try again' }); options.onStateChange?.('explore'); return;
         }
         advance(enteringSeat ? 'lower' : 'grip');
@@ -511,7 +511,7 @@ export async function createInteractionController(options: Options) {
         // End where the feet supported the rise. No automatic walk-away pair:
         // the next horizontal movement belongs to the user's movement input.
         pendingNavigationClearance = !physics.restoreNavigationClearance(feet); physics.place(feet);
-        mode = 'explore'; selected = undefined; deskStage = undefined;
+        mode = 'explore'; selected = undefined; display?.setActive(enabled); deskStage = undefined;
         seatWeight = handWeight = stanceWeight = balanceLean = actualSpeed = 0;
         previousFeet.copy(feet); velocity.set(0, 0, 0); grounded = true; verticalVelocity = 0;
         nearestSamplePosition.set(Infinity, Infinity, Infinity); options.onStateChange?.('explore'); prompt(null);
@@ -536,7 +536,7 @@ export async function createInteractionController(options: Options) {
       transition = Math.min(1, transition + delta / 1.05); seatWeight = 1 - smootherStep(transition);
       feet.lerpVectors(transitionStart, selected.approach, smootherStep(transition));
       if (transition === 1) {
-        feet.y = physics.groundAt(feet, 2); physics.place(feet); mode = 'explore'; selected = undefined;
+        feet.y = physics.groundAt(feet, 2); physics.place(feet); mode = 'explore'; selected = undefined; display?.setActive(enabled);
         nearestSamplePosition.set(Infinity, Infinity, Infinity);
         grounded = true; verticalVelocity = 0; options.onStateChange?.('explore'); prompt(null);
       }
@@ -583,7 +583,7 @@ export async function createInteractionController(options: Options) {
     if (disposed) return;
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
     stairWalkHold = 0; stairContact.active = false;
-    cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; seatWeight = 0;
+    cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; display?.setActive(enabled); seatWeight = 0;
     physics.setDeskClearance(false); pendingNavigationClearance = false; deskStage = undefined; handWeight = 0; inspectionDistance = undefined;
     nearestSamplePosition.set(Infinity, Infinity, Infinity);
     feet.fromArray(inspectionSpawn?.position ?? manifest.spawn.position); feet.y = physics.groundAt(feet, 3);
@@ -598,7 +598,7 @@ export async function createInteractionController(options: Options) {
     if ('resetMotion' in avatar) avatar.resetMotion();
     avatar.update(0, 0, 0);
     avatar.root.visible = true;
-    enabled = true; resetInput(); display?.setActive(false); options.onStateChange?.('explore');
+    enabled = true; resetInput(); display?.setActive(true); options.onStateChange?.('explore');
     options.onCameraViewChange?.(cameraView);
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
@@ -633,7 +633,7 @@ export async function createInteractionController(options: Options) {
     consumeIntentionalUnlock() { const value = intentionalUnlock; intentionalUnlock = false; return value; },
     setEnabled(value: boolean) {
       enabled = value; resetInput();
-      display?.setActive(value && mode === 'seated' && !selected?.workstation);
+      display?.setActive(value && (mode === 'explore' || (mode === 'seated' && !selected?.workstation)));
       if (value) canvas.focus({ preventScroll: true });
     },
     setScreenAction(action: string) { display?.setAction(action); },

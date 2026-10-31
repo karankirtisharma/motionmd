@@ -1,0 +1,11 @@
+# Studio wheel browsing and AURELLE TV — 1 November 2026
+
+- Active runtime: D:/Motion Design MD BACKUP 26-10-2026. Publishing copy synchronized separately. Original FINAL untouched.
+- Regular vertical wheel, horizontal wheel, and trackpad input reuse the existing cursor step and spring transitions. Momentum is gated to one move per gesture. Overlays, forms, pinch zoom, suspended embeds, and film playback are excluded. Portrait uses its existing scroll-snap row.
+- Presentation TV uses a 1800x600 capture of the actual AURELLE studio browse scene, encoded as 135800-byte WebP. It is a still preview, not a second interactive renderer. Existing screen geometry/material lighting retained; only the named presentation texture changes. Founder TV remains authored.
+- Clicking the TV retains the existing 700ms screen-centred room zoom, then reveals the interactive same-origin studio at AURELLE. Preview remains visible until iframe readiness. Reduced motion uses the existing fade. Back returns to the retained lounge.
+- Verified in the actual localhost WebGPU lounge: TV image, click opens embedded AURELLE, return restores seated view; console errors absent. Vertical wheel moved AURELLE to Vanta and back; horizontal wheel advanced to Vanta.
+- Production build passed. 204 regression tests passed, including eight focused TV and wheel tests. TypeScript passed. 21st review reported only two pre-existing hardcoded color notes in the overlay; catalog search unavailable (fetch failed).
+- Preview capture source: local browser screenshot aurelle-tv-source.png in the session visualization folder. If studio appearance changes later, recapture the preview at 3:1.
+- Not a browser Fullscreen API request: the studio fills the site viewport. No new dependencies; no changes to character animation or Blender geometry.
+- Card hover: existing gold card surface and labels tilt together (max 3 degrees X / 4 degrees Y, 900px perspective) using Motion springs without pointer-driven React renders. Browser verified tilt, card opening, and site reduced-motion disabling it; reset preference after checking. Touch/coarse pointers are excluded. Portrait vertical-wheel browsing also verified. Final production build passed after hover integration; no browser errors observed.

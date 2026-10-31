@@ -75,7 +75,7 @@ test('the presentation poster replaces earth immediately and persists across inp
   const {display,mesh,original,images,draws,opens,click} = fixture(t);
   const posterMaterial = mesh.material;
   assert.notEqual(posterMaterial, original, 'the presentation TV must show the portal before anyone sits');
-  assert.deepEqual(images[0].requests, ['/studio/media/plate/wall-ledge-marble.jpg']);
+  assert.deepEqual(images[0].requests, ['/studio/media/presentation/aurelle-studio.webp']);
   images[0].load(); assert.equal(draws.length, 1);
   const version = display.texture.version;
   for (let i=0;i<120;i++) display.update();
@@ -99,18 +99,12 @@ test('only the named presentation TV changes; the similar-named founder screen k
   display.dispose(); assert.equal(founder.material, founderOriginal);
 });
 
-test('presentation title and action are centered together in the middle of the TV', t => {
-  const {texts,surface} = fixture(t);
-  const title = texts.find(item => item.text === 'motiondesign.ad');
-  const action = texts.find(item => item.text === 'Click to open');
-  assert.ok(title && action, 'the TV must explain both the destination and click action');
-  for (const text of [title,action]) {
-    assert.equal(text.align, 'center');
-    assert.equal(text.x, surface.width / 2);
-    assert.ok(text.y > surface.height * .35 && text.y < surface.height * .65, 'text belongs in the central area, not the old top band');
-  }
-  assert.ok(action.y > title.y);
-  assert.ok(Math.abs((title.y + action.y) / 2 - surface.height / 2) < surface.height * .08);
+test('AURELLE preview fills the TV without the old click-to-open text overlay', t => {
+  const {texts,surface,images,draws} = fixture(t);
+  assert.ok(texts.some(item => item.text === 'AURELLE Launch Film'), 'legible fallback before image decode');
+  assert.ok(!texts.some(item => item.text === 'Click to open'));
+  images[0].load();
+  assert.deepEqual(draws.at(-1).slice(1), [0, 0, surface.width, surface.height]);
 });
 
 test('TV disposal restores materials, releases its texture/material and detaches input and image callbacks', t => {
