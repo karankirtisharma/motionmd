@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { isAndroidPhone } from "../lib/entryDevice";
 import { usePlayer } from "@/studio/store/player";
 
 export function requestLoungeExit() {
@@ -15,6 +16,8 @@ export function requestLoungeExit() {
 /** Keep the embedded browser state, but stop media work while the lounge is visible. */
 export function LoungeBridge({ embedded }: { embedded: boolean }) {
   const { setPlaying } = usePlayer();
+  const [showLoungeLink, setShowLoungeLink] = useState(false);
+  useEffect(() => { setShowLoungeLink(!isAndroidPhone(navigator)); }, []);
   const pausePlayback = useRef(setPlaying);
   useEffect(() => { pausePlayback.current = setPlaying; }, [setPlaying]);
 
@@ -42,7 +45,7 @@ export function LoungeBridge({ embedded }: { embedded: boolean }) {
 
   return embedded ? (
     <button type="button" className="studio-lounge-link" onClick={requestLoungeExit}>Back to the lounge</button>
-  ) : (
+  ) : showLoungeLink ? (
     <a className="studio-lounge-link" href="/?mode=3d">Enter the 3D lounge</a>
-  );
+  ) : null;
 }

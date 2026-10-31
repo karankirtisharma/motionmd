@@ -115,7 +115,7 @@ All 183 tests, the strict 12-route shoe-contact audit and the production build p
 
 ## Studio and original motion review - 31 October 2026
 
-`/studio` is the lightweight Screen1 experience, isolated from the lounge runtime. First visits to `/` choose between the studio and the existing 3D scene; `/?mode=3d` opens the lounge directly. The presentation TV opens the retained studio overlay when seated (click or Enter), and Escape at studio top level returns to the same chair. The covered lounge stops rendering and simulation. The presentation TV permanently displays centered studio branding; the founder-room dashboard remains unchanged.
+`/studio` is the lightweight Screen1 experience, isolated from the lounge runtime. Every desktop/tablet entry at `/` chooses between the studio and the existing 3D scene, including old `?mode=3d` links. Saved choices cannot auto-load the scene. Android phones open `/studio?entry=direct` without a 3D option; Android tablets retain the choice. Direct studio entry skips the intro splash. The presentation TV opens the retained studio overlay when seated (click or Enter), and Escape at studio top level returns to the same chair. The covered lounge stops rendering and simulation. The presentation TV permanently displays centered studio branding; the founder-room dashboard remains unchanged.
 
 Original character locomotion is restored while accepted chair/palm contacts are retained. Spawn/re-entry resets inherited movement before revealing the character. Strict per-tread shoe contact remains a known limitation of the original gait; do not treat the general test pass as a stair-contact pass.
 

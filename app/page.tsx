@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import LoungeEntry, { rememberEntry } from '@/studio/components/LoungeEntry';
+import LoungeEntry from '@/studio/components/LoungeEntry';
 import LoungeStudioOverlay, { type StudioBounds } from '@/studio/components/LoungeStudioOverlay';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
 import type { SceneRuntime } from '@/runtime/SceneRuntime';
@@ -210,7 +210,7 @@ function LoungeHome() {
       </details>}
       {debug && runtime.current?.getInteractionState()?.deskStage && <details><summary>Chair inspection</summary><output style={{ display: 'block', maxWidth: 320, overflowWrap: 'anywhere' }}>{JSON.stringify(runtime.current?.getInteractionState())}</output>{(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Chair {view} view</button>)}</details>}
     </aside>}
-    {(menu || mode === 'error') && menuActions && createPortal(<a className="button button-quiet" href="/studio" onClick={() => rememberEntry('light')}>Switch to light version</a>, menuActions)}
+    {(menu || mode === 'error') && menuActions && createPortal(<a className="button button-quiet" href="/studio?entry=direct">Switch to light version</a>, menuActions)}
   </main>
   <LoungeStudioOverlay sceneElement={viewport.current} open={studioOpen} bounds={studioBounds} reducedMotion={reducedMotion} onCovered={coverStudio} onClose={closeStudio} /></>;
 }
