@@ -53,6 +53,79 @@ const controllerSource = transpile('../src/runtime/interaction/InteractionContro
   .replace("from '../rendering/assets'", `from ${JSON.stringify(new URL('../src/runtime/rendering/assets.ts', import.meta.url).href)}`);
 const { createInteractionController } = await import(dataModule(controllerSource));
 
+test('controller samples clean idle and grounded shoes before revealing fresh and returning visitors', async context => {
+  const prior={document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
+  const scene=new THREE.Scene(),collisionRoot=new THREE.Group();
+  const floorMaterial=new THREE.MeshBasicMaterial();
+  for(const [x,y] of [[0,0],[40,4.265]]) {
+    const floor=new THREE.Mesh(new THREE.BoxGeometry(30,.2,30),floorMaterial);
+    floor.name='floor';floor.position.set(x,y-.1,0);collisionRoot.add(floor);
+  }
+  const physics=await createCollisionWorld(scene,undefined,collisionRoot);
+  const avatar=createRocketboxAvatar(await load(manifest.character.url,true));
+  const reference=createRocketboxAvatar(await load(manifest.character.url,true));
+  const bones=target=>{const list=[];target.root.traverse(o=>{if(o.isBone)list.push(o);});return list;};
+  const actualBones=bones(avatar),expectedBones=bones(reference),shoes=[];
+  avatar.root.traverse(mesh=>{
+    if(!mesh.isSkinnedMesh)return;
+    const weights=mesh.geometry.attributes.skinWeight,joints=mesh.geometry.attributes.skinIndex;
+    for(let index=0;index<weights.count;index++) {
+      let footWeight=0;
+      for(let slot=0;slot<4;slot++)if(/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(index,slot)].name))footWeight+=weights.getComponent(index,slot);
+      if(footWeight>.95)shoes.push([mesh,index]);
+    }
+  });
+  globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
+  globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
+  globalThis[fixtureKey]={physics,avatar};
+  const controller=await createInteractionController({scene,camera:new THREE.PerspectiveCamera(54,16/9,.1,1800),
+    canvas:{addEventListener(){},removeEventListener(){},focus(){}},manifest:{spawn:{position:[0,0,0],yaw:0},chairs:[]}});
+  let visible=avatar.root.visible,reveals=0,expectedPosition=new THREE.Vector3(),expectedYaw=Math.PI;
+  const gaps=[];
+  // Capture the exact visibility transition, without waiting for a render/update.
+  // This fails if entry exposes the bind pose, old sprint, or previous support plane.
+  Object.defineProperty(avatar.root,'visible',{configurable:true,get:()=>visible,set:value=>{
+    if(value&&!visible) {
+      assert.ok(avatar.root.position.distanceTo(expectedPosition)<.00001,'place root on the requested support before revealing');
+      assert.ok(Math.abs(avatar.root.rotation.y-expectedYaw)<1e-12,'set the new facing before posing');
+      reference.root.position.copy(expectedPosition);reference.root.rotation.y=expectedYaw;
+      reference.resetMotion();reference.update(0,0,0);
+      for(let index=0;index<actualBones.length;index++) {
+        const actual=actualBones[index],expected=expectedBones[index];
+        assert.equal(actual.name,expected.name);
+        assert.ok(actual.position.distanceTo(expected.position)<1e-9,`${actual.name}: first visible bone position must be clean idle`);
+        assert.ok(actual.quaternion.toArray().every((v,i)=>Math.abs(v-expected.quaternion.toArray()[i])<1e-12),`${actual.name}: first visible bone rotation must be clean idle`);
+      }
+      assert.equal(avatar.locomotion.weights.idle,1);assert.equal(avatar.locomotion.weights.walk,0);assert.equal(avatar.locomotion.weights.run,0);assert.equal(avatar.locomotion.weights.sit,0);
+      assert.equal(avatar.locomotion.speed,0);assert.equal(avatar.locomotion.phase,0);
+      assert.equal(avatar.locomotion.forwardLean,0);assert.equal(avatar.locomotion.sideLean,0);
+      avatar.root.updateMatrixWorld(true);const point=new THREE.Vector3();let lowest=Infinity;
+      for(const[mesh,index]of shoes)lowest=Math.min(lowest,mesh.getVertexPosition(index,point).applyMatrix4(mesh.matrixWorld).y);
+      const gap=lowest-expectedPosition.y;
+      assert.ok(gap>=0&&gap<=.01001,`first visible shoe gap ${gap}m`);gaps.push(gap);reveals++;
+    }
+    visible=value;
+  }});
+  try {
+    assert.equal(shoes.length,361,'use the actual supplied skin and all shoe vertices');
+    controller.enterExplore(undefined,{position:[0,0,0],yaw:0});
+    assert.equal(reveals,1,'fresh entry must already be posed when enterExplore returns');
+    controller.setVirtualInput(0,1,0,0,true);
+    for(let frame=0;frame<150;frame++)controller.update(1/60);
+    assert.ok(avatar.locomotion.weights.run>.8,'exercise a real controller-driven sprint before re-entry');
+    assert.ok(avatar.locomotion.phase>.01,'the outgoing motion must have a nonzero phase');
+    controller.exitExplore();assert.equal(avatar.root.visible,false);
+    expectedPosition.set(40,4.265,0);expectedYaw=-.56+Math.PI;
+    controller.enterExplore(undefined,{position:[40,4.265,0],yaw:-.56});
+    assert.equal(reveals,2,'return entry must pose immediately without a follow-up frame');
+    context.diagnostic(JSON.stringify({reveals,shoeVertices:shoes.length,firstVisibleShoeGaps:gaps}));
+  } finally {
+    Object.defineProperty(avatar.root,'visible',{configurable:true,enumerable:true,writable:true,value:visible});
+    controller.dispose();reference.dispose();collisionRoot.traverse(o=>{if(o.isMesh)o.geometry.dispose();});floorMaterial.dispose();
+    Object.assign(globalThis,prior);delete globalThis[fixtureKey];
+  }
+});
+
 test('stair support smoothing preserves the collision route and source gait at 60/144 Hz', async context => {
   const collisionRoot=new THREE.Group();
   for(const url of [manifest.collisions.url,...manifest.collisions.additionalUrls])collisionRoot.add((await load(url)).scene);
@@ -66,6 +139,11 @@ test('stair support smoothing preserves the collision route and source gait at 6
       const avatar=createRocketboxAvatar(await load(manifest.character.url,true));
       const reference=createRocketboxAvatar(await load(manifest.character.url,true));
       const updateAvatar=avatar.update.bind(avatar);
+      const resetAvatar=avatar.resetMotion.bind(avatar);
+      avatar.resetMotion=()=>{
+        reference.root.position.copy(avatar.root.position);reference.root.rotation.copy(avatar.root.rotation);
+        resetAvatar();reference.resetMotion();
+      };
       let frame=0, stairContactEnabled=false;
       avatar.update=(dt,speed,...args)=>{
         stairContactEnabled=!!args[3];

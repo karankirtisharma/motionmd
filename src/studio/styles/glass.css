@@ -1,0 +1,287 @@
+/*
+  Glass: dark smoked bronze with champagne-gold edge light (K03 close-up).
+
+  A pane is thick polished glass, read through its edge:
+    ::before      the rendered glass frame (9-slice, see below): luminous gold outer
+                  edge, inner line and glints, all from a real render;
+    .glass__edge  on cards, the bevel band: the picture seen through thick glass;
+    body          dark and transparent, the walnut faintly behind it.
+  Gold is reflected light on the edges, never a flat border, and there are no
+  streaks across the faces.
+*/
+
+#md-studio-root .glass {
+  --r: var(--r-card);
+  --tube: 6.5; /* glass thickness: where the inner line sits */
+  display: block;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: calc(var(--r) * var(--u));
+  background:
+    linear-gradient(180deg, rgb(255 230 190 / 0.07), transparent 28%),
+    linear-gradient(180deg, rgb(28 15 7 / 0.3), rgb(20 10 5 / 0.22));
+  box-shadow:
+    /* light travelling inside the glass edge glows on both sides of it */
+    inset 0 0 calc(7 * var(--u)) rgb(255 196 110 / 0.42),
+    /* the bevel between the two lines catches light, so it reads a touch brighter */
+    inset 0 0 0 calc(var(--tube) * var(--u)) rgb(255 228 186 / 0.06),
+    inset 0 0 calc(24 * var(--u)) rgb(255 206 140 / 0.05),
+    0 0 calc(8 * var(--u)) rgb(255 214 150 / 0.22),
+    0 calc(22 * var(--u)) calc(44 * var(--u)) calc(-16 * var(--u)) rgb(0 0 0 / 0.62);
+}
+
+/*
+  The edge is a real rendered glass frame (design/glass-frame.png), drawn as a 9-slice
+  with border-image: corners stay crisp, sides stretch to any panel. --frame is the
+  slice's width on screen (design px); the source slice is 140px with a 100px corner,
+  so the pane's own corner radius is 100/140 of --frame and always meets the frame.
+  Capsules (pills, segmented controls, round buttons) use capsule.png, the same glass
+  re-shaped in code by scripts/build-glass-frames.py, sliced at half their height
+  (its 210px cap is wider than its band, so pills carry a slimmer edge than cards).
+*/
+#md-studio-root .glass {
+  --frame: 44;
+  border-radius: calc(var(--frame) * 0.714 * var(--u));
+}
+#md-studio-root .glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border: calc(var(--frame) * var(--u)) solid transparent;
+  border-image: url("/studio/media/glass/frame.webp") 140 / calc(var(--frame) * var(--u)) stretch;
+  opacity: 0.95;
+  transition: opacity var(--dur-hover) ease;
+}
+
+#md-studio-root :is(.pill, .segmented, .icon-btn, .chip, .filter-chip, .theater__play, .palette__field) {
+  --cap: calc(var(--h, 63) / 2);
+  border-radius: 999px;
+}
+#md-studio-root :is(.pill, .segmented, .icon-btn, .chip, .filter-chip, .theater__play, .palette__field)::before {
+  border-width: calc(var(--cap) * var(--u));
+  border-image: url("/studio/media/glass/capsule.webp") 210 / calc(var(--cap) * var(--u)) stretch;
+}
+/* Capsules without a placed height (not .at). --h is inherited from the nearest placed
+   ancestor, so these must never read it: a pill inside a 470-tall stage drew a 235u ring. */
+#md-studio-root :is(.pill, .segmented, .icon-btn):where(:not(.at)) { --cap: 32; }
+#md-studio-root .details__send { --cap: 55; }
+#md-studio-root .brief__nav .pill { --cap: 40; }
+#md-studio-root .sl__actions .pill { --cap: 35; }
+#md-studio-root .rail__axis { --cap: 27; }
+#md-studio-root .chip { --cap: 22; }
+#md-studio-root .filter-chip { --cap: 23; }
+#md-studio-root .theater__play { --cap: 39; }
+#md-studio-root .palette__field { --cap: 39; }
+#md-studio-root .field input { --cap: 32; border-radius: 999px; }
+#md-studio-root .field input::before { border-width: calc(var(--cap) * var(--u)); }
+
+/* Narrow and small panes take a slimmer slice so the frame keeps its proportions */
+#md-studio-root :is(.pipeline__node, .toast, .field textarea, .sl__note, .cc__tile) { --frame: 32; }
+#md-studio-root :is(.rail, .minimap) { --frame: 34; }
+/* The 16px rail sliver is too narrow for a frame */
+#md-studio-root .rail-sliver::before { display: none; }
+
+/*
+  Travelling glint: a soft highlight slides around the gold rim, as if the room light
+  were shifting over polished glass. <Glint> holds the frame as a 9-slice mask
+  (mask-box-image), so light only lands on the gold edge; inside it a conic beam just
+  rotates. Rotation is a compositor-only animation: no per-frame restyle or repaint.
+  Constant motion, so linear; slow (11s) and staggered per panel (--glint-delay) so
+  the page never blinks in unison. Browsers without mask-box-image (Firefox) skip it.
+*/
+#md-studio-root .glint { display: none; }
+@supports (-webkit-mask-box-image: none) {
+  #md-studio-root .glint {
+    display: block;
+    /* !important: panels lift content with `> * { position: relative }` */
+    position: absolute !important;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+    container-type: size;
+    -webkit-mask-box-image: url("/studio/media/glass/frame.webp") 140 / calc(var(--frame) * var(--u)) stretch;
+    mix-blend-mode: screen;
+    opacity: 0.6;
+  }
+  #md-studio-root .glint[data-capsule] {
+    -webkit-mask-box-image: url("/studio/media/glass/capsule.webp") 210 / calc(var(--cap) * var(--u)) stretch;
+  }
+}
+/* A square beam a little larger than the pane's longest side, spun about its centre */
+#md-studio-root .glint__beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(max(100cqw, 100cqh) * 1.5);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 290deg,
+    rgb(255 236 196 / 0.5) 326deg,
+    rgb(255 252 240 / 1) 344deg,
+    rgb(255 236 196 / 0.5) 352deg,
+    transparent 360deg
+  );
+  animation: md-studio-glint-spin 11s linear infinite;
+  animation-delay: var(--glint-delay, 0s);
+}
+@keyframes md-studio-glint-spin {
+  to { rotate: 360deg; }
+}
+
+/* Stagger: each panel catches the light at its own moment */
+#md-studio-root .card .glass { --glint-delay: calc(var(--n, 0) * -2.3s); }
+#md-studio-root .card[data-active] .glint { opacity: 0.85; }
+#md-studio-root .rail { --glint-delay: -2s; }
+#md-studio-root .minimap { --glint-delay: -7s; }
+#md-studio-root .rail-toggle { --glint-delay: -9s; }
+#md-studio-root .topbar-work { --glint-delay: -3.5s; }
+#md-studio-root .topbar-grid { --glint-delay: -1s; }
+#md-studio-root .topbar-controls { --glint-delay: -4.5s; }
+#md-studio-root .topbar-search { --glint-delay: -6s; }
+#md-studio-root .topbar-heart { --glint-delay: -8s; }
+#md-studio-root .topbar-brief { --glint-delay: -5.2s; }
+#md-studio-root .rail__axis { --glint-delay: -10s; }
+
+@media (prefers-reduced-motion: reduce) {
+  #md-studio-root .glint { display: none; }
+}
+#md-studio-root[data-reduce-motion] .glint { display: none; }
+
+/* Big clear panels (rail, minimap, drawers): same smoked body, the wall faintly behind */
+#md-studio-root .glass--frost {
+  --tube: 8;
+  background:
+    linear-gradient(180deg, rgb(255 230 190 / 0.08), transparent 24%),
+    linear-gradient(180deg, rgb(30 16 8 / 0.34), rgb(22 11 5 / 0.26));
+  backdrop-filter: blur(calc(2 * var(--u))) brightness(0.92) saturate(110%);
+  -webkit-backdrop-filter: blur(calc(2 * var(--u))) brightness(0.92) saturate(110%);
+}
+
+/*
+  Liquid-glass lensing on the clear glass: the band between the two lines bends what's
+  behind it and the centre stays nearly sharp. Never on cards: their media is opaque,
+  so there's nothing behind them to bend.
+*/
+#md-studio-root[data-lens] .rail {
+  backdrop-filter: url(#lens-panel) blur(calc(2 * var(--u))) brightness(0.92) saturate(110%);
+}
+#md-studio-root[data-lens] :is(.minimap, .brief-map) {
+  backdrop-filter: url(#lens-tile) blur(calc(2 * var(--u))) brightness(0.92) saturate(110%);
+}
+#md-studio-root[data-lens] :is(.segmented, .rail-toggle, .topbar-brief) {
+  backdrop-filter: url(#lens-pill) brightness(0.94) saturate(110%);
+}
+/* Round buttons keep their CSS rings only: at 63px the bend is barely visible and each
+   lensed element is another backdrop pass. The rail and capsules carry the effect. */
+
+/*
+  Restrained bloom off the clear glass: low, warm, mostly under the bottom edge where
+  the ledge light exits. Localised hot spots live in the edge lines, not here.
+*/
+#md-studio-root .glass--frost,
+#md-studio-root .pill:not(.pill--gold),
+#md-studio-root .segmented,
+#md-studio-root .icon-btn {
+  --bleed:
+    0 0 calc(14 * var(--u)) rgb(240 190 110 / 0.12),
+    0 calc(8 * var(--u)) calc(16 * var(--u)) calc(-8 * var(--u)) rgb(255 206 130 / 0.28);
+}
+#md-studio-root .glass--frost:not(.rail) {
+  box-shadow:
+    inset 0 0 calc(7 * var(--u)) rgb(255 196 110 / 0.42),
+    0 0 calc(8 * var(--u)) rgb(255 214 150 / 0.22),
+    inset 0 0 0 calc(var(--tube) * var(--u)) rgb(255 228 186 / 0.06),
+    inset 0 0 calc(24 * var(--u)) rgb(255 206 140 / 0.05),
+    0 calc(22 * var(--u)) calc(44 * var(--u)) calc(-16 * var(--u)) rgb(0 0 0 / 0.62),
+    var(--bleed);
+}
+
+/* Warm wash over media: soft reflection on top, darker floor for label contrast */
+#md-studio-root .glass__tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(255 238 208 / 0.12), transparent 22%),
+    linear-gradient(180deg, rgb(255 236 200 / 0.1), transparent 26%),
+    linear-gradient(to top, rgb(22 12 5 / 0.62), rgb(22 12 5 / 0.12) 34%, transparent 55%);
+}
+
+/* Specular highlight — moved with a spring from GlassCard (transform only) */
+#md-studio-root .glass__spec {
+  position: absolute;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgb(255 248 235 / 0.22),
+    rgb(255 230 190 / 0.06) 45%,
+    transparent 70%
+  );
+  mix-blend-mode: soft-light;
+}
+
+/* Amber bloom behind the lit card: concentrated at the top edge, falling off fast */
+#md-studio-root .glass__glow {
+  position: absolute;
+  inset: calc(-30 * var(--u));
+  z-index: -1;
+  border-radius: calc(64 * var(--u));
+  background:
+    radial-gradient(34% 12% at 50% 6%, rgb(255 232 186 / 0.85), transparent 80%),
+    radial-gradient(60% 55% at 50% 45%, rgb(236 186 110 / 0.5), rgb(200 140 60 / 0.12) 55%, transparent 72%);
+  filter: blur(calc(24 * var(--u)));
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+/*
+  Slab bevel (cards): the picture seen through the thick, bevelled edge of the glass.
+  A ring from the outer edge to the inner line, where the image is lifted and softened
+  (backdrop blur + brightness) and washed with warm light, like K03's Product Launch card.
+  The card is a backdrop root (Motion leaves a filter on it), so "behind" is its own media.
+*/
+#md-studio-root .glass__edge {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: calc(var(--tube) * var(--u));
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgb(255 226 170 / 0.14), transparent 30%, transparent 70%, rgb(255 226 170 / 0.08)),
+    linear-gradient(180deg, rgb(255 222 160 / 0.14), rgb(240 190 110 / 0.05) 45%, rgb(255 200 120 / 0.18));
+  backdrop-filter: blur(calc(2.5 * var(--u))) brightness(1.2) saturate(1.3) sepia(0.12);
+  -webkit-backdrop-filter: blur(calc(2.5 * var(--u))) brightness(1.2) saturate(1.3) sepia(0.12);
+  box-shadow:
+    inset 0 0 calc(7 * var(--u)) calc(1 * var(--u)) rgb(255 196 104 / 0.75),
+    inset 0 calc(-4 * var(--u)) calc(8 * var(--u)) rgb(255 206 120 / 0.55);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Cards are thick slabs: a wide bevel, and the flat face shades the picture just inside it */
+#md-studio-root .card .glass,
+#md-studio-root .case__frame {
+  --tube: 16;
+}
+#md-studio-root .card .glass__tint,
+#md-studio-root .case__frame .glass__tint {
+  box-shadow: inset 0 0 calc(16 * var(--u)) calc(var(--tube) * var(--u)) rgb(12 6 2 / 0.22);
+}

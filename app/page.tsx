@@ -1,13 +1,18 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import LoungeEntry, { rememberEntry } from '@/studio/components/LoungeEntry';
+import LoungeStudioOverlay, { type StudioBounds } from '@/studio/components/LoungeStudioOverlay';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
 import type { SceneRuntime } from '@/runtime/SceneRuntime';
 import { createLoadingProgressPublisher } from '@/runtime/loadingProgressPublisher';
 import type { DiagnosticMode } from '@/runtime/rendering/diagnostics';
 import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats } from '@/types';
 
-export default function Home() {
+export default function Home() { return <LoungeEntry><LoungeHome /></LoungeEntry>; }
+
+function LoungeHome() {
   const viewport = useRef<HTMLDivElement>(null);
   const runtime = useRef<SceneRuntime | null>(null);
   const loadingPublisher = useRef<ReturnType<typeof createLoadingProgressPublisher> | null>(null);
@@ -16,6 +21,11 @@ export default function Home() {
   const transitionRef = useRef(false);
   const welcomeRef = useRef(true);
   const touch = useRef({ x: 0, y: 0, sprint: false });
+  const [studioOpen, setStudioOpen] = useState(false);
+  const [studioBounds, setStudioBounds] = useState<StudioBounds | null>(null);
+  const studioOpenRef = useRef(false);
+  const studioOpener = useRef<HTMLElement | null>(null);
+  const [menuActions, setMenuActions] = useState<Element | null>(null);
   const [generation, setGeneration] = useState(0);
   const [mode, setMode] = useState<RuntimeMode>('loading');
   const [menu, setMenu] = useState(false);
@@ -68,6 +78,13 @@ export default function Home() {
         onStats: diagnosticsEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
         onError: value => { progressUpdates.dispose(); if (!cancelled) setError(value); },
         onScreenMode: value => { if (!cancelled) setScreenActive(value); },
+        onStudioOpen: bounds => {
+          if (cancelled || studioOpenRef.current) return;
+          studioOpener.current = document.activeElement as HTMLElement | null;
+          studioOpenRef.current = true; setStudioBounds(bounds); setStudioOpen(true);
+          instance.setPaused(true);
+          if (document.pointerLockElement) document.exitPointerLock();
+        },
         onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
         onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
         onCameraViewChange: value => { if (!cancelled) setCameraView(value); },
@@ -82,7 +99,7 @@ export default function Home() {
   }, [generation]);
 
   const openMenu = useCallback(() => {
-    if (modeRef.current === 'loading' || modeRef.current === 'error' || transitionRef.current || welcomeRef.current) return;
+    if (studioOpenRef.current || modeRef.current === 'loading' || modeRef.current === 'error' || transitionRef.current || welcomeRef.current) return;
     menuRef.current = true; setMenu(true); runtime.current?.setPaused(true);
     if (document.pointerLockElement) document.exitPointerLock();
   }, []);
@@ -91,7 +108,7 @@ export default function Home() {
   useEffect(() => {
     const isField = (target: EventTarget | null) => target instanceof HTMLElement && !!target.closest('input, textarea, select, button, [role="dialog"], [contenteditable="true"]');
     const keydown = (event: KeyboardEvent) => {
-      if (transitionRef.current || welcomeRef.current) return;
+      if (studioOpenRef.current || transitionRef.current || welcomeRef.current) return;
       if (event.key === 'Escape') {
         if (menuRef.current || isField(event.target)) return;
         openMenu(); return;
@@ -108,6 +125,21 @@ export default function Home() {
     return () => { window.removeEventListener('keydown', keydown); document.removeEventListener('pointerlockchange', unlock); };
   }, [openMenu]);
 
+  const closeStudio = useCallback(() => {
+    if (!studioOpenRef.current) return;
+    studioOpenRef.current = false; setStudioOpen(false);
+
+  }, []);
+  useEffect(() => {
+    if (studioOpen || !studioOpener.current) return;
+    // Effects run after React removes inert, so controls and focus resume safely.
+    runtime.current?.setStudioCovered(false); runtime.current?.setPaused(false);
+    const opener = studioOpener.current; studioOpener.current = null;
+    (opener.isConnected ? opener : viewport.current?.querySelector('canvas'))?.focus({ preventScroll: true });
+  }, [studioOpen]);
+  const coverStudio = useCallback((covered: boolean) => runtime.current?.setStudioCovered(covered), []);
+  useEffect(() => { setMenuActions(menu || mode === 'error' ? document.querySelector(menu ? '.menu-panel .panel-actions' : '.error-panel .panel-actions') : null); }, [menu, mode]);
+
   const dismissWelcome = useCallback(() => { welcomeRef.current = false; setWelcome(false); setReferenceCamera(''); }, []);
   const tour = useCallback(() => { dismissWelcome(); resume(); runtime.current?.startCinematic(); }, [dismissWelcome, resume]);
   const explore = useCallback(() => { dismissWelcome(); resume(); runtime.current?.explore(); }, [dismissWelcome, resume]);
@@ -117,9 +149,9 @@ export default function Home() {
   const uiMode: LoungeMode = menu ? 'menu' : mode === 'tour' ? (welcome ? 'welcome' : progress === 1 ? 'handoff' : 'cinematic') : mode;
   const qualityLabel = debug && stats ? `${stats.renderer} · ${quality === 'auto' ? 'Adaptive' : quality === 'high' ? 'High detail' : 'Balanced'}` : undefined;
 
-  return <main className="lounge-experience" data-mode={mode} data-screen-active={screenActive}>
+  return <><main inert={studioOpen} className="lounge-experience" data-mode={mode} data-screen-active={screenActive}>
     <div ref={viewport} className="scene-viewport" />
-    <div hidden={transitioning}><LoungeInterface mode={uiMode} loading={loading} progress={progress} playing={playing} duration={duration}
+    <div hidden={transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progress={progress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}
@@ -136,7 +168,7 @@ export default function Home() {
       onTouchSprint={value => { touch.current.sprint = value; sendTouch(); }} onTouchExit={openMenu}
     /></div>
     <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
-    {debug && <aside aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
+    {debug && <aside hidden={studioOpen} aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
       <div>Render diagnostics</div>
       {profiling && <details><summary>Performance capture</summary>
         <button onClick={() => changeQuality("high")}>Lock full quality</button>
@@ -178,5 +210,7 @@ export default function Home() {
       </details>}
       {debug && runtime.current?.getInteractionState()?.deskStage && <details><summary>Chair inspection</summary><output style={{ display: 'block', maxWidth: 320, overflowWrap: 'anywhere' }}>{JSON.stringify(runtime.current?.getInteractionState())}</output>{(['third-person', 'side', 'front'] as const).map(view => <button key={view} onClick={() => runtime.current?.inspectDeskView(view)}>Chair {view} view</button>)}</details>}
     </aside>}
-  </main>;
+    {(menu || mode === 'error') && menuActions && createPortal(<a className="button button-quiet" href="/studio" onClick={() => rememberEntry('light')}>Switch to light version</a>, menuActions)}
+  </main>
+  <LoungeStudioOverlay sceneElement={viewport.current} open={studioOpen} bounds={studioBounds} reducedMotion={reducedMotion} onCovered={coverStudio} onClose={closeStudio} /></>;
 }

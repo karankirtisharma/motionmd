@@ -104,7 +104,10 @@ test('full-scene stair controller uses controlled walking and preserves forward 
    assert.ok(allowed/requested>.9,`${routeType}: floor/landing must not be treated as an approaching wall (${allowed/requested})`);
    // Shift is a brisk walk on stairs. The ordinary flat-ground run is tested separately.
    if(sprint && routeType==='spiral')assert.ok(maximumRun<.01,`spiral keeps the normal walk cycle, got run weight ${maximumRun}`);
-   assert.ok(shoePenetration < .005, `${routeType} shoe penetration ${shoePenetration}m`);
+   // The user explicitly restores the original bone animation. Body collision
+   // remains supported; individual shoes can intersect discrete treads. Keep
+   // reporting that limitation; the independent strict audit remains unchanged.
+   assert.deepEqual(avatar.locomotion.stairClearance,[0,0],'source legs remain unmodified');
    reports.push({shoePenetration,routeType,sprint,reverse,seconds,allowedRatio:allowed/requested,maximumRun,maximumAnimationSpeed,feet:controller.diagnostics.state.feet});
   }finally{controller.dispose()}
  }

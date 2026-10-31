@@ -1,0 +1,754 @@
+/* Overlays (step 5). Portalled to <body>, so they use the same :root --u scale. */
+
+/* One frosted scrim behind any overlay; the stage itself is never blurred (cheaper) */
+#md-studio-root .overlay-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgb(12 7 3 / 0.34);
+  backdrop-filter: blur(10px) saturate(115%);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+}
+#md-studio-root .overlay-scrim--dim { background: rgb(12 7 3 / 0.42); }
+/* The overview is a dense grid; the room behind it has to go fully quiet */
+#md-studio-root .overlay-scrim--deep {
+  background: rgb(10 6 3 / 0.78);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+}
+/* Radix overlays: our fade. (Vaul animates its own overlay.) */
+#md-studio-root .overlay-scrim:not([data-vaul-overlay])[data-state="open"] { animation: md-studio-fade-in 200ms ease both; }
+#md-studio-root .overlay-scrim:not([data-vaul-overlay])[data-state="closed"] { animation: md-studio-fade-out 140ms ease both; }
+
+@keyframes md-studio-fade-in { from { opacity: 0; } }
+@keyframes md-studio-fade-out { to { opacity: 0; } }
+
+/* ---------- O01 · Search palette ---------- */
+#md-studio-root .palette {
+  --r: 40;
+  position: fixed;
+  z-index: 101;
+  left: calc(50% - 510 * var(--u));
+  top: calc(var(--ledge-pct) - 737 * var(--u));
+  width: calc(1020 * var(--u));
+  max-height: calc(830 * var(--u));
+  display: flex;
+  flex-direction: column;
+  padding: calc(40 * var(--u)) calc(46 * var(--u)) calc(22 * var(--u));
+  outline: none;
+  color: var(--ink);
+}
+#md-studio-root .palette > * { position: relative; z-index: 4; }
+#md-studio-root .palette [cmdk-root] { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+
+/* A modal, so it scales from centre. Exit is faster than enter. */
+#md-studio-root .palette[data-state="open"] { animation: md-studio-palette-in 220ms var(--ease-out) both; }
+#md-studio-root .palette[data-state="closed"] { animation: md-studio-palette-out 140ms var(--ease-out) both; }
+/* Opened from ⌘K: no motion, just a quick fade */
+#md-studio-root .palette:has([data-instant])[data-state="open"] { animation: md-studio-fade-in 120ms ease both; }
+#md-studio-root .palette:has([data-instant])[data-state="closed"] { animation: md-studio-fade-out 100ms ease both; }
+@keyframes md-studio-palette-in {
+  from { opacity: 0; transform: scale(0.96); filter: blur(6px); }
+}
+@keyframes md-studio-palette-out {
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+#md-studio-root .palette__field {
+  --r: 999;
+  display: flex;
+  align-items: center;
+  gap: calc(22 * var(--u));
+  height: calc(78 * var(--u));
+  padding: 0 calc(16 * var(--u)) 0 calc(32 * var(--u));
+  flex: none;
+}
+#md-studio-root .palette__field > * { position: relative; z-index: 4; }
+#md-studio-root .palette__field > svg { width: calc(30 * var(--u)); height: calc(30 * var(--u)); flex: none; }
+#md-studio-root .palette__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: calc(30 * var(--u));
+  caret-color: var(--gold-300);
+}
+#md-studio-root .palette__input::placeholder { color: rgb(246 239 228 / 0.45); }
+#md-studio-root .palette__kbd {
+  padding: calc(6 * var(--u)) calc(12 * var(--u));
+  border-radius: calc(10 * var(--u));
+  font: inherit;
+  font-size: calc(16 * var(--u));
+  color: var(--ink-soft);
+  background: rgb(255 240 220 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(255 225 180 / 0.25);
+}
+
+#md-studio-root .palette__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(14 * var(--u));
+  margin: calc(28 * var(--u)) 0 calc(22 * var(--u));
+  flex: none;
+}
+#md-studio-root .filter-chip {
+  --r: 999;
+  height: calc(46 * var(--u));
+  padding: 0 calc(24 * var(--u));
+  font-size: calc(19 * var(--u));
+  color: var(--ink-soft);
+  transition: color var(--dur-hover) ease;
+}
+#md-studio-root .filter-chip[aria-pressed="true"] {
+  color: var(--ink);
+  background:
+    radial-gradient(70% 140% at 50% 100%, rgb(243 197 126 / 0.45), transparent 75%),
+    linear-gradient(rgb(255 225 170 / 0.1), rgb(255 225 170 / 0.1));
+}
+
+#md-studio-root .palette__list {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(243 197 126 / 0.4) transparent;
+  margin: 0 calc(-8 * var(--u));
+  padding: calc(4 * var(--u)) calc(8 * var(--u));
+}
+#md-studio-root .palette__list [cmdk-list-sizer] { display: grid; gap: calc(8 * var(--u)); }
+
+#md-studio-root .palette__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: calc(162 * var(--u)) 1fr;
+  align-items: center;
+  gap: calc(30 * var(--u));
+  padding: calc(10 * var(--u));
+  border-radius: calc(22 * var(--u));
+  cursor: pointer;
+}
+/* The highlight moves with the arrow keys dozens of times: no transition, it just is there */
+#md-studio-root .palette__item[data-selected="true"] {
+  background:
+    radial-gradient(60% 120% at 50% 0%, rgb(243 197 126 / 0.22), transparent 70%),
+    rgb(255 236 205 / 0.06);
+  box-shadow:
+    inset 0 0 0 calc(1.5 * var(--u)) rgb(255 210 140 / 0.75),
+    0 0 calc(26 * var(--u)) rgb(243 197 126 / 0.35);
+}
+#md-studio-root .palette__list[data-fresh] .palette__item {
+  animation: md-studio-row-in 260ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 30ms + 60ms);
+}
+@keyframes md-studio-row-in {
+  from { opacity: 0; transform: translateY(8px); }
+}
+
+#md-studio-root .palette__thumb {
+  position: relative;
+  height: calc(104 * var(--u));
+  border-radius: calc(14 * var(--u));
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgb(255 225 180 / 0.3);
+}
+#md-studio-root .palette__thumb img { object-fit: cover; }
+#md-studio-root .palette__text { display: grid; gap: calc(6 * var(--u)); }
+#md-studio-root .palette__title { font-size: calc(25 * var(--u)); letter-spacing: 0.01em; }
+#md-studio-root .palette__sub { font-size: calc(18 * var(--u)); color: var(--ink-soft); }
+#md-studio-root .palette__sub span { margin: 0 calc(8 * var(--u)); }
+#md-studio-root .palette__empty { padding: calc(40 * var(--u)) 0; text-align: center; font-size: calc(19 * var(--u)); color: var(--ink-dim); }
+#md-studio-root .palette__foot {
+  margin: calc(18 * var(--u)) 0 0;
+  text-align: center;
+  font-size: calc(18 * var(--u));
+  color: var(--ink-soft);
+  flex: none;
+}
+#md-studio-root .palette__foot span { margin: 0 calc(14 * var(--u)); }
+
+/* ---------- O02 · Control center (Vaul sheet rising from the ledge) ---------- */
+#md-studio-root .cc {
+  --r: 40;
+  position: fixed;
+  z-index: 101;
+  left: calc(50% - 850 * var(--u));
+  width: calc(1700 * var(--u));
+  top: calc(var(--ledge-pct) - 257 * var(--u));
+  height: calc(355 * var(--u));
+  outline: none;
+  overflow: visible;
+  color: var(--ink);
+}
+#md-studio-root .cc > * { position: relative; z-index: 4; }
+#md-studio-root .cc[data-instant] { animation-duration: 0ms !important; }
+
+#md-studio-root .cc__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(40 * var(--u));
+  margin: calc(28 * var(--u)) 0 0;
+  font-size: calc(21 * var(--u));
+  font-weight: 400;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+#md-studio-root .cc__rule { width: calc(106 * var(--u)); height: 1px; background: linear-gradient(90deg, transparent, rgb(255 225 180 / 0.6), transparent); }
+
+#md-studio-root .cc__row {
+  position: absolute;
+  left: calc(62 * var(--u));
+  right: calc(32 * var(--u));
+  top: calc(76 * var(--u));
+  bottom: calc(50 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(18 * var(--u));
+}
+
+#md-studio-root .cc__preview {
+  --r: 24;
+  flex: none;
+  width: calc(390 * var(--u));
+  height: calc(240 * var(--u));
+  padding: calc(16 * var(--u)) calc(30 * var(--u));
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: calc(8 * var(--u));
+}
+#md-studio-root .cc__preview > * { position: relative; z-index: 4; }
+#md-studio-root .cc__preview-label { font-size: calc(18 * var(--u)); }
+#md-studio-root .cc__preview-media { position: relative; border-radius: calc(16 * var(--u)); overflow: hidden; box-shadow: 0 0 0 1px rgb(255 225 180 / 0.3); }
+#md-studio-root .cc__preview-media img { object-fit: cover; }
+#md-studio-root .cc__preview-bar { height: calc(5 * var(--u)); border-radius: 999px; background: rgb(255 245 230 / 0.25); overflow: hidden; }
+#md-studio-root .cc__preview-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-500), var(--gold-100));
+  transform-origin: left;
+}
+#md-studio-root .cc__preview-meta { font-size: calc(14 * var(--u)); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#md-studio-root .cc__tile {
+  --r: 28;
+  flex: none;
+  width: calc(155 * var(--u));
+  height: calc(175 * var(--u));
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  padding: calc(34 * var(--u)) calc(8 * var(--u)) calc(26 * var(--u));
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+#md-studio-root .cc__tile:active { transform: scale(0.97); }
+#md-studio-root .cc__tile > * { position: relative; z-index: 4; }
+#md-studio-root .cc__icon svg { width: calc(52 * var(--u)); height: calc(52 * var(--u)); }
+#md-studio-root .cc__label { font-size: calc(18 * var(--u)); white-space: nowrap; }
+#md-studio-root .cc__tile[data-on] {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    inset 0 0 0 calc(1.5 * var(--u)) rgb(255 210 140 / 0.8),
+    inset 0 0 calc(30 * var(--u)) rgb(243 197 126 / 0.3),
+    0 0 calc(26 * var(--u)) rgb(243 197 126 / 0.5);
+}
+#md-studio-root .cc__tile[data-on] .cc__icon { color: var(--gold-100); }
+#md-studio-root .cc[data-state="open"]:not([data-instant]) .cc__tile {
+  animation: md-studio-tile-in 300ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 25ms + 100ms);
+}
+@keyframes md-studio-tile-in {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+#md-studio-root .cc__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-74 * var(--u));
+  margin: 0;
+  text-align: center;
+  font-size: calc(19 * var(--u));
+  color: rgb(255 250 240 / 0.85);
+}
+
+/* ---------- O03 · Shortlist drawer ---------- */
+#md-studio-root .sl {
+  --r: 40;
+  position: fixed;
+  z-index: 101;
+  top: calc(15 * var(--u));
+  bottom: calc(15 * var(--u));
+  right: calc(15 * var(--u));
+  width: calc(665 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(20 * var(--u));
+  padding: calc(56 * var(--u)) calc(34 * var(--u)) calc(34 * var(--u));
+  outline: none;
+  color: var(--ink);
+}
+#md-studio-root .sl > * { position: relative; z-index: 4; }
+#md-studio-root .sl[data-instant] { animation-duration: 0ms !important; }
+
+#md-studio-root .sl__head { display: flex; align-items: center; gap: calc(22 * var(--u)); padding: 0 calc(24 * var(--u)) calc(16 * var(--u)); }
+#md-studio-root .sl__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(76 * var(--u));
+  line-height: 1;
+  color: #fffaf2;
+}
+#md-studio-root .badge.sl__count {
+  position: static;
+  min-width: calc(48 * var(--u));
+  height: calc(48 * var(--u));
+  font-size: calc(26 * var(--u));
+}
+
+#md-studio-root .sl__list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: calc(4 * var(--u));
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(18 * var(--u));
+  scrollbar-width: thin;
+  scrollbar-color: rgb(243 197 126 / 0.4) transparent;
+}
+#md-studio-root .sl__row {
+  --r: 28;
+  flex: none;
+  display: grid;
+  grid-template-columns: calc(155 * var(--u)) 1fr calc(50 * var(--u));
+  align-items: center;
+  gap: calc(26 * var(--u));
+  padding: calc(16 * var(--u)) calc(20 * var(--u)) calc(16 * var(--u)) calc(16 * var(--u));
+  touch-action: pan-y;
+  cursor: grab;
+}
+#md-studio-root .sl__row:active { cursor: grabbing; }
+#md-studio-root .sl__row > * { position: relative; z-index: 4; }
+#md-studio-root .sl__thumb { position: relative; height: calc(155 * var(--u)); border-radius: calc(20 * var(--u)); overflow: hidden; box-shadow: 0 0 0 1px rgb(255 225 180 / 0.35); }
+#md-studio-root .sl__thumb img { object-fit: cover; pointer-events: none; }
+#md-studio-root .sl__text { display: grid; gap: calc(10 * var(--u)); }
+#md-studio-root .sl__title { font-family: var(--font-display); font-size: calc(36 * var(--u)); line-height: 1.05; color: #fffaf2; }
+#md-studio-root .sl__sub { font-size: calc(19 * var(--u)); color: var(--ink-soft); }
+#md-studio-root .sl__sub span { margin: 0 calc(8 * var(--u)); }
+#md-studio-root .sl__remove {
+  width: calc(46 * var(--u));
+  height: calc(46 * var(--u));
+  padding: calc(11 * var(--u));
+  border-radius: 50%;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 calc(1.5 * var(--u)) rgb(255 240 220 / 0.7);
+}
+#md-studio-root .sl__remove svg { width: 100%; height: 100%; }
+#md-studio-root .sl__empty { flex: 1; margin: 0; padding: calc(30 * var(--u)) calc(24 * var(--u)); font-size: calc(20 * var(--u)); line-height: 1.5; color: var(--ink-soft); }
+#md-studio-root .sl__empty strong { color: var(--gold-100); font-weight: 500; }
+
+#md-studio-root .sl__note {
+  --r: 26;
+  flex: none;
+  min-height: calc(96 * var(--u));
+  padding: calc(22 * var(--u)) calc(28 * var(--u));
+  border: 0;
+  resize: vertical;
+  color: var(--ink);
+  font: inherit;
+  font-size: calc(19 * var(--u));
+  outline: none;
+  overflow: auto;
+}
+#md-studio-root .sl__note::placeholder { color: var(--ink-dim); }
+#md-studio-root .sl__note:focus-visible { box-shadow: inset 0 0 0 calc(1.5 * var(--u)) rgb(255 210 140 / 0.7); }
+#md-studio-root .sl__actions { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: calc(16 * var(--u)); height: calc(70 * var(--u)); }
+#md-studio-root .sl__actions .pill { position: relative; display: flex; justify-content: center; gap: calc(12 * var(--u)); }
+#md-studio-root .sl__actions .pill:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- Z · All 50 ---------- */
+/*
+  Full bleed with a viewport gutter: the header runs edge to edge (title left, the lit film
+  on a glass plate right) and the grid takes all the height and width that's left.
+  Type is editorial, not tabular: names in the display serif, numbers as small tracked kickers.
+  The focus is a small slab of the site's glass that glides over the films.
+*/
+#md-studio-root .overview {
+  --gap-x: clamp(8px, 1vw, 20px);
+  --gap-y: clamp(6px, 1.3vh, 16px);
+  --cell-r: calc(14 * var(--u)); /* films and the lens share one corner */
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: clamp(24px, 6vh, 84px) clamp(20px, 5.5vw, 120px);
+  outline: none;
+  color: var(--ink);
+}
+#md-studio-root .overview[data-state="open"] { animation: md-studio-fade-in 220ms ease both; }
+#md-studio-root .overview[data-state="closed"] { animation: md-studio-fade-out 140ms ease both; }
+
+/* ---- Header ---- */
+#md-studio-root .overview__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: calc(40 * var(--u));
+  margin-bottom: clamp(20px, 4.5vh, 56px);
+}
+#md-studio-root .overview__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(76 * var(--u));
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: #fffaf2;
+}
+#md-studio-root .overview__hint {
+  margin: calc(14 * var(--u)) 0 0;
+  font-size: calc(13 * var(--u));
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+#md-studio-root .overview__hint span { margin: 0 calc(10 * var(--u)); color: var(--gold-300); }
+/* "Click" and "Esc" mean nothing on a touch screen */
+@media (hover: none) { #md-studio-root .overview__hint { display: none; } }
+
+#md-studio-root .overview__plate {
+  --frame: 30;
+  --glint-delay: -4s;
+  min-width: calc(440 * var(--u));
+  padding: calc(22 * var(--u)) calc(34 * var(--u));
+}
+#md-studio-root .overview__caption {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  justify-items: end;
+  gap: calc(10 * var(--u));
+  margin: 0;
+  text-align: right;
+}
+#md-studio-root .overview__name {
+  font-family: var(--font-display);
+  font-size: calc(40 * var(--u));
+  line-height: 1;
+  color: #fffaf2;
+}
+#md-studio-root .overview__meta {
+  font-size: calc(13 * var(--u));
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-100);
+  font-variant-numeric: tabular-nums;
+}
+#md-studio-root .overview__meta i { margin: 0 calc(8 * var(--u)); font-style: normal; color: var(--ink-dim); }
+
+/* ---- Matrix ---- */
+#md-studio-root .overview__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto repeat(var(--cols), minmax(0, 1fr));
+  grid-template-rows: auto repeat(var(--rows), minmax(0, 1fr));
+  gap: var(--gap-y) var(--gap-x);
+  align-items: center;
+}
+#md-studio-root .overview__rowwrap { display: contents; }
+
+/* Labels: a tracked numeral kicker over a serif name */
+#md-studio-root .overview__col,
+#md-studio-root .overview__row {
+  display: grid;
+  gap: calc(6 * var(--u));
+  font-family: var(--font-display);
+  line-height: 1.05;
+  color: var(--ink-dim);
+  transition: color var(--dur-hover) ease;
+}
+#md-studio-root .overview__col {
+  justify-items: center;
+  align-self: end;
+  padding-bottom: calc(16 * var(--u));
+  font-size: calc(23 * var(--u));
+  text-align: center;
+  text-wrap: balance;
+}
+#md-studio-root .overview__row {
+  padding-right: clamp(20px, 3vw, 64px);
+  font-size: calc(30 * var(--u));
+  white-space: nowrap;
+}
+#md-studio-root .overview__col b,
+#md-studio-root .overview__row b {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: calc(12 * var(--u));
+  letter-spacing: 0.2em;
+  color: rgb(243 197 126 / 0.45);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-hover) ease;
+}
+#md-studio-root .overview__col[data-lit],
+#md-studio-root .overview__row[data-lit] { color: #fffaf2; }
+#md-studio-root .overview__col[data-lit] b,
+#md-studio-root .overview__row[data-lit] b { color: var(--gold-100); }
+
+/* Cells: the films themselves, no drawn border. A light hairline and top sheen on 50 tiles
+   read as 50 pale outlines; a faint dark inner edge only keeps the corners crisp. */
+#md-studio-root .overview__cell {
+  position: relative;
+  align-self: stretch;
+  border-radius: var(--cell-r);
+  overflow: hidden;
+  background: rgb(255 235 205 / 0.04);
+  outline: none;
+  transition: scale 260ms var(--ease-out);
+}
+#md-studio-root .overview__cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.35);
+}
+/* Dim the picture, not the button: the button's opacity belongs to the open ripple.
+   Unlit pictures settle back fast; the lit one drifts in slowly, so it never sits dead still. */
+#md-studio-root .overview__cell img {
+  object-fit: cover;
+  opacity: 0.4;
+  transition: opacity 180ms ease, scale 320ms var(--ease-out);
+}
+#md-studio-root .overview__cell[data-lit] { scale: 1.04; z-index: 1; }
+#md-studio-root .overview__cell[data-lit] img {
+  opacity: 1;
+  scale: 1.1;
+  transition: opacity 180ms ease, scale 7s cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+/* Where you came from: a small lit point, so it reads even when another film is lit */
+#md-studio-root .overview__cell[aria-current]::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: calc(10 * var(--u));
+  right: calc(10 * var(--u));
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
+  border-radius: 50%;
+  background: var(--gold-100);
+  box-shadow: 0 0 calc(8 * var(--u)) rgb(255 214 150 / 0.9);
+}
+
+/*
+  The lens: exactly one cell, sitting in the first cell's area, moved by its own size (100%)
+  plus one gap, so the stride holds at any screen size. Position lives in `translate` and the
+  lift in `scale` (applied inside translate), both compositor-only.
+
+  Liquid glass, drawn in code (no rendered frame): a near-clear body, a 1.5u specular rim
+  that is brightest where the light hits (top left) and catches again bottom right, an inner
+  glow that reads as thickness at the edge, a soft gloss, and a glint that travels the rim.
+  No displacement-map refraction: on a sharp photo it stair-steps along the edges.
+*/
+#md-studio-root .overview__ring {
+  overflow: hidden;
+  position: absolute;
+  grid-area: 2 / 2 / 3 / 3;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: var(--cell-r);
+  background: linear-gradient(180deg, rgb(255 250 240 / 0.07), transparent 35%, transparent 70%, rgb(255 222 175 / 0.06));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    inset 0 -1px 0 rgb(255 226 185 / 0.3),
+    inset 0 0 calc(16 * var(--u)) rgb(255 240 215 / 0.2),
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    0 0 calc(22 * var(--u)) rgb(255 210 140 / 0.24),
+    0 calc(16 * var(--u)) calc(30 * var(--u)) calc(-12 * var(--u)) rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: saturate(1.12) brightness(1.04);
+  backdrop-filter: saturate(1.12) brightness(1.04);
+  translate: calc(var(--col) * (100% + var(--gap-x))) calc(var(--row) * (100% + var(--gap-y)));
+  scale: 1.04;
+  transition: translate 220ms var(--ease-out);
+}
+#md-studio-root .overview__ring[data-instant] { transition-duration: 0ms; }
+
+/* Specular rim: a gradient border cut out with a mask, so only the 1.5u edge shows */
+#md-studio-root .overview__ring::before,
+#md-studio-root .overview__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: calc(1.5 * var(--u));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+#md-studio-root .overview__ring::before {
+  content: "";
+  background: linear-gradient(
+    135deg,
+    rgb(255 255 250 / 0.95),
+    rgb(255 236 205 / 0.35) 22%,
+    rgb(255 220 170 / 0.1) 50%,
+    rgb(255 226 185 / 0.35) 78%,
+    rgb(255 246 228 / 0.8)
+  );
+}
+/* Gloss: a broad, soft reflection across the top of the glass */
+#md-studio-root .overview__ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(130% 55% at 25% -8%, rgb(255 255 255 / 0.24), rgb(255 255 255 / 0.05) 50%, transparent 62%);
+  mix-blend-mode: screen;
+}
+/* The rim glint: a conic beam spun inside the rim mask (compositor-only rotation, 9s) */
+#md-studio-root .overview__shine {
+  overflow: hidden;
+  container-type: size;
+}
+#md-studio-root .overview__beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(max(100cqw, 100cqh) * 1.6);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: conic-gradient(
+    transparent 0deg,
+    transparent 300deg,
+    rgb(255 240 210 / 0.6) 334deg,
+    rgb(255 255 250 / 1) 348deg,
+    rgb(255 240 210 / 0.6) 354deg,
+    transparent 360deg
+  );
+  animation: md-studio-glint-spin 9s linear infinite;
+}
+
+/*
+  Open, as one short sequence (~550ms, nothing blocks clicks):
+  header settles, column names drop in left to right, row names slide in top to bottom,
+  films ripple out from the one you were on, and the lens lands on it last.
+  Fill is `backwards`, not `both`: once done, the animations let go of scale and opacity
+  so the lift and dimming transitions above work.
+*/
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__head { animation: md-studio-head-in 360ms var(--ease-out) backwards; }
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__plate { animation: md-studio-head-in 360ms var(--ease-out) 60ms backwards; }
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__col {
+  animation: md-studio-label-drop 320ms var(--ease-out) backwards;
+  animation-delay: calc(80ms + var(--i) * 28ms);
+}
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__row {
+  animation: md-studio-label-slide 340ms var(--ease-out) backwards;
+  animation-delay: calc(80ms + var(--i) * 45ms);
+}
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__cell {
+  animation: md-studio-cell-in 320ms var(--ease-out) backwards;
+  animation-delay: calc(60ms + var(--d, 0ms));
+}
+#md-studio-root .overview[data-state="open"]:not([data-instant]) .overview__ring { animation: md-studio-lens-land 380ms var(--ease-out) 260ms backwards; }
+@keyframes md-studio-head-in {
+  from { opacity: 0; transform: translateY(calc(10 * var(--u))); }
+}
+@keyframes md-studio-label-drop {
+  from { opacity: 0; transform: translateY(calc(-8 * var(--u))); }
+}
+@keyframes md-studio-label-slide {
+  from { opacity: 0; transform: translateX(calc(-12 * var(--u))); }
+}
+/* `scale`, never `transform`, on cells and the lens: their position must not be animated over */
+@keyframes md-studio-cell-in {
+  from { opacity: 0; scale: 0.92; }
+}
+/* Set down from slightly above, like a lens placed onto the print */
+@keyframes md-studio-lens-land {
+  from { opacity: 0; scale: 1.18; }
+}
+
+/* ---------- Portrait ---------- */
+@media (orientation: portrait) {
+  #md-studio-root .palette {
+    left: calc(16 * var(--u));
+    width: calc(100% - 32 * var(--u));
+    top: calc(40 * var(--u));
+    max-height: calc(100dvh - 80 * var(--u));
+    padding: calc(28 * var(--u)) calc(24 * var(--u)) calc(18 * var(--u));
+  }
+  #md-studio-root .palette__kbd,
+  #md-studio-root .palette__foot { display: none; }
+
+  #md-studio-root .cc {
+    left: calc(16 * var(--u));
+    width: calc(100% - 32 * var(--u));
+    top: auto;
+    bottom: calc(16 * var(--u));
+    height: auto;
+    padding-bottom: calc(24 * var(--u));
+  }
+  #md-studio-root .cc__row {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: calc(12 * var(--u));
+    padding: calc(24 * var(--u));
+  }
+  #md-studio-root .cc__preview { grid-column: 1 / -1; width: auto; }
+  #md-studio-root .cc__tile { width: auto; height: calc(150 * var(--u)); padding-top: calc(26 * var(--u)); }
+  #md-studio-root .cc__label { font-size: calc(15 * var(--u)); white-space: normal; text-align: center; }
+  #md-studio-root .cc__hint { display: none; }
+
+  #md-studio-root .sl { width: auto; left: calc(16 * var(--u)); }
+  #md-studio-root .sl__heading { font-size: calc(60 * var(--u)); }
+
+  #md-studio-root .overview { padding: clamp(20px, 5vh, 56px) 16px; }
+  #md-studio-root .overview__head { flex-direction: column; align-items: stretch; gap: calc(24 * var(--u)); }
+  #md-studio-root .overview__plate { min-width: 0; }
+  #md-studio-root .overview__caption { justify-items: start; text-align: left; }
+  #md-studio-root .overview__name { font-size: calc(34 * var(--u)); }
+  /* Rows are formats here and the columns are too narrow for names: numbers carry the rows */
+  #md-studio-root .overview__row { font-size: 0; padding-right: 4px; }
+  #md-studio-root .overview__row b { font-size: calc(15 * var(--u)); }
+  #md-studio-root .overview__col { font-size: calc(17 * var(--u)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #md-studio-root .palette[data-state],
+  #md-studio-root .overview[data-state] { animation-name: md-studio-fade-in; }
+  #md-studio-root .palette[data-state="closed"],
+  #md-studio-root .overview[data-state="closed"] { animation-name: md-studio-fade-out; }
+  #md-studio-root .palette__list[data-fresh] .palette__item,
+  #md-studio-root .cc__tile,
+  #md-studio-root .overview__cell,
+  #md-studio-root .overview__head,
+  #md-studio-root .overview__plate,
+  #md-studio-root .overview__col,
+  #md-studio-root .overview__row,
+  #md-studio-root .overview__ring { animation: none !important; }
+  #md-studio-root .overview__ring { transition-duration: 0ms; }
+  #md-studio-root .overview__beam { animation: none; opacity: 0; }
+  #md-studio-root .overview__cell[data-lit] img { scale: none; }
+}
+#md-studio-root[data-reduce-motion] .palette__list[data-fresh] .palette__item,
+#md-studio-root[data-reduce-motion] .cc__tile,
+#md-studio-root[data-reduce-motion] :is(.overview__cell, .overview__head, .overview__plate, .overview__col, .overview__row, .overview__ring) { animation: none !important; }
+#md-studio-root[data-reduce-motion] .overview__cell[data-lit] img { scale: none; }
+#md-studio-root[data-reduce-motion] .overview__ring { transition-duration: 0ms; }
+#md-studio-root[data-reduce-motion] .overview__beam { animation: none; opacity: 0; }

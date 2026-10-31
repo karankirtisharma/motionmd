@@ -1,0 +1,72 @@
+# Studio integration: delivery and deployment ledger
+
+Audit date: 2026-10-31. Working tree: `D:\Motion Design MD BACKUP 26-10-2026`. This ledger records local evidence and remaining launch checks. Production build and limited browser flow/visual checks have passed at the checkpoint below; this is not a complete production release, device benchmark or live deployment sign-off.
+
+## Measured local assets
+
+| Inspection | Files | Bytes | Meaning |
+| --- | ---: | ---: | --- |
+| Lounge `public/assets`, before studio copy | 150 | 895,597,067 | Local originals and retained assets; not initial network transfer |
+| Lounge `public/asset-delivery`, before studio copy | 32 | 1,013,039,080 | Generated delivery variants, including rolling retained variants |
+| Lounge public total, before studio copy | 182 | 1,908,636,147 | Local disk inventory, not a Git upload or page payload |
+| Current delivery-index GLBs, Brotli | 12 | 264,289,037 | Sum of indexed compressed model bodies, not total website payload |
+| Same indexed GLBs, gzip | 12 | 296,108,822 | Alternative negotiated encoding; not downloaded in addition to Brotli |
+| Same indexed GLBs, decoded | 12 | 460,404,032 | Decoded model bytes, not GPU memory |
+| Original standalone studio `public/media` | 58 | 11,777,500 | Source inventory, including unused PNG/reference assets |
+| Integrated `public/studio/media` | 67 | 10,560,042 | Copied runtime media plus locally served fonts and their licenses |
+
+The copied studio inventory excludes unused raw PNG/reference backups and adds eight WOFF2 fonts and license files. It is smaller than the source inventory, but these are different inventories; this is not a measured loading-speed improvement. A visitor does not necessarily download every poster or every lounge zone at entry. Conversely, JavaScript, CSS, images, environment maps and response headers add to model-only transfer totals.
+
+## Implemented verification
+
+- `node scripts/verify-studio.mjs` passes on the integrated copy: 67 media files, 10,560,042 bytes, 65 referenced media paths and 40 checked source/data/style files. The eight CSS-served WOFF2 files are included in the media inventory; the separate `localFonts` count is zero because this copy uses CSS rather than `next/font/local`.
+- `node --test qa/studio-delivery.test.mjs` passes five regression cases: expanded poster references and CSS URLs; missing/unhydrated media and obsolete asset paths; transitive runtime imports and local Next fonts; unknown dynamic media references; and root-only lounge shell isolation.
+- The verifier parses source without executing it, checks JSON fixtures and CSS `url(...)`, resolves the finite poster-template combinations, rejects unresolved paths and Git LFS pointer contents, and checks relative `next/font/local` sources when present.
+- The studio route is forbidden from importing Three, React Three Fiber, runtime modules, or `/assets` / `/asset-delivery` URLs. `LoungeEntry.tsx` and `LoungeStudioOverlay.tsx` are root-route shells and excluded only as standalone scan seeds. If the studio imports either shell, it is inspected recursively and the boundary still applies.
+- This static check does not replace a production build, network inspection, rendering verification, accessibility testing or device testing. It intentionally fails on a media template that cannot be expanded statically; future templates should use an explicit manifest or extend the check with a bounded, tested resolver.
+
+## Required deployment settings
+
+1. In the Vercel project, open **Settings > Git > Git LFS** and enable Git LFS support, then create a new deployment. Enabling it after an existing deployment does not repair the existing build. Repository LFS objects must also actually exist on the Git remote. The local asset verifiers fail before build if copied binary assets are still pointer text. [Vercel Git settings](https://vercel.com/docs/project-configuration/git-settings)
+2. Use the repository's pinned **Node.js 24.x** engine. Vercel supports Node 24 and the `package.json` engines field can override the dashboard selection. Do not change the runtime solely because the standalone prototype used another Next version. [Supported Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
+3. Run the normal package build lifecycle so the existing lounge asset verifier, studio verifier and delivery preparation execute before Next builds. If a CI system bypasses `npm run build`, invoke those checks explicitly.
+4. For a commercial client site, use an appropriate commercial hosting plan. Vercel Hobby is restricted to personal, non-commercial use. No plan or billing changes were made during this integration. [Vercel fair-use guidelines](https://vercel.com/docs/limits/fair-use-guidelines)
+
+## Limits and delivery decisions
+
+- Vercel documents a 100 MB Hobby / 1 GB Pro limit for **source uploads via the CLI**. That is not a universal 100 MB per-file limit on static output generated by a Git-connected build. The documented build time limit is 45 minutes and default build disk space is 23 GB. Confirm the actual project plan and build logs; a large source checkout plus generated GLB copies still needs real build headroom. [Vercel limits](https://vercel.com/docs/limits)
+- Keep large models as static CDN assets. Do not stream their bodies through a serverless function merely to add compression. Vercel's static build output is CDN-served. [Build Output API static primitives](https://vercel.com/docs/build-output-api/primitives)
+- The existing lounge delivery pipeline generates Brotli/gzip variants and negotiates them through narrow rewrites. Preserve `Content-Encoding`, `Vary: Accept-Encoding`, MIME types and identity fallback. Original `/assets` names are mutable, so blanket one-year immutable caching would risk stale assets. Verify real preview response headers and byte counts before changing caching policy.
+- If `NEXT_PUBLIC_ASSET_BASE_URL` is set, local delivery rewrites are disabled. The chosen origin needs the full referenced asset release, CORS, correct MIME types, compression headers and fallback behavior. This audit did not provision or validate an external CDN.
+- At 10,000 hypothetical uncached visits that each fetch all 12 current Brotli model bodies, models alone would transfer approximately **2.64 TB**. This is arithmetic, not observed usage; other resources add traffic and caching/progressive loading change actual consumption. Monitor CDN transfer and cache behavior on the selected plan before a large launch. [Vercel CDN usage](https://vercel.com/docs/manage-cdn-usage)
+
+## Remaining release checks
+
+- Re-run the full build, typecheck and regression suites if code changes after the successful integration checkpoint below. A dependency audit reports known advisories; it is not a comprehensive security assessment.
+- On the review deployment, repeat the local direct-studio isolation and desktop/mobile visual checks, including hard reload and direct URL restoration. Complete keyboard/focus restoration checks across the retained TV iframe flow.
+- Verify that opening the lounge TV stops 3D rendering and character input while the overlay is active. Closing the retained iframe must suspend the studio's simulated playback clock as well as any actual media. CSS-hiding an iframe alone does not make its document hidden. Confirm same-origin/source validation on bridge messages.
+- Finish lounge scene/reference-camera and original-character behavior verification. Studio source comparison is recorded below; no FPS, cold-load timing or cross-device performance improvement is claimed.
+- The source studio is still a prototype content set: playback is simulated poster motion rather than real video; brief submission uses the visitor's `mailto:` application; several case-study frames are poster treatments; language selection changes a label without translations. Product/content owners must approve this behavior or supply the missing production content before advertising those features as complete.
+- Confirm public metadata/indexing for the intended public route, while embedded URLs stay non-indexable. Confirm the real contact address and image/content rights. No production deployment, account setting, billing action or merge is performed by this ledger.
+
+## Integration checkpoint and local HTTP estimate
+
+At the 2026-10-31 checkpoint, the integration team verified **Next.js 16.4.3**, **zero reported npm audit advisories**, **198 passing tests**, and a successful production build in `.next-studio-review`. The upgrade addressed the package-version advisory findings reviewed against [GHSA-2464-fhr4-w9xw](https://github.com/advisories/GHSA-2464-fhr4-w9xw) and [GHSA-p3m5-59mp-jv5r](https://github.com/advisories/GHSA-p3m5-59mp-jv5r); Sharp was already pinned at 0.35.5. These are dependency/build checks, not a claim that all application security risks are absent.
+
+The team compared the copied studio with the unmodified source at **1600 × 900** and **390 × 844**, and matched the original layout and appearance apart from intentional integration controls and the requested All 50 clipping correction. The source agent also compared **56 copied original media files byte-for-byte with zero differences**. Local TV checks passed: seated pointer opening, retained browse selection, inner-dialog Escape, return to chair-04 and suspended hidden playback. Latest production captures verify the centered presentation label and opened studio. The independent runtime/TV test run passes **17/17** cases, including coverage suspension, same-pose resume, hidden-time flushing, true Three.js raycasts, drag/cancel rejection, persistent presentation artwork, untouched founder materials and disposal.
+
+The browser-observed URL inventories were saved as `studio-assets.json` and `entry-assets.json` in the external evidence folder. A separate HTTP script fetched those **exact local URLs plus each route's HTML**, with `Accept-Encoding: br, gzip` and WebP image negotiation. Every measured response returned HTTP 200. The production server used gzip for HTML/CSS/JS and already compressed WOFF2/WebP bodies for fonts/images.
+
+| Exact observed local response set | Responses including HTML | Encoded response-body bytes | Decoded response-body bytes |
+| --- | ---: | ---: | ---: |
+| `/studio?rail=closed` | 22 | **1,242,023** (~1.24 MB) | 1,939,699 |
+| First-visit entry choice `/` | 9 | **153,607** (~154 kB) | 518,493 |
+
+Studio breakdown: 248,626 bytes of gzip JavaScript; 21,727 bytes of gzip CSS; 6,914 bytes of gzip HTML; 39,616 bytes of WOFF2 fonts; 925,140 bytes of WebP images. Six fetched studio JavaScript bundles had no matches for the tested Three.js/runtime signatures. The production studio client-reference manifest names Next framework components, the studio Experience, and Next Image; no Three/runtime entry appears. The static dependency verifier also passes. Neither browser-observed URL inventory contains `/assets`, `.glb`, `.ktx2` or `.exr` resources.
+
+**Scope of these numbers:** they are reproducible local response-body **transfer estimates**, not measured page-load duration, a complete network recording, or a percentage speedup. The observed inventory includes poster variants exposed during inspection; it is not guaranteed to be the minimum first-frame resource set. External Google Fonts CSS (and the entry page's Google font file) are excluded. HTTP headers, TLS, cache reuse, responsive selection, service/provider overhead and resources not in the saved inventories are excluded. HTML bytes can vary slightly between requests. Do not present these estimates as a comparison of equivalent content: the light studio avoids the full 264.29 MB Brotli 3D model set because it is a different experience, while the 3D route still serves the scene when selected.
+
+External evidence folder:
+`C:\Users\karan_z7alww2\.codex\visualizations\2026\10\17\01a14a42-20bc-7ca3-a5e8-1779e078f8e0\studio-original-motion-2026-10-31`
+
+Evidence includes `transfer-estimate.json`, `measure-transfer.mjs`, original/copy desktop and mobile screenshots, and the two browser-observed asset inventories. No deployment or account changes were made by this measurement.

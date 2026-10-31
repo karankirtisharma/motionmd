@@ -1,0 +1,32 @@
+@import "./fonts.css";
+@import "./preflight.css";
+@import "./tokens.css";
+@import "./glass.css";
+@import "./stage.css";
+@import "./views.css";
+@import "./overlays.css";
+@import "./pages.css";
+@import "./splash.css";
+
+#md-studio-root {
+  --font-instrument-serif: 'MD Studio Instrument Serif', 'MD Studio Instrument Serif Fallback';
+  --font-manrope: 'MD Studio Manrope', 'MD Studio Manrope Fallback';
+  position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden;
+  margin: 0; background: var(--walnut-950); color: var(--ink);
+  -webkit-font-smoothing: antialiased; color-scheme: normal;
+  caret-color: var(--gold-300); scrollbar-color: rgb(243 197 126 / .4) transparent;
+  accent-color: var(--gold-300); font-family: var(--font-ui);
+}
+#md-studio-root button { cursor: pointer; }
+#md-studio-root ::selection { background: rgb(243 197 126 / .45); color: #fffaf2; }
+#md-studio-root :focus-visible { outline-color: var(--gold-300); }
+#md-studio-root[data-suspended] *, #md-studio-root[data-suspended] *::before,
+#md-studio-root[data-suspended] *::after { animation-play-state: paused !important; }
+#md-studio-root .studio-lounge-link {
+  position: fixed; z-index: 80; left: max(16px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom)); font: 400 11px/1.5 var(--font-ui);
+  color: var(--ink-soft); padding: 6px 10px; border-radius: 20px;
+  background: rgb(14 8 5 / .5); border: 1px solid rgb(243 197 126 / .25);
+  text-decoration: none; cursor: pointer;
+}
+#md-studio-root .studio-lounge-link:focus-visible { outline: 2px solid var(--gold-300); outline-offset: 3px; }

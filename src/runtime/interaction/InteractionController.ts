@@ -5,7 +5,7 @@ import { createGlassLift } from './GlassLift';
 import { loadAvatar } from './Avatar';
 import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smoothSupportHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
-import { createPresentationScreen } from '../presentation/PresentationScreen';
+import { createPresentationScreen, type ScreenBounds } from '../presentation/PresentationScreen';
 import { assetURL } from '../rendering/assets';
 import { createWorkstation, type Workstation } from './Workstation';
 import { createStairSurfaces } from './StairSurfaces';
@@ -18,6 +18,7 @@ type Options = {
   onStateChange?: (mode: 'explore' | 'seated') => void;
   onPrompt?: (prompt: RuntimeHint | null) => void;
   onScreenMode?: (active: boolean) => void;
+  onStudioOpen?: (bounds: ScreenBounds) => void;
   onCameraViewChange?: (view: CameraView) => void;
 };
 type Chair = {
@@ -47,7 +48,7 @@ export async function createInteractionController(options: Options) {
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
-  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName }) : undefined;
+  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, onOpen: bounds => { if (enabled && mode === 'seated' && !selected?.workstation) options.onStudioOpen?.(bounds); } }) : undefined;
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
     const forward = item.forward ? new THREE.Vector3().fromArray(item.forward) : new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion().fromArray(item.quaternion));
@@ -160,6 +161,7 @@ export async function createInteractionController(options: Options) {
     const shortcut = cameraShortcut(event.code, event.repeat, false);
     if (shortcut === 'pointerLock') togglePointerLock();
     else if (shortcut === 'cameraView') toggleCameraView();
+    else if (event.code === 'Enter' && !event.repeat && mode === 'seated' && !selected?.workstation) { event.preventDefault(); display?.setAction('studio'); }
     else if (event.code === 'KeyE' && !event.repeat) handleInteract();
     else if (event.code === 'Escape') { releaseCursor(); if (mode === 'approach') { physics.setDeskClearance(false); mode = 'explore'; selected = undefined; } }
     else keys.add(event.code);
@@ -528,7 +530,7 @@ export async function createInteractionController(options: Options) {
       bodyYaw = smoothAngle(bodyYaw, Math.atan2(selected.forward.x, selected.forward.z), damping(12, delta));
       if (transition === 1) {
         mode = 'seated'; display?.setActive(true); options.onStateChange?.('seated'); options.onScreenMode?.(true);
-        prompt({ text: 'Click the screen to explore · E to stand', target: selected.id });
+        prompt({ text: 'Click the screen or press Enter · E to stand', target: selected.id });
       }
     } else if (mode === 'standing' && selected) {
       transition = Math.min(1, transition + delta / 1.05); seatWeight = 1 - smootherStep(transition);
@@ -591,7 +593,11 @@ export async function createInteractionController(options: Options) {
     const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(cameraStartQuaternion);
     yaw = inspectionSpawn?.yaw ?? Math.atan2(-direction.x, -direction.z); pitch = 0.16; bodyYaw = yaw + Math.PI;
     previousFeet.copy(feet); renderFeet.copy(feet); previousBodyYaw = renderBodyYaw = bodyYaw;
-    avatar.root.position.copy(feet); avatar.root.rotation.y = bodyYaw; avatar.root.visible = true;
+    avatar.root.position.copy(feet); avatar.root.rotation.y = bodyYaw;
+    // Sample a fresh idle pose at the new support plane before the first visible frame.
+    if ('resetMotion' in avatar) avatar.resetMotion();
+    avatar.update(0, 0, 0);
+    avatar.root.visible = true;
     enabled = true; resetInput(); display?.setActive(false); options.onStateChange?.('explore');
     options.onCameraViewChange?.(cameraView);
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });

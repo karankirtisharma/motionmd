@@ -4,7 +4,7 @@ import {avatarFixture} from './helpers/avatar-fixture.mjs';
 
 // The launch recovery intentionally restores the earlier authored gait. Body
 // collision still follows stairs; terrain must never fold the source leg pose.
-for (const onStair of [false]) test(`terrain cannot rewrite source walk/run/idle/sit poses (stairs=${onStair})`,async()=>{
+for (const onStair of [false, true]) test(`terrain cannot rewrite source walk/run/idle/sit poses (stairs=${onStair})`,async()=>{
  const normal=await avatarFixture(),terrain=await avatarFixture();
  let samples=0;
  const sample=()=>{samples++;return .3;};
@@ -28,7 +28,7 @@ for (const onStair of [false]) test(`terrain cannot rewrite source walk/run/idle
    assert.equal(normal.locomotion.soleLift,terrain.locomotion.soleLift);
    assert.ok(terrain.locomotion.soleLift>=0 && terrain.locomotion.soleLift<=.04,'whole-model floor correction remains bounded');
   }
-  assert.ok(samples>0,'only stair classification runs on ordinary floors');
+  assert.equal(samples,0,'no per-frame terrain queries or foot IK in locomotion');
   assert.deepEqual(new Set(terrain.animations),new Set(['Idle','Walk','Run','Sit']));
  }finally{normal.dispose();terrain.dispose();}
 });

@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   distDir: process.env.MD_BUILD_DIR || '.next',
   reactStrictMode: true,
   poweredByHeader: false,
+  images: { qualities: [75, 90] },
   async headers() {
     return [
       { source: '/assets/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }] },

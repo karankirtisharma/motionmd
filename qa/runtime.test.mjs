@@ -214,3 +214,60 @@ test('background callback gaps do not lower quality; active slow frames still ad
   assert.equal(adaptations.length, 1);
   assert.ok(Math.abs(adaptations[0] - 30) < .001);
 });
+
+test('covering the lounge stops frame callbacks and all work, then resumes the same seated pose with a fresh clock', () => {
+  const { runtime, controls, stats, frames } = fixture('seated');
+  runtime.rendererReady = true;
+  const callbacks = [], deltas = [];
+  runtime.renderer.setAnimationLoop = callback => { callbacks.push(callback); };
+  let elapsed = 1 / 60, clockReads = 0;
+  runtime.clock.getDelta = () => { clockReads++; const value = elapsed; elapsed = 1 / 60; return value; };
+  const originalUpdate = controls.update;
+  controls.update = function(dt) { deltas.push(dt); return originalUpdate.call(this, dt); };
+  const seatedFeet = new Vector3(4, 3.7, -8);
+  controls.seatedFeet = seatedFeet;
+  runtime.camera.position.set(1.2, 4.6, -7);
+  runtime.camera.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), .8);
+  const position = runtime.camera.position.clone(), orientation = runtime.camera.quaternion.clone();
+  runtime.setPaused(true);
+  runtime.statsTime = 1.9; runtime.statsFrames = 17;
+  runtime.frameSamples = [80, 90]; runtime.slowWindows = 1;
+  runtime.setStudioCovered(true);
+  assert.deepEqual(callbacks, [null], 'the covered lounge must unregister its animation callback');
+  assert.equal(runtime.statsTime, 0); assert.equal(runtime.statsFrames, 0);
+  assert.deepEqual(runtime.frameSamples, []); assert.equal(runtime.slowWindows, 0);
+  const coveredClockReads = clockReads;
+  frames(200); // Also guard against an already queued callback after cancellation.
+  assert.equal(stats.renders, 0); assert.equal(stats.characterFrames, 0);
+  assert.equal(clockReads, coveredClockReads, 'covered callbacks must not advance clocks or simulation');
+  runtime.setStudioCovered(true);
+  assert.equal(callbacks.length, 1, 'duplicate cover notifications must not restart the loop');
+  elapsed = 22; // The visitor spends time browsing the retained studio iframe.
+  runtime.setStudioCovered(false);
+  assert.equal(callbacks.at(-1), runtime.tick);
+  assert.equal(clockReads, coveredClockReads + 1, 'resume consumes elapsed hidden time before the first simulation frame');
+  assert.equal(runtime.mode, 'seated'); assert.equal(controls.seatedFeet, seatedFeet);
+  assert.deepEqual(seatedFeet.toArray(), [4, 3.7, -8]);
+  assert.ok(runtime.camera.position.equals(position)); assert.ok(runtime.camera.quaternion.equals(orientation));
+  frames(1);
+  assert.equal(stats.renders, 1, 'resume invalidates the covered render even before input resumes');
+  assert.equal(stats.characterFrames, 0, 'coverage must not override the UI pause state');
+  runtime.setPaused(false); frames(1);
+  assert.equal(stats.characterFrames, 1);
+  assert.equal(deltas.at(-1), 1 / 60, 'the 22-second iframe visit must not become a physics or animation jump');
+});
+
+test('coverage notifications after disposal cannot resurrect rendering or touch the GPU', () => {
+  const { runtime } = fixture('seated');
+  runtime.rendererReady = true;
+  const calls = [];
+  runtime.renderer.setAnimationLoop = value => calls.push(value);
+  runtime.clock.getDelta = () => { throw Error('disposed clock accessed'); };
+  runtime.disposed = true;
+  runtime.setStudioCovered(true);
+  assert.equal(runtime.studioCovered, false);
+  runtime.studioCovered = true;
+  runtime.setStudioCovered(false);
+  assert.equal(runtime.studioCovered, true);
+  assert.deepEqual(calls, []);
+});

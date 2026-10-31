@@ -16,7 +16,7 @@
     "test:rendering": "node --test qa/rendering.test.mjs",
     "test:scene-repair": "node --test qa/scene-repair.test.mjs",
     "benchmark:collision": "node qa/benchmark-collision.mjs",
-    "prebuild": "node scripts/verify-assets.mjs && node scripts/prepare-delivery.mjs",
+    "prebuild": "node scripts/verify-assets.mjs && node scripts/verify-studio.mjs && node scripts/prepare-delivery.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
     "test": "node --test qa/*.test.mjs",
     "prepare:delivery": "node scripts/prepare-delivery.mjs",
@@ -24,14 +24,21 @@
     "pretypecheck": "node scripts/prepare-delivery.mjs",
     "verify:delivery": "node qa/verify-delivery-http.mjs",
     "verify:images": "node qa/verify-image-delivery.mjs",
-    "verify:stairs": "node qa/stair-contact-audit.mjs"
+    "verify:stairs": "node qa/stair-contact-audit.mjs",
+    "verify:studio": "node scripts/verify-studio.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.21.0",
-    "next": "16.3.8",
+    "@radix-ui/react-dialog": "^1.3.1",
+    "cmdk": "^1.1.1",
+    "motion": "^14.6.0",
+    "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "three": "0.186.1"
+    "sonner": "^2.0.8",
+    "three": "0.186.1",
+    "vaul": "^1.1.2",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

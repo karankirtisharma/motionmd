@@ -111,3 +111,12 @@ Two same-session full-quality comparisons had zero changed HDR pixels and 46.45%
 The bronze desktop bands are fixed at the sun-shadow filter using per-sample receiver-plane depth. Original bronze patina, reflections, lighting, shadow quality and the verified static-shadow cache are retained. The original character gait now receives bounded vertical tread clearance, preserving the source foot direction and knee bend plane; sprint blends into controlled stair walking without phase restarts. Flat-floor animation and chair IK remain intact.
 
 All 183 tests, the strict 12-route shoe-contact audit and the production build pass. The post-fix cached/full shadow comparison has zero changed HDR pixels. This supersedes the exact tread-contact limitation in the preceding checkpoint; it does not remove the documented startup and cross-device performance limitations. See `qa/stair-and-shadow-2026-10-31.md` for measurements, screenshots, trade-offs and remaining edge cases.
+
+
+## Studio and original motion review - 31 October 2026
+
+`/studio` is the lightweight Screen1 experience, isolated from the lounge runtime. First visits to `/` choose between the studio and the existing 3D scene; `/?mode=3d` opens the lounge directly. The presentation TV opens the retained studio overlay when seated (click or Enter), and Escape at studio top level returns to the same chair. The covered lounge stops rendering and simulation. The presentation TV permanently displays centered studio branding; the founder-room dashboard remains unchanged.
+
+Original character locomotion is restored while accepted chair/palm contacts are retained. Spawn/re-entry resets inherited movement before revealing the character. Strict per-tread shoe contact remains a known limitation of the original gait; do not treat the general test pass as a stair-contact pass.
+
+The source Screen1 folder and protected FINAL remain unchanged. See `qa/studio-integration-verification.md`, `qa/studio-deployment-ledger.md`, and `qa/original-animation-restore-2026-10-31.md` for measured payloads, tests, content limitations and review evidence. Vercel requires Git LFS enabled in Settings > Git followed by a new deployment. The review branch is not merged/deployed automatically.

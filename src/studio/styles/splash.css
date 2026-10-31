@@ -1,0 +1,190 @@
+/* Splash (K00) — step 7. Seen once per session, so it is allowed its full show. */
+
+#md-studio-root .splash {
+  position: absolute;
+  inset: 0;
+  z-index: 35; /* under the light layer, so the room light falls across the glass too */
+  cursor: pointer;
+}
+
+/* Glass wordmark: gold gradient clipped to the letters, a glass edge, and a slow light sweep */
+#md-studio-root .splash__word {
+  margin: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(196 * var(--u));
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: transparent;
+  background-image: linear-gradient(
+    100deg,
+    #6b4317 0%,
+    var(--gold-500) 22%,
+    var(--gold-300) 36%,
+    #fff8e8 46%,
+    var(--gold-300) 56%,
+    var(--gold-500) 72%,
+    #6b4317 100%
+  );
+  background-size: 260% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: calc(1.4 * var(--u)) rgb(255 242 218 / 0.55);
+  filter: drop-shadow(0 0 calc(24 * var(--u)) rgb(243 197 126 / 0.35)) drop-shadow(0 calc(6 * var(--u)) calc(10 * var(--u)) rgb(0 0 0 / 0.45));
+  animation:
+    md-studio-word-in 900ms var(--ease-out) both 120ms,
+    md-studio-sweep 7s var(--ease-in-out) infinite 1.2s;
+}
+/* Glass bevel: a bright rim traced along the top edges of every letter */
+#md-studio-root .splash__word::after {
+  content: attr(aria-label);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  -webkit-text-stroke: calc(1.6 * var(--u)) rgb(255 255 255 / 0.8);
+  translate: 0 calc(-1.5 * var(--u));
+  -webkit-mask-image: linear-gradient(to bottom, #000 18%, transparent 52%);
+  mask-image: linear-gradient(to bottom, #000 18%, transparent 52%);
+  pointer-events: none;
+}
+@keyframes md-studio-word-in {
+  from { opacity: 0; transform: scale(0.97); filter: blur(10px); }
+}
+/* The light crosses in the first third, then rests: constant motion would read as cheap */
+@keyframes md-studio-sweep {
+  0% { background-position: 100% 0; }
+  35%, 100% { background-position: -60% 0; }
+}
+
+#md-studio-root .splash__meta {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  gap: calc(34 * var(--u));
+  font-size: calc(25 * var(--u));
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: rgb(255 238 210 / 0.85);
+  animation: md-studio-fade-up 700ms var(--ease-out) both 400ms;
+}
+@keyframes md-studio-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* The ten formats stand on the ledge in a shallow arc: the ends turn in and step forward */
+#md-studio-root .splash__arc {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--ledge-pct) - 5 * var(--u));
+  width: 0;
+  height: 0;
+  perspective: calc(2400 * var(--u));
+}
+#md-studio-root .splash__card {
+  --r: 26;
+  position: absolute;
+  left: calc(var(--d) * 176 * var(--u) - 80 * var(--u));
+  bottom: 0;
+  width: calc(160 * var(--u));
+  height: calc(280 * var(--u));
+  transform-origin: 50% 100%;
+  transform:
+    translateZ(calc(var(--o) * var(--o) * 6 * var(--u)))
+    rotateY(calc(var(--d) * -5deg));
+  /* The marble is polished: each card reflects in it */
+  -webkit-box-reflect: below calc(4 * var(--u)) linear-gradient(transparent 62%, rgb(0 0 0 / 0.28));
+  animation: md-studio-card-rise 700ms var(--ease-out) both;
+  animation-delay: calc(200ms + var(--o) * 60ms);
+}
+#md-studio-root .splash__card img { object-fit: cover; }
+@keyframes md-studio-card-rise {
+  from { opacity: 0; translate: 0 calc(40 * var(--u)); }
+}
+#md-studio-root .splash__label {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  bottom: calc(22 * var(--u));
+  text-align: center;
+  font-size: calc(13 * var(--u));
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 1px calc(6 * var(--u)) rgb(0 0 0 / 0.6);
+}
+
+#md-studio-root .splash__enter {
+  display: flex;
+  gap: calc(18 * var(--u));
+  font-size: calc(21 * var(--u));
+  letter-spacing: 0.06em;
+  animation: md-studio-fade-up 600ms var(--ease-out) both 900ms;
+}
+#md-studio-root .splash__enter:disabled { cursor: progress; color: var(--ink-soft); }
+#md-studio-root .splash__dot {
+  width: calc(14 * var(--u));
+  height: calc(14 * var(--u));
+  border-radius: 50%;
+  background: var(--gold-300);
+  box-shadow: 0 0 calc(10 * var(--u)) rgb(243 197 126 / 0.9);
+  animation: md-studio-breathe 1.6s ease-in-out infinite alternate;
+}
+@keyframes md-studio-breathe {
+  from { opacity: 0.45; }
+}
+
+#md-studio-root .splash__loader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(14 * var(--u));
+  font-size: calc(20 * var(--u));
+  color: rgb(255 250 240 / 0.85);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  animation: md-studio-fade-up 600ms var(--ease-out) both 700ms;
+}
+#md-studio-root .splash__loader svg { width: calc(96 * var(--u)); height: calc(96 * var(--u)); rotate: -90deg; flex: none; }
+#md-studio-root .splash__ring-bg { fill: none; stroke: rgb(255 240 220 / 0.15); stroke-width: 2.5; }
+/* Progress is constant motion: linear */
+#md-studio-root .splash__ring {
+  fill: none;
+  stroke: #f3c57e;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px rgb(243 197 126 / 0.8));
+  transition: stroke-dashoffset 300ms linear;
+}
+
+/* Chrome waits behind the splash, then fades in as the cards land */
+#md-studio-root .chrome[data-splash] :is(.wordmark, .topbar-work, .topbar-grid, .topbar-controls, .topbar-search, .topbar-heart, .topbar-brief, .rail-sliver, .minimap, .hint) {
+  opacity: 0;
+  pointer-events: none;
+}
+/* The rail pill stays measurable (cards fly into it) but invisible until they arrive */
+#md-studio-root .chrome[data-splash] .rail-toggle { opacity: 0; }
+#md-studio-root .chrome:not([data-splash]) :is(.wordmark, .rail-toggle) { transition: opacity 400ms ease; }
+
+@media (orientation: portrait) {
+  #md-studio-root .splash__word { font-size: calc(92 * var(--u)); }
+  #md-studio-root .splash__meta { font-size: calc(17 * var(--u)); letter-spacing: 0.24em; gap: calc(14 * var(--u)); }
+  #md-studio-root .splash__card { left: calc(var(--d) * 64 * var(--u) - 31 * var(--u)); width: calc(62 * var(--u)); height: calc(150 * var(--u)); }
+  #md-studio-root .splash__label { display: none; }
+  #md-studio-root .splash__enter { left: calc(50% - 190 * var(--u)); width: calc(380 * var(--u)); }
+  #md-studio-root .splash__loader { left: calc(50% - 125 * var(--u)); top: calc(var(--ledge-pct) + 190 * var(--u)); justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #md-studio-root .splash__word,
+  #md-studio-root .splash__card { animation-name: md-studio-fade-in; }
+  #md-studio-root .splash__word { animation: md-studio-fade-in 400ms ease both; }
+}
+#md-studio-root[data-reduce-motion] .splash__word { animation: md-studio-fade-in 400ms ease both; }
+#md-studio-root[data-reduce-motion] .splash__card { animation-name: md-studio-fade-in; }

@@ -1,0 +1,740 @@
+/*
+  The stage is the full viewport (full-bleed at any aspect ratio).
+  UI is laid out in design px from the 2000 × 1125 reference frame:
+  1 design px = --u, the scale at which that frame fits the viewport.
+  Elements keep their distance to an anchor (left/centre/right, top/ledge),
+  so a wider or taller screen adds room instead of letterboxing.
+*/
+
+/* On :root so portalled overlays (dialogs, drawers) share the same scale */
+#md-studio-root {
+  --u: min(100vw / 2000, 100dvh / 1125);
+  /* The brass ledge: 76.2% down the plate, design y 857 */
+  --ledge-pct: 76.2%;
+  --ledge-y: 857;
+}
+
+#md-studio-root .stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--walnut-950);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+
+/* Place a child in design px: style={at(x, y, w, h, anchorX, anchorY)} */
+#md-studio-root .at {
+  position: absolute;
+  left: calc(var(--ax, 0) * 100% + (var(--x) - var(--ax, 0) * 2000) * var(--u));
+  top: calc(var(--ay, 0) * var(--ledge-pct) + (var(--y) - var(--ay, 0) * var(--ledge-y)) * var(--u));
+  width: calc(var(--w) * var(--u));
+  height: calc(var(--h) * var(--u));
+}
+
+/* Cover the viewport, pinned at the ledge so it lands on --ledge-pct at any crop */
+#md-studio-root .stage__plate {
+  object-fit: cover;
+  object-position: 50% 76.2%;
+  z-index: 0;
+}
+
+/* ---------- Light layer: above the UI so light falls across the glass ---------- */
+#md-studio-root .light {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  overflow: hidden;
+  mix-blend-mode: screen;
+}
+
+#md-studio-root .light__shaft {
+  position: absolute;
+  top: -30%;
+  height: 160%;
+  transform-origin: center;
+  /* Softness lives in the gradient itself: a blur filter on a drifting layer would be
+     re-applied by the GPU on every frame */
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 196 120 / 0.05) 18%,
+    rgb(255 200 128 / 0.13) 34%,
+    rgb(255 214 150 / 0.2) 50%,
+    rgb(255 200 128 / 0.13) 66%,
+    rgb(255 196 120 / 0.05) 82%,
+    transparent
+  );
+  animation: md-studio-shaft-drift 48s linear infinite alternate;
+}
+
+#md-studio-root .light__shaft:nth-child(1) { left: 58%; width: 9%; rotate: 52deg; }
+#md-studio-root .light__shaft:nth-child(2) { left: 72%; width: 6%; rotate: 52deg; animation-duration: 61s; }
+#md-studio-root .light__shaft:nth-child(3) { left: 40%; width: 5%; rotate: 52deg; animation-duration: 54s; opacity: 0.6; }
+
+@keyframes md-studio-shaft-drift {
+  from { transform: translateX(-2%); }
+  to { transform: translateX(3%); }
+}
+
+/* Static film grain — moving grain looks cheap */
+#md-studio-root .grain {
+  position: absolute;
+  inset: 0;
+  z-index: 41;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- Top bar ---------- */
+#md-studio-root .wordmark {
+  position: absolute;
+  left: 50%;
+  top: calc(48 * var(--u));
+  translate: -50% 0;
+  z-index: 10;
+  font-size: calc(27 * var(--u));
+  letter-spacing: 0.13em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--ink);
+}
+#md-studio-root .wordmark__light { font-weight: 300; }
+#md-studio-root .wordmark__bold { font-weight: 500; }
+
+/* ---------- Segmented (clip-path tab technique) ---------- */
+#md-studio-root .segmented {
+  --r: 999;
+  z-index: 20;
+  font-size: calc(19 * var(--u));
+  letter-spacing: 0.02em;
+}
+
+#md-studio-root .segmented__row {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(var(--n), 1fr);
+  align-items: stretch;
+}
+
+#md-studio-root .segmented__item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--ink-dim);
+  transition: color var(--dur-hover) ease, transform var(--dur-press) var(--ease-out);
+}
+#md-studio-root .segmented__item:active { transform: scale(0.97); }
+#md-studio-root .segmented__row:not(.segmented__row--active) .segmented__item + .segmented__item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24%;
+  bottom: 24%;
+  width: 1px;
+  background: rgb(255 225 180 / 0.3);
+}
+@media (hover: hover) and (pointer: fine) {
+  #md-studio-root .segmented__item:hover { color: var(--ink-soft); }
+}
+
+/* The active copy carries only the brighter label colour, clipped to the selected segment.
+   It has no fill or rim: a filled, rimmed copy read as a sticker laid on the glass. */
+#md-studio-root .segmented__row--active {
+  z-index: 5;
+  pointer-events: none;
+  color: var(--ink);
+  transition: clip-path 260ms var(--ease-in-out);
+}
+/* The selection is light inside the glass: a champagne pool rising from the bottom edge,
+   fading out well before the segment's sides, plus a short lit line where the light exits */
+#md-studio-root .segmented__glow {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(100% / var(--n));
+  pointer-events: none;
+  background:
+    radial-gradient(50% 3% at 50% calc(100% - 3.5 * var(--u)), rgb(255 232 180 / 0.9), transparent),
+    radial-gradient(46% 70% at 50% 100%, rgb(255 214 150 / 0.46), rgb(236 186 110 / 0.14) 55%, transparent 80%);
+  transition: transform 260ms var(--ease-in-out);
+}
+
+/* ---------- Top bar buttons ---------- */
+#md-studio-root .icon-btn,
+#md-studio-root .pill {
+  --r: 999;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  color: var(--ink);
+  font-size: calc(19 * var(--u));
+  letter-spacing: 0.02em;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+#md-studio-root .icon-btn:active,
+#md-studio-root .pill:active { transform: scale(0.97); }
+#md-studio-root .icon-btn > svg {
+  position: relative;
+  z-index: 4;
+  width: calc(26 * var(--u));
+  height: calc(26 * var(--u));
+}
+#md-studio-root .pill { padding: 0 calc(24 * var(--u)); }
+#md-studio-root .pill > * { position: relative; z-index: 4; }
+
+/*
+  Buttons and capsules are the same smoked glass as the panels: the two edge lines
+  come from the capsule frame (::before), the body stays dark and clear (wood faintly through),
+  and a little champagne light rises from the bottom edge.
+*/
+#md-studio-root .icon-btn,
+#md-studio-root .pill,
+#md-studio-root .segmented {
+  --tube: 5.5;
+  background:
+    radial-gradient(60% 50% at 50% 100%, rgb(255 214 150 / 0.16), transparent 75%),
+    linear-gradient(180deg, rgb(255 236 205 / 0.08), transparent 30%),
+    linear-gradient(180deg, rgb(28 15 7 / 0.32), rgb(20 10 5 / 0.26));
+  box-shadow:
+    inset 0 0 calc(6 * var(--u)) rgb(255 196 110 / 0.42),
+    0 0 calc(7 * var(--u)) rgb(255 214 150 / 0.2),
+    inset 0 0 0 calc(var(--tube) * var(--u)) rgb(255 228 186 / 0.06),
+    0 calc(10 * var(--u)) calc(22 * var(--u)) calc(-8 * var(--u)) rgb(0 0 0 / 0.55),
+    var(--bleed);
+}
+@media (hover: hover) and (pointer: fine) {
+  #md-studio-root .icon-btn:hover::before,
+  #md-studio-root .pill:hover::before { opacity: 1; }
+}
+
+#md-studio-root .badge {
+  position: absolute;
+  z-index: 6;
+  right: calc(-4 * var(--u));
+  top: calc(-6 * var(--u));
+  min-width: calc(24 * var(--u));
+  height: calc(24 * var(--u));
+  padding: 0 calc(6 * var(--u));
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: calc(13 * var(--u));
+  font-weight: 600;
+  color: #2a1606;
+  background: linear-gradient(var(--gold-100), var(--gold-300));
+  box-shadow: 0 0 calc(10 * var(--u)) rgb(243 197 126 / 0.8);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Rail toggle pill ---------- */
+#md-studio-root .rail-toggle {
+  display: flex;
+  justify-content: flex-start;
+  gap: calc(14 * var(--u));
+  padding: 0 calc(22 * var(--u));
+  font-size: calc(15 * var(--u));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: pre;
+}
+#md-studio-root .rail-toggle__icon {
+  position: relative;
+  width: calc(22 * var(--u));
+  height: calc(22 * var(--u));
+  flex: none;
+}
+#md-studio-root .rail-toggle__icon > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: opacity 200ms ease, filter 200ms ease, transform 200ms var(--ease-out);
+}
+/* Icon morph list -> close through a light blur, so it reads as one shape changing */
+#md-studio-root .rail-toggle__close { opacity: 0; filter: blur(2px); transform: scale(0.9); }
+#md-studio-root .rail-toggle__icon[data-open] .rail-toggle__list { opacity: 0; filter: blur(2px); transform: scale(0.9); }
+#md-studio-root .rail-toggle__icon[data-open] .rail-toggle__close { opacity: 1; filter: blur(0); transform: scale(1); }
+#md-studio-root .rail-toggle__lane { overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- Rail (non-modal drawer) ---------- */
+#md-studio-root .rail {
+  --r: var(--r-panel);
+  z-index: 30;
+  height: calc(var(--ledge-pct) + (950 - 140 - var(--ledge-y)) * var(--u));
+  box-shadow:
+    inset 0 0 calc(8 * var(--u)) rgb(255 196 110 / 0.44),
+    0 0 calc(9 * var(--u)) rgb(255 214 150 / 0.24),
+    inset 0 0 0 calc(var(--tube) * var(--u)) rgb(255 228 186 / 0.06),
+    calc(4 * var(--u)) 0 calc(22 * var(--u)) calc(-6 * var(--u)) rgb(240 190 110 / 0.28),
+    0 calc(24 * var(--u)) calc(48 * var(--u)) calc(-16 * var(--u)) rgb(0 0 0 / 0.6),
+    var(--bleed);
+  /* Closed: parked off the left edge. Close is faster than open. */
+  transform: translateX(calc(-100% - 60 * var(--u)));
+  transform-origin: top left;
+  transition: transform 260ms var(--ease-drawer);
+}
+#md-studio-root .rail[data-open] {
+  transform: translateX(0);
+  transition-duration: 420ms;
+}
+#md-studio-root .rail[data-instant] { transition-duration: 0ms; }
+
+#md-studio-root .rail__axis {
+  position: absolute;
+  left: calc(14 * var(--u));
+  right: calc(14 * var(--u));
+  top: calc(14 * var(--u));
+  height: calc(54 * var(--u));
+  font-size: calc(16 * var(--u));
+}
+
+#md-studio-root .rail__list {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#md-studio-root .rail__item {
+  position: absolute;
+  left: calc(41 * var(--u));
+  right: calc(12 * var(--u));
+  top: calc(var(--i) * 72 * var(--u) + 100 * var(--u));
+  display: grid;
+  gap: calc(5 * var(--u));
+  text-align: left;
+  color: var(--ink-dim);
+  /* Items settle in just behind the drawer, on open only */
+  opacity: 0;
+  translate: calc(-8 * var(--u)) 0;
+  transition:
+    color var(--dur-hover) ease,
+    transform var(--dur-press) var(--ease-out),
+    opacity 120ms ease,
+    translate 120ms var(--ease-out);
+}
+#md-studio-root .rail[data-open] .rail__item {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    color var(--dur-hover) ease,
+    transform var(--dur-press) var(--ease-out),
+    opacity 260ms ease calc(80ms + var(--i) * 25ms),
+    translate 260ms var(--ease-out) calc(80ms + var(--i) * 25ms);
+}
+#md-studio-root .rail[data-instant] .rail__item { transition-duration: 0ms; transition-delay: 0ms; }
+#md-studio-root .rail__item:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  #md-studio-root .rail__item:hover { color: var(--ink-soft); }
+}
+#md-studio-root .rail__num { font-size: calc(16 * var(--u)); letter-spacing: 0.06em; line-height: 1; }
+#md-studio-root .rail__label {
+  font-size: calc(13.5 * var(--u));
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  font-weight: 500;
+}
+#md-studio-root .rail__item[aria-current="true"] { color: var(--ink); }
+
+/* One indicator element; it glides with translateY */
+#md-studio-root .rail__indicator {
+  position: absolute;
+  z-index: 5;
+  left: calc(17 * var(--u));
+  top: calc(100 * var(--u));
+  width: calc(3.5 * var(--u));
+  height: calc(42 * var(--u));
+  border-radius: 999px;
+  background: linear-gradient(var(--gold-100), var(--gold-300));
+  box-shadow: 0 0 calc(10 * var(--u)) rgb(243 197 126 / 0.9);
+  transform: translateY(calc(var(--i) * 72 * var(--u) - 2 * var(--u)));
+  transition: transform var(--dur-focus) var(--ease-in-out);
+}
+
+/* The sliver: a thin edge of glass that peeks from the left while the rail is closed */
+#md-studio-root .rail-sliver {
+  --r: 8;
+  position: absolute;
+  z-index: 29;
+  left: calc(-6 * var(--u));
+  top: calc(140 * var(--u));
+  width: calc(16 * var(--u));
+  height: calc(var(--ledge-pct) + (950 - 140 - var(--ledge-y)) * var(--u));
+  opacity: 0.85;
+  transition: transform 200ms var(--ease-out), opacity 200ms ease;
+}
+#md-studio-root .rail-sliver[data-hidden] { opacity: 0; pointer-events: none; }
+@media (hover: hover) and (pointer: fine) {
+  #md-studio-root .rail-sliver:hover { transform: translateX(calc(8 * var(--u))); }
+}
+
+/* ---------- Title band ---------- */
+#md-studio-root .title-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--ledge-pct) + (158 - var(--ledge-y)) * var(--u));
+  z-index: 10;
+  padding: 0 calc(40 * var(--u));
+  text-align: center;
+}
+
+#md-studio-root .title-band__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(98 * var(--u));
+  line-height: 1;
+  letter-spacing: -0.012em;
+  color: #fffaf2;
+  text-shadow: 0 calc(2 * var(--u)) calc(24 * var(--u)) rgb(0 0 0 / 0.35);
+}
+
+#md-studio-root .title-band__meta {
+  margin: calc(22 * var(--u)) 0 0;
+  display: flex;
+  justify-content: center;
+  gap: calc(20 * var(--u));
+  font-size: calc(17.5 * var(--u));
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+#md-studio-root .title-band__dot { opacity: 0.8; }
+
+/* ---------- Cards ---------- */
+#md-studio-root .card-row {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+#md-studio-root .card {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+#md-studio-root .card:focus-visible { outline: none; }
+#md-studio-root .card:focus-visible .glass {
+  outline: calc(2 * var(--u)) solid var(--gold-300);
+  outline-offset: calc(4 * var(--u));
+}
+
+#md-studio-root .card > .glass {
+  width: 100%;
+  height: 100%;
+}
+
+#md-studio-root .card__media-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+#md-studio-root .card__media {
+  object-fit: cover;
+  scale: 1.04;
+}
+
+#md-studio-root .card__label {
+  position: absolute;
+  left: calc(26 * var(--u));
+  bottom: calc(26 * var(--u));
+  z-index: 4;
+  font-size: calc(19 * var(--u));
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  text-shadow: 0 1px calc(8 * var(--u)) rgb(0 0 0 / 0.5);
+}
+#md-studio-root .card[data-active] .card__label {
+  font-size: calc(21 * var(--u));
+  left: calc(32 * var(--u));
+  bottom: calc(30 * var(--u));
+}
+
+#md-studio-root .card[data-active] .glass {
+  --r: var(--r-card-lg);
+  --tube: 16;
+  box-shadow:
+    inset 0 0 calc(12 * var(--u)) rgb(255 212 140 / 0.5),
+    0 0 calc(14 * var(--u)) rgb(255 206 130 / 0.55),
+    inset 0 0 0 calc(var(--tube) * var(--u)) rgb(255 228 186 / 0.08),
+    inset 0 0 calc(30 * var(--u)) rgb(255 206 140 / 0.12),
+    0 0 calc(36 * var(--u)) rgb(236 176 90 / 0.42),
+    0 calc(30 * var(--u)) calc(60 * var(--u)) calc(-18 * var(--u)) rgb(0 0 0 / 0.7);
+}
+
+/* The lit card: the same irregular champagne edge, pushed brighter and warmer */
+/* The lit card's frame burns brighter; neighbours sit a step back */
+#md-studio-root .card[data-active] .glass::before {
+  opacity: 1;
+  filter: brightness(1.18) saturate(1.1);
+}
+#md-studio-root .card:not([data-active]) .glass::before { opacity: 0.82; }
+
+/* Side cards sit behind a hazier pane, as in K01 */
+/* Side cards are toned by their tint layer alone; animating a filter on the image
+   would repaint it on every focus change */
+#md-studio-root .card:not([data-active]) .glass__tint {
+  background:
+    linear-gradient(180deg, rgb(255 236 200 / 0.08), transparent 26%),
+    linear-gradient(rgb(20 10 5 / 0.14), rgb(20 10 5 / 0.14)),
+    linear-gradient(to top, rgb(22 12 5 / 0.55), rgb(22 12 5 / 0.1) 34%, transparent 55%);
+}
+#md-studio-root .card[data-active] .glass__glow { opacity: 1; }
+
+/* ---------- Swapping text + rolling digits ---------- */
+#md-studio-root .swap {
+  position: relative;
+  display: inline-block;
+}
+#md-studio-root .swap__item {
+  display: inline-block;
+  white-space: nowrap;
+}
+#md-studio-root .title-band__title .swap__item { white-space: normal; }
+
+/* overflow:hidden puts an inline-block's baseline at its bottom edge, so align by the top
+   of a line box whose height we pin to the column's */
+#md-studio-root .title-band__meta,
+#md-studio-root .minimap__label { line-height: 1.15; }
+#md-studio-root .roll {
+  display: inline-flex;
+  vertical-align: top;
+  font-variant-numeric: tabular-nums;
+}
+#md-studio-root .roll__col {
+  display: inline-block;
+  height: 1.15em;
+  line-height: 1.15em;
+  overflow: hidden;
+}
+#md-studio-root .roll__strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--dur-focus) var(--ease-out);
+}
+#md-studio-root .roll__strip > span { height: 1.15em; }
+
+/* ---------- Bottom ---------- */
+#md-studio-root .hint {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--ledge-pct) + (1017 - var(--ledge-y)) * var(--u));
+  translate: -50% 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: calc(26 * var(--u));
+  font-size: calc(19 * var(--u));
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: rgb(255 250 240 / 0.82);
+  text-shadow: 0 1px calc(6 * var(--u)) rgb(80 50 20 / 0.45);
+}
+#md-studio-root .hint__rule {
+  width: calc(68 * var(--u));
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(166 108 40 / 0.9), transparent);
+}
+
+#md-studio-root .minimap {
+  --r: 30;
+  z-index: 10;
+}
+
+#md-studio-root .minimap__grid {
+  position: absolute;
+  z-index: 4;
+  left: calc(38 * var(--u));
+  right: calc(30 * var(--u));
+  top: calc(36 * var(--u));
+  height: calc(166 * var(--u));
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  place-items: center;
+}
+
+#md-studio-root .minimap__dot {
+  width: calc(7 * var(--u));
+  height: calc(7 * var(--u));
+  border-radius: 50%;
+  background: rgb(255 245 230 / 0.42);
+}
+#md-studio-root .minimap__dot {
+  transition: background-color var(--dur-focus) ease;
+}
+#md-studio-root .minimap__dot[data-lane] { background: rgb(255 245 230 / 0.72); }
+
+/* One cell in size, so translate(100%) is exactly one step in the grid */
+#md-studio-root .minimap__cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20%;
+  height: 10%;
+  display: grid;
+  place-items: center;
+  transition: transform var(--dur-focus) var(--ease-in-out);
+}
+#md-studio-root .minimap__cursor::after {
+  content: "";
+  width: calc(9 * var(--u));
+  height: calc(9 * var(--u));
+  border-radius: 50%;
+  background: var(--gold-300);
+  box-shadow: 0 0 calc(9 * var(--u)) calc(1.5 * var(--u)) rgb(243 197 126 / 0.95);
+}
+
+#md-studio-root .minimap__label {
+  position: absolute;
+  z-index: 4;
+  left: 0;
+  right: 0;
+  top: calc(220 * var(--u));
+  text-align: center;
+  font-size: calc(17 * var(--u));
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Portrait (phones, tablets upright) ----------
+   The design frame is re-based on a 640-wide column. The rail moves behind its
+   button (step 3), the card row becomes a snap carousel, keyboard-only UI hides. */
+@media (orientation: portrait) {
+  #md-studio-root { --u: min(100vw / 640, 100dvh / 1300); }
+
+  #md-studio-root .minimap,
+  #md-studio-root .hint,
+  #md-studio-root .rail-sliver { display: none; }
+
+  /* Top: wordmark, section switch; icons top-right */
+  #md-studio-root .wordmark { top: calc(40 * var(--u)); font-size: calc(26 * var(--u)); }
+  #md-studio-root .topbar-work {
+    left: calc(50% - 130 * var(--u));
+    top: calc(96 * var(--u));
+    width: calc(260 * var(--u));
+    height: calc(56 * var(--u));
+  }
+  #md-studio-root .topbar-search,
+  #md-studio-root .topbar-heart {
+    left: auto;
+    top: calc(24 * var(--u));
+    width: calc(60 * var(--u));
+    height: calc(60 * var(--u));
+  }
+  #md-studio-root .topbar-grid,
+  #md-studio-root .topbar-controls {
+    left: auto;
+    top: calc(24 * var(--u));
+    width: calc(60 * var(--u));
+    height: calc(60 * var(--u));
+  }
+  #md-studio-root .topbar-grid { left: calc(24 * var(--u)); }
+  #md-studio-root .topbar-controls { left: calc(96 * var(--u)); }
+  #md-studio-root .topbar-search { right: calc(96 * var(--u)); }
+  #md-studio-root .topbar-heart { right: calc(24 * var(--u)); }
+
+  /* Bottom (thumb reach): rail toggle + brief on the marble */
+  #md-studio-root .rail-toggle,
+  #md-studio-root .topbar-brief {
+    top: calc(var(--ledge-pct) + 64 * var(--u));
+    width: calc(286 * var(--u));
+    height: calc(64 * var(--u));
+  }
+  #md-studio-root .rail-toggle { left: calc(50% - 294 * var(--u)); }
+  #md-studio-root .topbar-brief { left: calc(50% + 8 * var(--u)); }
+
+  /* Rail becomes a bottom sheet */
+  #md-studio-root .rail {
+    left: calc(16 * var(--u));
+    right: calc(16 * var(--u));
+    width: auto;
+    top: auto;
+    bottom: calc(16 * var(--u));
+    height: calc((var(--count) * 72 + 124) * var(--u));
+    transform: translateY(calc(100% + 40 * var(--u)));
+  }
+  #md-studio-root .rail[data-open] { transform: translateY(0); }
+
+  #md-studio-root .title-band { top: calc(190 * var(--u)); }
+  #md-studio-root .title-band__title { font-size: calc(72 * var(--u)); line-height: 1.02; }
+  #md-studio-root .title-band__meta {
+    flex-wrap: wrap;
+    row-gap: calc(6 * var(--u));
+    font-size: calc(17 * var(--u));
+  }
+
+  #md-studio-root .card-row {
+    inset: auto 0 auto 0;
+    top: calc(var(--ledge-pct) - 520 * var(--u));
+    height: calc(520 * var(--u));
+    display: flex;
+    align-items: center;
+    gap: calc(17 * var(--u));
+    padding-inline: calc(50% - 185 * var(--u));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  #md-studio-root .card-row::-webkit-scrollbar { display: none; }
+  #md-studio-root .card-row .card {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: none;
+    scroll-snap-align: center;
+  }
+}
+
+/* ---------- Dev: reference overlay (?ref=50 or ?ref=diff) ---------- */
+#md-studio-root .ref-overlay {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  /* Same frame the design px are measured in, centred on the ledge */
+  left: calc(50% - 1000 * var(--u));
+  top: calc(var(--ledge-pct) - var(--ledge-y) * var(--u));
+  width: calc(2000 * var(--u));
+  height: calc(1125 * var(--u));
+}
+
+/* Site override from the Control Center: same treatment as the OS setting */
+#md-studio-root[data-reduce-motion] .light__shaft { animation: none; }
+#md-studio-root[data-reduce-motion] :is(.roll__strip, .minimap__cursor, .rail__indicator, .segmented__row--active, .segmented__glow) { transition-duration: 0ms; }
+#md-studio-root[data-reduce-motion] .rail,
+#md-studio-root[data-reduce-motion] .rail[data-open] { transform: none; transition: opacity 200ms ease; }
+#md-studio-root[data-reduce-motion] .rail:not([data-open]) { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  #md-studio-root .light__shaft { animation: none; }
+  #md-studio-root .roll__strip,
+  #md-studio-root .minimap__cursor,
+  #md-studio-root .rail__indicator,
+  #md-studio-root .segmented__row--active,
+  #md-studio-root .segmented__glow { transition-duration: 0ms; }
+  /* The rail still appears, but fades instead of sliding */
+  #md-studio-root .rail, #md-studio-root .rail[data-open] { transform: none; transition: opacity 200ms ease; }
+  #md-studio-root .rail:not([data-open]) { opacity: 0; pointer-events: none; }
+}

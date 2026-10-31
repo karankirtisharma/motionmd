@@ -1,0 +1,30 @@
+#md-studio-root {
+  /* Easing (Emil Kowalski) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Durations */
+  --dur-press: 140ms;
+  --dur-hover: 200ms;
+  --dur-focus: 240ms;
+
+  /* Colour */
+  --ink: #f6efe4;
+  --ink-soft: rgb(246 239 228 / 0.86);
+  --ink-dim: rgb(246 239 228 / 0.62);
+  --gold-100: #fff1d6;
+  --gold-300: #f3c57e;
+  --gold-500: #d99a3e;
+  --gold-700: #8a5a1c;
+  --walnut-950: #0e0805;
+
+  /* Radii (design px, multiplied by --u inside the stage) */
+  --r-card: 28;
+  --r-card-lg: 36;
+  --r-panel: 32;
+
+  /* Type */
+  --font-display: var(--font-instrument-serif), "Times New Roman", serif;
+  --font-ui: var(--font-manrope), system-ui, sans-serif;
+}

@@ -1,4 +1,5 @@
 import { AgXToneMapping, AnimationMixer, Box3, Clock, Group, Material, MathUtils, Mesh, Object3D, PCFShadowMap, PerspectiveCamera, Scene, SRGBColorSpace, Texture, Vector3 } from 'three';
+import type { ScreenBounds } from './presentation/PresentationScreen';
 import { WebGPURenderer } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SceneKTX2Loader } from './rendering/SceneKTX2Loader';
@@ -46,7 +47,7 @@ export class SceneRuntime {
   renderer!: WebGPURenderer;
   private rendererReady = false;
   manifest!: SceneManifest;
-  private callbacks: RuntimeCallbacks;
+  private callbacks: RuntimeCallbacks & { onStudioOpen?: (bounds: ScreenBounds) => void };
   private container: HTMLElement;
   private mode: RuntimeMode = 'loading';
   private disposed = false;
@@ -85,6 +86,7 @@ export class SceneRuntime {
   private renderErrorReported = false;
   private sceneTransition?: { elapsed: number; moved: boolean; progress: number; destination: 'tour' | 'explore' };
   private paused = false;
+  private studioCovered = false;
   private reducedMotion = false;
   private diagnostics?: RenderDiagnostics;
   private referenceCamera = '';
@@ -94,7 +96,7 @@ export class SceneRuntime {
   private profiler?: RuntimeProfiler;
   private settleFrames = TEMPORAL_SETTLE_FRAMES;
 
-  constructor(container: HTMLElement, callbacks: RuntimeCallbacks = {}) {
+  constructor(container: HTMLElement, callbacks: RuntimeCallbacks & { onStudioOpen?: (bounds: ScreenBounds) => void } = {}) {
     this.container = container; this.callbacks = callbacks;
     this.content.name = 'MD | original Blender architecture';
     this.scene.add(this.content);
@@ -195,6 +197,7 @@ export class SceneRuntime {
         onStateChange: (mode: 'explore' | 'seated') => this.setMode(mode),
         onPrompt: (hint: {text: string; target?: string} | null) => this.callbacks.onHint?.(hint),
         onScreenMode: (active: boolean) => this.callbacks.onScreenMode?.(active),
+        onStudioOpen: bounds => this.callbacks.onStudioOpen?.(bounds),
         onCameraViewChange: view => this.callbacks.onCameraViewChange?.(view),
       });
       if (this.disposed || this.abort.signal.aborted) { this.controls.dispose(); return; }
@@ -336,7 +339,7 @@ export class SceneRuntime {
   }
 
   private tick = () => {
-    if (this.disposed || this.mode === 'error' || this.auditBusy) return;
+    if (this.disposed || this.mode === 'error' || this.auditBusy || this.studioCovered) return;
     const elapsed = this.clock.getDelta();
     if (document.hidden) return;
     const profileStart = this.profiler ? performance.now() : 0;
@@ -548,6 +551,18 @@ export class SceneRuntime {
   inspectCharacterView(view:'third-person'|'side'|'front'){if(this.inspectionEnabled){this.controls?.inspectCharacterView(view);this.invalidate();}}
   inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
   getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
+  setStudioCovered(value: boolean) {
+    if (this.disposed || this.studioCovered === value) return;
+    this.studioCovered = value;
+    if (!this.rendererReady || this.mode === 'error') return;
+    // A covered lounge needs neither simulation nor frame callbacks. Resume with
+    // a fresh clock/window so time in the studio never becomes a physics step.
+    this.clock.getDelta();
+    this.statsFrames = this.statsTime = this.statsLongGaps = this.statsLongGapTime = 0;
+    this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0;
+    if (!value) this.invalidate();
+    void this.renderer.setAnimationLoop(value ? null : this.tick);
+  }
   setPaused(value: boolean) { this.invalidate(); this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
   explore() {
     if (!this.controls || this.mode !== 'tour' || this.sceneTransition) return;
