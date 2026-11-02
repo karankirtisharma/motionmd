@@ -49,3 +49,43 @@ test('full width slab supports the diagonal shortcut and extended steps at walk 
   }
  }finally{p.dispose()}
 });
+
+
+test('presentation TV inspection starts outside the chair-table gap and can walk away',async()=>{
+ const p=await fixture();try{
+  const source=fs.readFileSync(new URL('../src/runtime/SceneRuntime.ts',import.meta.url),'utf8');
+  const position=source.match(/'presentation-tv': \[([^\]]+)\]/)[1].split(',').map(Number);
+  const feet=new T.Vector3(...position);feet.y=p.groundAt(feet);
+  assert.ok(p.canStandAt(feet),'inspection must never place the body inside the table or chair');
+  p.place(feet);const start=feet.clone();
+  for(let i=0;i<60;i++){p.move(new T.Vector3(-1.38/60,-.5/60,0),1/60,feet);assert.ok(p.canStandAt(feet));}
+  assert.ok(start.x-feet.x>1.2,'visitor must be able to leave the seating area');
+ }finally{p.dispose()}
+});
+
+test('round presentation table blocks walk and sprint from all sides without trapping the visitor',async()=>{
+ const p=await fixture();try{
+  for(const start of [[10,.03,-6],[11.6,.03,-4.5],[13.3,.03,-6.2],[11.6,.03,-7.9]])for(const speed of [1.38,3.35]){
+   const feet=new T.Vector3(...start);feet.y=p.groundAt(feet);assert.ok(p.canStandAt(feet));p.place(feet);
+   const direction=new T.Vector3(11.6-feet.x,0,-6.2-feet.z).normalize();
+   for(let i=0;i<180;i++){p.move(new T.Vector3(direction.x*speed/60,-.5/60,direction.z*speed/60),1/60,feet);assert.ok(p.canStandAt(feet),'body must remain outside the tabletop');assert.ok(Math.abs(feet.y)<.04,'visitor must not climb the coffee table');}
+   const stopped=feet.clone();
+   for(let i=0;i<45;i++)p.move(new T.Vector3(-direction.x*speed/60,-.5/60,-direction.z*speed/60),1/60,feet);
+   assert.ok(stopped.distanceTo(feet)>.7,'reverse movement must release table contact');
+  }
+ }finally{p.dispose()}
+});
+
+
+test('relocated hall planter clears the door axis and keeps collision at the new pot',async()=>{
+ const p=await fixture();try{
+  assert.ok(p.canStandAt(new T.Vector3(19.9625,.03,-11.9375)),'former planter footprint must be free');
+  assert.equal(p.canStandAt(new T.Vector3(18.3125,.03,-12.4375)),false,'moved pot remains solid');
+  for(const speed of [1.38,3.35])for(const reverse of [false,true]){
+   const feet=new T.Vector3(19.9625,.03,reverse?-13.8:-10.1);p.place(feet);
+   for(let i=0;i<Math.ceil(3.7/speed*60);i++)p.move(new T.Vector3(0,-.5/60,(reverse?1:-1)*speed/60),1/60,feet);
+   assert.ok(reverse?feet.z>-10.2:feet.z<-13.7,`door traversal ${speed}: ${feet.toArray()}`);
+   assert.ok(Math.abs(feet.y)<.04,'no raised or invisible obstacle remains in the doorway');
+  }
+ }finally{p.dispose()}
+});

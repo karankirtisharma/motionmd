@@ -1,6 +1,6 @@
 import { PerspectiveCamera, Scene } from 'three';
 import { RenderPipeline, type WebGPURenderer } from 'three/webgpu';
-import { mrt, output, pass, velocity } from 'three/tsl';
+import { mrt, output, pass, velocity, vec4 } from 'three/tsl';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 
 /** Reproject live 3D samples, including the animated visitor's velocity.
@@ -14,7 +14,9 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
   // Prefer stable subpixel lines over the optional sharper square-pattern correction.
   temporal.useSubpixelCorrection = false;
   const pipeline = new RenderPipeline(renderer);
-  pipeline.outputNode = temporal;
+  // TRAA's internal opaque resolve forces alpha to one. Preserve the current
+  // scene's depth-tested DOM opening while keeping the existing temporal RGB.
+  pipeline.outputNode = vec4(temporal.rgb, scenePass.getTextureNode('output').a);
   return {
     async warmup(onProgress?: Parameters<WebGPURenderer['compileAsync']>[3]) {
       // Compile the actual velocity/HDR pass once. A separate screen-output

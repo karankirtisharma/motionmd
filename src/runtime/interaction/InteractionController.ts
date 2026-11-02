@@ -48,7 +48,14 @@ export async function createInteractionController(options: Options) {
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
-  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, onOpen: bounds => { if (enabled && (mode === 'explore' || (mode === 'seated' && !selected?.workstation))) options.onStudioOpen?.(bounds); } }) : undefined;
+  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName,
+    onFocus: () => { resetInput(); if (document.pointerLockElement === canvas) releaseCursor(true); },
+    isInView: points => points.some(point => physics.hasLineOfSight(camera.position, point, 0.08)),
+    isUnobstructed: (point, ray) => {
+      if (!physics.hasLineOfSight(camera.position, point, 0.08)) return false;
+      const characterHit = avatar.root.visible ? ray.intersectObject(avatar.root, true)[0] : undefined;
+      return !characterHit || characterHit.distance >= camera.position.distanceTo(point);
+    }, onOpen: bounds => { if (enabled && (mode === 'explore' || (mode === 'seated' && !selected?.workstation))) options.onStudioOpen?.(bounds); } }) : undefined;
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
     const forward = item.forward ? new THREE.Vector3().fromArray(item.forward) : new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion().fromArray(item.quaternion));
@@ -530,7 +537,7 @@ export async function createInteractionController(options: Options) {
       bodyYaw = smoothAngle(bodyYaw, Math.atan2(selected.forward.x, selected.forward.z), damping(12, delta));
       if (transition === 1) {
         mode = 'seated'; display?.setActive(true); options.onStateChange?.('seated'); options.onScreenMode?.(true);
-        prompt({ text: 'Click the screen or press Enter · E to stand', target: selected.id });
+        prompt({ text: 'Use the screen or Enter to expand · E to stand', target: selected.id });
       }
     } else if (mode === 'standing' && selected) {
       transition = Math.min(1, transition + delta / 1.05); seatWeight = 1 - smootherStep(transition);
@@ -576,7 +583,7 @@ export async function createInteractionController(options: Options) {
     const deskContacts = selected?.workstation && deskStage  ? { hands: selected.workstation.wrists, feet: plantedFeet, handWeight, footWeight: 1, upright: seatWeight, stanceWeight, balanceLean, deskHeight: selected.workstation.deskHeight, deskFront: selected.workstation.deskFront, hipOffset: 0.125, feetYaw, grip: gripWeight > 0 ? { hand: entrySide < 0 ? 1 : 0, point: selected.workstation.grip(chairAngle, entrySide), forward: selected.workstation.forward.clone().applyAxisAngle(up, chairAngle), weight: gripWeight } : undefined } : undefined;
     avatar.update(delta, mode === 'explore' || mode === 'approach' ? actualSpeed : 0, seatWeight, selected?.height ?? 0.55, deskContacts,
       mode === 'explore' && !lift?.state.riding && verticalVelocity > -2 ? stairContact : undefined);
-    updateCamera(delta); display?.update();
+    updateCamera(delta);
     return true;
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
@@ -636,6 +643,7 @@ export async function createInteractionController(options: Options) {
       display?.setActive(value && (mode === 'explore' || (mode === 'seated' && !selected?.workstation)));
       if (value) canvas.focus({ preventScroll: true });
     },
+    updatePresentation() { return display?.update() ?? false; },
     setScreenAction(action: string) { display?.setAction(action); },
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);

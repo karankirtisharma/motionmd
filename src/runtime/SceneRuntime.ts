@@ -11,6 +11,7 @@ import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/ty
 import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
 import { repairArchitecturalJoins } from './rendering/architecturalJoins';
+import { relocateDoorwayPlanter } from './rendering/doorwayPlanter';
 import { repairExteriorWinding, repairExteriorOverlap, repairExteriorGroove } from './rendering/exteriorSurfaces';
 import { repairFounderExteriorWinding, installExteriorLighting } from './rendering/exteriorLighting';
 import { repairStudioThreshold } from './rendering/floorThreshold';
@@ -117,7 +118,7 @@ export class SceneRuntime {
         }));
       }
       const forceWebGL = this.inspectionEnabled && query.get('renderer') === 'webgl';
-      this.renderer = new WebGPURenderer({ antialias: false, alpha: false, samples: 0, reversedDepthBuffer: true, forceWebGL });
+      this.renderer = new WebGPURenderer({ antialias: false, alpha: true, samples: 0, reversedDepthBuffer: true, forceWebGL });
       this.renderer.toneMapping = AgXToneMapping;
       this.renderer.outputColorSpace = SRGBColorSpace;
       this.renderer.shadowMap.enabled = true;
@@ -161,6 +162,7 @@ export class SceneRuntime {
       repairExteriorGroove(this.content);
       repairFounderExteriorWinding(this.content);
       repairArchitecturalJoins(this.content);
+      relocateDoorwayPlanter(this.content);
       repairStudioThreshold(this.content);
       repairEntranceApron(this.content);
       // Source clips are available only after loading; apply their initial pose once.
@@ -358,6 +360,7 @@ export class SceneRuntime {
         characterAdvanced = this.controls?.update(dt) ?? false;
       }
     }
+    if (this.controls?.updatePresentation?.()) this.invalidate();
     // Idle breathing and seated motion still cast changing shadows. Frozen reference
     // views, menus and fades reuse the map until an explicit scene change below.
     if (characterAdvanced && this.lighting) this.lighting.sun.shadow.needsUpdate = true;
@@ -503,10 +506,10 @@ export class SceneRuntime {
     this.camera.fov = frame.fov; this.camera.updateProjectionMatrix();
     if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
   }
-  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk' | 'exterior-east' | 'exterior-west' | 'lounge-chair' | 'spiral-stair' | 'rounded-stair') {
+  inspectMovement(location: 'entrance' | 'studio' | 'founder-lift' | 'bridge' | 'gallery' | 'founder-room' | 'founder-balcony' | 'gallery-return' | 'founder-desk' | 'exterior-east' | 'exterior-west' | 'lounge-chair' | 'spiral-stair' | 'rounded-stair' | 'presentation-tv' | 'hall-doorway') {
     if (!this.inspectionEnabled || !this.controls || this.mode === 'loading' || this.mode === 'error' || this.sceneTransition) return;
-    const positions = { 'spiral-stair': [20.31, .7, -20.2], 'rounded-stair': [8.3, 3.675, -23], 'exterior-east': [23, -.01, -25], 'exterior-west': [-1.6, -.01, -28], 'lounge-chair': [11.9, 4.265, -3.8], entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.48], 'founder-desk': [14.8, 4.265, -6.1] };
-    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'rounded-stair' ? Math.PI / 2 : location === 'spiral-stair' ? Math.PI : location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
+    const positions = { 'hall-doorway': [19.9625, .03, -10.1], 'presentation-tv': [9.5, .03, -5.3], 'spiral-stair': [20.31, .7, -20.2], 'rounded-stair': [8.3, 3.675, -23], 'exterior-east': [23, -.01, -25], 'exterior-west': [-1.6, -.01, -28], 'lounge-chair': [11.9, 4.265, -3.8], entrance: [-8, -.355, -17.1], studio: [16.4, .03, -30.7], 'founder-lift': [13.35, .035, -3.35], bridge: [-1.3, 4.2, -17], gallery: [12, 3.675, -24.05], 'founder-room': [16, 4.23, -8.7], 'founder-balcony': [11, 4.23, -10.25], 'gallery-return': [8.14, 3.675, -24.48], 'founder-desk': [14.8, 4.265, -6.1] };
+    const spawn = { position: positions[location] as [number, number, number], yaw: location === 'presentation-tv' || location === 'hall-doorway' ? 0 : location === 'rounded-stair' ? Math.PI / 2 : location === 'spiral-stair' ? Math.PI : location === 'founder-lift' ? Math.PI : location === 'gallery-return' ? -Math.PI / 2 : location === 'gallery' || location === 'founder-room' || location === 'founder-balcony' ? 0 : -Math.PI / 2 };
     this.inspectionRoute=undefined; this.inspectionWalkTime = 0; this.referenceCamera = ''; this.setDiagnosticMode('full'); this.setCinematicPlaying(false);
     this.controls.exitExplore(); this.paused = false;
     this.camera.position.fromArray(spawn.position).add(new Vector3(-2.45, 1.85, 0));

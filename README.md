@@ -120,3 +120,8 @@ All 183 tests, the strict 12-route shoe-contact audit and the production build p
 Original character locomotion is restored while accepted chair/palm contacts are retained. Spawn/re-entry resets inherited movement before revealing the character. Strict per-tread shoe contact remains a known limitation of the original gait; do not treat the general test pass as a stair-contact pass.
 
 The source Screen1 folder and protected FINAL remain unchanged. See `qa/studio-integration-verification.md`, `qa/studio-deployment-ledger.md`, and `qa/original-animation-restore-2026-10-31.md` for measured payloads, tests, content limitations and review evidence. Vercel requires Git LFS enabled in Settings > Git followed by a new deployment. The review branch is not merged/deployed automatically.
+
+
+## Live presentation Studio — 2 November 2026
+
+The PL78 presentation TV now contains the working Studio page: browse, scroll, search and use its controls directly inside the display. Expand screen (or Enter while seated) enlarges the same page; Back to TV preserves its state. Return to room restores movement focus. The founder screen is unchanged. The presentation debug entry now starts outside the chair/table collision gap. See `qa/live-studio-tv-2026-11-02.md` for implementation, validation and limitations.

@@ -1,123 +1,117 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Scene, PerspectiveCamera, Mesh, PlaneGeometry, MeshBasicMaterial } from 'three';
+import { Scene, PerspectiveCamera, Mesh, PlaneGeometry, MeshBasicMaterial, NoBlending } from 'three';
 import { createPresentationScreen } from '../src/runtime/presentation/PresentationScreen.ts';
+import { screenHomography, mapScreenPoint } from '../src/runtime/presentation/projection.ts';
 
-function fixture(t) {
-  const savedDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
-  const savedImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
-  const images = [], draws = [], texts = [];
-  const context = { fillRect() {}, drawImage(...args) { draws.push(args); }, fillText(text, x, y) { texts.push({ text, x, y, align: this.textAlign }); }, createLinearGradient() { return { addColorStop() {} }; } };
-  const surface = { width: 0, height: 0, getContext: () => context };
-  class ImageFixture {
-    complete = false; naturalWidth = 0; naturalHeight = 0; requests = [];
-    constructor() { images.push(this); }
-    set src(value) { this.requests.push(value); }
-    removeAttribute(name) { if (name === 'src') this.removed = true; }
-    load() { this.complete = true; this.naturalWidth = 1600; this.naturalHeight = 900; this.onload?.(); }
+test('perspective mapping lands all four real screen corners and its interior correctly', () => {
+  for (const quad of [ [{x:20,y:40},{x:820,y:40},{x:820,y:440},{x:20,y:440}],
+    [{x:-100,y:120},{x:1100,y:20},{x:950,y:600},{x:40,y:500}] ]) {
+    const m = screenHomography(quad,1600,560);
+    for (const [i,[x,y]] of [[0,[0,0]],[1,[1600,0]],[2,[1600,560]],[3,[0,560]]]) {
+      const p=mapScreenPoint(m,x,y); assert.ok(Math.hypot(p.x-quad[i].x,p.y-quad[i].y)<1e-8);
+    }
+    assert.ok(Number.isFinite(mapScreenPoint(m,800,280).x));
   }
-  Object.defineProperty(globalThis, 'document', { configurable: true, value: { createElement(name) { assert.equal(name, 'canvas'); return surface; } } });
-  Object.defineProperty(globalThis, 'Image', { configurable: true, value: ImageFixture });
-  t.after(() => {
-    if (savedDocument) Object.defineProperty(globalThis, 'document', savedDocument); else delete globalThis.document;
-    if (savedImage) Object.defineProperty(globalThis, 'Image', savedImage); else delete globalThis.Image;
-  });
-  const canvas = new EventTarget(); canvas.style = {};
-  canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 });
-  const scene = new Scene(), original = new MeshBasicMaterial({ color: 0x987654 });
-  const mesh = new Mesh(new PlaneGeometry(4, 2), original);
-  mesh.name = 'PL78 | curved LED pixel surface'; scene.add(mesh);
-  const founderOriginal = new MeshBasicMaterial({ color: 0x334455 });
-  const founder = new Mesh(new PlaneGeometry(3, 2), founderOriginal);
-  founder.name = 'Founder | curved LED pixel surface'; founder.position.set(8, 0, 0);
-  scene.add(founder); scene.updateMatrixWorld(true);
-  const camera = new PerspectiveCamera(60, 800 / 600, .1, 100);
-  camera.position.set(0, 0, 5); camera.lookAt(0, 0, 0); camera.updateMatrixWorld(true);
-  const opens = [];
-  const display = createPresentationScreen({ scene, camera, canvas, objectName: mesh.name, onOpen: rect => opens.push(rect) });
-  const send = (type, x = 400, y = 300, extra = {}) => {
-    const event = new Event(type);
-    Object.assign(event, { button: 0, pointerId: 1, clientX: x, clientY: y, ...extra });
-    canvas.dispatchEvent(event);
+  assert.equal(screenHomography(Array(4).fill({x:0,y:0}),1600,560),null);
+});
+
+class Element extends EventTarget {
+  style={}; dataset={}; children=[]; attrs=new Map(); parentElement=null; hidden=false;
+  constructor(tag) { super(); this.tagName=tag; this.contentWindow={postMessage:(...args)=>this.messages.push(args)}; this.messages=[]; }
+  append(child){this.children.push(child);child.parentElement=this;}
+  prepend(child){this.children.unshift(child);child.parentElement=this;}
+  remove(){if(this.parentElement)this.parentElement.children=this.parentElement.children.filter(c=>c!==this);}
+  setAttribute(k,v){this.attrs.set(k,v);} removeAttribute(k){this.attrs.delete(k);}
+  contains(target){return this===target||this.children.some(c=>c.contains(target));}
+  focus(){this.focused=true;}
+  animate(){return {finished:Promise.resolve(),cancel(){}};}
+}
+function fixture(t) {
+  const saved={document:globalThis.document,window:globalThis.window,location:globalThis.location,innerWidth:globalThis.innerWidth,innerHeight:globalThis.innerHeight};
+  const doc=new Element('DOCUMENT'); doc.body=new Element('BODY');doc.hidden=false;doc.createElement=tag=>new Element(tag);
+  globalThis.document=doc;globalThis.window=new EventTarget();window.innerWidth=800;window.innerHeight=600;
+  globalThis.innerWidth=800;globalThis.innerHeight=600;globalThis.location={origin:'https://lounge.test'};
+  const viewport=new Element('DIV'),canvas=new Element('CANVAS');viewport.append(canvas);
+  const scene=new Scene(),original=new MeshBasicMaterial({color:0x987654}), mesh=new Mesh(new PlaneGeometry(4,2),original);
+  // Authored GLB uses top-left origin, like the actual browser viewport.
+  const uv=mesh.geometry.getAttribute('uv');for(let i=0;i<uv.count;i++)uv.setY(i,1-uv.getY(i));
+  mesh.name='PL78 | curved LED pixel surface';scene.add(mesh);
+  const founder=new Mesh(new PlaneGeometry(3,2),new MeshBasicMaterial());founder.name='Founder | curved LED pixel surface';scene.add(founder);
+  const founderOriginal=founder.material;scene.updateMatrixWorld(true);
+  const camera=new PerspectiveCamera(60,4/3,.1,100);camera.position.z=5;camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
+  const opens=[];let clear=true, inView=true;
+  const display=createPresentationScreen({scene,camera,canvas,objectName:mesh.name,onOpen:r=>opens.push(r),isUnobstructed:()=>clear,isInView:()=>inView});
+  const host=doc.body.children[0], frame=()=>host.children.find(c=>c.tagName==='iframe');
+  const message=(type,origin=location.origin,source=frame()?.contentWindow)=>{
+    const event=new Event('message');Object.assign(event,{origin,source,data:{type}});window.dispatchEvent(event);
   };
-  const click = (x = 400, y = 300) => { send('pointerdown', x, y); send('pointerup', x, y); };
-  t.after(() => { display.dispose(); mesh.geometry.dispose(); original.dispose(); founder.geometry.dispose(); founderOriginal.dispose(); });
-  return { display, mesh, original, founder, founderOriginal, canvas, surface, images, draws, texts, opens, click, send };
+  const move=(x=400,y=300)=>{const event=new Event('pointermove');Object.assign(event,{clientX:x,clientY:y,buttons:0});Object.defineProperty(event,'target',{value:canvas});window.dispatchEvent(event);};
+  t.after(()=>{display.dispose();mesh.geometry.dispose();original.dispose();founder.geometry.dispose();founder.material.dispose();Object.assign(globalThis,saved);});
+  return {display,host,frame,message,move,mesh,original,founder,founderOriginal,canvas,camera,opens,setClear:v=>{clear=v},setInView:v=>{inView=v}};
 }
 
-test('TV pointer hits use actual geometry, ignore misses and drags, and report a usable overlay rectangle', t => {
-  const {display,canvas,opens,click,send} = fixture(t);
-  click(); assert.equal(opens.length, 0, 'the poster is not interactive before sitting');
-  display.setActive(true);
-  send('pointermove'); assert.equal(canvas.style.cursor, 'pointer');
-  click(); assert.equal(opens.length, 1);
-  const rect = opens[0];
-  assert.ok(rect.width > 100 && rect.height > 100);
-  assert.ok(rect.x > 0 && rect.y > 0 && rect.x + rect.width < 800 && rect.y + rect.height < 600);
-  send('pointermove', 0, 0); assert.equal(canvas.style.cursor, 'default');
-  click(0,0); assert.equal(opens.length, 1, 'clicking away from the TV must not open it');
-  send('pointerdown'); send('pointermove', 430, 300); send('pointerup', 430, 300);
-  assert.equal(opens.length, 1, 'dragging is not a click');
-  send('pointerdown'); send('pointerup', 400, 300, {pointerId: 2});
-  assert.equal(opens.length, 1, 'another pointer cannot finish the click');
+test('live screen mounts only in view and retains one real browsing session across updates and focus',t=>{
+  const f=fixture(t);assert.equal(f.frame(),undefined);
+  f.display.update();const frame=f.frame();assert.ok(frame.src.startsWith('/studio?embed=lounge&display=tv'));
+  f.display.setActive(true);f.message('md-studio:ready');
+  for(let i=0;i<120;i++)f.display.update();assert.equal(f.frame(),frame);
+  assert.equal(f.host.children.filter(c=>c.tagName==='iframe').length,1);
+  assert.equal(f.founder.material,f.founderOriginal);
+  assert.equal(f.mesh.material.blending,NoBlending);assert.equal(f.mesh.material.depthTest,true);
+  assert.equal(f.mesh.material.depthWrite,true);
 });
 
-test('a drag that returns to its start and a cancelled pointer never activate the TV', t => {
-  const {display,opens,send} = fixture(t);
-  display.setActive(true);
-  send('pointerdown'); send('pointermove', 440, 300); send('pointermove'); send('pointerup');
-  assert.equal(opens.length, 0, 'pointer travel must be tracked even when its final coordinate matches the start');
-  send('pointerdown'); send('pointercancel'); send('pointerup');
-  assert.equal(opens.length, 0, 'a cancelled touch cannot leave an armed click behind');
+test('native screen input is enabled only over visible, unoccluded geometry',t=>{
+  const f=fixture(t);f.display.update();f.display.setActive(true);
+  f.move();assert.equal(f.canvas.style.pointerEvents,'none');
+  f.display.setActive(false);assert.equal(f.canvas.style.pointerEvents,'');
+  f.move();assert.equal(f.canvas.style.pointerEvents,'');
+  f.display.setActive(true);f.setClear(false);f.move();assert.equal(f.canvas.style.pointerEvents,'');
+  f.setClear(true);f.move(0,0);assert.equal(f.canvas.style.pointerEvents,'');
 });
 
-test('the presentation poster replaces earth immediately and persists across input state changes without extra uploads', t => {
-  const {display,mesh,original,images,draws,opens,click} = fixture(t);
-  const posterMaterial = mesh.material;
-  assert.notEqual(posterMaterial, original, 'the presentation TV must show the portal before anyone sits');
-  assert.deepEqual(images[0].requests, ['/studio/media/presentation/aurelle-studio.webp']);
-  images[0].load(); assert.equal(draws.length, 1);
-  const version = display.texture.version;
-  for (let i=0;i<120;i++) display.update();
-  assert.equal(display.texture.version, version, 'the still poster must not upload a texture every frame');
-  display.setActive(false);
-  assert.equal(mesh.material, posterMaterial);
-  click(); display.setAction('studio'); assert.equal(opens.length, 0, 'covered/paused input is disabled');
-  display.setActive(true); display.setAction('studio'); assert.equal(opens.length, 1);
-  display.setActive(false);
-  assert.equal(mesh.material, posterMaterial, 'standing or replaying the tour must not bring the earth back');
-  display.setActive(true);
-  assert.equal(mesh.material, posterMaterial); assert.equal(images[0].requests.length, 1);
+test('offscreen studio suspends media, refuses hidden expansion, and resumes without reloading',t=>{
+  const f=fixture(t);f.display.update();f.display.setActive(true);f.message('md-studio:ready');
+  const frame=f.frame();f.camera.lookAt(0,0,10);f.display.update();
+  assert.equal(f.host.style.visibility,'hidden');
+  assert.equal(frame.messages.at(-1)[0].type,'md-studio:suspend');
+  f.display.setAction('studio');assert.equal(f.opens.length,0);
+  f.camera.lookAt(0,0,0);f.display.update();assert.equal(f.frame(),frame);
+  assert.equal(frame.messages.at(-1)[0].type,'md-studio:resume');
 });
 
-test('only the named presentation TV changes; the similar-named founder screen keeps its authored material', t => {
-  const {display,mesh,founder,founderOriginal} = fixture(t);
-  assert.deepEqual(display.meshes, [mesh], 'a generic curved-LED name match would also replace the founder screen');
-  assert.equal(founder.material, founderOriginal);
-  display.setActive(true); assert.equal(founder.material, founderOriginal);
-  display.setActive(false); assert.equal(founder.material, founderOriginal);
-  display.dispose(); assert.equal(founder.material, founderOriginal);
+test('expansion accepts only this iframe and this origin; it never creates a second session',async t=>{
+  const f=fixture(t);f.display.update();f.display.setActive(true);
+  f.message('md-studio:expand','https://other.test');f.message('md-studio:expand',location.origin,{});assert.equal(f.opens.length,0);
+  f.message('md-studio:expand');assert.equal(f.opens.length,1);assert.ok(f.opens[0].width>100);
+  const frame=f.frame();window.dispatchEvent(new CustomEvent('md-studio:layout',{detail:{open:true,reducedMotion:true}}));await Promise.resolve();
+  assert.equal(f.frame(),frame);assert.equal(f.host.attrs.get('aria-modal'),'true');
+  window.dispatchEvent(new CustomEvent('md-studio:layout',{detail:{open:false,reducedMotion:true}}));await Promise.resolve();
+  assert.equal(f.frame(),frame);assert.equal(f.host.style.zIndex,'0');
 });
 
-test('AURELLE preview fills the TV without the old click-to-open text overlay', t => {
-  const {texts,surface,images,draws} = fixture(t);
-  assert.ok(texts.some(item => item.text === 'AURELLE Launch Film'), 'legible fallback before image decode');
-  assert.ok(!texts.some(item => item.text === 'Click to open'));
-  images[0].load();
-  assert.deepEqual(draws.at(-1).slice(1), [0, 0, surface.width, surface.height]);
+test('disposal restores authored materials and releases DOM, timers and pointer routing exactly once',t=>{
+  const f=fixture(t);f.display.update();f.display.setActive(true);let disposals=0;
+  f.mesh.material.addEventListener('dispose',()=>disposals++);f.display.dispose();f.display.dispose();
+  assert.equal(disposals,1);assert.equal(f.mesh.material,f.original);assert.equal(document.body.children.length,0);
+  f.move();f.message('md-studio:expand');assert.equal(f.opens.length,0);assert.equal(f.canvas.style.pointerEvents,'');
 });
 
-test('TV disposal restores materials, releases its texture/material and detaches input and image callbacks', t => {
-  const {display,mesh,original,canvas,images,opens,click,send} = fixture(t);
-  display.setActive(true);
-  let textureDisposals = 0, materialDisposals = 0;
-  display.texture.addEventListener('dispose', () => textureDisposals++);
-  mesh.material.addEventListener('dispose', () => materialDisposals++);
-  display.dispose();
-  assert.equal(mesh.material, original);
-  assert.equal(textureDisposals, 1); assert.equal(materialDisposals, 1);
-  assert.equal(images[0].onload, null); assert.equal(images[0].onerror, null); assert.equal(images[0].removed, true);
-  canvas.style.cursor = 'sentinel';
-  click(); send('pointermove'); display.setAction('studio');
-  assert.equal(opens.length, 0); assert.equal(canvas.style.cursor, 'sentinel');
+
+test('a screen behind a room wall does not load the studio until the sightline clears',t=>{
+  const f=fixture(t);f.setInView(false);f.display.update();
+  assert.equal(f.frame(),undefined);assert.equal(f.host.style.visibility,'hidden');
+  f.setInView(true);f.camera.position.x=.1;f.display.update();
+  assert.ok(f.frame());assert.equal(f.host.style.visibility,'visible');
+});
+
+test('keyboard activation remains usable independently of pointer occlusion',t=>{
+  const f=fixture(t);f.display.update();f.display.setActive(true);
+  const frame=f.frame();frame.contentDocument=new EventTarget();frame.dispatchEvent(new Event('load'));
+  f.setClear(false);
+  const keyboard=new Event('click',{cancelable:true});Object.assign(keyboard,{detail:0,clientX:0,clientY:0});
+  frame.contentDocument.dispatchEvent(keyboard);assert.equal(keyboard.defaultPrevented,false);
+  const mouse=new Event('click',{cancelable:true});Object.assign(mouse,{detail:1,clientX:0,clientY:0});
+  frame.contentDocument.dispatchEvent(mouse);assert.equal(mouse.defaultPrevented,true);
 });

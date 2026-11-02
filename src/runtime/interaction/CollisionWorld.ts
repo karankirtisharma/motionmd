@@ -3,6 +3,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { repairArchitecturalJoins } from '../rendering/architecturalJoins.ts';
+import { relocateDoorwayPlanter } from '../rendering/doorwayPlanter.ts';
 import { repairStudioThreshold } from '../rendering/floorThreshold.ts';
 import { repairEntranceApron } from '../rendering/entranceApron.ts';
 import { chairCollision } from './chairCollision.ts';
@@ -62,6 +63,7 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   root.updateMatrixWorld(true);
   // Apply the same measured finish repairs to visible and collision geometry.
   repairArchitecturalJoins(root);
+  relocateDoorwayPlanter(root);
   repairStudioThreshold(root);
   repairEntranceApron(root);
   const point = new THREE.Vector3();

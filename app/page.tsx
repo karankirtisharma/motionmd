@@ -169,7 +169,7 @@ function LoungeHome() {
     /></div>
     <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
     {debug && <aside hidden={studioOpen} aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
-      <div>Render diagnostics</div>
+      <div>Render diagnostics <button type="button" onClick={() => setDebug(false)} style={{ float: "right" }}>Hide diagnostics</button></div>
       {profiling && <details><summary>Performance capture</summary>
         <button onClick={() => changeQuality("high")}>Lock full quality</button>
         <button onClick={() => runtime.current?.startProfile(referenceCamera || mode)}>Capture 15 seconds</button>
@@ -200,7 +200,7 @@ function LoungeHome() {
         </select>
       </label>
       {diagnosticMode === 'baked' && <div style={{ maxWidth: 290 }}>No live sun or specular. Glass stays intact.</div>}
-      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk', 'exterior-east', 'exterior-west', 'lounge-chair', 'spiral-stair', 'rounded-stair'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
+      {!!referenceCameras.length && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8, maxWidth: 420 }}>{(['entrance', 'studio', 'founder-lift', 'bridge', 'gallery', 'founder-room', 'founder-balcony', 'gallery-return', 'founder-desk', 'exterior-east', 'exterior-west', 'lounge-chair', 'spiral-stair', 'rounded-stair', 'presentation-tv', 'hall-doorway'] as const).map(location => <button type="button" key={location} onClick={() => { dismissWelcome(); resume(); setDiagnosticMode('full'); runtime.current?.inspectMovement(location); }}>Test {location} movement</button>)}</div>}
       {debug && mode === 'explore' && <details><summary>Character inspection</summary>
         <div><label><input type="checkbox" checked={routeReverse} onChange={e=>setRouteReverse(e.target.checked)}/>Descending route</label><label><input type="checkbox" checked={routeSprint} onChange={e=>setRouteSprint(e.target.checked)}/>Running route</label>{(['spiral','rounded','entrance'] as const).map(kind=><button key={kind} onClick={()=>runtime.current?.inspectStairRoute(kind,routeReverse,routeSprint)}>Prepare {kind} route</button>)}<button onClick={()=>runtime.current?.playInspectionRoute()}>Play prepared route</button></div>
         <button onClick={()=>runtime.current?.inspectStepMotion()}>Walk +0.1 s / freeze</button><button onClick={()=>runtime.current?.inspectStepMotion(true)}>Run +0.1 s / freeze</button>
