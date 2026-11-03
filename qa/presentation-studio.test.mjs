@@ -234,7 +234,7 @@ test('overflow resync preserves guarded source offsets after returning to the sa
   root.append(...added);
   observer.callback(added.map(node => ({ type: 'childList', target: root, addedNodes: [node], removedNodes: [], nextSibling: null })));
   f.camera.lookAt(0, 0, 0); f.display.update();
-  const offset = index => `${16 - index * 1600 / view.children.length}px`;
+  const offset = index => `${1 - index * 1600 / view.children.length}px`;
   await until(() => view.children.every((slice, index) => slice.shadowRoot.children[0] !== before[index] && slice.shadowRoot.children[0].style.left === offset(index)),
     'all resynced roots must recover the constant guard without requiring another camera movement');
   for (const [index, slice] of view.children.entries()) {
@@ -415,4 +415,25 @@ test('camera occlusion and pointer cancellation retract proxy without stale list
   const f = inputFixture(t); f.move(); f.setClear(false); f.input.updateCamera(); assert.equal(f.host.style.pointerEvents, 'none');
   f.setClear(true); f.move(); f.childEvent('pointerdown', { buttons: 1 }); f.childEvent('pointercancel'); assert.equal(f.host.style.pointerEvents, 'none');
   f.input.dispose(); f.host.style.transform = 'owner-restored'; f.move(); f.childEvent('pointermove'); assert.equal(f.host.style.transform, 'owner-restored');
+});
+
+test('the curved-TV backdrop fallback stays in shadow copies and preserves source glass and regular filters', async t => {
+  const env = globals(t), sourceDocument = new FakeDocument();
+  const root = sourceDocument.createElement('main'); root.setAttribute('id', 'md-studio-root'); sourceDocument.body.append(root);
+  const declarations = 'backdrop-filter:blur(2px);filter:blur(1px);background-image:url(/glass.webp);';
+  const originalRule = { type: 1, selectorText: '#md-studio-root .glass__edge', style: { cssText: declarations }, cssRules: [], cssText: `#md-studio-root .glass__edge{${declarations}}` };
+  sourceDocument.styleSheets.push({ href: null, cssRules: [originalRule] });
+  const parent = env.document.createElement('div'); env.document.body.append(parent);
+  const visual = createCurvedStudioView({ parent, document: sourceDocument, width: 1600, height: 558 });
+  t.after(() => { visual.dispose(); env.restore(); });
+  const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  visual.update([{ matrix, visible: true, left: 0, width: 100 }]); await visual.ready;
+  const slice = findData(parent, 'curvedStudioView').children[0];
+  const css = slice.shadowRoot.adoptedStyleSheets[0].css;
+  assert.match(css, /\*\{[^}]*backdrop-filter:none!important;[^}]*-webkit-backdrop-filter:none!important/);
+  assert.match(css, /filter:blur\(1px\)/, 'regular glass glow filters survive');
+  assert.match(css, /background-image:url\("https:\/\/lounge.test\/glass.webp"\)/, 'painted glass assets survive');
+  assert.equal(originalRule.style.cssText, declarations, 'the native iframe stylesheet must remain unchanged');
+  assert.equal(sourceDocument.head.children.length, 0, 'no fallback stylesheet is injected into the source document');
+  assert.ok(env.document.head.children.every(node => !node.textContent.includes('backdrop-filter:none')), 'fallback cannot leak into the parent UI');
 });

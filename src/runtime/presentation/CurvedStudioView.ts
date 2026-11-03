@@ -1,6 +1,7 @@
 import { curvedSliceClip } from './sliceClip.ts';
 import { serializeStudioCSS } from './studioCss.ts';
 import { createStudioAnimationMirror } from './animationMirror.ts';
+import { isMotionPopRule, motionPopStyles } from './motionStyles.ts';
 
 export type StudioSurfacePatch = { matrix: number[] | null; visible: boolean; left: number; width: number };
 type Options = { parent: HTMLElement; document: Document; width: number; height: number; onReady?: () => void };
@@ -21,9 +22,20 @@ export function createCurvedStudioView(options: Options) {
       matches:query=>sourceWindow!.matchMedia(query).matches,fonts:fontRules});
   }
   let css='';
-  for (const sheet of Array.from(sourceDocument.styleSheets)) { try { css+=cssRules(sheet.cssRules,sheet.href||sourceDocument.baseURI)+'\n'; } catch { /* same-origin Studio sheets are readable */ } }
-  css+='\n:host{display:block;contain:paint;pointer-events:none}*{will-change:auto!important}[data-tv-slice-culled]{display:none!important}.stage{position:absolute!important;inset:0!important}';
+  for (const sheet of Array.from(sourceDocument.styleSheets)) { try { css+=cssRules(Array.from(sheet.cssRules).filter(rule=>!isMotionPopRule(rule)) as unknown as CSSRuleList,sheet.href||sourceDocument.baseURI)+'\n'; } catch { /* same-origin Studio sheets are readable */ } }
+  // Backdrop sampling under independently projected fragments intermittently
+  // loses image regions in Chromium while the camera moves. Only these inert
+  // TV copies use the stable painted-glass path: keep poster images, rendered
+  // gold frames, gradients, regular filters, glints and specular highlights.
+  // The single native iframe (including fullscreen) retains its original glass.
+  css+='\n:host{display:block;contain:paint;pointer-events:none}*{will-change:auto!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}[data-tv-slice-culled]{display:none!important}.stage{position:absolute!important;inset:0!important}';
   const sheet = new CSSStyleSheet();sheet.replaceSync(css);
+  const motionSheet = new CSSStyleSheet();let motionCSS='';
+  function syncMotionStyles() {
+    const next=motionPopStyles(sourceDocument);
+    if(next!==motionCSS){motionCSS=next;motionSheet.replaceSync(next);}
+  }
+  syncMotionStyles();
   const fonts=owner.createElement('style');fonts.dataset.curvedStudioFonts='';fonts.textContent=fontRules.join('\n');owner.head.append(fonts);
   const copies = new WeakMap<Node,Node[]>();
   const previousStates=new Map<string,Set<Element>>();
@@ -76,7 +88,7 @@ export function createCurvedStudioView(options: Options) {
       // The source stage is already opaque. A second host background bleeds
       // through independently antialiased fragment edges as dark vertical seams.
       Object.assign(host.style,{position:'absolute',left:'0',top:'0',width:`${patch.width+.02}px`,height:`${options.height}px`,overflow:'hidden',transformOrigin:'0 0',pointerEvents:'none'});
-      const shadow=host.attachShadow({mode:'open'});shadow.adoptedStyleSheets=[sheet];
+      const shadow=host.attachShadow({mode:'open'});shadow.adoptedStyleSheets=[sheet,motionSheet];
       const root=source!.cloneNode(true) as HTMLElement;bind(source!,root,i);rootStyle(root,patch.left);
       root.inert=true;root.setAttribute('aria-hidden','true');shadow.append(root);view.append(host);
       const slice={host,root,left:patch.left,width:patch.width,transform:''};slices.push(slice);applyPatch(slice,patch);
@@ -90,6 +102,7 @@ export function createCurvedStudioView(options: Options) {
     queued=[];attributeChanges.clear();textChanges.clear();
     if(changes.some(change=>change.type==='childList'))structureDirty=true;
     const boxes=measure(); // Read all source boxes before writing any visual fragment.
+    syncMotionStyles();
     for(const change of changes) for(let i=0;i<slices.length;i++) {
       const copy=copies.get(change.target)?.[i];if(!copy)continue;
       if(change.type==='attributes') {
@@ -127,6 +140,10 @@ export function createCurvedStudioView(options: Options) {
     schedule();
   });
   observer.observe(source,{subtree:true,attributes:true,characterData:true,childList:true});
+  // PopChild appends/removes an anonymous stylesheet and inserts its rule with
+  // CSSOM. Read it at the next frame, after Motion's positioning microtask.
+  const styleObserver=new sourceWindow.MutationObserver(()=>schedule());
+  styleObserver.observe(sourceDocument.head,{subtree:true,childList:true,characterData:true});
   function mirrorStates() {
     if(!visible||disposed)return;
     let changed=false;
@@ -178,7 +195,7 @@ export function createCurvedStudioView(options: Options) {
       if(next)schedule();
     },
     dispose() {
-      if(disposed)return;disposed=true;resolveReady();observer.disconnect();animations.dispose();cancelAnimationFrame(frame);clearTimeout(buildTimer);
+      if(disposed)return;disposed=true;resolveReady();observer.disconnect();styleObserver.disconnect();animations.dispose();cancelAnimationFrame(frame);clearTimeout(buildTimer);
       for(const name of ['pointerover','pointerout','pointerdown','pointerup','focusin','focusout'])sourceDocument.removeEventListener(name,mirrorStates,true);
       for(const name of ['input','change','scroll'])sourceDocument.removeEventListener(name,formState,true);
       queued=[];attributeChanges.clear();textChanges.clear();candidates=[];slices.length=0;previousStates.clear();view.remove();fonts.remove();

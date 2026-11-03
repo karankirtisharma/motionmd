@@ -41,7 +41,7 @@ test('camera motion and viewport changes keep the slice raster width and source 
     transforms.add(clipped.matrix.join(','));
   }
   assert.ok(transforms.size >= 12, 'exercise all twelve camera/viewport combinations; depth conventions may share the same 2D projection');
-  assert.deepEqual([...layouts], ['82|-634'], 'fixed 16px guard must not trigger camera-dependent width/left layouts');
+  assert.deepEqual([...layouts], ['52|-649'], 'fixed 1px guard must not trigger camera-dependent width/left layouts');
 });
 
 test('guard origin shift preserves every sampled source UV under perspective, without mutating the camera matrix', () => {

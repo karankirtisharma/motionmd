@@ -4,6 +4,7 @@ import { Vector3, PerspectiveCamera, WebGLCoordinateSystem, WebGPUCoordinateSyst
 import { geometryFixture } from './helpers/geometry-fixture.mjs';
 import { sampleScreenSurface, curvedScreenPatches } from '../src/runtime/presentation/curvedSurface.ts';
 import { projectScreenPlane, mapScreenPoint } from '../src/runtime/presentation/projection.ts';
+import { curvedSliceClip } from '../src/runtime/presentation/sliceClip.ts';
 
 test('16- and 32-fragment curved TVs retain authored geometry and registration at identical close camera poses', async t => {
   const { root } = await geometryFixture('/assets/architecture-v16/lounge.glb'), meshes = [];
@@ -47,4 +48,32 @@ test('16- and 32-fragment curved TVs retain authored geometry and registration a
     t.diagnostic(JSON.stringify({ fragments: count, maximumFacetErrorMm: maxFacetError * 1000, boundaryChecks: checks }));
   }
   meshes.forEach((mesh, index) => assert.deepEqual(Array.from(mesh.geometry.attributes.position.array), arrays[index]));
+});
+
+test('the antialias guard cannot create a second displaced card edge at close curved-TV poses', async () => {
+  const { root } = await geometryFixture('/assets/architecture-v16/lounge.glb'), meshes = [];
+  root.traverse(object => { if (object.isMesh && (object.userData.sourceName ?? object.name) === 'PL78 | curved LED pixel surface') meshes.push(object); });
+  const patches = curvedScreenPatches(meshes, new Vector3(0, 0, 1), 16);
+  const poses = [
+    [[11.6, 1.8, -9.8], [11.6, 2.8, -10.33]],
+    [[14, 1.8, -9.1], [10.8, 1.9, -10.2]],
+    [[11.6, 1.8, -5], [11.6, 1.95, -10.33]],
+  ];
+  let samples = 0, previousGuardError = 0;
+  for (const [position, target] of poses) {
+    const camera = new PerspectiveCamera(65, 16 / 9, .05, 100);
+    camera.position.fromArray(position); camera.lookAt(...target); camera.updateMatrixWorld(true);
+    const projected = patches.map(patch => projectScreenPlane(patch.corners, camera, 1920, 1080, 100, 558));
+    const overlap = curvedSliceClip(projected[0].matrix, 100, 558).overlap;
+    for (const guard of [overlap, 16]) for (let i = 1; i < patches.length; i++) for (const dx of [-guard, guard]) for (const y of [0, 139.5, 279, 418.5, 558]) {
+      const a = mapScreenPoint(projected[i - 1].matrix, 100 + dx, y);
+      const b = mapScreenPoint(projected[i].matrix, dx, y);
+      if (![a, b].every(point => point.x >= 0 && point.x <= 1920 && point.y >= 0 && point.y <= 1080)) continue;
+      const error = Math.hypot(a.x - b.x, a.y - b.y);
+      if (guard === overlap) { assert.ok(error < .25, `guard projects duplicated UV ${error}px apart`); samples++; }
+      else previousGuardError = Math.max(previousGuardError, error);
+    }
+  }
+  assert.ok(samples > 200, 'exercise visible boundaries across close, pitched and ordinary room views');
+  assert.ok(previousGuardError > 3, 'the test must detect the previous oversized guard discontinuity');
 });

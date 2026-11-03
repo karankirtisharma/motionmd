@@ -55,8 +55,9 @@
    screenshot layout, keeping the live controls and card labels readable. */
 @media (min-aspect-ratio: 5/2) {
   #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) { --u: min(100vw / 2000, 100dvh / 1000); }
-  /* Use the former wordmark space between the two navigation groups. */
-  #md-studio-root[data-tv] .title-band { top: 24px; left: calc(50% - 250px); right: auto; width: 500px; padding: 0; }
+  /* Reserve a 32px optical safe area for the physical bezel. Move the header
+     and footer themselves; keep the large browsing cards and their hit areas. */
+  #md-studio-root[data-tv] .title-band { top: 36px; left: calc(50% - 250px); right: auto; width: 500px; padding: 0; }
   #md-studio-root[data-tv] .title-band__title { font-size: clamp(28px, 2.25vw, 36px); }
   #md-studio-root[data-tv] .title-band__meta { margin-top: 8px; font-size: 12px; flex-wrap: wrap; row-gap: 4px; }
   /* Size only the browsing cards: shared chrome and expanded film layouts retain
@@ -65,11 +66,11 @@
   #md-studio-root[data-tv] .card-row[data-view="browse"] .card { top: calc(126px + (var(--y) - 340.5) * var(--u)); }
   #md-studio-root[data-tv] .card__label { font-size: 16px; }
   #md-studio-root[data-tv] .hint { font-size: 15px; top: auto; bottom: 38px; }
-  #md-studio-root[data-tv] .chrome[data-view="browse"] .hint { bottom: 16px; }
-  #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) .studio-screen-controls { bottom: 14px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .hint { bottom: 32px; }
+  #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) .studio-screen-controls { bottom: 32px; }
   #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) .studio-screen-controls button { min-height: 44px; padding: 7px 18px; font-size: 18px; }
   /* Keep the map below neighbours even when the first or last film is focused. */
-  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap { left: auto; top: auto; right: 48px; bottom: 14px; width: 112px; height: 100px; }
-  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__grid { left: 16px; right: 16px; top: 10px; height: 62px; }
-  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__label { top: 80px; font-size: 12px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap { left: auto; top: auto; right: 48px; bottom: 32px; width: 112px; height: 88px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__grid { left: 16px; right: 16px; top: 10px; height: 50px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__label { top: 68px; font-size: 12px; }
 }
