@@ -16,12 +16,12 @@ function fixture() {
   return { scene, parent, camera, targets };
 }
 
-test('opening warmup selects only the twenty-one measured object/material pairs and preserves hierarchy, state and actual render context', async () => {
+test('opening warmup selects only the twenty-two measured object/material pairs and preserves hierarchy, state and actual render context', async () => {
   const { scene, parent, camera, targets } = fixture();
   const wrongMaterial = targets[0].clone(); wrongMaterial.material = new MeshBasicMaterial({ name: 'Unrelated gold' }); parent.add(wrongMaterial);
   const wrongObject = targets[1].clone(); wrongObject.name += ' Unmeasured object'; parent.add(wrongObject);
   const hidden = new Group(); hidden.visible = false; hidden.add(targets[2].clone()); scene.add(hidden);
-  assert.equal(OPENING_TOUR_SHADERS.length, 21); assert.deepEqual(openingTourShaderMeshes(scene), targets);
+  assert.equal(OPENING_TOUR_SHADERS.length, 22); assert.deepEqual(openingTourShaderMeshes(scene), targets);
   const states = targets.map(mesh => ({ parent: mesh.parent, culled: mesh.frustumCulled, visible: mesh.visible, geometry: mesh.geometry, material: mesh.material, world: mesh.matrixWorld.clone() }));
   const calls = [], progress = [];
   const renderer = { target: { name: 'actual HDR and velocity' }, mrt: {}, async compileAsync(mesh, view, targetScene) {
@@ -30,9 +30,9 @@ test('opening warmup selects only the twenty-one measured object/material pairs 
     calls.push(mesh);
   } };
   const target = renderer.target, mrt = renderer.mrt;
-  assert.equal(await warmOpeningTourShaders(renderer, scene, camera, undefined, (...p) => progress.push(p)), 21);
+  assert.equal(await warmOpeningTourShaders(renderer, scene, camera, undefined, (...p) => progress.push(p)), 22);
   assert.deepEqual(calls, targets); assert.equal(renderer.target, target); assert.equal(renderer.mrt, mrt);
-  assert.deepEqual(progress[0], [0, 21]); assert.deepEqual(progress.at(-1), [21, 21]);
+  assert.deepEqual(progress[0], [0, 22]); assert.deepEqual(progress.at(-1), [22, 22]);
   targets.forEach((mesh, i) => {
     const state = states[i];
     for (const key of ['parent', 'visible', 'geometry', 'material']) assert.equal(mesh[key], state[key]);
@@ -80,8 +80,8 @@ test('mirror warmup uses the actual reflection camera, MSAA target and no MRT; r
       }
     };
     if (failed) await assert.rejects(mirror.warmup(renderer, scene, view), /test compile failed/);
-    else assert.equal(await mirror.warmup(renderer, scene, view), 21);
-    assert.equal(calls, failed ? 1 : 21); assert.equal(pane.visible, true);
+    else assert.equal(await mirror.warmup(renderer, scene, view), 22);
+    assert.equal(calls, failed ? 1 : 22); assert.equal(pane.visible, true);
     assert.equal(target, initialTarget); assert.equal(mrt, initialMRT); assert.equal(renderer.autoClear, false);
     assert.equal(targets[0].frustumCulled, true); mirror.dispose();
   }

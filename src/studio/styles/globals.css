@@ -47,18 +47,29 @@
 #md-studio-root[data-tv] .rail-toggle { left: 48px; top: 30px; width: 232px; height: 64px; font-size: 18px; }
 #md-studio-root[data-tv] .topbar-work { left: 296px; top: 30px; width: 176px; height: 64px; font-size: 20px; }
 #md-studio-root[data-tv] .icon-btn svg { width: 25px; height: 25px; }
+/* The room already carries the brand. Expansion removes data-tv and restores it. */
+#md-studio-root[data-tv] .wordmark { display: none; }
 
 
 /* The architectural TV is almost 3:1: use its height instead of a 16:9
    screenshot layout, keeping the live controls and card labels readable. */
 @media (min-aspect-ratio: 5/2) {
   #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) { --u: min(100vw / 2000, 100dvh / 1000); }
-  /* Keep the wordmark clear of the physical curved screen bezel. */
-  #md-studio-root[data-tv] .wordmark { top: 44px; font-size: 22px; }
-  #md-studio-root[data-tv] .title-band { top: 17.5%; }
-  #md-studio-root[data-tv] .title-band__title { font-size: clamp(28px, 2.5vw, 40px); }
-  #md-studio-root[data-tv] .title-band__meta { margin-top: 8px; font-size: 12px; }
-  #md-studio-root[data-tv] .card-row[data-view="browse"] { translate: 0 40px; }
+  /* Use the former wordmark space between the two navigation groups. */
+  #md-studio-root[data-tv] .title-band { top: 24px; left: calc(50% - 250px); right: auto; width: 500px; padding: 0; }
+  #md-studio-root[data-tv] .title-band__title { font-size: clamp(28px, 2.25vw, 36px); }
+  #md-studio-root[data-tv] .title-band__meta { margin-top: 8px; font-size: 12px; flex-wrap: wrap; row-gap: 4px; }
+  /* Size only the browsing cards: shared chrome and expanded film layouts retain
+     their existing design scale. At 1600x558 the active card is 280x360px. */
+  #md-studio-root[data-tv] .card-row[data-view="browse"] { --u: min(100vw / 2000, (100dvh - 198px) / 475); translate: none; }
+  #md-studio-root[data-tv] .card-row[data-view="browse"] .card { top: calc(126px + (var(--y) - 340.5) * var(--u)); }
   #md-studio-root[data-tv] .card__label { font-size: 16px; }
   #md-studio-root[data-tv] .hint { font-size: 15px; top: auto; bottom: 38px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .hint { bottom: 16px; }
+  #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) .studio-screen-controls { bottom: 14px; }
+  #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) .studio-screen-controls button { min-height: 44px; padding: 7px 18px; font-size: 18px; }
+  /* Keep the map below neighbours even when the first or last film is focused. */
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap { left: auto; top: auto; right: 48px; bottom: 14px; width: 112px; height: 100px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__grid { left: 16px; right: 16px; top: 10px; height: 62px; }
+  #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__label { top: 80px; font-size: 12px; }
 }

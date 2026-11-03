@@ -610,7 +610,7 @@ export async function createInteractionController(options: Options) {
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
   function exitExplore() {
-    physics.setDeskClearance(false); enabled = false; releaseCursor(); avatar.root.visible = false; lift?.reset();
+    physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
     avatar.setBodyView(false);
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
   }

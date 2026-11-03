@@ -1,6 +1,6 @@
 # Integrated performance, loading and live TV verification — 3 November 2026
 
-Working copy: `D:\Motion Design MD BACKUP 26-10-2026`. The original FINAL workspace, Blender sources, character rig/clips, source geometry and source image files were not edited. No GitHub push or deployment was performed. Local production preview: http://127.0.0.1:3001/.
+Working copy: `D:\Motion Design MD BACKUP 26-10-2026`. The original FINAL workspace, Blender sources, character rig/clips, source geometry and source image files were not edited. The initial checkpoint was pushed to GitHub as e646989. The curved-TV follow-up is recorded separately in qa/curved-tv-2026-11-03.md; the current publication commit is reported in chat. Local production preview: http://127.0.0.1:3001/.
 
 ## Implemented causes and fixes
 
@@ -48,4 +48,4 @@ Evidence is in `C:\Users\karan_z7alww2\.codex\visualizations\2026\10\17\01a14a42
 
 ## Limits and remaining bottlenecks
 
-The full lounge is still a large ~608 MiB initial transfer and ~2.5 GiB tracked GPU allocation. GPU preparation and high-detail reflection/render submissions remain significant. This pass does not claim every navigation path is hitch-free or that low-memory hardware can run full quality. Physical low-end Android/iOS hardware and real mobile networks were not available; viewport/Android-routing checks are emulation. Future room streaming/texture residency changes require a separate visual/collision/reflection parity pass rather than silently removing required assets. Basis decoder initialization keeps the pinned Three loader; retries restart failed files rather than range-resuming. The TV is a live planar DOM projection registered to the curved screen, not a new curved web renderer.
+The full lounge is still a large ~608 MiB initial transfer and ~2.5 GiB tracked GPU allocation. GPU preparation and high-detail reflection/render submissions remain significant. This pass does not claim every navigation path is hitch-free or that low-memory hardware can run full quality. Physical low-end Android/iOS hardware and real mobile networks were not available; viewport/Android-routing checks are emulation. Future room streaming/texture residency changes require a separate visual/collision/reflection parity pass rather than silently removing required assets. Basis decoder initialization keeps the pinned Three loader; retries restart failed files rather than range-resuming. The initial checkpoint used a planar DOM projection. That limitation is superseded by the measured curved-TV follow-up in qa/curved-tv-2026-11-03.md.

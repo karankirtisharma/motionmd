@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { createLiveStudioSurface } from './LiveStudioSurface.ts';
 import { projectScreenPlane } from './projection.ts';
+import { curvedScreenPatches, sampleScreenSurface } from './curvedSurface.ts';
+import type { StudioSurfacePatch } from './CurvedStudioView.ts';
 
 export type ScreenBounds = { x: number; y: number; width: number; height: number };
 type Options = {
@@ -11,7 +13,8 @@ type Options = {
 };
 
 /** Read the four authored display UV corners, not the frame's world bounding box.
- * The curved display is the depth mask; its chord registers the browser surface. */
+ * The authored surface remains curved; these boundary corners are only used for
+ * the deliberate expand-to-fullscreen transition, never for its in-world UI. */
 function screenPoints(meshes: THREE.Mesh[], targets: number[][]): THREE.Vector3[] {
   return targets.map(([u, v]) => {
     const point = new THREE.Vector3(); let nearest = Infinity;
@@ -54,9 +57,10 @@ export function createPresentationScreen(options: Options) {
   corners.forEach(point => center.addScaledVector(point, .25));
   const normal = new THREE.Vector3().subVectors(corners[1], corners[0])
     .cross(new THREE.Vector3().subVectors(corners[3], corners[0])).negate().normalize();
-  // Sample the actual curved surface. Chord samples can sit behind its collider,
-  // falsely declaring the whole live panel hidden from close/side viewpoints.
-  const visibilitySamples = screenPoints(meshes, [[.5,.5],[.1,.1],[.9,.1],[.1,.9],[.9,.9],[.1,.5],[.9,.5]]);
+  center.copy(sampleScreenSurface(meshes,.5,.5,normal));
+  const worldPatches=curvedScreenPatches(meshes,normal,16);
+  const visualPatches:StudioSurfacePatch[]=worldPatches.map(patch=>({matrix:null,visible:false,left:patch.u*1600,width:patch.width*1600}));
+  const visibilitySamples = [[.5,.5],[.1,.1],[.9,.1],[.1,.9],[.9,.9],[.1,.5],[.9,.5]].map(([u,v])=>sampleScreenSurface(meshes,u,v,normal));
   const aspect = corners[0].distanceTo(corners[1]) / corners[0].distanceTo(corners[3]);
   const material = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0,
     blending: THREE.NoBlending, depthTest: true, depthWrite: true, toneMapped: false });
@@ -67,15 +71,17 @@ export function createPresentationScreen(options: Options) {
   let viewportWidth = 0, viewportHeight = 0;
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
   let first = true;
-  function hit(x: number, y: number) {
-    if (!active || !visible || disposed) return false;
+  function sampleSurface(x: number, y: number) {
+    if (!active || !visible || disposed) return null;
     pointer.set(x / viewportWidth * 2 - 1, 1 - y / viewportHeight * 2);
     raycaster.setFromCamera(pointer, options.camera);
     const intersection = raycaster.intersectObjects(meshes, false)[0];
-    return !!intersection && (!options.isUnobstructed || options.isUnobstructed(intersection.point, raycaster));
+    if (!intersection?.uv || options.isUnobstructed && !options.isUnobstructed(intersection.point,raycaster)) return null;
+    return {u:intersection.uv.x,v:intersection.uv.y};
   }
+  function hit(x:number,y:number) { return !!sampleSurface(x,y); }
   function open() { if (active && visible && !disposed) options.onOpen?.(bounds); }
-  const surface = createLiveStudioSurface({ canvas: options.canvas, aspect, canInteract: hit, onExpand: open,
+  const surface = createLiveStudioSurface({ canvas: options.canvas, aspect, canInteract: hit, sampleSurface, onExpand: open,
     onFocus: () => options.onFocus?.() });
   for (const mesh of meshes) {
     mesh.material = material;
@@ -98,13 +104,20 @@ export function createPresentationScreen(options: Options) {
       first = false; viewportWidth = w; viewportHeight = h;
       previousCamera.copy(options.camera.matrixWorld); previousProjection.copy(options.camera.projectionMatrix);
       options.camera.getWorldPosition(cameraPosition);
-      const projection = projectScreenPlane(corners, options.camera, w, h, surface.width, surface.height);
       const wasVisible = visible;
-      if (projection) bounds = projection.bounds;
-      visible = !!projection?.visible && cameraPosition.distanceToSquared(center) < 35 ** 2 &&
-        normal.dot(cameraPosition.sub(center)) > .005 && bounds.width > 40 && bounds.height > 20 &&
-        (!options.isInView || options.isInView(visibilitySamples));
-      surface.update(projection?.matrix ?? null, visible);
+      let left=Infinity,top=Infinity,right=-Infinity,bottom=-Infinity;
+      for(let i=0;i<worldPatches.length;i++) {
+        const patch=worldPatches[i],visual=visualPatches[i];
+        const projection=projectScreenPlane(patch.corners,options.camera,w,h,visual.width,surface.height);
+        visual.matrix=projection?.matrix??null;
+        visual.visible=!!projection?.visible&&patch.normal.dot(cameraPosition)-patch.normal.dot(patch.center)>.005;
+        if(visual.visible&&projection){left=Math.min(left,projection.bounds.x);top=Math.min(top,projection.bounds.y);right=Math.max(right,projection.bounds.x+projection.bounds.width);bottom=Math.max(bottom,projection.bounds.y+projection.bounds.height);}
+      }
+      const hasArea=Number.isFinite(left)&&right-left>40&&bottom-top>20;
+      if(hasArea)bounds={x:left,y:top,width:right-left,height:bottom-top};
+      visible=hasArea&&cameraPosition.distanceToSquared(center)<35**2&&(!options.isInView||options.isInView(visibilitySamples));
+      const expandProjection=projectScreenPlane(corners,options.camera,w,h,surface.width,surface.height);
+      surface.update(visualPatches,visible,expandProjection?.matrix??null);
       return visible !== wasVisible;
     },
     getWorldCenter(target = new THREE.Vector3()) { return target.copy(center); },

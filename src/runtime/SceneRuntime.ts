@@ -214,7 +214,7 @@ export class SceneRuntime {
       filterSourceSpecular(this.scene);
       this.staticTransforms = freezeArchitectureTransforms(this.content, this.mixers.map(({ mixer }) => mixer.getRoot() as Object3D));
       console.info('[MD static transforms]', { cached: this.staticTransforms.count });
-      this.staticSunShadowCache = new StaticSunShadowCache(this.lighting.sun, { isStatic: this.staticTransforms.has, enabled: query.get('shadowCache') !== '0' });
+      this.staticSunShadowCache = new StaticSunShadowCache(this.lighting.sun, { isStatic: this.staticTransforms.has, enabled: query.get('shadowCache') !== '0', pruneStaticTraversal: !this.inspectionEnabled || query.get('shadowPrune') !== '0' });
       this.lighting.sun.shadow.shadowNode = this.staticSunShadowCache;
 
       this.profiler?.phase('texture upload');

@@ -1,5 +1,6 @@
 import { DepthFormat, Matrix4, PCFShadowMap, type DirectionalLight, type Object3D, type RenderTarget } from 'three';
 import { ShadowNode, type NodeFrame, type Renderer } from 'three/webgpu';
+import { createStaticShadowPruner } from './staticShadowPruner.ts';
 
 // r186 documents renderShadow as its custom-shadow hook; @types/three 0.186.0
 // omits that public method and shadowMap. Keep this narrow declaration local.
@@ -13,6 +14,8 @@ export type StaticSunShadowCacheOptions = {
   /** Exactly the immutable set returned by freezeArchitectureTransforms().has. */
   isStatic: (object: Object3D) => boolean;
   enabled?: boolean;
+  /** Diagnostic A/B control; no shadow pixels or resolution are changed. */
+  pruneStaticTraversal?: boolean;
 };
 
 /** Cache immutable caster rasterization, never the complete moving shadow.
@@ -30,6 +33,7 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
   private readonly sun: DirectionalLight;
   private readonly isStatic: (object: Object3D) => boolean;
   private enabled: boolean;
+  private readonly pruneStaticTraversal: boolean;
   private failed: string | null = null;
   private reason = 'initial';
   private revision = 0;
@@ -45,6 +49,7 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
   private cacheHits = 0;
   private stockPasses = 0;
   private stockRender: RenderObject | null = null;
+  private dynamicPruner?: ReturnType<typeof createStaticShadowPruner>;
   private renderStatic: RenderObject = (...args) => {
     if (this.isStatic(args[0])) this.stockRender!(...args);
   };
@@ -57,12 +62,14 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
     this.sun = light;
     this.isStatic = options.isStatic;
     this.enabled = options.enabled ?? true;
+    this.pruneStaticTraversal = options.pruneStaticTraversal ?? true;
   }
 
   get stats() {
-    return { enabled: this.enabled, failed: this.failed, reason: this.reason, revision: this.revision,
+    return { enabled: this.enabled, pruneStaticTraversal: this.pruneStaticTraversal, failed: this.failed, reason: this.reason, revision: this.revision,
       staticPasses: this.staticPasses, dynamicPasses: this.dynamicPasses,
       cacheHits: this.cacheHits, stockPasses: this.stockPasses,
+      prunedStaticBranches: this.dynamicPruner?.branchCount ?? 0, prunedStaticRenderables: this.dynamicPruner?.renderableCount ?? 0,
       // RGBA8 + depth24plus (implementation-defined storage), not a VRAM claim.
       cachedWidth: this.snapshot?.width ?? 0, cachedHeight: this.snapshot?.height ?? 0 };
   }
@@ -81,6 +88,7 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
   }
 
   private releaseSnapshot() {
+    this.dynamicPruner?.restore(); this.dynamicPruner = undefined;
     this.snapshot?.dispose();
     this.snapshot = null;
     this.source = null;
@@ -144,6 +152,7 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
         this.sceneIdentity = scene;
         this.view.copy(shadow.camera.matrixWorldInverse);
         this.projection.copy(shadow.camera.projectionMatrix);
+        this.dynamicPruner = this.pruneStaticTraversal ? createStaticShadowPruner(scene, this.isStatic) : undefined;
       } else {
         this.cacheHits++;
       }
@@ -156,7 +165,12 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
       renderer.autoClear = false;
       renderer.setRenderObjectFunction(this.renderDynamic);
       scene.name = `Dynamic Shadow Map [ ${this.sun.name || this.sun.id} ]`;
-      renderer.render(scene, shadow.camera);
+      // Filtering at renderObject alone occurs after scene traversal, frustum
+      // tests and render-list sorting. Exclude complete immutable branches only
+      // for this dynamic pass, then restore even if submission throws.
+      this.dynamicPruner?.hide();
+      try { renderer.render(scene, shadow.camera); }
+      finally { this.dynamicPruner?.restore(); }
       this.dynamicPasses++;
       this.reason = 'cached';
     } catch (caught) {

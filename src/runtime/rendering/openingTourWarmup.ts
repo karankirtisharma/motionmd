@@ -1,7 +1,7 @@
 import { Mesh, type PerspectiveCamera, type Scene } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
 
-// The 21 first-use mirror variants measured in the opening 15-second tour
+// The 22 first-use mirror variants measured in the opening tour and TV movement
 // on 3 Nov 2026. Do not expand this to every material/room: broad prewarming
 // previously increased startup significantly. Match both object and material
 // so a renamed/replaced asset is skipped instead of warming unrelated objects.
@@ -89,6 +89,10 @@ export const OPENING_TOUR_SHADERS: ReadonlyArray<readonly [string, string]> = [
   [
     "Box_Founder_polished_floor002_59",
     "founder__PR94 | petrol cloth binding"
+  ],
+  [
+    "Box_Founder_polished_floor002_44 | cell 3",
+    "founder__potted_plant_01_leaves"
   ]
 ];
 

@@ -7,7 +7,7 @@ import { freezeArchitectureTransforms } from '../src/runtime/rendering/staticTra
 
 // A deterministic tiny depth rasterizer tests composition and draw dispatch. It
 // is deliberately NOT a GPU/image parity claim: real-device QA must also pass.
-function fixture(reversed = false) {
+function fixture(reversed = false, pruneStaticTraversal = true) {
   const scene = new Scene(), architecture = new Group(), lift = new Group();
   scene.add(architecture); lift.userData.liftRole = 'cabin'; architecture.add(lift);
   const object = (name, parent, pixels) => {
@@ -23,7 +23,7 @@ function fixture(reversed = false) {
   const sun = new DirectionalLight(); scene.add(sun, sun.target); sun.position.set(1,3,2);
   sun.shadow.mapSize.set(4,1); scene.updateMatrixWorld(true);
   const frozen = freezeArchitectureTransforms(architecture);
-  const node = new StaticSunShadowCache(sun, {isStatic:frozen.has});
+  const node = new StaticSunShadowCache(sun, {isStatic:frozen.has,pruneStaticTraversal});
   const original = new ShadowNode(sun,sun.shadow);
   const target = () => new RenderTarget(4,1,{depthTexture:new DepthTexture(4,1)});
   node.shadowMap = target(); original.shadowMap = target();
@@ -49,7 +49,8 @@ function fixture(reversed = false) {
       const record=pixels(bound);
       if(this.autoClear){record.depth.fill(reversed?0:1);record.color.fill(null);}
       calls.push(['pass',scene.name,this.autoClear]);
-      scene.traverseVisible(object=>{if(object.isMesh&&object.layers.test(camera.layers))callback(object,scene,camera,object.geometry,object.material,null,null,null);});
+      if (this.throwDynamic && scene.name.startsWith('Dynamic Shadow Map')) { this.throwDynamic = false; throw Error('simulated dynamic submission failure'); }
+      scene.traverseVisible(object=>{if(object.isMesh&&object.layers.test(camera.layers)){ calls.push(['project',scene.name,object.name]); callback(object,scene,camera,object.geometry,object.material,null,null,null); }});
     },
     renderObject(object,scene,camera,geometry,material){
       calls.push(['draw',object.name]); const record=pixels(bound);
@@ -127,4 +128,27 @@ test('shadow target ownership is separate and cached attachments are disposed wi
   assert.notEqual(snapshot,f.node.shadowMap);assert.notEqual(snapshot.depthTexture,f.node.shadowMap.depthTexture);
   assert.notEqual(snapshot.texture.source,f.node.shadowMap.texture.source);
   let count=0;snapshot.addEventListener('dispose',()=>count++);f.node.dispose();assert.equal(count,1);assert.equal(f.node.stats.cachedWidth,0);
+});
+
+
+test('cached dynamic submission skips static traversal and restores visibility before fallback on failure', () => {
+  const f = fixture(); f.cached(); f.calls.length = 0; f.cached();
+  const projected = f.calls.filter(c => c[0] === 'project' && c[1].startsWith('Dynamic Shadow Map')).map(c => c[2]);
+  assert.ok(!projected.includes('stone')); assert.ok(!projected.includes('cutout'));
+  assert.ok(projected.includes('cabin')); assert.ok(projected.includes('avatar'));
+  assert.equal(f.node.stats.prunedStaticRenderables, 2);
+  f.renderer.throwDynamic = true;
+  assert.deepEqual(f.cached(), f.baseline());
+  assert.equal(f.stone.visible, true); assert.equal(f.cutout.visible, true); assert.equal(f.lift.visible, true);
+  assert.match(f.node.stats.failed, /simulated dynamic submission/);
+  assert.equal(f.node.stats.stockPasses, 1);
+});
+
+
+test('diagnostic opt-out keeps full traversal with identical static/dynamic shadow pixels', () => {
+  const f = fixture(false, false); f.cached(); f.calls.length = 0;
+  assert.deepEqual(f.cached(), f.baseline());
+  const projected = f.calls.filter(c => c[0] === 'project' && c[1].startsWith('Dynamic Shadow Map')).map(c => c[2]);
+  assert.ok(projected.includes('stone')); assert.ok(projected.includes('cutout'));
+  assert.equal(f.node.stats.pruneStaticTraversal, false); assert.equal(f.node.stats.prunedStaticBranches, 0);
 });
