@@ -126,3 +126,14 @@ test('sparse callback captures preserve raw timings but flag comparisons without
   assert.equal(capture.callbackCadence.suitableForMatchedComparison, false);
   assert.match(capture.callbackCadence.warning, /possible throttling, scheduling or GPU stall/);
 });
+
+test('shader capture distinguishes mirror, velocity MRT and shadow framebuffer variants', () => {
+  const { renderer } = rendererFixture(); const observer = observeShaderBuilds(renderer, () => 1); observer.start();
+  for (const [context, shadow] of [
+    [{ renderTarget: { texture: { name: 'Gallery mirror reflection' } }, sampleCount: 4 }, false],
+    [{ mrt: {}, renderTarget: {}, sampleCount: 1 }, false],
+    [{ renderTarget: {}, sampleCount: 1 }, true],
+  ]) renderer.debug.onNodeBuilderCreated({}, { material: { name: 'same material', isShadowPassMaterial: shadow }, object: { name: 'same mesh' }, context });
+  assert.deepEqual(observer.takeFrame().events.map(e => [e.renderPass, e.samples]), [['Gallery mirror reflection', 4], ['main-mrt', 1], ['shadow', 1]]);
+  observer.dispose();
+});

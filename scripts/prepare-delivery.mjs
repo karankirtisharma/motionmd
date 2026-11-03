@@ -8,6 +8,7 @@ import { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { compactGLB } from './glb-storage.mjs';
 import { optimizeGLBImages } from './glb-images.mjs';
+import { optimizeMeshoptStreams } from './glb-meshopt.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'public/asset-delivery');
@@ -27,7 +28,7 @@ async function hashStream(...streams) {
 }
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const index = {}, report = [], retained = new Set();
-const pipelineVersion = 2;
+const pipelineVersion = 3;
 let previous=[]; try { previous=JSON.parse(await fs.readFile(path.join(output,'report.json'),'utf8')); } catch {}
 const chunks=[...manifest.chunks, {id:'character',url:manifest.character.url}];
 for (const chunk of chunks) {
@@ -45,7 +46,8 @@ for (const chunk of chunks) {
     if(valid){index[chunk.url]=cached.entry;report.push(cached); for(const key of ['identity','br','gzip'])if(cached.entry[key])retained.add(path.basename(cached.entry[key]));continue;}
   }
   const imageResult=process.env.MD_GEOMETRY_STORAGE==='0'?{buffer:original,images:[]}:await optimizeGLBImages(original);
-  const compact = process.env.MD_GEOMETRY_STORAGE === '0' ? { buffer: original, verifiedRanges: 0 } : compactGLB(imageResult.buffer);
+  const meshopt = process.env.MD_GEOMETRY_STORAGE === '0' ? { buffer: original, streams: [] } : await optimizeMeshoptStreams(imageResult.buffer);
+  const compact = process.env.MD_GEOMETRY_STORAGE === '0' ? { buffer: original, verifiedRanges: 0 } : compactGLB(meshopt.buffer);
   const saved = original.length - compact.buffer.length;
   // Tiny gains do not justify another identity representation.
   const optimized = saved >= 65536 || saved > original.length * .01;
@@ -77,7 +79,7 @@ for (const chunk of chunks) {
     entry[encoding + 'Bytes'] = (await fs.stat(target)).size;
   }
   index[chunk.url] = entry;
-  report.push({ id: chunk.id, pipelineVersion, storageEnabled:process.env.MD_GEOMETRY_STORAGE !== '0', entry, images:imageResult.images, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
+  report.push({ id: chunk.id, pipelineVersion, storageEnabled:process.env.MD_GEOMETRY_STORAGE !== '0', entry, images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
     br: (await fs.stat(path.join(root, 'public', entry.br))).size, gzip: (await fs.stat(path.join(root, 'public', entry.gzip))).size });
 }
 await fs.writeFile(path.join(generated, 'asset-delivery.json.tmp'), JSON.stringify(index, null, 2) + '\n');

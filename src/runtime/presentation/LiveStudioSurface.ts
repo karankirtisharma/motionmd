@@ -1,4 +1,4 @@
-import { mapScreenPoint, screenHomography, type ScreenQuad } from './projection.ts';
+import { mapScreenPoint } from './projection.ts';
 
 type Options = { canvas: HTMLCanvasElement; aspect: number; onExpand: () => void;
   canInteract: (x: number, y: number) => boolean; onFocus: () => void };
@@ -19,15 +19,18 @@ export function createLiveStudioSurface(options: Options) {
   let frame: HTMLIFrameElement | undefined, frameDocument: Document | null = null;
   let matrix: number[] | null = null, transform = '', visible = false, interactive = false;
   let expanded = false, ready = false, disposed = false, suspended: boolean | undefined;
-  let inputCheckTime = -Infinity;
+  let inputCheckTime = -Infinity, routeCheckTime = -Infinity;
+  let shown: boolean | undefined, acceptsInput: boolean | undefined;
   let animation: Animation | undefined, animationVersion = 0, loadTimer: ReturnType<typeof setTimeout> | undefined;
 
   const post = (type: string, extra = {}) => frame?.contentWindow?.postMessage({ type, ...extra }, location.origin);
   function resetPointer() { options.canvas.style.pointerEvents = ''; }
   function sync() {
-    host.style.visibility = expanded || visible ? 'visible' : 'hidden';
-    host.style.pointerEvents = (expanded || visible && interactive) && !document.hidden ? 'auto' : 'none';
-    if (frame) frame.tabIndex = expanded || visible && interactive ? 0 : -1;
+    const nextShown = expanded || visible;
+    const nextInput = (expanded || visible && interactive) && !document.hidden;
+    if (shown !== nextShown) { shown = nextShown; host.style.visibility = shown ? 'visible' : 'hidden'; }
+    if (acceptsInput !== nextInput) { acceptsInput = nextInput; host.style.pointerEvents = nextInput ? 'auto' : 'none'; }
+    if (frame && frame.tabIndex !== (nextInput ? 0 : -1)) frame.tabIndex = nextInput ? 0 : -1;
     const next = document.hidden || !(expanded || visible);
     if (next !== suspended && ready) { suspended = next; post(next ? 'md-studio:suspend' : 'md-studio:resume'); }
     if (!interactive || !visible || expanded) resetPointer();
@@ -43,6 +46,9 @@ export function createLiveStudioSurface(options: Options) {
   }
   function routePointer(event: PointerEvent) {
     if (expanded || !visible || !interactive || event.buttons || document.pointerLockElement) return;
+    const now = performance.now();
+    if (now - routeCheckTime < 32) return;
+    routeCheckTime = now;
     // Only relinquish the canvas over the actual visible screen, never its box.
     if (event.target === options.canvas && options.canInteract(event.clientX, event.clientY)) options.canvas.style.pointerEvents = 'none';
     else if (!host.contains(event.target as Node)) resetPointer();
@@ -84,12 +90,18 @@ export function createLiveStudioSurface(options: Options) {
       for (const name of ['pointermove', 'pointerdown', 'click', 'wheel']) frameDocument?.addEventListener(name, guardFrameInput, { capture: true, passive: false });
       post('md-studio:display', { expanded }); sync();
     });
-    frame.src = '/studio?embed=lounge&display=tv&f=1&i=3'; host.prepend(frame);
+    host.prepend(frame); startFrameLoad();
+  }
+  function startFrameLoad() {
+    if (!frame || disposed) return;
+    clearTimeout(loadTimer); detachDocument(); ready = false; suspended = undefined;
+    status.textContent = 'Opening the studio…'; status.hidden = false; status.style.display = 'grid';
+    frame.src = '/studio?embed=lounge&display=tv&f=1&i=3';
     loadTimer = setTimeout(() => {
       if (ready || disposed) return;
       status.textContent = 'The studio is taking longer to load. ';
       const retry = document.createElement('button'); retry.textContent = 'Retry';
-      retry.onclick = () => { if (frame) frame.src = '/studio?embed=lounge&display=tv&f=1&i=3'; };
+      retry.onclick = startFrameLoad;
       status.append(retry);
     }, 20000);
   }
@@ -126,10 +138,11 @@ export function createLiveStudioSurface(options: Options) {
   host.addEventListener('pointerleave', resetPointer);
   document.addEventListener('visibilitychange', sync);
   return {
-    update(quad: ScreenQuad, inView: boolean) {
+    width, height,
+    update(nextMatrix: number[] | null, inView: boolean) {
       visible = inView;
       if (visible) {
-        matrix = screenHomography(quad, width, height);
+        matrix = nextMatrix;
         if (!matrix) visible = false;
         else {
           const next = `matrix3d(${matrix.join(',')})`;

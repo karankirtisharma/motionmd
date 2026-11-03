@@ -6,6 +6,8 @@ import LoungeEntry from '@/studio/components/LoungeEntry';
 import LoungeStudioOverlay, { type StudioBounds } from '@/studio/components/LoungeStudioOverlay';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
 import type { SceneRuntime } from '@/runtime/SceneRuntime';
+import { createTourProgressStore } from '@/runtime/tourProgress';
+import { TourInspectionProgress } from '@/components/TourProgress';
 import { createLoadingProgressPublisher } from '@/runtime/loadingProgressPublisher';
 import type { DiagnosticMode } from '@/runtime/rendering/diagnostics';
 import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats } from '@/types';
@@ -15,6 +17,7 @@ export default function Home() { return <LoungeEntry><LoungeHome /></LoungeEntry
 function LoungeHome() {
   const viewport = useRef<HTMLDivElement>(null);
   const runtime = useRef<SceneRuntime | null>(null);
+  const teardown = useRef<Promise<void>>(Promise.resolve());
   const loadingPublisher = useRef<ReturnType<typeof createLoadingProgressPublisher> | null>(null);
   const modeRef = useRef<RuntimeMode>('loading');
   const menuRef = useRef(false);
@@ -30,7 +33,9 @@ function LoungeHome() {
   const [mode, setMode] = useState<RuntimeMode>('loading');
   const [menu, setMenu] = useState(false);
   const [loading, setLoading] = useState<LoadingProgress>({ phase: 'Preparing your visit' });
-  const [progress, setProgress] = useState(0);
+  const [tourProgress] = useState(createTourProgressStore);
+  const [tourComplete, setTourComplete] = useState(false);
+  const tourCompleteRef = useRef(false);
   const [hint, setHint] = useState<RuntimeHint | null>(null);
   const [error, setError] = useState('');
   const [quality, setQuality] = useState<Quality>('auto');
@@ -53,9 +58,10 @@ function LoungeHome() {
 
   useEffect(() => {
     let cancelled = false;
+    let ownedRuntime: SceneRuntime | undefined;
     const progressUpdates = createLoadingProgressPublisher(value => { if (!cancelled) setLoading(value); });
     loadingPublisher.current = progressUpdates;
-    setMode('loading'); setLoading({ phase: 'Preparing your visit' }); setError(''); setProgress(0);
+    setMode('loading'); setLoading({ phase: 'Preparing your visit' }); setError(''); tourProgress.set(0); tourCompleteRef.current = false; setTourComplete(false);
     setReferenceCameras([]); setReferenceCamera(''); setDiagnosticMode('full');
     transitionRef.current = false; setTransitioning(false);
     welcomeRef.current = true; setWelcome(true); setPlaying(false);
@@ -67,12 +73,18 @@ function LoungeHome() {
     const diagnosticsEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
     setDebug(diagnosticsEnabled);
     import('@/runtime/SceneRuntime').then(async ({ SceneRuntime }) => {
+      await teardown.current;
       if (cancelled || !viewport.current) return;
       const instance = new SceneRuntime(viewport.current, {
         onProgress: progressUpdates.push,
         onReady: () => { progressUpdates.flush(); progressUpdates.dispose(); if (!cancelled) { setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
         onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { progressUpdates.dispose(); menuRef.current = false; setMenu(false); } } },
-        onTourProgress: value => { if (!cancelled) setProgress(value); },
+        onTourProgress: value => {
+          if (cancelled) return;
+          tourProgress.set(value);
+          const complete = value === 1;
+          if (complete !== tourCompleteRef.current) { tourCompleteRef.current = complete; setTourComplete(complete); }
+        },
         onHint: value => { if (!cancelled) setHint(value); },
         onProfile: value => { if (!cancelled) setProfileReport(value); },
         onStats: diagnosticsEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
@@ -89,13 +101,18 @@ function LoungeHome() {
         onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
         onCameraViewChange: value => { if (!cancelled) setCameraView(value); },
       });
-      runtime.current = instance;
+      ownedRuntime = instance; runtime.current = instance;
       instance.setQuality(quality);
       instance.setReducedMotion(preferredReduced);
       await instance.init();
-      if (cancelled) instance.dispose();
+      if (cancelled) await instance.dispose();
     }).catch(reason => { progressUpdates.dispose(); if (!cancelled) { setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
-    return () => { cancelled = true; progressUpdates.dispose(); if (loadingPublisher.current === progressUpdates) loadingPublisher.current = null; runtime.current?.dispose(); runtime.current = null; };
+    return () => {
+      cancelled = true; progressUpdates.dispose();
+      if (loadingPublisher.current === progressUpdates) loadingPublisher.current = null;
+      if (ownedRuntime) teardown.current = ownedRuntime.dispose();
+      if (runtime.current === ownedRuntime) runtime.current = null;
+    };
   }, [generation]);
 
   const openMenu = useCallback(() => {
@@ -146,12 +163,12 @@ function LoungeHome() {
   const exploreDirect = useCallback(() => { dismissWelcome(); resume(); runtime.current?.exploreDirectly(); }, [dismissWelcome, resume]);
   const changeQuality = (value: Quality) => { setQuality(value); runtime.current?.setQuality(value); };
   const sendTouch = (lookX = 0, lookY = 0) => runtime.current?.setVirtualInput(touch.current.x, touch.current.y, lookX, lookY, touch.current.sprint);
-  const uiMode: LoungeMode = menu ? 'menu' : mode === 'tour' ? (welcome ? 'welcome' : progress === 1 ? 'handoff' : 'cinematic') : mode;
+  const uiMode: LoungeMode = menu ? 'menu' : mode === 'tour' ? (welcome ? 'welcome' : tourComplete ? 'handoff' : 'cinematic') : mode;
   const qualityLabel = debug && stats ? `${stats.renderer} · ${quality === 'auto' ? 'Adaptive' : quality === 'high' ? 'High detail' : 'Balanced'}` : undefined;
 
   return <><main inert={studioOpen} className="lounge-experience" data-mode={mode} data-screen-active={screenActive}>
     <div ref={viewport} className="scene-viewport" />
-    <div hidden={transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progress={progress} playing={playing} duration={duration}
+    <div hidden={transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}
@@ -184,10 +201,7 @@ function LoungeHome() {
       <div>Resolution: {stats ? `${Math.round(stats.resolutionScale * 100)}%` : '—'} · Quality: {quality}</div>
       {stats?.frameP50Ms !== undefined && <div>Frame ms p50 / p95: {stats.frameP50Ms.toFixed(1)} / {stats.frameP95Ms?.toFixed(1)}</div>}
       {stats?.resourceMiB !== undefined && <div>Tracked buffers/textures: {Math.round(stats.resourceMiB)} MiB</div>}
-      <div>Camera: {(progress * 100).toFixed(1)}%</div>
-      {mode === 'tour' && <label style={{ display: 'block' }}>Tour preview (seconds)
-        <input aria-label="Tour preview seconds" type="range" min={0} max={duration} step={0.5} value={progress * duration} style={{ width: '100%' }} onChange={event => { dismissWelcome(); runtime.current?.setCinematicPlaying(false); runtime.current?.setReferenceCamera(''); runtime.current?.setTourProgress(Number(event.target.value) / duration); }} />
-      </label>}
+      <TourInspectionProgress store={tourProgress} duration={duration} showPreview={mode === 'tour'} onSeek={value => { dismissWelcome(); runtime.current?.setCinematicPlaying(false); runtime.current?.setReferenceCamera(''); runtime.current?.setTourProgress(value); }} />
       <label style={{ display: 'block', marginTop: 8 }}>Reference camera
         <select aria-label="Reference camera" value={referenceCamera} disabled={!referenceCameras.length} onChange={event => { dismissWelcome(); setReferenceCamera(event.target.value); runtime.current?.setReferenceCamera(event.target.value); }} style={{ display: 'block', color: '#fff', background: '#222', width: '100%', maxWidth: 290 }}>
           <option value="">Tour</option>

@@ -18,7 +18,7 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
   // scene's depth-tested DOM opening while keeping the existing temporal RGB.
   pipeline.outputNode = vec4(temporal.rgb, scenePass.getTextureNode('output').a);
   return {
-    async warmup(onProgress?: Parameters<WebGPURenderer['compileAsync']>[3]) {
+    async warmup(onProgress?: Parameters<WebGPURenderer['compileAsync']>[3], signal?: AbortSignal) {
       // Compile the actual velocity/HDR pass once. A separate screen-output
       // compilation doubles shader work and produces shaders we never render.
       const previousTarget=renderer.getRenderTarget(),previousMRT=renderer.getMRT();
@@ -26,6 +26,7 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
         renderer.setRenderTarget(scenePass.renderTarget);renderer.setMRT(sceneMRT);
         await renderer.compileAsync(scene,camera,null,onProgress);
       } finally {renderer.setRenderTarget(previousTarget);renderer.setMRT(previousMRT);}
+      signal?.throwIfAborted();
       pipeline.render();
     },
     render() { pipeline.render(); },

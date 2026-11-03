@@ -32,20 +32,33 @@
 #md-studio-root .studio-lounge-link:focus-visible { outline: 2px solid var(--gold-300); outline-offset: 3px; }
 
 /* Live TV controls stay inside the same page when it expands. */
-#md-studio-root .studio-screen-controls { position: fixed; z-index: 80; left: 16px; bottom: 12px; display: flex; gap: 8px; }
-#md-studio-root .studio-screen-controls .studio-lounge-link { position: static; }
-#md-studio-root[data-tv] .studio-screen-controls button { min-height: 36px; font-size: 14px; padding: 8px 14px; }
+#md-studio-root .studio-screen-controls { position: fixed; z-index: 80; left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); display: flex; flex-wrap: wrap; gap: 8px; pointer-events: none; }
+#md-studio-root .studio-screen-controls .studio-lounge-link { position: static; pointer-events: auto; min-height: 44px; }
+#md-studio-root[data-tv] .studio-screen-controls { left: 3%; right: 3%; bottom: 6%; gap: 12px; }
+#md-studio-root[data-tv] .studio-screen-controls button { min-height: 60px; font-size: 20px; padding: 12px 22px; }
+/* TV interaction targets use their own readable scale, not the tiny card-stage
+   design unit. Keep every target inset from the curved display's physical bezel. */
+#md-studio-root[data-tv] :is(.topbar-grid,.topbar-controls,.topbar-search,.topbar-heart) { top: 30px; width: 64px; height: 64px; }
+#md-studio-root[data-tv] .topbar-grid { left: auto; right: 478px; }
+#md-studio-root[data-tv] .topbar-controls { left: auto; right: 398px; }
+#md-studio-root[data-tv] .topbar-search { left: auto; right: 318px; }
+#md-studio-root[data-tv] .topbar-heart { left: auto; right: 238px; }
+#md-studio-root[data-tv] .topbar-brief { left: auto; right: 48px; top: 30px; width: 174px; height: 64px; font-size: 20px; }
+#md-studio-root[data-tv] .rail-toggle { left: 48px; top: 30px; width: 232px; height: 64px; font-size: 18px; }
+#md-studio-root[data-tv] .topbar-work { left: 296px; top: 30px; width: 176px; height: 64px; font-size: 20px; }
+#md-studio-root[data-tv] .icon-btn svg { width: 25px; height: 25px; }
+
 
 /* The architectural TV is almost 3:1: use its height instead of a 16:9
    screenshot layout, keeping the live controls and card labels readable. */
 @media (min-aspect-ratio: 5/2) {
   #md-studio-root[data-tv]:has(.card-row[data-view="browse"]) { --u: min(100vw / 2000, 100dvh / 1000); }
   /* Keep the wordmark clear of the physical curved screen bezel. */
-  #md-studio-root[data-tv] .wordmark { top: 7%; }
-  #md-studio-root[data-tv] .title-band { top: 12%; }
-  #md-studio-root[data-tv] .title-band__title { font-size: clamp(28px, 3vw, 46px); }
-  #md-studio-root[data-tv] .title-band__meta { margin-top: 10px; font-size: 12px; }
-  #md-studio-root[data-tv] .card-row[data-view="browse"] { translate: 0 28px; }
+  #md-studio-root[data-tv] .wordmark { top: 44px; font-size: 22px; }
+  #md-studio-root[data-tv] .title-band { top: 17.5%; }
+  #md-studio-root[data-tv] .title-band__title { font-size: clamp(28px, 2.5vw, 40px); }
+  #md-studio-root[data-tv] .title-band__meta { margin-top: 8px; font-size: 12px; }
+  #md-studio-root[data-tv] .card-row[data-view="browse"] { translate: 0 40px; }
   #md-studio-root[data-tv] .card__label { font-size: 16px; }
-  #md-studio-root[data-tv] .hint { font-size: 13px; top: auto; bottom: 22px; }
+  #md-studio-root[data-tv] .hint { font-size: 15px; top: auto; bottom: 38px; }
 }

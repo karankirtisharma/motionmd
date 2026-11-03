@@ -1,7 +1,7 @@
 import type { WebGPURenderer } from 'three/webgpu';
 
 type BuilderHook = NonNullable<WebGPURenderer['debug']['onNodeBuilderCreated']>;
-export type ShaderBuildEvent = { atMs: number; material: string; object: string; shadowPass: boolean };
+export type ShaderBuildEvent = { atMs: number; material: string; object: string; shadowPass: boolean; renderPass?: string; samples?: number };
 const DETAIL_LIMIT = 256;
 
 /** Observe the public r186 builder callback without replacing shader validation.
@@ -17,8 +17,8 @@ export function observeShaderBuilds(renderer: WebGPURenderer, now = () => perfor
       if (capturing) {
         frameBuilds++;
         if (events.length < DETAIL_LIMIT) {
-          const value = record as { material?: { name?: string; isShadowPassMaterial?: boolean }; object?: { name?: string }; name?: string } | null;
-          events.push({ atMs: now(), material: value?.material?.name ?? '(unnamed)', object: value?.object?.name ?? value?.name ?? '(unnamed)', shadowPass: value?.material?.isShadowPassMaterial === true });
+          const value = record as { material?: { name?: string; isShadowPassMaterial?: boolean }; object?: { name?: string }; name?: string; context?: { mrt?: unknown; renderTarget?: { texture?: { name?: string } } | null; sampleCount?: number } } | null;
+          events.push({ atMs: now(), material: value?.material?.name ?? '(unnamed)', object: value?.object?.name ?? value?.name ?? '(unnamed)', shadowPass: value?.material?.isShadowPassMaterial === true, ...(value?.context ? { renderPass: value.material?.isShadowPassMaterial ? 'shadow' : value.context.mrt ? 'main-mrt' : value.context.renderTarget?.texture?.name || (value.context.renderTarget ? 'offscreen' : 'screen'), samples: value.context.sampleCount } : {}) });
         } else dropped++;
       }
     }

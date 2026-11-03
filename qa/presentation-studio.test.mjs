@@ -115,3 +115,15 @@ test('keyboard activation remains usable independently of pointer occlusion',t=>
   const mouse=new Event('click',{cancelable:true});Object.assign(mouse,{detail:1,clientX:0,clientY:0});
   frame.contentDocument.dispatchEvent(mouse);assert.equal(mouse.defaultPrevented,true);
 });
+
+test('nearby oblique views retain the visible TV when corners cross the camera plane', t => {
+  const f=fixture(t); f.display.update(); f.display.setActive(true);
+  const frame=f.frame();
+  f.camera.position.set(0,0,.35); f.camera.lookAt(1,0,0); f.camera.updateMatrixWorld(true);
+  f.display.update();
+  assert.equal(f.host.style.visibility,'visible'); assert.equal(f.frame(),frame);
+  f.mesh.onBeforeRender(undefined,undefined,f.camera,undefined,undefined,undefined);
+  assert.equal(f.mesh.material.opacity,0,'the partially visible live surface must not become an opaque black panel');
+  f.camera.lookAt(0,0,10); f.camera.updateMatrixWorld(true);f.display.update();
+  assert.equal(f.host.style.visibility,'hidden');
+});

@@ -11,7 +11,7 @@ function references(json) {
   const result = [];
   for (const view of json.bufferViews ?? []) {
     if (view.buffer === 0) result.push(view);
-    const encoded = view.extensions?.EXT_meshopt_compression;
+    const encoded = view.extensions?.EXT_meshopt_compression ?? view.extensions?.KHR_meshopt_compression;
     if (encoded?.buffer === 0) result.push(encoded);
   }
   return result;

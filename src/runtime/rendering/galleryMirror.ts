@@ -4,38 +4,45 @@ import { screenUV, texture, uniform } from 'three/tsl';
 
 import { reflectionCrop, cropReflectionCamera } from './reflectionCrop.ts';
 import { ReflectionFrameCache } from './reflectionFrameCache.ts';
+import { warmOpeningTourShaders } from './openingTourWarmup.ts';
 
 /** Reflect the camera and clip at the real mirror plane, including reversed depth.
  * The stock r186 ReflectorNode oblique projection assumes forward depth. Keep
  * the existing scene's reversed-depth precision by deriving the row from P^-1.
  */
-export function mirrorCamera(source: PerspectiveCamera, camera: PerspectiveCamera, point: Vector3, normal: Vector3) {
-  source.updateMatrixWorld();
-  camera.copy(source, false);
-  const position = source.getWorldPosition(new Vector3());
-  const direction = source.getWorldDirection(new Vector3());
-  camera.position.copy(position).addScaledVector(normal, -2 * position.clone().sub(point).dot(normal));
-  camera.up.copy(source.up).transformDirection(source.matrixWorld).reflect(normal);
-  camera.lookAt(camera.position.clone().add(direction.reflect(normal)));
-  camera.updateMatrixWorld();
-  const plane = new Plane().setFromNormalAndCoplanarPoint(normal, point).applyMatrix4(camera.matrixWorldInverse);
-  const clip = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
-  const reversed = source.reversedDepth;
-  const glForward = source.coordinateSystem === WebGLCoordinateSystem && !reversed;
-  const farCorner = new Vector4(Math.sign(clip.x) || 1, Math.sign(clip.y) || 1, reversed ? 0 : 1, 1)
-    .applyMatrix4(source.projectionMatrixInverse);
-  clip.multiplyScalar((glForward ? 2 : 1) / clip.dot(farCorner));
-  const p = camera.projectionMatrix.elements;
-  for (let column = 0; column < 4; column++) {
-    const c = clip.getComponent(column), w = p[column * 4 + 3];
-    p[column * 4 + 2] = reversed ? w - c : glForward ? c - w : c;
-  }
-  camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
-  // Camera.copy does not copy this renderer-owned flag in r186. If omitted,
-  // renderer.render updates the projection and discards our clipping plane.
-  (camera as PerspectiveCamera & { _reversedDepth: boolean })._reversedDepth = reversed;
-  return camera;
+export function createMirrorCameraUpdater() {
+  // A visible mirror is updated every animated frame. Keep scratch vectors per
+  // updater rather than allocating camera/plane temporaries on each submission.
+  const position = new Vector3(), direction = new Vector3(), relative = new Vector3();
+  const lookTarget = new Vector3(), plane = new Plane(), clip = new Vector4(), farCorner = new Vector4();
+  return (source: PerspectiveCamera, camera: PerspectiveCamera, point: Vector3, normal: Vector3) => {
+    source.updateMatrixWorld();
+    camera.copy(source, false);
+    source.getWorldPosition(position); source.getWorldDirection(direction);
+    camera.position.copy(position).addScaledVector(normal, -2 * relative.copy(position).sub(point).dot(normal));
+    camera.up.copy(source.up).transformDirection(source.matrixWorld).reflect(normal);
+    camera.lookAt(lookTarget.copy(camera.position).add(direction.reflect(normal)));
+    camera.updateMatrixWorld();
+    plane.setFromNormalAndCoplanarPoint(normal, point).applyMatrix4(camera.matrixWorldInverse);
+    clip.set(plane.normal.x, plane.normal.y, plane.normal.z, plane.constant);
+    const reversed = source.reversedDepth;
+    const glForward = source.coordinateSystem === WebGLCoordinateSystem && !reversed;
+    farCorner.set(Math.sign(clip.x) || 1, Math.sign(clip.y) || 1, reversed ? 0 : 1, 1)
+      .applyMatrix4(source.projectionMatrixInverse);
+    clip.multiplyScalar((glForward ? 2 : 1) / clip.dot(farCorner));
+    const p = camera.projectionMatrix.elements;
+    for (let column = 0; column < 4; column++) {
+      const c = clip.getComponent(column), w = p[column * 4 + 3];
+      p[column * 4 + 2] = reversed ? w - c : glForward ? c - w : c;
+    }
+    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    // Camera.copy does not copy this renderer-owned flag in r186. If omitted,
+    // renderer.render updates the projection and discards our clipping plane.
+    (camera as PerspectiveCamera & { _reversedDepth: boolean })._reversedDepth = reversed;
+    return camera;
+  };
 }
+export const mirrorCamera = createMirrorCameraUpdater();
 
 export function createGalleryMirror(root: Object3D) {
   const panes: Mesh[] = [];
@@ -75,6 +82,7 @@ export function createGalleryMirror(root: Object3D) {
       normal: new Vector3().fromBufferAttribute(surface.geometry.getAttribute('normal'), 0).normalize() };
   });
   const target = new RenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
+  target.texture.name = 'Gallery mirror reflection';
   const material = new MeshBasicNodeMaterial({ name: 'V21 | live silver mirror' });
   const crop = new Vector4(0, 0, 1, 1), cropNode = uniform(crop);
   material.colorNode = texture(target.texture, screenUV.flipX().sub(cropNode.xy).div(cropNode.zw)).rgb.mul(0.94);
@@ -86,6 +94,8 @@ export function createGalleryMirror(root: Object3D) {
   const fullSize = new Vector2(), targetSize = new Vector2();
   const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
   const frameCache = new ReflectionFrameCache();
+  const updateCamera = createMirrorCameraUpdater();
+  const visibility = panes.map(() => true);
   function prepareReflection(renderer: WebGPURenderer, view: PerspectiveCamera) {
     if (!material.visible) return false;
     // Only mirror ancestry is needed before deciding whether to render a reflection.
@@ -107,18 +117,40 @@ export function createGalleryMirror(root: Object3D) {
     reflectionCrop(active.pane.geometry.boundingBox!, active.pane.matrixWorld, view, fullSize, targetSize.set(target.width, target.height), crop);
     const width = Math.round(fullSize.x * crop.z), height = Math.round(fullSize.y * crop.w);
     if (target.width !== width || target.height !== height) target.setSize(width, height);
-    mirrorCamera(view, camera, point, normal);
+    updateCamera(view, camera, point, normal);
     cropReflectionCamera(camera, crop);
     return true;
   }
   return {
+    async warmup(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, signal?: AbortSignal,
+      onProgress?: (loaded: number, total: number) => void) {
+      signal?.throwIfAborted();
+      if (!prepareReflection(renderer, view)) {
+        // The opening camera may not yet see the mirror. Compilation needs its
+        // real camera/light cache and framebuffer format, not a visible image.
+        // Do not render or mark the reflection cache valid during this warmup.
+        const surface = surfaces[0];
+        surface.pane.updateWorldMatrix(true, false);
+        point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
+        normal.copy(surface.normal).transformDirection(surface.pane.matrixWorld);
+        updateCamera(view, camera, point, normal);
+      }
+      const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT();
+      panes.forEach((surface, i) => { visibility[i] = surface.visible; surface.visible = false; });
+      try {
+        renderer.setMRT(null); renderer.setRenderTarget(target);
+        return await warmOpeningTourShaders(renderer, scene, camera, signal, onProgress);
+      } finally {
+        renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT);
+        panes.forEach((surface, i) => { surface.visible = visibility[i]; });
+      }
+    },
     update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, revision?: number) {
       if (!prepareReflection(renderer, view)) { frameCache.invalidate(); return; }
       if (frameCache.matches(scene, revision, camera.matrixWorld, camera.projectionMatrix, crop, target.width, target.height)) return;
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
-      const visibility = panes.map(surface => surface.visible);
-      panes.forEach(surface => { surface.visible = false; });
+      panes.forEach((surface, i) => { visibility[i] = surface.visible; surface.visible = false; });
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target); renderer.autoClear = true;
         renderer.render(scene, camera);

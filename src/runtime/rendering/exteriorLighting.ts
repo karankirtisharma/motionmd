@@ -2,6 +2,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Tex
 import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial.ts';
 import { assetURL, loadTexture } from './assets.ts';
+import { fetchAssetBuffer } from './fetchAsset.ts';
 import { founderExteriorSource } from './exteriorLightingGeometry.ts';
 
 export type ExteriorLightReceiver = { name: string; sourceMesh: string; material: string; triangleOffsets: number[]; signature: string; uvOffset: number; uvCount: number };
@@ -70,11 +71,8 @@ export function splitExteriorLightingReceivers(root: Object3D,metadata: Exterior
 
 /** Apply the new illumination-only bake without altering stone texture or source UVs. */
 export async function installExteriorLighting(root: Object3D,signal?: AbortSignal): Promise<Texture[]> {
-  const response=await fetch(assetURL('/assets/exterior-finish-v24/lighting.json'),{signal});
-  if(!response.ok)throw new Error('Could not load exterior lighting metadata.');
-  const metadata=await response.json() as ExteriorLightMetadata;
-  const uvResponse=await fetch(assetURL(metadata.uv),{signal});if(!uvResponse.ok)throw new Error('Could not load exterior lighting UVs.');
-  const uvs=new Float32Array(await uvResponse.arrayBuffer());
+  const metadata=JSON.parse(new TextDecoder().decode(await fetchAssetBuffer(assetURL('/assets/exterior-finish-v24/lighting.json'),{signal}))) as ExteriorLightMetadata;
+  const uvs=new Float32Array(await fetchAssetBuffer(assetURL(metadata.uv),{signal}));
   const light=await loadTexture(metadata.atlas,'linear',signal);
   try{
     light.flipY=false;light.channel=2;light.repeat.y=-1;light.offset.y=1;light.needsUpdate=true;

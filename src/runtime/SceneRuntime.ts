@@ -47,6 +47,8 @@ export class SceneRuntime {
   readonly content = new Group();
   renderer!: WebGPURenderer;
   private rendererReady = false;
+  private initialization?: Promise<void>;
+  private disposal?: Promise<void>;
   manifest!: SceneManifest;
   private callbacks: RuntimeCallbacks & { onStudioOpen?: (bounds: ScreenBounds) => void };
   private container: HTMLElement;
@@ -103,7 +105,12 @@ export class SceneRuntime {
     this.scene.add(this.content);
   }
 
-  async init(): Promise<void> {
+  init(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    return this.initialization ??= this.initialize();
+  }
+
+  private async initialize(): Promise<void> {
     try {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
@@ -131,7 +138,7 @@ export class SceneRuntime {
       await this.renderer.init();
       console.info('[MD depth]', { reversed: this.renderer.reversedDepthBuffer, near: this.camera.near, far: this.camera.far });
       this.rendererReady = true;
-      if (this.disposed) { void this.renderer.dispose().catch(error => console.warn('[MD cleanup]', error)); return; }
+      if (this.disposed) return;
       this.shaderValidation = guardShaderCompilation(this.renderer, message => this.fail(message));
       this.profiler?.attachRenderer(this.renderer);
       const canvas = this.renderer.domElement as HTMLCanvasElement;
@@ -144,9 +151,8 @@ export class SceneRuntime {
       this.resize();
       document.addEventListener('visibilitychange', this.onVisibility);
 
-      const response = await fetch(assetURL('/assets/scene-manifest.json'), { signal: this.abort.signal });
-      if (!response.ok) throw new Error('The architectural scene is not available. Please try again.');
-      this.manifest = await response.json() as SceneManifest;
+      const manifestBytes = await fetchBuffer('/assets/scene-manifest.json', this.abort.signal);
+      this.manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as SceneManifest;
       this.validateManifest();
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
       const colorLUT = await configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal);
@@ -181,14 +187,14 @@ export class SceneRuntime {
       const bounds = new Box3().setFromObject(this.content);
       this.profiler?.phase('lighting and reflection probes');
       this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal);
-      if (this.disposed || this.abort.signal.aborted) { this.lighting.dispose(); return; }
+      if (this.disposed || this.abort.signal.aborted) return;
       this.profiler?.phase('spatial preparation and desert');
       this.galleryMirror = createGalleryMirror(this.content);
       // Preserve each source material's complete probe graph before subdividing
       // its visibility bounds; every cell then shares that same final shader.
       partitionSourceGeometry(this.content);
       this.desert = await createDesertEnvironment(this.scene, { signal: this.abort.signal, sunDirection: this.manifest.sun?.position });
-      if (this.disposed || this.abort.signal.aborted) { this.desert.dispose(); return; }
+      if (this.disposed || this.abort.signal.aborted) return;
       this.setQuality(this.quality);
 
       this.callbacks.onProgress?.({ phase: 'Preparing exploration', detail: 'Loading movement, collisions and interactions' });
@@ -202,7 +208,7 @@ export class SceneRuntime {
         onStudioOpen: bounds => this.callbacks.onStudioOpen?.(bounds),
         onCameraViewChange: view => this.callbacks.onCameraViewChange?.(view),
       });
-      if (this.disposed || this.abort.signal.aborted) { this.controls.dispose(); return; }
+      if (this.disposed || this.abort.signal.aborted) return;
       this.controls.setEnabled(false);
       this.lighting.refreshProbeLighting(this.controls.player, true);
       filterSourceSpecular(this.scene);
@@ -239,7 +245,16 @@ export class SceneRuntime {
         if (this.disposed || this.abort.signal.aborted) return;
         this.callbacks.onProgress?.({ phase: 'Preparing materials', detail: `Compiled ${event.loaded} of ${event.total} render objects`, progress: event.lengthComputable && event.total ? event.loaded / event.total : undefined });
         if (event.loaded % 12 === 0 || event.loaded === event.total) console.info('[MD warmup] shader compilation', { loaded: event.loaded, total: event.total, seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
-      });
+      }, this.abort.signal);
+      this.abort.signal.throwIfAborted();
+      if (this.galleryMirror && (!this.inspectionEnabled || query.get('tourWarmup') !== '0')) {
+        this.profiler?.phase('opening reflection shaders');
+        const started = performance.now();
+        const count = await this.galleryMirror.warmup(this.renderer, this.scene, this.camera, this.abort.signal,
+          (loaded, total) => this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: `Prepared ${loaded} of ${total} measured reflection variants`, progress: total ? loaded / total : undefined }));
+        console.info('[MD warmup] measured opening reflection variants', { objects: count, ms: +(performance.now() - started).toFixed(1) });
+      }
+      this.abort.signal.throwIfAborted();
       this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: 'Finishing the first live reflection' });
       this.profiler?.phase('first reflection frame');
       this.galleryMirror?.update(this.renderer, this.scene, this.camera);
@@ -257,7 +272,7 @@ export class SceneRuntime {
       this.callbacks.onReady?.();
       this.profiler?.ready();
       this.clock.start();
-      this.renderer.setAnimationLoop(this.tick);
+      this.renderer.setAnimationLoop(document.hidden || this.studioCovered ? null : this.tick);
     } catch (error) {
       if (this.disposed || (error instanceof DOMException && error.name === 'AbortError')) return;
       console.error('[MD scene]', error);
@@ -410,7 +425,16 @@ export class SceneRuntime {
     this.camera.aspect = width / height; this.camera.updateProjectionMatrix();
     this.invalidate();
   }
-  private onVisibility = () => { this.profiler?.visibility(); this.invalidate(); this.clock.getDelta(); this.statsFrames = 0; this.statsTime = 0; this.statsLongGaps = 0; this.statsLongGapTime = 0; this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0; };
+  private onVisibility = () => {
+    if (this.disposed) return;
+    this.profiler?.visibility(); this.invalidate(); this.clock.getDelta();
+    this.statsFrames = this.statsTime = this.statsLongGaps = this.statsLongGapTime = 0;
+    this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0;
+    // Background tabs need no recurring callback at all. Resume from a fresh
+    // clock, without undoing an expanded studio's ownership of the viewport.
+    if (this.rendererReady && this.mode !== 'loading' && this.mode !== 'error')
+      void this.renderer.setAnimationLoop(document.hidden || this.studioCovered ? null : this.tick);
+  };
   private setMode(mode: RuntimeMode) { if (!this.disposed) { this.mode = mode; this.callbacks.onModeChange?.(mode); } }
   private fail(message: string) {
     if (this.disposed || this.mode === 'error') return;
@@ -421,6 +445,9 @@ export class SceneRuntime {
     if (this.rendererReady) void this.renderer.setAnimationLoop(null);
     this.setMode('error'); this.callbacks.onError?.(message);
     if (document.pointerLockElement === this.renderer?.domElement) document.exitPointerLock();
+    // An error screen does not need to retain the loaded scene until the user
+    // retries. Teardown waits for any in-flight initializer before releasing GPU resources.
+    void this.dispose();
   }
 
   startProfile(label: string) { if (!this.auditBusy) this.profiler?.start(label); }
@@ -564,7 +591,7 @@ export class SceneRuntime {
     this.statsFrames = this.statsTime = this.statsLongGaps = this.statsLongGapTime = 0;
     this.frameSamples.length = 0; this.slowWindows = this.fastWindows = 0;
     if (!value) this.invalidate();
-    void this.renderer.setAnimationLoop(value ? null : this.tick);
+    void this.renderer.setAnimationLoop(value || document.hidden ? null : this.tick);
   }
   setPaused(value: boolean) { this.invalidate(); this.paused = value; this.controls?.setEnabled(!value && (this.mode === 'explore' || this.mode === 'seated')); }
   explore() {
@@ -652,27 +679,47 @@ export class SceneRuntime {
     geometries.forEach(geometry => geometry.dispose()); materials.forEach(material => material.dispose());
     if (disposeTextures) textures.forEach(texture => texture.dispose());
   }
-  dispose() {
-    if (this.disposed) return;
-    this.profiler?.dispose();
+  dispose(): Promise<void> {
+    if (this.disposal) return this.disposal;
     this.disposed = true; this.abort.abort(); this.observer?.disconnect();
-    this.shaderValidation?.dispose();
     document.removeEventListener('visibilitychange', this.onVisibility);
-    this.diagnostics?.dispose();
-    this.staticSunShadowCache?.dispose();
-    this.staticTransforms?.restore();
-    this.controls?.dispose(); this.desert?.dispose(); this.lighting?.dispose();
-    this.temporal?.dispose();
-    this.galleryMirror?.dispose();
-    this.ktx2?.dispose();
-    this.mixers.forEach(({ mixer }) => mixer.stopAllAction());
-    this.disposeObject(this.scene); this.textures.forEach(texture => texture.dispose());
-    if (this.renderer) {
-      if (this.rendererReady) {
-        void this.renderer.setAnimationLoop(null);
-        void this.renderer.dispose().catch(error => console.warn('[MD cleanup]', error));
+    this.controls?.setEnabled(false);
+    if (this.rendererReady) void this.renderer.setAnimationLoop(null);
+    this.callbacks = {};
+    // Aborting fetch/decode does not synchronously cancel a GLTF parse or GPU
+    // compile. Releasing their resources early lets late continuations use a
+    // disposed renderer. A replacement visit awaits this same promise.
+    this.disposal = (this.initialization ?? Promise.resolve()).catch(() => {}).then(async () => {
+      const release = (action: () => void) => {
+        try { action(); } catch (error) { console.warn('[MD cleanup]', error); }
+      };
+      release(() => this.profiler?.dispose());
+      release(() => this.shaderValidation?.dispose());
+      release(() => this.diagnostics?.dispose());
+      release(() => this.staticSunShadowCache?.dispose());
+      release(() => this.staticTransforms?.restore());
+      release(() => this.controls?.dispose());
+      release(() => this.desert?.dispose());
+      release(() => this.lighting?.dispose());
+      release(() => this.temporal?.dispose());
+      release(() => this.galleryMirror?.dispose());
+      release(() => this.ktx2?.dispose());
+      for (const { mixer } of this.mixers) release(() => { mixer.stopAllAction(); mixer.uncacheRoot(mixer.getRoot()); });
+      release(() => this.disposeObject(this.scene));
+      for (const texture of this.textures) release(() => texture.dispose());
+      this.textures.clear(); this.mixers.length = 0; this.content.clear(); this.scene.clear();
+      this.controls = undefined; this.desert = undefined; this.lighting = undefined;
+      this.temporal = undefined; this.galleryMirror = undefined; this.ktx2 = undefined;
+      this.staticTransforms = undefined; this.staticSunShadowCache = undefined;
+      this.diagnostics = undefined; this.shaderValidation = undefined; this.profiler = undefined;
+      if (this.renderer) {
+        if (this.rendererReady) {
+          try { await this.renderer.dispose(); } catch (error) { console.warn('[MD cleanup]', error); }
+          this.rendererReady = false;
+        }
+        release(() => (this.renderer.domElement as HTMLCanvasElement).remove());
       }
-      (this.renderer.domElement as HTMLCanvasElement).remove();
-    }
+    });
+    return this.disposal;
   }
 }

@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import sharp from 'sharp';
+import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
+await MeshoptDecoder.ready;
 import {readGLB} from '../scripts/glb-storage.mjs';
 const report=JSON.parse(await fs.readFile(new URL('../public/asset-delivery/report.json',import.meta.url)));
 const index=JSON.parse(await fs.readFile(new URL('../src/generated/asset-delivery.json',import.meta.url)));
@@ -17,8 +19,15 @@ for(const entry of report){
  for(let i=0;i<a.json.bufferViews.length;i++){
   const before=a.json.bufferViews[i],after=b.json.bufferViews[i];
   if(before.buffer===0&&!changed.has(i))assert.ok(bytes(a.binary,before).equals(bytes(b.binary,after)),`${entry.id}: binary view ${i} changed`);
-  const oldMeshopt=before.extensions?.EXT_meshopt_compression,newMeshopt=after.extensions?.EXT_meshopt_compression;
-  if(oldMeshopt?.buffer===0)assert.ok(bytes(a.binary,oldMeshopt).equals(bytes(b.binary,newMeshopt)),`${entry.id}: compressed geometry ${i} changed`);
+  const oldMeshopt=before.extensions?.EXT_meshopt_compression??before.extensions?.KHR_meshopt_compression,newMeshopt=after.extensions?.EXT_meshopt_compression??after.extensions?.KHR_meshopt_compression;
+  if(oldMeshopt?.buffer===0){
+   assert.ok(newMeshopt,`${entry.id}: compression metadata missing`);
+   for(const key of ['count','byteStride','mode','filter'])assert.equal(oldMeshopt[key],newMeshopt[key],`${entry.id}: compression semantics changed`);
+   const oldBytes=new Uint8Array(before.byteLength),newBytes=new Uint8Array(after.byteLength);
+   MeshoptDecoder.decodeGltfBuffer(oldBytes,oldMeshopt.count,oldMeshopt.byteStride,bytes(a.binary,oldMeshopt),oldMeshopt.mode,oldMeshopt.filter);
+   MeshoptDecoder.decodeGltfBuffer(newBytes,newMeshopt.count,newMeshopt.byteStride,bytes(b.binary,newMeshopt),newMeshopt.mode,newMeshopt.filter);
+   assert.ok(Buffer.from(oldBytes).equals(Buffer.from(newBytes)),`${entry.id}: decoded geometry ${i} changed`);
+  }
  }
  for(const image of entry.images){
   const before=a.json.images[image.index],after=b.json.images[image.index];

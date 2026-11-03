@@ -33,7 +33,7 @@ function fixture(mode = 'explore') {
   runtime.mode = mode; runtime.controls = controls;
   runtime.inspectionEnabled = true;
   runtime.clock = { getDelta: () => 1 / 60 };
-  runtime.lighting = { sun: { shadow }, refreshProbeLighting() {} };
+  runtime.lighting = { sun: { shadow }, refreshProbeLighting() {}, dispose() {} };
   runtime.renderer = {
     domElement: { style: {} },
     render() { stats.renders++; if (shadow.needsUpdate) { stats.shadowPasses++; shadow.needsUpdate = false; } },
@@ -270,4 +270,74 @@ test('coverage notifications after disposal cannot resurrect rendering or touch 
   runtime.setStudioCovered(false);
   assert.equal(runtime.studioCovered, true);
   assert.deepEqual(calls, []);
+});
+
+test('hidden tabs unregister callbacks and resume without advancing hidden time or overriding studio coverage', () => {
+  const { runtime, frames, stats } = fixture('explore');
+  runtime.rendererReady = true;
+  const loops = []; runtime.renderer.setAnimationLoop = cb => loops.push(cb);
+  let gap = 1 / 60;
+  runtime.clock.getDelta = () => { const dt = gap; gap = 1 / 60; return dt; };
+  document.hidden = true; runtime.onVisibility();
+  assert.equal(loops.at(-1), null);
+  frames(20); assert.equal(stats.characterFrames, 0); assert.equal(stats.renders, 0);
+  gap = 45; document.hidden = false; runtime.onVisibility();
+  assert.equal(loops.at(-1), runtime.tick);
+  frames(1); assert.equal(stats.characterFrames, 1);
+  assert.equal(runtime.statsTime, 1 / 60, 'hidden time is discarded before the resumed physics tick');
+  runtime.setStudioCovered(true);
+  document.hidden = true; runtime.onVisibility(); document.hidden = false; runtime.onVisibility();
+  assert.equal(loops.at(-1), null, 'a visible document must not restart the covered 3D scene');
+  document.hidden = true; runtime.setStudioCovered(false);
+  assert.equal(loops.at(-1), null, 'closing an overlay while hidden still keeps callbacks stopped');
+});
+
+test('cancelling initialization defers GPU release until pending work unwinds, and dispose is awaitable/idempotent', async () => {
+  const { runtime } = fixture('loading');
+  document.removeEventListener = () => {};
+  let completeInit, completeGPU;
+  const initGate = new Promise(resolve => completeInit = resolve);
+  const gpuGate = new Promise(resolve => completeGPU = resolve);
+  const events = [];
+  runtime.rendererReady = true;
+  runtime.renderer.setAnimationLoop = value => events.push(['loop', value]);
+  runtime.renderer.domElement.remove = () => events.push(['canvas removed']);
+  runtime.renderer.dispose = async () => { events.push(['GPU release']); await gpuGate; events.push(['GPU done']); };
+  runtime.controls.dispose = () => events.push(['controls release']);
+  runtime.initialize = async () => { events.push(['initialize']); await initGate; events.push(['init unwound']); };
+  const init = runtime.init(); assert.equal(runtime.init(), init);
+  const disposal = runtime.dispose(); assert.equal(runtime.dispose(), disposal);
+  let disposed = false; disposal.then(() => disposed = true);
+  await Promise.resolve();
+  assert.equal(runtime.abort.signal.aborted, true);
+  assert.equal(events.some(e => e[0] === 'GPU release'), false, 'no use-after-dispose during pending compilation');
+  completeInit(); await init; await Promise.resolve();
+  assert.equal(events.some(e => e[0] === 'controls release'), true);
+  assert.equal(events.some(e => e[0] === 'GPU release'), true);
+  assert.equal(disposed, false, 'callers can wait until asynchronous GPU release really completes');
+  completeGPU(); await disposal;
+  assert.equal(events.filter(e => e[0] === 'GPU release').length, 1);
+  assert.equal(runtime.scene.children.length, 0); assert.equal(runtime.content.children.length, 0);
+  assert.equal(runtime.textures.size, 0); assert.equal(runtime.controls, undefined);
+  assert.equal(runtime.rendererReady, false);
+});
+
+test('terminal loading errors release owned resources without waiting for a retry, even if one cleanup fails', async t => {
+  t.mock.method(console, 'warn', () => {});
+  const { runtime } = fixture('loading'); document.removeEventListener = () => {};
+  const events = [];
+  runtime.callbacks = { onError: message => events.push(message), onModeChange: mode => events.push(mode) };
+  runtime.rendererReady = true;
+  runtime.renderer.setAnimationLoop = () => {};
+  runtime.renderer.domElement.remove = () => events.push('canvas');
+  runtime.renderer.dispose = async () => events.push('renderer');
+  runtime.controls.dispose = () => { events.push('controls'); throw Error('already lost device'); };
+  runtime.ktx2 = { dispose: () => events.push('decoder') };
+  runtime.fail('Required lighting failed');
+  await runtime.dispose();
+  assert.equal(runtime.mode, 'error');
+  for (const item of ['error', 'Required lighting failed', 'controls', 'decoder', 'renderer', 'canvas'])
+    assert.equal(events.filter(event => event === item).length, 1, item);
+  runtime.fail('duplicate'); await runtime.dispose();
+  assert.equal(events.includes('duplicate'), false);
 });

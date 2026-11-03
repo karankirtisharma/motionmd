@@ -9,7 +9,7 @@
 /* On :root so portalled overlays (dialogs, drawers) share the same scale */
 #md-studio-root {
   --u: min(100vw / 2000, 100dvh / 1125);
-  /* The brass ledge: 76.2% down the plate, design y 857 */
+  /* Preserve the original card layout anchor independently of the backdrop. */
   --ledge-pct: 76.2%;
   --ledge-y: 857;
 }
@@ -32,10 +32,21 @@
   height: calc(var(--h) * var(--u));
 }
 
-/* Cover the viewport, pinned at the ledge so it lands on --ledge-pct at any crop */
+/* Reuse only the wood portion of the original plate. The lower gold trim and
+   marble begin at 76.2%; a taller, top-aligned crop keeps them outside the
+   viewport at every aspect ratio without stretching or downloading a new image. */
+#md-studio-root .stage__backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 138%;
+  pointer-events: none;
+  z-index: 0;
+}
 #md-studio-root .stage__plate {
   object-fit: cover;
-  object-position: 50% 76.2%;
+  object-position: 50% 0;
   z-index: 0;
 }
 

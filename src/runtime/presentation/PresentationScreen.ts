@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createLiveStudioSurface } from './LiveStudioSurface.ts';
-import type { ScreenQuad } from './projection.ts';
+import { projectScreenPlane } from './projection.ts';
 
 export type ScreenBounds = { x: number; y: number; width: number; height: number };
 type Options = {
@@ -12,8 +12,7 @@ type Options = {
 
 /** Read the four authored display UV corners, not the frame's world bounding box.
  * The curved display is the depth mask; its chord registers the browser surface. */
-export function screenCorners(meshes: THREE.Mesh[]): THREE.Vector3[] {
-  const targets = [[0, 0], [1, 0], [1, 1], [0, 1]];
+function screenPoints(meshes: THREE.Mesh[], targets: number[][]): THREE.Vector3[] {
   return targets.map(([u, v]) => {
     const point = new THREE.Vector3(); let nearest = Infinity;
     for (const mesh of meshes) {
@@ -28,6 +27,10 @@ export function screenCorners(meshes: THREE.Mesh[]): THREE.Vector3[] {
     if (!Number.isFinite(nearest)) throw new Error('The presentation display has no usable UV surface.');
     return point;
   });
+}
+
+export function screenCorners(meshes: THREE.Mesh[]): THREE.Vector3[] {
+  return screenPoints(meshes, [[0, 0], [1, 0], [1, 1], [0, 1]]);
 }
 
 /** The only replaced material is the named presentation display. Its depth-tested
@@ -51,15 +54,15 @@ export function createPresentationScreen(options: Options) {
   corners.forEach(point => center.addScaledVector(point, .25));
   const normal = new THREE.Vector3().subVectors(corners[1], corners[0])
     .cross(new THREE.Vector3().subVectors(corners[3], corners[0])).negate().normalize();
-  const visibilitySamples = [center, corners[0].clone().lerp(center, .2), corners[1].clone().lerp(center, .2)];
+  // Sample the actual curved surface. Chord samples can sit behind its collider,
+  // falsely declaring the whole live panel hidden from close/side viewpoints.
+  const visibilitySamples = screenPoints(meshes, [[.5,.5],[.1,.1],[.9,.1],[.1,.9],[.9,.9],[.1,.5],[.9,.5]]);
   const aspect = corners[0].distanceTo(corners[1]) / corners[0].distanceTo(corners[3]);
   const material = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0,
     blending: THREE.NoBlending, depthTest: true, depthWrite: true, toneMapped: false });
   material.name = 'Presentation display | live DOM depth opening';
   let active = false, disposed = false, visible = false;
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(), cameraPosition = new THREE.Vector3();
-  const projected = corners.map(() => new THREE.Vector3());
-  const quad: ScreenQuad = [{x:0,y:0},{x:0,y:0},{x:0,y:0},{x:0,y:0}];
   let bounds: ScreenBounds = { x: 0, y: 0, width: 1, height: 1 };
   let viewportWidth = 0, viewportHeight = 0;
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
@@ -95,20 +98,13 @@ export function createPresentationScreen(options: Options) {
       first = false; viewportWidth = w; viewportHeight = h;
       previousCamera.copy(options.camera.matrixWorld); previousProjection.copy(options.camera.projectionMatrix);
       options.camera.getWorldPosition(cameraPosition);
-      let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity, valid = true;
-      corners.forEach((point, i) => {
-        const p = projected[i].copy(point).project(options.camera);
-        if (p.z < -1 || p.z > 1) valid = false;
-        quad[i].x = (p.x + 1) * w / 2; quad[i].y = (1 - p.y) * h / 2;
-        left = Math.min(left, quad[i].x); right = Math.max(right, quad[i].x);
-        top = Math.min(top, quad[i].y); bottom = Math.max(bottom, quad[i].y);
-      });
-      bounds = { x: left, y: top, width: right - left, height: bottom - top };
+      const projection = projectScreenPlane(corners, options.camera, w, h, surface.width, surface.height);
       const wasVisible = visible;
-      visible = valid && cameraPosition.distanceToSquared(center) < 35 ** 2 &&
-        normal.dot(cameraPosition.sub(center)) > .05 && right > 0 && left < w && bottom > 0 && top < h &&
-        Math.min(w, right) - Math.max(0, left) > 40 && Math.min(h, bottom) - Math.max(0, top) > 20 && (!options.isInView || options.isInView(visibilitySamples));
-      surface.update(quad, visible);
+      if (projection) bounds = projection.bounds;
+      visible = !!projection?.visible && cameraPosition.distanceToSquared(center) < 35 ** 2 &&
+        normal.dot(cameraPosition.sub(center)) > .005 && bounds.width > 40 && bounds.height > 20 &&
+        (!options.isInView || options.isInView(visibilitySamples));
+      surface.update(projection?.matrix ?? null, visible);
       return visible !== wasVisible;
     },
     getWorldCenter(target = new THREE.Vector3()) { return target.copy(center); },

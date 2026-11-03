@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 
+import { TourTimeline } from './TourProgress';
+import type { TourProgressStore } from '@/runtime/tourProgress';
+
 export type LoungeMode = 'loading' | 'welcome' | 'cinematic' | 'handoff' | 'explore' | 'seated' | 'menu' | 'error';
 export type Quality = 'auto' | 'high' | 'balanced';
 export interface LoungeInterfaceProps {
   mode: LoungeMode;
   loading?: { phase: string; detail?: string; progress?: number };
   progress?: number;
+  progressStore?: TourProgressStore;
   onProgressChange?: (progress: number) => void;
   playing?: boolean;
   duration?: number;
@@ -131,7 +135,6 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
   const active = mode === 'explore' || mode === 'seated';
   const modal = mode === 'loading' || mode === 'welcome' || mode === 'menu' || mode === 'error' || mode === 'handoff';
   const measuredProgress = typeof loading?.progress === 'number' && Number.isFinite(loading.progress) ? Math.max(0, Math.min(1, loading.progress)) : null;
-  const safeProgress = Math.max(0, Math.min(1, progress));
   return <div className={`lounge-interface mode-${mode}${reducedMotion ? ' reduced-motion' : ''}`}>
     <header className="lounge-header" aria-hidden={modal ? true : undefined}>
       <div className="lounge-brand"><span className="brand-mark">md.</span><span className="brand-rule" /><span className="brand-name">The Lounge<span>motiondesign.ad</span></span></div>
@@ -168,7 +171,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
         <button type="button" className="icon-button replay-button" onClick={onCinematic || onRestart} aria-label="Replay cinematic" title="Replay"><Icon name="replay" size={17} /></button>
         <button type="button" className="button button-small button-primary" onClick={onExploreDirect || onExplore}>Explore<Icon name="arrow" size={16} /></button>
       </div>}
-      <div className="tour-timeline"><span className="timeline-index">{String(Math.floor(safeProgress * duration)).padStart(2, '0')}s</span><progress className="cinematic-progress" aria-label="Cinematic progress" max={1} value={safeProgress} /><span className="timeline-end">{duration}s</span></div>
+      <TourTimeline store={props.progressStore} progress={progress} duration={duration} />
     </div>}
 
     {mode === 'handoff' && <div className="handoff-layer"><FocusPanel label="Explore freely" className="handoff-panel" onDismiss={onGoBack}><p className="eyebrow">Make yourself at home</p><h1>Explore freely?</h1><p className="panel-copy">Take your own path through the lounge.</p><div className="panel-actions"><button type="button" className="button button-primary" onClick={onExplore}>Explore<Icon name="arrow" /></button><button type="button" className="button button-quiet" onClick={onGoBack}><Icon name="back" size={17} />Go back</button></div><p className="panel-note">{isTouch ? 'Touch controls will appear when you enter.' : 'W A S D to walk · Mouse to look · E to interact'}</p></FocusPanel></div>}
