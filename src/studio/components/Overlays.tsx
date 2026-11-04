@@ -4,7 +4,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Command } from "cmdk";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import Image from "next/image";
-import { useEffect, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { flushSync } from "react-dom";
 import { Drawer } from "vaul";
 import { FILMS, FORMATS, INDUSTRIES, filmAt, pad2, type Film } from "@/studio/data/catalog";
 import { EASE_OUT, PRESS } from "@/studio/lib/motion";
@@ -97,15 +98,35 @@ function SearchPalette() {
   const setView = useUI((s) => s.setView);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Set<Filter>>(new Set());
+  // Eight rows exceed the palette's full height even before its header and
+  // footer. Register the rest after the input and visible rows can paint.
+  const [rowLimit, setRowLimit] = useState(8);
+  const rowFrame = useRef(0);
   // Results stagger in on a fresh open only; typing filters instantly
   const [fresh, setFresh] = useState(true);
 
   useEffect(() => {
-    if (open) {
-      setQuery("");
-      setFresh(true);
+    if (!open) { setRowLimit(8); return; }
+    setQuery("");
+    setFresh(true);
+    let limit = 8;
+    function addRows() {
+      limit = Math.min(limit + 12, FILMS.length);
+      const next = limit;
+      setRowLimit(previous => Math.max(previous, next));
+      if (next < FILMS.length) rowFrame.current = requestAnimationFrame(addRows);
     }
+    rowFrame.current = requestAnimationFrame(() => { rowFrame.current = requestAnimationFrame(addRows); });
+    return () => { cancelAnimationFrame(rowFrame.current); };
   }, [open]);
+
+  function revealForInput() {
+    if (rowLimit >= FILMS.length) return;
+    cancelAnimationFrame(rowFrame.current);
+    // cmdk handles navigation in this same event. End, wrapping arrows,
+    // immediate typing and pointer scrolling must see the complete catalog.
+    flushSync(() => setRowLimit(FILMS.length));
+  }
 
   const pass = (f: Film) =>
     (!filters.has("format") || f.format === format) &&
@@ -130,6 +151,9 @@ function SearchPalette() {
       label="Search films"
       loop
       filter={matchFilm}
+      onKeyDownCapture={revealForInput}
+      onWheelCapture={revealForInput}
+      onPointerDownCapture={revealForInput}
       overlayClassName="overlay-scrim"
       contentClassName="palette glass glass--frost"
       data-instant={instant || undefined}
@@ -164,9 +188,9 @@ function SearchPalette() {
           </motion.button>
         ))}
       </div>
-      <Command.List className="palette__list" data-fresh={fresh || undefined}>
+      <Command.List className="palette__list" data-fresh={fresh || undefined} aria-busy={open && !query && !filters.size && rowLimit < FILMS.length || undefined}>
         <Command.Empty className="palette__empty">No films match. Try “launch”, “car” or “3D”.</Command.Empty>
-        {FILMS.filter(pass).map((film, i) => (
+        {FILMS.filter(pass).slice(0, open && !query && !filters.size ? rowLimit : FILMS.length).map((film, i) => (
           <Command.Item
             key={film.id}
             value={`${film.title} ${film.id}`}

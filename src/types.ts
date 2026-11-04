@@ -43,7 +43,7 @@ export type SceneManifest = {
 };
 export type LoadingProgress = { phase: string; progress?: number; detail?: string };
 export type RuntimeHint = { text: string; target?: string };
-export type RuntimeStats = { fps: number; drawCalls: number; triangles: number; renderer: string; quality: Quality; resolutionScale: number; frameP50Ms?: number; frameP95Ms?: number; resourceMiB?: number };
+export type RuntimeStats = { fps: number; renderedFps?: number; cpuFrameMs?: number; gpuDrawMs?: number; gpuTimingAvailable?: boolean; drawCalls: number; triangles: number; renderer: string; quality: Quality; resolutionScale: number; frameP50Ms?: number; frameP95Ms?: number; resourceMiB?: number };
 export type RuntimeCallbacks = {
   onProgress?: (progress: LoadingProgress) => void;
   onReady?: () => void;

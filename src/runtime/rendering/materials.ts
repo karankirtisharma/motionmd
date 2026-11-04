@@ -9,6 +9,7 @@ import { sourceUVNormal } from './sourceNormals';
 import { restoreSourceStoneWalls } from './sourceStoneWalls';
 import { restoreSourceStoneFloors } from './sourceStoneFloors';
 import { restoreSourceBronze } from './sourceBronze';
+import { embeddedSourceKey } from './sharedImages';
 import { createLoadQueue } from './loadQueue.ts';
 import { repairCollapsedBrushFrame } from './brushTangents';
 import { repairGlassNormals } from './glassNormals.ts';
@@ -41,7 +42,7 @@ export function prepareSourceMaterials(root: Object3D, renderer: WebGPURenderer)
           // GLTFLoader clones every nonzero UV-channel texture assignment. Keep distinct
           // UV/color/sampler semantics, but share one Texture instance for identical views.
           const key = JSON.stringify([
-            value.source.uuid, value.channel, value.colorSpace, value.mapping,
+            embeddedSourceKey(value), value.channel, value.colorSpace, value.mapping,
             value.wrapS, value.wrapT, 'wrapR' in value ? value.wrapR : null,
             value.magFilter, value.minFilter, value.anisotropy,
             value.format, value.type, value.internalFormat, value.generateMipmaps,

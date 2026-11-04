@@ -24,17 +24,19 @@ export function Experience({
   showSplash = false,
   railOpen = false,
   embedded = false,
+  tvDisplay = false,
 }: {
   initial: Cursor;
   showSplash?: boolean;
   railOpen?: boolean;
   embedded?: boolean;
+  tvDisplay?: boolean;
 }) {
   return (
     <UIProvider initial={initial} railOpen={railOpen}>
       <PlayerProvider>
         <Motion>
-          <Scene showSplash={showSplash} />
+          <Scene showSplash={showSplash} tvDisplay={tvDisplay} />
           <Keyboard embedded={embedded} />
           <WheelBrowse />
           <LoungeBridge embedded={embedded} />
@@ -85,7 +87,7 @@ const HINTS: Record<string, string> = {
   studio: "Esc to go back to the work",
 };
 
-function Scene({ showSplash }: { showSplash: boolean }) {
+function Scene({ showSplash, tvDisplay }: { showSplash: boolean; tvDisplay: boolean }) {
   const [splash, setSplash] = useState(showSplash);
   // After the splash, the row and title make their entrance once
   const [intro, setIntro] = useState(false);
@@ -133,7 +135,7 @@ function Scene({ showSplash }: { showSplash: boolean }) {
             animate={{ opacity: 1, transition: { duration: 0.22, ease: EASE_OUT } }}
             exit={{ opacity: 0, transition: { duration: 0.14, ease: EASE_OUT } }}
           >
-            <CardRow intro={intro} />
+            <CardRow intro={intro} tvDisplay={tvDisplay} />
           </motion.div>
         )}
       </AnimatePresence>

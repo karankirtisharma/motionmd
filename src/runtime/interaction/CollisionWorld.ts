@@ -70,6 +70,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   const colliderNames = new Map<number, string>();
   const workstationColliders: RAPIER.Collider[] = [];
   let workstationConfigured = false;
+  let presentationCollider: RAPIER.Collider | undefined;
+  let presentationTriangles = 0;
     let workstationPlacement: { offset: THREE.Vector3; rotation: THREE.Quaternion } | undefined;
     let workstationAngle = 0;
   let meshCount = 0, triangleCount = 0;
@@ -224,7 +226,22 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   const cameraDirection = new THREE.Vector3();
   const identityRotation = { x: 0, y: 0, z: 0, w: 1 };
   return {
-    meshCount, triangleCount, perimeterColliders,
+    get meshCount() { return meshCount + (presentationCollider ? 1 : 0); },
+    get triangleCount() { return triangleCount + presentationTriangles; },
+    perimeterColliders,
+    configurePresentationPanel(vertices: Float32Array, indices: Uint32Array) {
+      // The flat TV projects farther into the room than its original curved
+      // back wall. Use its exact visible face and returns for feet and camera.
+      const descriptor = RAPIER.ColliderDesc.trimesh(vertices, indices, RAPIER.TriMeshFlags.FIX_INTERNAL_EDGES);
+      const next = world.createCollider(descriptor.setFriction(.6));
+      if (presentationCollider) {
+        colliderNames.delete(presentationCollider.handle);
+        world.removeCollider(presentationCollider, false);
+      }
+      presentationCollider = next; presentationTriangles = indices.length / 3;
+      colliderNames.set(next.handle, 'Presentation display | flat face and returns');
+      world.step();
+    },
     world, capsule, body, controller, place, colliderNames, torso,
     setDeskClearance(active: boolean) {
       // Authored desk contact IK owns body placement during the measured approach.

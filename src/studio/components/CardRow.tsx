@@ -39,7 +39,7 @@ const boxKey = (mode: CardMode, box: CSSProperties) => {
   return [mode, b["--x"], b["--y"], b["--w"], b["--h"], b["--ax"]].join(",");
 };
 
-export function CardRow({ intro = false }: { intro?: boolean }) {
+export function CardRow({ intro = false, tvDisplay = false }: { intro?: boolean; tvDisplay?: boolean }) {
   const axis = useUI((s) => s.axis);
   const format = useUI((s) => s.format);
   const industry = useUI((s) => s.industry);
@@ -92,6 +92,7 @@ export function CardRow({ intro = false }: { intro?: boolean }) {
               label={label}
               mode={mode}
               active={isFocus}
+              eagerPoster={tvDisplay && view === "browse" && Math.abs(d) <= 2}
               dim={expanded && !isFocus}
               hidden={theater && !isFocus && !upNext}
               upNext={upNext}

@@ -27,7 +27,7 @@ export default async function StudioPage({ searchParams }: Props) {
   const showSplash = !embedded && (params.splash === "1" || (!entered && !deepLink));
   return (
     <Stage>
-      <Experience initial={cursorFromParams(params)} showSplash={showSplash} railOpen={params.rail === "open"} embedded={embedded} />
+      <Experience initial={cursorFromParams(params)} showSplash={showSplash} railOpen={params.rail === "open"} embedded={embedded} tvDisplay={embedded && params.display === "tv"} />
       <RefOverlay mode={params.ref} />
     </Stage>
   );

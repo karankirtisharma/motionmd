@@ -26,6 +26,7 @@ type Props = {
   label: string;
   mode?: CardMode;
   active?: boolean;
+  eagerPoster?: boolean;
   /** Pushed behind the expanded panel */
   dim?: boolean;
   /** Not part of the current view (theater hides the row) */
@@ -78,6 +79,7 @@ export function GlassCard({
   label,
   mode = "card",
   active = false,
+  eagerPoster = false,
   dim = false,
   hidden = false,
   upNext = false,
@@ -132,6 +134,8 @@ export function GlassCard({
   return (
     <motion.div
       className="card at"
+      data-film-id={film.id}
+      data-film-poster={film.poster}
       style={style}
       data-active={active || undefined}
       data-mode={mode}
@@ -174,6 +178,7 @@ export function GlassCard({
             fill
             sizes={active ? "(orientation: portrait) 60vw, 20vw" : "(orientation: portrait) 40vw, 12vw"}
             priority={active}
+            loading={eagerPoster && !active ? "eager" : undefined}
           />
           {/* A dedicated wide frame crossfades in once the card opens up */}
           {active && hero !== film.poster && (

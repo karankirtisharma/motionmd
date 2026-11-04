@@ -56,6 +56,7 @@ export async function createInteractionController(options: Options) {
       const characterHit = avatar.root.visible ? ray.intersectObject(avatar.root, true)[0] : undefined;
       return !characterHit || characterHit.distance >= camera.position.distanceTo(point);
     }, onOpen: bounds => { if (enabled && (mode === 'explore' || (mode === 'seated' && !selected?.workstation))) options.onStudioOpen?.(bounds); } }) : undefined;
+  if (display) physics.configurePresentationPanel(display.collision.vertices, display.collision.indices);
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
     const forward = item.forward ? new THREE.Vector3().fromArray(item.forward) : new THREE.Vector3(0, 0, 1).applyQuaternion(new THREE.Quaternion().fromArray(item.quaternion));

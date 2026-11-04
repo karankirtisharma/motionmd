@@ -8,6 +8,7 @@ export class RuntimeProfiler {
   private phases: Array<{ phase: string; ms: number }> = [];
   private observer?: PerformanceObserver;
   private longTasks: Array<{ start: number; ms: number }> = [];
+  private gpuSamples: number[] = [];
   private capture?: { label: string; started: number; frames: number[][]; commits: number; hidden: boolean; shaderEvents: ShaderBuildEvent[]; shaderDetailsDropped: number; programsStart?: number; programsEnd?: number; programsPeak?: number };
   private timer?: ReturnType<typeof setTimeout>;
   private shaderObserver?: ReturnType<typeof observeShaderBuilds>;
@@ -48,6 +49,7 @@ export class RuntimeProfiler {
   }
   start(label: string, seconds = 15) {
     if (this.capture) return;
+    this.gpuSamples.length = 0;
     const now = performance.now();
     const programs = this.shaderObserver?.start();
     this.capture = { label, started: now, frames: [], commits: 0, hidden: document.hidden, shaderEvents: [], shaderDetailsDropped: 0, programsStart: programs, programsEnd: programs, programsPeak: programs };
@@ -55,6 +57,9 @@ export class RuntimeProfiler {
     this.timer = setTimeout(() => this.finish(), seconds * 1000);
   }
   uiCommit() { if (this.capture) this.capture.commits++; }
+  gpuSample(duration: number, at: number) {
+    if (this.capture && at >= this.capture.started) this.gpuSamples.push(duration);
+  }
   frame(intervalMs: number, simulationMs: number, mirrorMs: number, renderMs: number, rendered: boolean) {
     const sample = this.capture;
     if (!sample) return;
@@ -112,7 +117,12 @@ export class RuntimeProfiler {
         eventDetailsDropped: sample.shaderDetailsDropped,
         note: 'Public node-build starts and active program counts; no public r186 GPU-pipeline creation callback. RAF intervals include the preceding submission. Event coincidence is not proof of stall causation.',
       },
-      gpuTimeMs: null, note: 'CPU submission timings are not GPU timings. Memory is renderer-tracked, not total VRAM.', context: this.context() };
+      gpuTimeMs: this.gpuSamples.length ? {
+        samples: this.gpuSamples.length,
+        mean: +(this.gpuSamples.reduce((sum, ms) => sum + ms, 0) / this.gpuSamples.length).toFixed(3),
+        max: +Math.max(...this.gpuSamples).toFixed(3),
+      } : null,
+      note: 'CPU timings measure JavaScript submission. GPU timings sample actual 3D render passes every two seconds when supported. Memory is renderer-tracked.', context: this.context() };
     this.emit();
   }
   private emit() { this.publish(JSON.stringify({ load: this.load, capture: this.last }, null, 2)); }

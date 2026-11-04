@@ -14,6 +14,17 @@ import type { LoadingProgress, Quality, RuntimeHint, RuntimeMode, RuntimeStats }
 
 export default function Home() { return <LoungeEntry><LoungeHome /></LoungeEntry>; }
 
+function PerformanceReadout({ stats }: { stats: RuntimeStats | null }) {
+  const ms = (value?: number) => value === undefined ? '—' : `${value.toFixed(1)} ms`;
+  return <div data-testid="performance-overlay" aria-label="3D performance">
+    <div><strong>3D performance</strong> · {stats?.renderer ?? 'Preparing'}</div>
+    <div>{stats?.renderedFps === undefined ? 'Waiting for frames' : stats.renderedFps ? `${stats.renderedFps} rendered FPS` : 'Idle · 0 rendered FPS'}</div>
+    <div>Frame interval p95 · {ms(stats?.frameP95Ms)}</div>
+    <div title="Average time spent simulating and submitting a rendered frame on the browser main thread">CPU frame work · {ms(stats?.cpuFrameMs)}</div>
+    <div title="Latest GPU render-pass timestamp sample, collected every two seconds">GPU draw · {stats?.gpuTimingAvailable === false ? 'Unavailable' : ms(stats?.gpuDrawMs)}</div>
+  </div>;
+}
+
 function LoungeHome() {
   const viewport = useRef<HTMLDivElement>(null);
   const runtime = useRef<SceneRuntime | null>(null);
@@ -69,7 +80,8 @@ function LoungeHome() {
     modeRef.current = 'loading';
     const preferredReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     setReducedMotion(preferredReduced);
-    setProfiling(new URLSearchParams(window.location.search).get('profile') === '1');
+    const profileEnabled = new URLSearchParams(window.location.search).get('profile') === '1';
+    setProfiling(profileEnabled); setStats(null);
     const diagnosticsEnabled = new URLSearchParams(window.location.search).get('debug') === '1';
     setDebug(diagnosticsEnabled);
     import('@/runtime/SceneRuntime').then(async ({ SceneRuntime }) => {
@@ -87,7 +99,7 @@ function LoungeHome() {
         },
         onHint: value => { if (!cancelled) setHint(value); },
         onProfile: value => { if (!cancelled) setProfileReport(value); },
-        onStats: diagnosticsEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
+        onStats: diagnosticsEnabled || profileEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
         onError: value => { progressUpdates.dispose(); if (!cancelled) setError(value); },
         onScreenMode: value => { if (!cancelled) setScreenActive(value); },
         onStudioOpen: bounds => {
@@ -185,6 +197,9 @@ function LoungeHome() {
       onTouchSprint={value => { touch.current.sprint = value; sendTouch(); }} onTouchExit={openMenu}
     /></div>
     <noscript>This experience needs JavaScript and a browser with WebGPU or WebGL 2 to display the original architectural scene.</noscript>
+    {profiling && !debug && !studioOpen && <aside style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'none', padding: '8px 12px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.5 monospace', fontVariantNumeric: 'tabular-nums', borderRadius: 8 }}>
+      <PerformanceReadout stats={stats} />
+    </aside>}
     {debug && <aside hidden={studioOpen} aria-label="Render diagnostics" style={{ position: 'fixed', left: 16, top: 92, zIndex: 100, pointerEvents: 'auto', padding: '10px 14px', background: 'rgba(0,0,0,.82)', color: '#eee', font: '12px/1.6 monospace', border: '1px solid #777', borderRadius: 8 }}>
       <div>Render diagnostics <button type="button" onClick={() => setDebug(false)} style={{ float: "right" }}>Hide diagnostics</button></div>
       {profiling && <details><summary>Performance capture</summary>
@@ -195,6 +210,7 @@ function LoungeHome() {
         <pre data-testid="performance-report" style={{ maxHeight: 210, maxWidth: 420, overflow: "auto", fontSize: 10 }}>{profileReport}</pre>
       </details>}
       <div>Phase: {mode}</div>
+      {profiling && <PerformanceReadout stats={stats} />}
       <div>Renderer: {stats?.renderer ?? 'Preparing'}</div>
       <div>FPS: {stats?.fps ?? '—'} · Draw calls: {stats?.drawCalls ?? '—'}</div>
       <div>Triangles: {stats?.triangles.toLocaleString() ?? '—'}</div>

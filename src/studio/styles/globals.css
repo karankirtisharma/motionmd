@@ -44,7 +44,9 @@
 #md-studio-root[data-tv] .topbar-search { left: auto; right: 318px; }
 #md-studio-root[data-tv] .topbar-heart { left: auto; right: 238px; }
 #md-studio-root[data-tv] .topbar-brief { left: auto; right: 48px; top: 30px; width: 174px; height: 64px; font-size: 20px; }
-#md-studio-root[data-tv] .rail-toggle { left: 48px; top: 30px; width: 232px; height: 64px; font-size: 18px; }
+#md-studio-root[data-tv] .rail-toggle { left: 48px; top: 30px; width: 232px; height: 64px; font-size: 16px; letter-spacing: .05em; }
+#md-studio-root[data-tv] .rail-toggle__lane { flex: 1; min-width: 0; text-align: left; }
+#md-studio-root[data-tv] .rail-toggle__lane .swap__item { white-space: normal; line-height: 1.15; }
 #md-studio-root[data-tv] .topbar-work { left: 296px; top: 30px; width: 176px; height: 64px; font-size: 20px; }
 #md-studio-root[data-tv] .icon-btn svg { width: 25px; height: 25px; }
 /* The room already carries the brand. Expansion removes data-tv and restores it. */

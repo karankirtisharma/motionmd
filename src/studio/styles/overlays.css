@@ -9,6 +9,11 @@
   backdrop-filter: blur(10px) saturate(115%);
   -webkit-backdrop-filter: blur(10px) saturate(115%);
 }
+/* A dismissing portal may remain mounted for its exit animation. Release the
+   native hit targets underneath as soon as Radix/Vaul marks it closed. */
+#md-studio-root .overlay-scrim[data-state="closed"],
+#md-studio-root [role="dialog"][data-state="closed"] { pointer-events: none !important; }
+
 #md-studio-root .overlay-scrim--dim { background: rgb(12 7 3 / 0.42); }
 /* The overview is a dense grid; the room behind it has to go fully quiet */
 #md-studio-root .overlay-scrim--deep {

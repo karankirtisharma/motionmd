@@ -1,3 +1,4 @@
+import { installFlatPanel } from '../src/runtime/presentation/flatPanel.ts';
 import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -542,12 +543,13 @@ test('actual handoff controller keeps third-person outside the body and preserve
   let screenMesh;
   lounge.traverse(object => { if (object.isMesh && (object.userData.sourceName === manifest.screen.objectName || object.name === manifest.screen.objectName)) screenMesh ??= object; });
   assert.ok(screenMesh, 'use the actual source presentation screen geometry');
-  const screenCenter = new THREE.Box3().setFromObject(screenMesh).getCenter(new THREE.Vector3());
+  const panel = installFlatPanel([screenMesh]);
+  const screenCenter = panel.point(.5, .5);
   const priorDocument = globalThis.document, priorWindow = globalThis.window, priorMatchMedia = globalThis.matchMedia;
   globalThis.document = { pointerLockElement: null, addEventListener() {}, removeEventListener() {}, exitPointerLock() {} };
   globalThis.window = { addEventListener() {}, removeEventListener() {} };
   globalThis.matchMedia = () => ({ matches: false });
-  globalThis[fixtureKey] = { physics, avatar, screen: { meshes: [screenMesh], setActive() {}, update() {}, getWorldCenter: () => screenCenter.clone(), dispose() {} } };
+  globalThis[fixtureKey] = { physics, avatar, screen: { meshes: [panel.face], collision: panel.collision, setActive() {}, update() {}, getWorldCenter: () => screenCenter.clone(), dispose() { panel.dispose(); } } };
   const canvas = { addEventListener() {}, removeEventListener() {}, focus() {}, style: {} };
   const camera = new THREE.PerspectiveCamera(54, 16 / 9, 0.04, 2000);
   const handoff = manifest.tour.find(frame => frame.id === 'Explore handoff');

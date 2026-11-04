@@ -3,6 +3,7 @@ import type { ScreenBounds } from './presentation/PresentationScreen';
 import { WebGPURenderer } from 'three/webgpu';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SceneKTX2Loader } from './rendering/SceneKTX2Loader';
+import { identifySharedImages } from './rendering/sharedImages';
 import { createReplacedGalleryAlbedoPlugin } from './rendering/replacedGalleryAlbedo';
 import { createMeshoptDecoder } from './rendering/meshoptDecode';
 import { loadProgressively } from './rendering/progressiveLoad';
@@ -34,6 +35,7 @@ import { qualifiesAdaptiveWindow } from './rendering/adaptiveWindow';
 import { createInteractionController } from './interaction/InteractionController';
 
 import type { RuntimeProfiler } from './rendering/RuntimeProfiler';
+import { createFrameMeter } from './rendering/frameMeter';
 
 // r186 TRAA retains 95% of history per static sample. 128 frames leave <0.15%
 // of the initial history before a genuinely frozen view stops drawing.
@@ -97,6 +99,7 @@ export class SceneRuntime {
   private inspectionWalkTime = 0;
   private inspectionRoute?: { points: Vector3[]; index: number; sprint: boolean };
   private profiler?: RuntimeProfiler;
+  private frameMeter?: ReturnType<typeof createFrameMeter>;
   private settleFrames = TEMPORAL_SETTLE_FRAMES;
 
   constructor(container: HTMLElement, callbacks: RuntimeCallbacks & { onStudioOpen?: (bounds: ScreenBounds) => void } = {}) {
@@ -146,6 +149,9 @@ export class SceneRuntime {
       console.info('[MD depth]', { reversed: this.renderer.reversedDepthBuffer, near: this.camera.near, far: this.camera.far });
       this.rendererReady = true;
       if (this.disposed) return;
+      if (query.get('profile') === '1') {
+        this.frameMeter = createFrameMeter(this.renderer, (ms, at) => this.profiler?.gpuSample(ms, at));
+      }
       this.shaderValidation = guardShaderCompilation(this.renderer, message => this.fail(message));
       this.profiler?.attachRenderer(this.renderer);
       const canvas = this.renderer.domElement as HTMLCanvasElement;
@@ -320,8 +326,9 @@ export class SceneRuntime {
         const gltf = await loader.parseAsync(buffer, absolute.slice(0, absolute.lastIndexOf('/') + 1))
           .finally(() => loader.unregister(omitSuperseded));
         if (this.disposed || this.abort.signal.aborted) { this.disposeObject(gltf.scene, true); return; }
-        try { loadGuard.assertLoaded(); }
+        try { loadGuard.assertLoaded(); await identifySharedImages(gltf.parser); }
         catch (error) { this.disposeObject(gltf.scene, true); throw error; }
+        if (this.disposed || this.abort.signal.aborted) { this.disposeObject(gltf.scene, true); return; }
         gltf.scene.name = `MD source | ${chunk.id}`;
         // Manifest lighting is authoritative; exported lights would otherwise be duplicated.
         const lights: Object3D[] = [];
@@ -367,7 +374,7 @@ export class SceneRuntime {
     if (this.disposed || this.mode === 'error' || this.auditBusy || this.studioCovered) return;
     const elapsed = this.clock.getDelta();
     if (document.hidden) return;
-    const profileStart = this.profiler ? performance.now() : 0;
+    const profileStart = (this.profiler || this.frameMeter) ? performance.now() : 0;
     const priorProgress = this.progress;
     const dt = Math.min(elapsed, 0.05);
     let characterAdvanced = false;
@@ -391,12 +398,23 @@ export class SceneRuntime {
     const shouldRender = this.settleFrames > 0;
     const simulationDone = this.profiler ? performance.now() : 0;
     let mirrorDone = simulationDone;
-    try { if (shouldRender) { this.settleFrames--; this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision); mirrorDone = this.profiler ? performance.now() : 0; if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera); } }
+    try {
+      if (shouldRender) {
+        this.frameMeter?.beginGPU(profileStart);
+        this.settleFrames--;
+        this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision);
+        mirrorDone = this.profiler ? performance.now() : 0;
+        if (this.temporal) this.temporal.render(); else this.renderer.render(this.scene, this.camera);
+      }
+    }
     catch (error) { if (!this.renderErrorReported) { this.renderErrorReported = true; console.error(error); this.fail('The graphics device could not finish rendering the scene. Close other graphics-heavy tabs and try again.'); } return; }
-    this.profiler?.frame(elapsed * 1000, simulationDone - profileStart, mirrorDone - simulationDone, shouldRender ? performance.now() - mirrorDone : 0, shouldRender);
+    finally { this.frameMeter?.endGPU(); }
+    const submitted = (this.frameMeter || this.profiler) && shouldRender ? performance.now() : 0;
+    if (shouldRender) this.frameMeter?.frame(submitted - profileStart);
+    this.profiler?.frame(elapsed * 1000, simulationDone - profileStart, mirrorDone - simulationDone, shouldRender ? submitted - mirrorDone : 0, shouldRender);
     this.statsFrames++; this.statsTime += elapsed;
     if (elapsed >= .25) { this.statsLongGaps++; this.statsLongGapTime += elapsed; }
-    if (this.inspectionEnabled) this.frameSamples.push(elapsed * 1000);
+    if (this.inspectionEnabled || this.frameMeter) this.frameSamples.push(elapsed * 1000);
     if (this.statsTime > 2) {
       try { this.shaderValidation?.assertCompiled(); }
       catch { return; }
@@ -404,7 +422,7 @@ export class SceneRuntime {
       if (!qualifiesAdaptiveWindow(this.statsFrames, this.statsTime, this.statsLongGaps, this.statsLongGapTime)) this.slowWindows = this.fastWindows = 0;
       else if (this.quality === 'auto' && !this.paused && shouldRender) this.adaptResolution(fps);
       const samples = this.frameSamples.sort((a, b) => a - b);
-      this.callbacks.onStats?.({ fps: Math.round(fps), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
+      this.callbacks.onStats?.({ fps: Math.round(fps), ...this.frameMeter?.snapshot(this.statsTime), drawCalls: this.renderer.info.render.drawCalls, triangles: this.renderer.info.render.triangles, renderer: 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', quality: this.quality, resolutionScale: this.resolutionScale,
         frameP50Ms: samples[Math.floor(samples.length * .5)], frameP95Ms: samples[Math.floor(samples.length * .95)],
         resourceMiB: (this.renderer.info.memory.texturesSize + this.renderer.info.memory.attributesSize) / 1048576 });
       this.frameSamples.length = 0;
@@ -701,6 +719,7 @@ export class SceneRuntime {
         try { action(); } catch (error) { console.warn('[MD cleanup]', error); }
       };
       release(() => this.profiler?.dispose());
+      release(() => this.frameMeter?.dispose());
       release(() => this.shaderValidation?.dispose());
       release(() => this.diagnostics?.dispose());
       release(() => this.staticSunShadowCache?.dispose());
@@ -718,7 +737,7 @@ export class SceneRuntime {
       this.controls = undefined; this.desert = undefined; this.lighting = undefined;
       this.temporal = undefined; this.galleryMirror = undefined; this.ktx2 = undefined;
       this.staticTransforms = undefined; this.staticSunShadowCache = undefined;
-      this.diagnostics = undefined; this.shaderValidation = undefined; this.profiler = undefined;
+      this.diagnostics = undefined; this.shaderValidation = undefined; this.profiler = undefined; this.frameMeter = undefined;
       if (this.renderer) {
         if (this.rendererReady) {
           try { await this.renderer.dispose(); } catch (error) { console.warn('[MD cleanup]', error); }
