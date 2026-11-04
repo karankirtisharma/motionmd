@@ -75,6 +75,55 @@ test('opening warmup preserves the original twenty-two exact object/material mat
   });
 });
 
+test('opening visitor preparation renders to its own target and restores a clean tour even on a hidden-tab frame', async t => {
+  for (const outcome of ['same-frame', 'next-frame', 'abort-before', 'abort-at-fence', 'draw-failed']) {
+    const { scene, camera } = fixture(), visitor = new Group(), shadow = { needsUpdate: false };
+    visitor.visible = false; scene.add(visitor);
+    const controller = new AbortController(), initialTarget = {}, initialMRT = {}, events = [];
+    let target = initialTarget, mrt = initialMRT, disposed = 0;
+    const projection = camera.projectionMatrix.clone();
+    const renderer = {
+      xr: { enabled: true }, toneMapping: 3, outputColorSpace: 'srgb', info: { frame: 4 },
+      getRenderTarget: () => target, setRenderTarget: v => { target = v; },
+      getMRT: () => mrt, setMRT: v => { mrt = v; },
+      async readRenderTargetPixelsAsync(rt) {
+        assert.notEqual(rt, initialTarget);
+        assert.equal(visitor.visible, false); assert.equal(shadow.needsUpdate, true);
+        assert.equal(target, initialTarget); assert.equal(mrt, initialMRT);
+        events.push('fence');
+        if (outcome === 'next-frame') this.info.frame++;
+        if (outcome === 'abort-at-fence') controller.abort();
+      },
+    };
+    const temporal = createTemporalRenderer(renderer, scene, camera);
+    const render = t.mock.method(RenderPipeline.prototype, 'render', () => {
+      if (visitor.visible) {
+        events.push('warm');
+        assert.equal(target.width, 1); assert.equal(target.height, 1); assert.equal(mrt, null);
+        target.addEventListener('dispose', () => disposed++);
+        renderer.toneMapping = 0; renderer.outputColorSpace = 'working'; renderer.xr.enabled = false;
+        camera.setViewOffset(100, 100, 1, 0, 100, 100); shadow.needsUpdate = false;
+        if (outcome === 'draw-failed') throw Error('failed warm pass');
+      } else {
+        events.push('clean');
+        assert.equal(target, initialTarget); assert.equal(mrt, initialMRT);
+        assert.equal(shadow.needsUpdate, true); assert.ok(camera.projectionMatrix.equals(projection));
+      }
+    });
+    try {
+      if (outcome === 'abort-before') controller.abort();
+      const result = temporal.renderOpeningFrame(visitor, shadow, controller.signal);
+      if (outcome === 'same-frame' || outcome === 'next-frame') await result; else await assert.rejects(result);
+      const expected = outcome === 'abort-before' ? [] : outcome === 'draw-failed' ? ['warm'] :
+        outcome === 'abort-at-fence' ? ['warm', 'fence'] : ['warm', 'fence', 'clean'];
+      assert.deepEqual(events, expected); assert.equal(disposed, expected.length ? 1 : 0);
+      assert.equal(visitor.visible, false); assert.equal(visitor.parent, scene);
+      assert.equal(renderer.toneMapping, 3); assert.equal(renderer.outputColorSpace, 'srgb'); assert.equal(renderer.xr.enabled, true);
+      assert.equal(target, initialTarget); assert.equal(mrt, initialMRT); assert.ok(camera.projectionMatrix.equals(projection));
+    } finally { render.mock.restore(); temporal.dispose(); }
+  }
+});
+
 test('upper-gallery reflection preparation deduplicates the measured route and admits the hidden visitor only for compilation', async () => {
   const { scene, camera, targets } = fixture(), visitor = new Group();
   visitor.visible = false;

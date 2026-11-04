@@ -275,7 +275,8 @@ export class SceneRuntime {
       this.lighting.sun.shadow.autoUpdate = false;
       this.lighting.sun.shadow.needsUpdate = true;
       this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision);
-      this.temporal.render();
+      this.profiler?.phase('visitor and opening frame');
+      await this.temporal.renderOpeningFrame(this.controls.player, this.lighting.sun.shadow, this.abort.signal);
       this.profiler?.phase('first GPU frame completion');
       await this.temporal.finishFirstFrame();
       console.info('[MD warmup] shader compilation complete', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
