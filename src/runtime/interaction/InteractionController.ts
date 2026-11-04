@@ -6,7 +6,6 @@ import { loadAvatar } from './Avatar';
 import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smoothSupportHeight, smootherStep, smoothAngle, locomotionHeading, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
 import { createPresentationScreen, type ScreenBounds } from '../presentation/PresentationScreen';
-import { assetURL } from '../rendering/assets';
 import { createWorkstation, type Workstation } from './Workstation';
 import { createStairSurfaces } from './StairSurfaces';
 
@@ -31,10 +30,14 @@ type Chair = {
 export async function createInteractionController(options: Options) {
   const { scene, camera, canvas, manifest } = options;
   options.signal?.throwIfAborted();
+  const transfers = new AbortController();
+  const abortTransfers = () => transfers.abort(options.signal?.reason);
+  const cancelSibling = (reason: unknown): never => { transfers.abort(reason); throw reason; };
+  options.signal?.addEventListener('abort', abortTransfers, { once: true });
   const resources = await Promise.allSettled([
-    createCollisionWorld(scene, manifest.collisions?.url ? assetURL(manifest.collisions.url) : undefined, undefined, manifest.collisions?.additionalUrls?.map(assetURL) ?? [], manifest.explorationBounds),
-    loadAvatar(assetURL(manifest.character?.url ?? '/assets/character/RocketboxVisitor.glb')),
-  ]);
+    createCollisionWorld(scene, manifest.collisions?.url, undefined, manifest.collisions?.additionalUrls, manifest.explorationBounds, transfers.signal).catch(cancelSibling),
+    loadAvatar(manifest.character?.url, transfers.signal).catch(cancelSibling),
+  ]).finally(() => options.signal?.removeEventListener('abort', abortTransfers));
   if (options.signal?.aborted || resources.some((result) => result.status === 'rejected')) {
     resources.forEach((result) => { if (result.status === 'fulfilled') result.value.dispose(); });
     options.signal?.throwIfAborted();

@@ -17,6 +17,8 @@ import { repairExteriorWinding, repairExteriorOverlap, repairExteriorGroove } fr
 import { repairFounderExteriorWinding, installExteriorLighting } from './rendering/exteriorLighting';
 import { repairStudioThreshold } from './rendering/floorThreshold';
 import { repairEntranceApron } from './rendering/entranceApron';
+import lightingSizes from '../generated/lighting-transfer-sizes.json';
+import { createLightingReadAhead } from './rendering/lightingReadAhead';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import type { RenderDiagnostics, DiagnosticMode } from './rendering/diagnostics';
@@ -32,7 +34,7 @@ import { freezeArchitectureTransforms } from './rendering/staticTransforms';
 import { StaticSunShadowCache } from './rendering/staticSunShadowCache';
 import { createDrawingBufferResizer } from './rendering/resizeDrawingBuffer';
 import { qualifiesAdaptiveWindow } from './rendering/adaptiveWindow';
-import { createInteractionController } from './interaction/InteractionController';
+import type { createInteractionController } from './interaction/InteractionController';
 
 import type { RuntimeProfiler } from './rendering/RuntimeProfiler';
 import { createFrameMeter } from './rendering/frameMeter';
@@ -114,6 +116,7 @@ export class SceneRuntime {
   }
 
   private async initialize(): Promise<void> {
+    let lightingDownloads: ReturnType<typeof createLightingReadAhead> | undefined;
     try {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
@@ -167,6 +170,14 @@ export class SceneRuntime {
       const manifestBytes = await fetchBuffer('/assets/scene-manifest.json', this.abort.signal);
       this.manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as SceneManifest;
       this.validateManifest();
+      // Fetch the physics/visitor chunk alongside geometry rather than parsing
+      // Rapier's embedded WASM before the renderer and loader can even start.
+      const interactions = import('./interaction/InteractionController');
+      void interactions.catch(() => {}); // Observed below after independent loading work.
+      const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+      if (!connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
+        lightingDownloads = createLightingReadAhead(lightingSizes, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
+      }
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
       const colorLUT = await configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal);
       if (colorLUT) this.textures.add(colorLUT);
@@ -191,15 +202,16 @@ export class SceneRuntime {
 
       this.callbacks.onProgress?.({ phase: 'Preparing the light', detail: 'Loading source materials and room illumination' });
       this.profiler?.phase('material maps and lightmaps');
-      const materialTextures = await applyMaterialManifest(this.content, this.manifest, this.abort.signal);
+      const materialTextures = await applyMaterialManifest(this.content, this.manifest, this.abort.signal, lightingDownloads?.read);
       materialTextures.forEach(t => this.textures.add(t));
-      const exteriorTextures = await installExteriorLighting(this.content, this.abort.signal);
+      const exteriorTextures = await installExteriorLighting(this.content, this.abort.signal, lightingDownloads?.read);
       exteriorTextures.forEach(t => this.textures.add(t));
       this.abort.signal.throwIfAborted();
       prepareSourceMaterials(this.content, this.renderer).forEach(t => this.textures.add(t));
       const bounds = new Box3().setFromObject(this.content);
       this.profiler?.phase('lighting and reflection probes');
-      this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal);
+      this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal, lightingDownloads?.read);
+      lightingDownloads?.close();
       if (this.disposed || this.abort.signal.aborted) return;
       this.profiler?.phase('spatial preparation and desert');
       this.galleryMirror = createGalleryMirror(this.content);
@@ -212,7 +224,9 @@ export class SceneRuntime {
 
       this.callbacks.onProgress?.({ phase: 'Preparing exploration', detail: 'Loading movement, collisions and interactions' });
       this.profiler?.phase('movement, collisions and avatar');
-      this.controls = await createInteractionController({
+      const { createInteractionController: createControls } = await interactions;
+      this.abort.signal.throwIfAborted();
+      this.controls = await createControls({
         scene: this.scene, camera: this.camera, renderer: this.renderer,
         canvas, manifest: this.manifest, signal: this.abort.signal,
         onStateChange: (mode: 'explore' | 'seated') => this.setMode(mode),
@@ -249,22 +263,14 @@ export class SceneRuntime {
         }
         this.abort.signal.throwIfAborted();
       }
-      this.profiler?.phase('shader compilation');
       const compileStarted = performance.now();
-      this.callbacks.onProgress?.({ phase: 'Preparing materials', detail: 'Compiling the scene for your graphics device' });
-      console.info('[MD warmup] shader compilation started');
       this.temporal = createTemporalRenderer(this.renderer, this.scene, this.camera);
-      await this.temporal.warmup(event => {
-        if (this.disposed || this.abort.signal.aborted) return;
-        this.callbacks.onProgress?.({ phase: 'Preparing materials', detail: `Compiled ${event.loaded} of ${event.total} render objects`, progress: event.lengthComputable && event.total ? event.loaded / event.total : undefined });
-        if (event.loaded % 12 === 0 || event.loaded === event.total) console.info('[MD warmup] shader compilation', { loaded: event.loaded, total: event.total, seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
-      }, this.abort.signal);
       this.abort.signal.throwIfAborted();
       if (this.galleryMirror && (!this.inspectionEnabled || query.get('tourWarmup') !== '0')) {
         this.profiler?.phase('opening and upper-gallery reflection shaders');
         const started = performance.now();
         const count = await this.galleryMirror.warmup(this.renderer, this.scene, this.camera, this.abort.signal,
-          (loaded, total) => this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: `Prepared ${loaded} of ${total} measured reflection variants`, progress: total ? loaded / total : undefined }));
+          (loaded, total) => this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: `Prepared ${loaded} of ${total} measured reflection variants`, progress: total ? loaded / total : undefined }), { root: this.controls.player, sun: this.lighting.sun });
         console.info('[MD warmup] measured reflection variants', { objects: count, ms: +(performance.now() - started).toFixed(1) });
       }
       this.abort.signal.throwIfAborted();
@@ -279,7 +285,7 @@ export class SceneRuntime {
       await this.temporal.renderOpeningFrame(this.controls.player, this.lighting.sun.shadow, this.abort.signal);
       this.profiler?.phase('first GPU frame completion');
       await this.temporal.finishFirstFrame();
-      console.info('[MD warmup] shader compilation complete', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
+      console.info('[MD warmup] opening render passes ready', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
       this.shaderValidation.assertCompiled();
       this.abort.signal.throwIfAborted();
       this.setMode('tour');
@@ -292,7 +298,7 @@ export class SceneRuntime {
       if (this.disposed || (error instanceof DOMException && error.name === 'AbortError')) return;
       console.error('[MD scene]', error);
       this.fail(error instanceof Error ? error.message : 'The scene could not be loaded.');
-    }
+    } finally { lightingDownloads?.close(); }
   }
 
   private validateManifest() {

@@ -19,18 +19,8 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
   pipeline.outputNode = vec4(temporal.rgb, scenePass.getTextureNode('output').a);
   const resetHistory = () => (temporal as typeof temporal & { setSize(width: number, height: number): void }).setSize(1, 1);
   return {
-    async warmup(onProgress?: Parameters<WebGPURenderer['compileAsync']>[3], signal?: AbortSignal) {
-      // Compile the actual velocity/HDR pass once. A separate screen-output
-      // compilation doubles shader work and produces shaders we never render.
-      const previousTarget=renderer.getRenderTarget(),previousMRT=renderer.getMRT();
-      try {
-        renderer.setRenderTarget(scenePass.renderTarget);renderer.setMRT(sceneMRT);
-        await renderer.compileAsync(scene,camera,null,onProgress);
-      } finally {renderer.setRenderTarget(previousTarget);renderer.setMRT(previousMRT);}
-      signal?.throwIfAborted();
-      // The caller submits the first temporal sample once the live reflection
-      // exists. Drawing here would seed history with an uninitialized mirror.
-    },
+    // The first real nested draw prepares the actual HDR/velocity/shadow keys.
+    // Standalone compileAsync uses a different render context in pinned r186.
     render() { pipeline.render(); },
     async renderOpeningFrame(visitor: Object3D, shadow: DirectionalLightShadow, signal?: AbortSignal) {
       signal?.throwIfAborted();

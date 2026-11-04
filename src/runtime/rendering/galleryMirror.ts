@@ -1,4 +1,4 @@
-import { Box3, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
+import { Box3, type DirectionalLight, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { screenUV, texture, uniform } from 'three/tsl';
 
@@ -43,6 +43,32 @@ export function createMirrorCameraUpdater() {
   };
 }
 export const mirrorCamera = createMirrorCameraUpdater();
+
+type ReflectedVisitor = { root: Object3D; sun: DirectionalLight };
+
+function drawPreparedReflection(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera,
+  targets: readonly Mesh[], { root, sun }: ReflectedVisitor) {
+  const draws = new Set<Object3D>(targets);
+  root.traverse(object => { if ('isSkinnedMesh' in object) draws.add(object); });
+  const oldVisible = root.visible, oldFilter = renderer.getRenderObjectFunction(), oldClear = renderer.autoClear;
+  try {
+    root.visible = true;
+    renderer.autoClear = true;
+    sun.shadow.needsUpdate = true;
+    // Drivers can defer work until an actual draw. Submit only the measured
+    // materials and visitor in the real mirror and nested shadow contexts.
+    renderer.setRenderObjectFunction((...args) => {
+      if (!draws.has(args[0])) return;
+      if (oldFilter) oldFilter.call(renderer, ...args); else renderer.renderObject(...args);
+    });
+    renderer.render(scene, camera);
+  } finally {
+    root.visible = oldVisible;
+    renderer.setRenderObjectFunction(oldFilter);
+    renderer.autoClear = oldClear;
+    sun.shadow.needsUpdate = true;
+  }
+}
 
 export function createGalleryMirror(root: Object3D) {
   const panes: Mesh[] = [];
@@ -126,12 +152,12 @@ export function createGalleryMirror(root: Object3D) {
   }
   return {
     async warmup(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, signal?: AbortSignal,
-      onProgress?: (loaded: number, total: number) => void) {
+      onProgress?: (loaded: number, total: number) => void, visitor?: ReflectedVisitor) {
       signal?.throwIfAborted();
       if (!prepareReflection(renderer, view)) {
         // The opening camera may not yet see the mirror. Compilation needs its
         // real camera/light cache and framebuffer format, not a visible image.
-        // Do not render or mark the reflection cache valid during this warmup.
+        // The preparatory draw never marks the reflection cache valid.
         const surface = surfaces[0];
         surface.pane.updateWorldMatrix(true, false);
         point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
@@ -142,7 +168,8 @@ export function createGalleryMirror(root: Object3D) {
       panes.forEach((surface, i) => { visibility[i] = surface.visible; surface.visible = false; });
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target);
-        return await warmOpeningTourShaders(renderer, scene, camera, signal, onProgress);
+        return await warmOpeningTourShaders(renderer, scene, camera, signal, onProgress,
+          visitor ? targets => drawPreparedReflection(renderer, scene, camera, targets, visitor) : undefined);
       } finally {
         renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT);
         panes.forEach((surface, i) => { surface.visible = visibility[i]; });

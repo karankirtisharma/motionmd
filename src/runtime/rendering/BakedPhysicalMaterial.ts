@@ -1,7 +1,8 @@
 import { MeshPhysicalMaterial, MeshStandardMaterial } from 'three';
-import { EnvironmentNode, MeshPhysicalNodeMaterial } from 'three/webgpu';
-import { vec3 } from 'three/tsl';
+import { EnvironmentNode, IrradianceNode, MeshPhysicalNodeMaterial } from 'three/webgpu';
+import { materialReference, vec3 } from 'three/tsl';
 import type NodeBuilder from 'three/src/nodes/core/NodeBuilder.js';
+import type Node from 'three/src/nodes/core/Node.js';
 
 /** Preserve specular IBL without adding the sky's diffuse a second time over a Cycles GI bake. */
 class ReflectionOnlyEnvironmentNode extends EnvironmentNode {
@@ -16,6 +17,17 @@ class ReflectionOnlyEnvironmentNode extends EnvironmentNode {
 }
 
 export class BakedPhysicalMaterial extends MeshPhysicalNodeMaterial {
+  packedLightNode?:Node<'vec3'>;
+  copy(source:this) {
+    super.copy(source);
+    this.packedLightNode=source.packedLightNode;
+    return this;
+  }
+  setupLightMap(builder:NodeBuilder) {
+    return this.lightMap && this.packedLightNode
+      ? new IrradianceNode(this.packedLightNode.mul(materialReference('lightMapIntensity','float') as unknown as Node<'float'>))
+      : super.setupLightMap(builder);
+  }
   setupEnvironment(builder: NodeBuilder) {
     const environment = super.setupEnvironment(builder);
     return environment ? new ReflectionOnlyEnvironmentNode(environment.envNode) : null;

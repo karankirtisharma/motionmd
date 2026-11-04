@@ -46,6 +46,7 @@ function compile(relative){
  source=source.replace(/from (['"])([^'"]+)\1/g,(full,quote,specifier)=>{
   let target;
   if(specifier==='./assets'||specifier==='./assets.ts')target=assets;
+  else if(specifier.endsWith('.json')) target=new URL(specifier,file).href;
   else if(specifier.startsWith('.')){const dependency=new URL(specifier,file);if(!path.extname(dependency.pathname))dependency.pathname+='.ts';target=compile(dependency.href);}
   else target=import.meta.resolve(specifier);
   return 'from '+JSON.stringify(target);

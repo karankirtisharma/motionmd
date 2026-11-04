@@ -31,3 +31,6 @@ next-env.d.ts
 public/asset-delivery/
 src/generated/asset-delivery.json
 src/generated/texture-delivery.json
+src/generated/chair-lightmap.json
+src/generated/lighting-transfer-sizes.json
+src/generated/immutable-scene-assets.json

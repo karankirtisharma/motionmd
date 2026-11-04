@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
-import { Group, Mesh, BoxGeometry } from 'three';
+import { Group, Mesh, MeshStandardMaterial, BoxGeometry } from 'three';
+import chair from '../src/generated/chair-lightmap.json' with {type:'json'};
 import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 
 // Exercise the production material graph with network/decode isolated, as the
@@ -11,11 +12,11 @@ import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 const moduleURL = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const modules = new Map();
 const assetsURL = moduleURL(`import {Texture} from ${JSON.stringify(import.meta.resolve('three'))};
-export const state={fail:'',delay:false,loaded:[],disposed:[]};
+export const state={fail:'',delay:false,loaded:[],disposed:[],sized:''};
 export async function loadTexture(url,usage,signal){
  if(url===state.fail)throw Error('Injected map failure: '+url);
  if(state.delay)await new Promise(resolve=>setTimeout(resolve,20));
- const texture=new Texture();texture.name=url;state.loaded.push(url);
+ const texture=new Texture(url===state.sized?{width:2048,height:1024}:undefined);texture.name=url;state.loaded.push(url);
  texture.addEventListener('dispose',()=>state.disposed.push(url));return texture;
 }`);
 function compile(relative) {
@@ -25,6 +26,7 @@ function compile(relative) {
   source = source.replace(/from (['"])([^'"]+)\1/g, (full, quote, specifier) => {
     let target;
     if (specifier === './assets' || specifier === './assets.ts') target = assetsURL;
+    else if(specifier.endsWith('.json')) target=new URL(specifier,file).href;
     else if (specifier.startsWith('.')) { const dependency = new URL(specifier, file); if (!path.extname(dependency.pathname)) dependency.pathname += '.ts'; target = compile(dependency.href); }
     else target = import.meta.resolve(specifier);
     return 'from ' + JSON.stringify(target);
@@ -34,7 +36,23 @@ function compile(relative) {
 const { state } = await import(assetsURL);
 const { applyMaterialManifest } = await import(compile('../src/runtime/rendering/materials.ts'));
 const { restoreSourceBronze } = await import(compile('../src/runtime/rendering/sourceBronze.ts'));
-function reset() { state.fail = ''; state.delay = false; state.loaded.length = 0; state.disposed.length = 0; }
+function reset() { state.fail = ''; state.sized='';state.delay = false; state.loaded.length = 0; state.disposed.length = 0; }
+
+test('the chair uses the packed light shader, and a missing derivative uses the original lightmap',{skip:!chair.url},async()=>{
+  for(const usePacked of [true,false]) {
+    reset();if(usePacked)state.sized=chair.url;else state.fail=chair.url;
+    const geometry=new BoxGeometry();geometry.setAttribute('uv1',geometry.attributes.uv.clone());
+    const source=new MeshStandardMaterial();source.name='founder__FC91 | fine ivory leather.003';
+    const mesh=new Mesh(geometry,source),scene=new Group().add(mesh);
+    const textures=await applyMaterialManifest(scene,{materials:[{name:source.name,lightMap:chair.source,lightMapMode:'indirect',uvChannel:1,lightMapIntensity:Math.PI}]});
+    assert.equal(!!mesh.material.packedLightNode,usePacked);
+    assert.equal(mesh.material.lightMapIntensity,Math.PI);
+    assert.deepEqual(state.loaded,[usePacked?chair.url:chair.source]);
+    assert.equal(mesh.material.lightMap.channel,1);
+    textures.forEach(texture=>texture.dispose());mesh.material.dispose();source.dispose();geometry.dispose();
+    assert.deepEqual(state.disposed,state.loaded);
+  }
+});
 
 test('a prefetched map failure waits for remaining jobs and disposes every successfully loaded map', async () => {
   reset(); state.fail = '/second.png'; state.delay = true;

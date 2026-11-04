@@ -7,9 +7,13 @@ import { pipeline } from 'node:stream/promises';
 import { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
 import { compactGLB } from './glb-storage.mjs';
+import { pruneUnusedGeometry } from './glb-live-accessors.mjs';
+import { writeLightingTransferSizes } from './lighting-transfer-sizes.mjs';
+import { writeImmutableSceneAssetHashes } from './immutable-scene-assets.mjs';
 import { optimizeGLBImages } from './glb-images.mjs';
 import { optimizeMeshoptStreams } from './glb-meshopt.mjs';
 import { prepareTextureDelivery } from './external-images.mjs';
+import { prepareChairLightmap } from './chair-lightmap.mjs';
 import { hasRetiredStudioImage, omitRetiredStudioImage } from './retired-studio-image.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -17,13 +21,17 @@ const output = path.join(root, 'public/asset-delivery');
 const generated = path.join(root, 'src/generated');
 await fs.mkdir(output, { recursive: true });
 await fs.mkdir(generated, { recursive: true });
+const lightingManifest = JSON.parse(await fs.readFile(path.join(root, 'public/assets/scene-manifest.json'), 'utf8'));
+await writeLightingTransferSizes(root, generated, lightingManifest);
+await writeImmutableSceneAssetHashes(root, generated, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim());
 const textureIndex = await prepareTextureDelivery(root, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() && process.env.MD_GEOMETRY_STORAGE !== '0');
+await prepareChairLightmap(root, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() && process.env.MD_GEOMETRY_STORAGE !== '0');
 if (process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
   await fs.writeFile(path.join(generated,'asset-delivery.json'),'{}\n');
   console.log('External asset origin: configure Brotli/Content-Encoding at the CDN; local rewrites are disabled.');
   process.exit(0);
 }
-const manifest = JSON.parse(await fs.readFile(path.join(root, 'public/assets/scene-manifest.json'), 'utf8'));
+const manifest = lightingManifest;
 async function hashStream(...streams) {
   const hash = createHash('sha256');
   await pipeline(...streams, new Writable({ write(data, _, done) { hash.update(data); done(); } }));
@@ -47,7 +55,9 @@ for (const chunk of chunks) {
   const sourceSHA256 = digest(original);
   const storageEnabled=!chunk.transportOnly && process.env.MD_GEOMETRY_STORAGE !== '0';
   const removeGlobe=storageEnabled && hasRetiredStudioImage(chunk.url,sourceSHA256,manifest.screen?.objectName);
-  const pipelineVersion=removeGlobe ? 4 : 3;
+  // Other rooms did not produce a meaningful Brotli gain in the exact-content A/B.
+  const pruneGeometry=storageEnabled && ['studio','lounge','entrance','founder'].includes(chunk.id);
+  const pipelineVersion=pruneGeometry ? 5 : removeGlobe ? 4 : 3;
   const cached=previous.find(r=>r.id===chunk.id && r.sourceSHA256===sourceSHA256 && r.pipelineVersion===pipelineVersion && r.storageEnabled===storageEnabled);
   if(cached){
     let valid=true;
@@ -57,7 +67,8 @@ for (const chunk of chunks) {
     if(valid){index[chunk.url]=cached.entry;report.push(cached); for(const key of ['identity','br','gzip'])if(cached.entry[key])retained.add(path.basename(cached.entry[key]));continue;}
   }
   const display=removeGlobe ? omitRetiredStudioImage(original) : null;
-  const imageResult=storageEnabled?await optimizeGLBImages(display?.buffer ?? original):{buffer:original,images:[]};
+  const pruned=pruneGeometry ? pruneUnusedGeometry(display?.buffer ?? original) : null;
+  const imageResult=storageEnabled?await optimizeGLBImages(pruned?.buffer ?? display?.buffer ?? original):{buffer:original,images:[]};
   const meshopt = storageEnabled ? await optimizeMeshoptStreams(imageResult.buffer) : {buffer:original,streams:[]};
   const compact = storageEnabled ? compactGLB(meshopt.buffer) : {buffer:original,verifiedRanges:0};
   const saved = original.length - compact.buffer.length;
@@ -91,7 +102,9 @@ for (const chunk of chunks) {
     entry[encoding + 'Bytes'] = (await fs.stat(target)).size;
   }
   index[chunk.url] = entry;
-  report.push({ id: chunk.id, pipelineVersion, storageEnabled, entry, retiredImage:display?.retiredImage, images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
+  report.push({ id: chunk.id, pipelineVersion, storageEnabled, entry, retiredImage:display?.retiredImage,
+    prunedGeometry:pruned && optimized ? {accessors:pruned.removedAccessors,views:pruned.removedViews} : undefined,
+    images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
     br: (await fs.stat(path.join(root, 'public', entry.br))).size, gzip: (await fs.stat(path.join(root, 'public', entry.gzip))).size });
 }
 await fs.writeFile(path.join(generated, 'asset-delivery.json.tmp'), JSON.stringify(index, null, 2) + '\n');

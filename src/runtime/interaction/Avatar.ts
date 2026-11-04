@@ -1,35 +1,12 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadInteractionGLB } from './interactionGLB.ts';
 import { damping } from './movement';
 import { createRocketboxAvatar, type DeskPose, type StairContact } from './RocketboxAvatar';
-import { createAssetLoadGuard } from '../rendering/loadingGuard';
-import { resolveAssetDependency } from '../rendering/assets';
 
 /** Licensed rigged character. Architecture is always loaded separately from the user's export. */
-export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb') {
+export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb', signal?: AbortSignal) {
   // The rejected candidate query no longer selects a different rig or gait.
-  const guard = createAssetLoadGuard(resolveAssetDependency);
-  const gltf = await new GLTFLoader(guard.manager).loadAsync(url);
-  try { guard.assertLoaded(); }
-  catch (error) {
-    // No scene lighting has been injected yet: these resources belong entirely
-    // to this failed GLTF load, including any secondary scenes sharing them.
-    const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>();
-    const textures = new Set<THREE.Texture>(), skeletons = new Set<THREE.Skeleton>();
-    for (const scene of gltf.scenes) scene.traverse((object) => {
-      const mesh = object as THREE.Mesh;
-      if (!mesh.isMesh) return;
-      geometries.add(mesh.geometry);
-      (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).forEach((material) => {
-        materials.add(material);
-        Object.values(material).forEach((value) => { if (value instanceof THREE.Texture) textures.add(value); });
-      });
-      if ((mesh as THREE.SkinnedMesh).isSkinnedMesh) skeletons.add((mesh as THREE.SkinnedMesh).skeleton);
-    });
-    geometries.forEach((geometry) => geometry.dispose()); materials.forEach((material) => material.dispose());
-    textures.forEach((texture) => texture.dispose()); skeletons.forEach((skeleton) => skeleton.dispose());
-    throw error;
-  }
+  const gltf = await loadInteractionGLB(url, signal);
   let rocketbox = false;
   gltf.scene.traverse((object) => { if (object.name.toLowerCase().replace(/[^a-z0-9]/g, '') === 'bip01pelvis') rocketbox = true; });
   if (rocketbox) return createRocketboxAvatar(gltf);

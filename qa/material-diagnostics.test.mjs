@@ -15,6 +15,16 @@ const compiled = ts.transpileModule(source, {compilerOptions:{target:ts.ScriptTa
   .replaceAll("'./specularFiltering'", JSON.stringify(new URL('../src/runtime/rendering/specularFiltering.ts', import.meta.url).href));
 const { RenderDiagnostics } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
 
+test('a baked-light review uses the reconstructed lightmap graph instead of the raw packed page',()=>{
+  const map=new Texture(),source=new MeshPhysicalNodeMaterial(),packed=vec3(.2,.3,.1);
+  source.lightMap=map;source.packedLightNode=packed;
+  const mesh=new Mesh(new BoxGeometry(),source),review=new RenderDiagnostics(new Scene().add(mesh));
+  review.setMode('baked');
+  let found=false;mesh.material.colorNode.traverse(node=>{if(node===packed)found=true;});
+  assert.ok(found);
+  review.dispose();assert.equal(mesh.material,source);source.dispose();map.dispose();mesh.geometry.dispose();
+});
+
 test('diagnostic isolation restores source materials and removes normal-dependent roughness',()=>{
   const material=new MeshPhysicalNodeMaterial();
   const baseRoughness=float(.28);material.roughnessNode=baseRoughness;material.normalNode=vec3(0,0,1);

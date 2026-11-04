@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import RAPIER from '@dimforge/rapier3d-compat';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { repairArchitecturalJoins } from '../rendering/architecturalJoins.ts';
 import { relocateDoorwayPlanter } from '../rendering/doorwayPlanter.ts';
 import { repairStudioThreshold } from '../rendering/floorThreshold.ts';
 import { repairEntranceApron } from '../rendering/entranceApron.ts';
+import { loadCollisionGLBs, disposeInteractionGLB } from './interactionGLB.ts';
 import { chairCollision } from './chairCollision.ts';
 import { exactBox } from './exactBox.ts';
 import { exteriorCollision } from './exteriorCollision.ts';
@@ -20,26 +19,14 @@ export const PLAYER_HALF_SEGMENT = 0.70;
 export const PLAYER_HALF_HEIGHT = PLAYER_HALF_SEGMENT + PLAYER_RADIUS;
 export type ExplorationBounds = { minX: number; maxX: number; minZ: number; maxZ: number; height?: number };
 
-export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?: string, preparedCollisionRoot?: THREE.Object3D, additionalUrls: string[] = [], bounds?: ExplorationBounds) {
+export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?: string, preparedCollisionRoot?: THREE.Object3D, additionalUrls: string[] = [], bounds?: ExplorationBounds, signal?: AbortSignal) {
+  signal?.throwIfAborted();
   await RAPIER.init();
+  signal?.throwIfAborted();
   const urls = [collisionUrl, ...additionalUrls].filter((url): url is string => !!url);
-  const results = preparedCollisionRoot ? [] : await Promise.allSettled(urls.map((url) => new GLTFLoader().loadAsync(url)));
-  const loaded = results.filter((result): result is PromiseFulfilledResult<GLTF> => result.status === 'fulfilled').map((result) => result.value);
-  function disposeLoaded() {
-    const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>(), textures = new Set<THREE.Texture>();
-    loaded.forEach((gltf) => gltf.scene.traverse((object) => {
-      const mesh = object as THREE.Mesh;
-      if (!mesh.isMesh) return;
-      geometries.add(mesh.geometry);
-      (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).forEach((material) => {
-        materials.add(material);
-        Object.values(material).forEach((value) => { if (value instanceof THREE.Texture) textures.add(value); });
-      });
-    }));
-    geometries.forEach((geometry) => geometry.dispose()); materials.forEach((material) => material.dispose()); textures.forEach((texture) => texture.dispose());
-  }
-  const failure = results.find((result) => result.status === 'rejected');
-  if (failure?.status === 'rejected') { disposeLoaded(); throw failure.reason; }
+  const loaded = preparedCollisionRoot ? [] : await loadCollisionGLBs(urls, signal);
+  const disposeLoaded = () => loaded.forEach(disposeInteractionGLB);
+  if (signal?.aborted) { disposeLoaded(); signal.throwIfAborted(); }
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
   const root = preparedCollisionRoot ?? (loaded.length ? new THREE.Group().add(...loaded.map((gltf) => gltf.scene)) : scene);
   // The large original context ground was intentionally omitted from the first

@@ -19,30 +19,20 @@ function fixture() {
   return { scene, parent, camera, targets };
 }
 
-test('temporal warmup compiles the HDR pass but only submits after the real opening reflection', async t => {
+test('opening renderer waits for the real reflection and has no redundant standalone compile', async t => {
   const events = [];
   t.mock.method(RenderPipeline.prototype, 'render', () => events.push('render'));
   const { scene, camera } = fixture();
-  const initialTarget = {}, initialMRT = {};
-  let target = initialTarget, mrt = initialMRT;
   const renderer = {
-    getRenderTarget: () => target, setRenderTarget: value => { target = value; },
-    getMRT: () => mrt, setMRT: value => { mrt = value; },
-    async compileAsync(root, view) {
-      assert.equal(root, scene); assert.equal(view, camera);
-      assert.notEqual(target, initialTarget); assert.notEqual(mrt, initialMRT);
-      events.push('compile');
-    },
+    compileAsync() { assert.fail('the main pipeline must not compile the entire scene again'); },
     async readRenderTargetPixelsAsync() { events.push('fence'); },
   };
   const temporal = createTemporalRenderer(renderer, scene, camera);
   try {
-    await temporal.warmup();
-    assert.deepEqual(events, ['compile']);
-    assert.equal(target, initialTarget); assert.equal(mrt, initialMRT);
+    assert.deepEqual(events, []);
     events.push('reflection');
     temporal.render(); await temporal.finishFirstFrame();
-    assert.deepEqual(events, ['compile', 'reflection', 'render', 'fence']);
+    assert.deepEqual(events, ['reflection', 'render', 'fence']);
   } finally { temporal.dispose(); }
 });
 
@@ -202,5 +192,50 @@ test('mirror warmup uses the actual reflection camera, MSAA target and no MRT; r
     assert.equal(calls, 1); assert.equal(pane.visible, true);
     assert.equal(target, initialTarget); assert.equal(mrt, initialMRT); assert.equal(renderer.autoClear, false);
     assert.equal(targets[0].frustumCulled, true); mirror.dispose();
+  }
+});
+
+test('measured reflection and visitor draws use the real mirror target and restore the room on every exit', async () => {
+  for (const outcome of ['ok', 'throw', 'abort']) {
+    const { scene, camera, targets: [wall] } = fixture(), assembly = new Group();
+    const pane = new Mesh(new PlaneGeometry(4, 3), new MeshBasicMaterial());
+    pane.userData.mdPlanarMirror = true; assembly.add(pane); scene.add(assembly);
+    const visitor = new Group(), skin = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
+    skin.isSkinnedMesh = true; visitor.add(skin); visitor.visible = false; scene.add(visitor);
+    const unrelated = new Mesh(new BoxGeometry(), new MeshBasicMaterial()); scene.add(unrelated);
+    camera.position.set(0, 1, 5); camera.lookAt(0, 1, 0); camera.updateMatrixWorld();
+    const mirror = createGalleryMirror(assembly), controller = new AbortController();
+    const initialTarget = {}, initialMRT = {}, rendered = [], shadow = { needsUpdate: false };
+    const source = object => rendered.push(object);
+    let target = initialTarget, mrt = initialMRT, filter = source, frames = 0, reflectedView;
+    const renderer = { autoClear: false, shadowMap: { enabled: true },
+      getRenderTarget:()=>target, setRenderTarget:value=>{target=value;},
+      getMRT:()=>mrt, setMRT:value=>{mrt=value;},
+      getRenderObjectFunction:()=>filter, setRenderObjectFunction:value=>{filter=value;},
+      getDrawingBufferSize:v=>v.set(1280,720),
+      async compileAsync(selection, view) { reflectedView = view; assert.equal(visitor.visible, false); },
+      render(root, view) {
+        frames++;
+        assert.equal(root, scene); assert.equal(view, reflectedView); assert.notEqual(view, camera);
+        assert.equal(visitor.visible, true); assert.equal(pane.visible, false); assert.equal(shadow.needsUpdate, true);
+        assert.equal(this.autoClear, true); assert.equal(target.texture.name, 'Gallery mirror reflection'); assert.equal(mrt, null);
+        assert.equal(wall.frustumCulled, false);
+        filter(wall); filter(unrelated); filter(skin); shadow.needsUpdate = false;
+        if (outcome === 'throw') throw Error('simulated GPU failure');
+        if (outcome === 'abort') controller.abort();
+      },
+    };
+    try {
+      const result = mirror.warmup(renderer, scene, camera, controller.signal, undefined, { root: visitor, sun: { shadow } });
+      if (outcome === 'throw' || outcome === 'abort') await assert.rejects(result); else await result;
+      assert.equal(frames, 1); assert.deepEqual(rendered, [wall, skin]); assert.equal(wall.frustumCulled, true);
+      assert.equal(filter, source); assert.equal(renderer.autoClear, false); assert.equal(shadow.needsUpdate, true);
+      assert.equal(target, initialTarget); assert.equal(mrt, initialMRT); assert.equal(visitor.visible, false); assert.equal(pane.visible, true);
+      if (outcome === 'ok') {
+        renderer.render = () => frames++;
+        mirror.update(renderer, scene, camera, 0);
+        assert.equal(frames, 2, 'the opening screen redraws its true reflection instead of displaying the warmup target');
+      }
+    } finally { mirror.dispose(); }
   }
 });

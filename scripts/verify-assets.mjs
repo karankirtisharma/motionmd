@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { releaseSourceAssets } from './release-public.mjs';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 if(process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
@@ -22,11 +23,15 @@ if(process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
     if(!file.startsWith(assets+path.sep)||!fs.existsSync(file))throw new Error(`Missing scene asset: ${url}. Run git lfs pull before building.`);
   }
   const pointers=[];let files=0,bytes=0;
+  // A publish checkout can contain historical, unhydrated LFS pointers.
+  // The hosted artifact only needs its allowlisted inputs to be hydrated.
+  const releaseInputs=process.env.MD_VERIFY_RELEASE_INPUTS==='1' ? await releaseSourceAssets(path.join(root,'public')) : null;
   function inspect(dir){
     for(const item of fs.readdirSync(dir,{withFileTypes:true})){
       const file=path.join(dir,item.name);
       if(item.isDirectory()){inspect(file);continue;}
       if(!item.isFile())continue;
+      if(releaseInputs && !releaseInputs.has('/assets/'+path.relative(assets,file).split(path.sep).join('/'))) continue;
       const head=Buffer.alloc(128),fd=fs.openSync(file,'r');
       try {fs.readSync(fd,head,0,128,0);} finally {fs.closeSync(fd);}
       if(head.toString('utf8').startsWith('version https://git-lfs.github.com/spec/v1'))pointers.push(path.relative(root,file));

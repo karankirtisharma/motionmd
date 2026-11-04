@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 await MeshoptDecoder.ready;
 import {readGLB} from '../scripts/glb-storage.mjs';
+import {pruneUnusedGeometry} from '../scripts/glb-live-accessors.mjs';
 import {hasRetiredStudioImage,omitRetiredStudioImage} from '../scripts/retired-studio-image.mjs';
 const report=JSON.parse(await fs.readFile(new URL('../public/asset-delivery/report.json',import.meta.url)));
 const index=JSON.parse(await fs.readFile(new URL('../src/generated/asset-delivery.json',import.meta.url)));
@@ -20,6 +21,11 @@ for(const entry of report){
    const stripped=omitRetiredStudioImage(source);
    assert.deepEqual(stripped.retiredImage,entry.retiredImage);
    comparison=stripped.buffer;
+ }
+ if(entry.prunedGeometry){
+   const pruned=pruneUnusedGeometry(comparison);
+   assert.deepEqual({accessors:pruned.removedAccessors,views:pruned.removedViews},entry.prunedGeometry);
+   comparison=pruned.buffer;
  }
  const a=readGLB(comparison),b=readGLB(output),changed=new Set(entry.images.map(image=>a.json.images[image.index].bufferView));
  for(const key of ['scenes','scene','nodes','materials','meshes','accessors','skins','animations','samplers','cameras'])assert.deepEqual(a.json[key],b.json[key],`${entry.id}: ${key} changed`);

@@ -97,10 +97,13 @@ class CameraTrack {
       return 1 + 1.8 * before.angleTo(after) / Math.max(.0001, (before.length() + after.length()) / 2);
     });
     const timingRadius = Math.ceil(.45 / this.curve.getLength() * count);
+    // Both convolutions reuse the same weights at every position on the path.
+    const timingWeights = Array.from({ length: timingRadius + 1 }, (_, distance) =>
+      Math.exp(-4.5 * (distance / timingRadius) ** 2));
     this.timing = [0];
     for (let i = 1; i <= count; i++) {
       let sum = 0, n = 0;
-      for (let j = Math.max(0, i - timingRadius); j <= Math.min(count, i + timingRadius); j++) { const weight = Math.exp(-4.5 * ((j - i) / timingRadius) ** 2); sum += cost[j] * weight; n += weight; }
+      for (let j = Math.max(0, i - timingRadius); j <= Math.min(count, i + timingRadius); j++) { const weight = timingWeights[Math.abs(j - i)]; sum += cost[j] * weight; n += weight; }
       this.timing.push(this.timing[i - 1] + sum / n);
     }
     const total = this.timing[count]; this.timing = this.timing.map(value => value / total);
@@ -117,10 +120,12 @@ class CameraTrack {
     const sampleRate = 30, sampleCount = Math.ceil(duration * sampleRate);
     const raw = Array.from({ length: sampleCount + 1 }, (_, i) => this.rawSample(i / sampleCount).angles);
     const sigma = 1.25 * sampleRate, radius = Math.ceil(3 * sigma);
+    const lookWeights = Array.from({ length: radius + 1 }, (_, distance) =>
+      Math.exp(-0.5 * (distance / sigma) ** 2));
     this.lookTrack = raw.map((_, index) => {
       let yaw = 0, pitch = 0, total = 0;
       for (let offset = -radius; offset <= radius; offset++) {
-        const value = raw[MathUtils.clamp(index + offset, 0, sampleCount)], weight = Math.exp(-0.5 * (offset / sigma) ** 2);
+        const value = raw[MathUtils.clamp(index + offset, 0, sampleCount)], weight = lookWeights[Math.abs(offset)];
         yaw += value.yaw * weight; pitch += value.pitch * weight; total += weight;
       }
       yaw /= total; pitch /= total;

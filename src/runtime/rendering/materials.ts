@@ -1,9 +1,12 @@
 import { Color, DoubleSide, Material, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, Texture } from 'three';
 import { MeshPhysicalNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import type { SceneManifest } from '@/types';
+import type { ReadLightingBytes } from './lightingReadAhead.ts';
 import { loadTexture } from './assets';
-import { asPhysicalNodeMaterial, withBakedDiffuse } from './BakedPhysicalMaterial';
-import { materialClearcoat, materialClearcoatRoughness, materialRoughness, positionWorld, float, mix } from 'three/tsl';
+import { asPhysicalNodeMaterial, BakedPhysicalMaterial, withBakedDiffuse } from './BakedPhysicalMaterial';
+import { materialClearcoat, materialClearcoatRoughness, materialRoughness, positionWorld, float, mix, uv, vec2 } from 'three/tsl';
+import chairVariant from '../../generated/chair-lightmap.json' with { type:'json' };
+import { createChairLookup, sampleChairLightmap, type ChairTileLayout } from './chairLightmapSample.ts';
 import type Node from 'three/src/nodes/core/Node.js';
 import { sourceUVNormal } from './sourceNormals';
 import { restoreSourceStoneWalls } from './sourceStoneWalls';
@@ -71,7 +74,7 @@ export function prepareSourceMaterials(root: Object3D, renderer: WebGPURenderer)
   return textures;
 }
 
-export async function applyMaterialManifest(root: Object3D, manifest: SceneManifest, signal?: AbortSignal): Promise<Texture[]> {
+export async function applyMaterialManifest(root: Object3D, manifest: SceneManifest, signal?: AbortSignal, readBytes?: ReadLightingBytes): Promise<Texture[]> {
   const ownedTextures: Texture[] = [];
   const cache = new Map<string, Promise<Texture>>();
   const uvViews = new Map<string, Texture>();
@@ -80,9 +83,30 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
   const cancelLoads = () => loadingAbort.abort(signal?.reason);
   signal?.addEventListener('abort', cancelLoads, { once: true });
   if (signal?.aborted) cancelLoads();
+  const packed=chairVariant as Partial<ChairTileLayout & { version:number;source:string;url:string }>;
+  const chairEntries=(manifest.materials??[]).filter(e=>e.lightMap && e.lightMap===packed.source);
+  const usePacked=packed.version===1 && !!packed.url && chairEntries.length===1 &&
+    chairEntries[0].name==='founder__FC91 | fine ivory leather.003' && chairEntries[0].lightMapMode==='indirect' && chairEntries[0].uvChannel===1;
+  let chairLookup:Texture | undefined;
   const texture = (url: string, usage: 'color'|'linear'|'data') => {
     const key = `${url}:${usage}`;
-    if (!cache.has(key)) cache.set(key, enqueue(() => loadTexture(url, usage, loadingAbort.signal).then(t => { t.flipY = false; ownedTextures.push(t); return t; })));
+    if (!cache.has(key)) cache.set(key, enqueue(async () => {
+      let result:Texture | undefined;
+      if(usePacked && url===packed.source && usage==='linear') {
+        try {
+          result=await loadTexture(packed.url!,usage,loadingAbort.signal,readBytes);
+          const image=result.image as {width?:number;height?:number}|undefined;
+          if(image?.width!==packed.atlasWidth || image?.height!==packed.atlasHeight) throw Error('Invalid packed chair lightmap dimensions');
+          chairLookup=createChairLookup(packed as ChairTileLayout);
+          ownedTextures.push(chairLookup);
+        } catch(error) {
+          result?.dispose();result=undefined;loadingAbort.signal.throwIfAborted();
+          console.warn('[MD lighting] using the source chair lightmap',error);
+        }
+      }
+      result??=await loadTexture(url,usage,loadingAbort.signal,readBytes);
+      result.flipY=false;ownedTextures.push(result);return result;
+    }));
     return cache.get(key)!;
   };
   try {
@@ -180,6 +204,12 @@ export async function applyMaterialManifest(root: Object3D, manifest: SceneManif
         result.needsUpdate = true;
         if (!lightMap && !entry.regionOverrides?.length) return result;
         const physical = lightMap ? withBakedDiffuse(result) : asPhysicalNodeMaterial(result);
+        if(chairLookup && entry.lightMap===packed.source && lightMap && physical instanceof BakedPhysicalMaterial) {
+          const source=uv(lightMap.channel);
+          physical.packedLightNode=sampleChairLightmap(lightMap,chairLookup,packed as ChairTileLayout,vec2(source.x,source.y.oneMinus()));
+          // Include the lookup in the same texture warmup/ownership traversal.
+          (physical as unknown as Record<string,unknown>).mdChairTileLookup=chairLookup;
+        }
         if (physical.normalMap) {
           // A merged mesh can contain SourceUV0 and BakeUV1 materials. Its one
           // exported tangent attribute cannot describe both normal-map bases.

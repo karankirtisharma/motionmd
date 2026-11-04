@@ -2,6 +2,7 @@ import { Box3, Color, CubeTextureLoader, DataTexture, DataUtils, DirectionalLigh
 import { MeshPhysicalNodeMaterial, PMREMGenerator, RectAreaLightNode, type WebGPURenderer } from 'three/webgpu';
 import { RectAreaLightTexturesLib } from 'three/addons/lights/RectAreaLightTexturesLib.js';
 import type { SceneManifest } from '@/types';
+import type { ReadLightingBytes } from './lightingReadAhead.ts';
 import { assetURL, loadEnvironment } from './assets';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial';
 import { filterTemporaryEnvironment } from './temporaryEnvironment';
@@ -36,7 +37,7 @@ function neutralWorld(): Texture {
   return texture;
 }
 
-export async function configureLighting(scene: Scene, renderer: WebGPURenderer, manifest: SceneManifest, bounds: Box3, signal?: AbortSignal) {
+export async function configureLighting(scene: Scene, renderer: WebGPURenderer, manifest: SceneManifest, bounds: Box3, signal?: AbortSignal, readBytes?: ReadLightingBytes) {
   const owned: Array<{ dispose: () => void }> = [];
   const installed: Object3D[] = [];
   let disposed = false;
@@ -51,7 +52,7 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   try {
   signal?.throwIfAborted();
   let environment: Texture;
-  if (manifest.environment?.url) environment = await loadEnvironment(manifest.environment.url, signal);
+  if (manifest.environment?.url) environment = await loadEnvironment(manifest.environment.url, signal, readBytes);
   else if (manifest.environment?.faces?.length === 6) environment = await new CubeTextureLoader().loadAsync(manifest.environment.faces.map(assetURL));
   else environment = neutralWorld();
   const keepSource = manifest.environment?.background !== false;
@@ -72,7 +73,7 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
   // The shader chooses the region per fragment and corrects each reflected ray against its box.
   const probes: RoomProbe[] = [];
   for (const probe of manifest.reflectionProbes ?? []) {
-    const source = await loadEnvironment(probe.url, signal);
+    const source = await loadEnvironment(probe.url, signal, readBytes);
     const capture = filterTemporaryEnvironment(source, texture => pmrem.fromEquirectangular(texture));
     owned.push(capture);
     const region = new Box3(new Vector3().fromArray(probe.bounds.min), new Vector3().fromArray(probe.bounds.max));

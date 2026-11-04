@@ -125,3 +125,9 @@ The source Screen1 folder and protected FINAL remain unchanged. See `qa/studio-i
 ## Live presentation Studio — 2 November 2026
 
 The PL78 presentation TV now contains the working Studio page: browse, scroll, search and use its controls directly inside the display. Expand screen (or Enter while seated) enlarges the same page; Back to TV preserves its state. Return to room restores movement focus. The founder screen is unchanged. The presentation debug entry now starts outside the chair/table collision gap. See `qa/live-studio-tv-2026-11-02.md` for implementation, validation and limitations.
+
+### Verify the release public folder
+
+Run `npm run stage:release -- --dry-run` after `npm run prepare:delivery` to see the exact public-file bytes for this checkout. Supply a new, separate directory in place of `--dry-run` to write the staged public tree. The staging command checks the source digest, identity body and decompressed Brotli/gzip bodies before omitting a redundant model master. It includes active material and GLB dependencies, original compatibility assets, the Studio and all prior content-addressed variants present in the checkout.
+
+Vercel's build command stages this tree in the disposable hosted build checkout before compiling Next.js. It retains the source tree outside the served public folder. Local development and external-CDN builds keep their existing asset paths. A fresh local build with `MD_GEOMETRY_STORAGE=0` uses the original model and chair-lighting representations for comparisons.

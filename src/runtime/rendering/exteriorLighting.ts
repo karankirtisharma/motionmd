@@ -1,6 +1,7 @@
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Texture, type Object3D } from 'three';
 import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 import { asPhysicalNodeMaterial } from './BakedPhysicalMaterial.ts';
+import type { ReadLightingBytes } from './lightingReadAhead.ts';
 import { assetURL, loadTexture } from './assets.ts';
 import { fetchAssetBuffer } from './fetchAsset.ts';
 import { founderExteriorSource } from './exteriorLightingGeometry.ts';
@@ -70,10 +71,10 @@ export function splitExteriorLightingReceivers(root: Object3D,metadata: Exterior
 }
 
 /** Apply the new illumination-only bake without altering stone texture or source UVs. */
-export async function installExteriorLighting(root: Object3D,signal?: AbortSignal): Promise<Texture[]> {
+export async function installExteriorLighting(root: Object3D,signal?: AbortSignal, readBytes?: ReadLightingBytes): Promise<Texture[]> {
   const metadata=JSON.parse(new TextDecoder().decode(await fetchAssetBuffer(assetURL('/assets/exterior-finish-v24/lighting.json'),{signal}))) as ExteriorLightMetadata;
   const uvs=new Float32Array(await fetchAssetBuffer(assetURL(metadata.uv),{signal}));
-  const light=await loadTexture(metadata.atlas,'linear',signal);
+  const light=await loadTexture(metadata.atlas,'linear',signal,readBytes);
   try{
     light.flipY=false;light.channel=2;light.repeat.y=-1;light.offset.y=1;light.needsUpdate=true;
     const receivers=splitExteriorLightingReceivers(root,metadata,uvs);

@@ -5,7 +5,7 @@ import type Node from 'three/src/nodes/core/Node.js';
 import { unfilteredRoughness } from './specularFiltering';
 
 export type DiagnosticMode = 'full' | 'albedo' | 'baked' | 'no-normals' | 'no-shadows' | 'no-gi' | 'no-reflections' | 'no-ao';
-type Surface = Material & { color?: Color; colorNode?: MeshBasicNodeMaterial['colorNode']; map?: Texture | null; lightMap?: Texture | null; lightMapIntensity?: number; normalMap?: Texture | null; bumpMap?: Texture | null; clearcoatNormalMap?: Texture | null; normalNode?: unknown; clearcoatNormalNode?: unknown; transmission?: number; metalness?: number; metalnessMap?: Texture | null };
+type Surface = Material & { color?: Color; colorNode?: MeshBasicNodeMaterial['colorNode']; map?: Texture | null; lightMap?: Texture | null; packedLightNode?: Node<'vec3'>; lightMapIntensity?: number; normalMap?: Texture | null; bumpMap?: Texture | null; clearcoatNormalMap?: Texture | null; normalNode?: unknown; clearcoatNormalNode?: unknown; transmission?: number; metalness?: number; metalnessMap?: Texture | null };
 
 /** Review-only material substitutions. Shared source texture data is never modified. */
 export class RenderDiagnostics {
@@ -62,7 +62,7 @@ export class RenderDiagnostics {
         // The EXR stores E/pi. Runtime intensity is pi to convert to irradiance;
         // Three's BasicLightMapNode divides by pi once, yielding albedo * EXR.
         unlit.colorNode = source.lightMap
-          ? base.mul(diagnosticTexture(source.lightMap).rgb).mul((source.lightMapIntensity ?? 1) / Math.PI)
+          ? base.mul(source.packedLightNode ?? diagnosticTexture(source.lightMap).rgb).mul((source.lightMapIntensity ?? 1) / Math.PI)
           : vec3(0);
       }
       result = unlit;

@@ -2,9 +2,9 @@ import { DataTexture, LinearFilter } from 'three';
 import { fetchAssetBuffer } from './fetchAsset.ts';
 import type { DataTextureLoaderTexData } from 'three';
 /** One bounded decode job per worker; workers and listeners are released on every outcome. */
-export async function loadEXRInWorker(url: string, signal?: AbortSignal): Promise<DataTexture> {
+export async function loadEXRInWorker(url: string, signal?: AbortSignal, source?: ArrayBuffer): Promise<DataTexture> {
   signal?.throwIfAborted();
-  const buffer = await fetchAssetBuffer(url, { signal });
+  const buffer = source ?? await fetchAssetBuffer(url, { signal });
   signal?.throwIfAborted();
   const result = await new Promise<DataTextureLoaderTexData>((resolve, reject) => {
     const worker = new Worker(new URL('./exr.worker.ts', import.meta.url), { type: 'module' });

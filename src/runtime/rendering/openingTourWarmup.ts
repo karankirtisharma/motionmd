@@ -125,7 +125,8 @@ export function openingTourShaderMeshes(scene: Scene): Mesh[] {
  * The detached selection only borrows references for the render-list traversal.
  * The actual meshes keep their real parents and precomputed world matrices. */
 export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'compileAsync'>, scene: Scene,
-  camera: PerspectiveCamera, signal?: AbortSignal, onProgress?: (loaded: number, total: number) => void) {
+  camera: PerspectiveCamera, signal?: AbortSignal, onProgress?: (loaded: number, total: number) => void,
+  drawPrepared?: (targets: readonly Mesh[]) => void) {
   signal?.throwIfAborted();
   const targets = openingTourShaderMeshes(scene);
   onProgress?.(0, targets.length);
@@ -140,6 +141,8 @@ export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'com
       signal?.throwIfAborted();
       if (event.lengthComputable) onProgress?.(event.loaded, event.total);
     });
+    signal?.throwIfAborted();
+    drawPrepared?.(targets);
   } finally {
     targets.forEach((mesh, index) => { mesh.frustumCulled = culling[index]; });
     selection.children.length = 0;

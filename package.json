@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
+    "build:release": "node scripts/build-release.mjs",
+    "stage:release": "node scripts/stage-release.mjs",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "next typegen && tsc --noEmit",
     "test:interactions": "node --test qa/interaction.test.mjs",

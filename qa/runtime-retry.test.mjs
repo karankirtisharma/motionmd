@@ -6,7 +6,7 @@ import ts from 'typescript';
 
 // Exercise the actual effect, including its cleanup, with deferred GPU teardown.
 // Only the import and external browser/React bindings are replaced.
-const source = fs.readFileSync(new URL('../app/page.tsx', import.meta.url), 'utf8');
+const source = fs.readFileSync(new URL('../src/components/LoungeHome.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('page.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 let effect;
 function visit(node) {

@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import delivery from './src/generated/asset-delivery.json';
 import textureDelivery from './src/generated/texture-delivery.json';
+import rawRevisions from './src/generated/immutable-scene-assets.json';
+import chairLightmap from './src/generated/chair-lightmap.json';
 import { prefersWebP } from './src/server/imageEncoding';
 import manifest from './public/assets/scene-manifest.json';
 import { selectAssetEncoding } from './src/server/assetEncoding';
@@ -9,8 +11,11 @@ import { assetCacheControl } from './src/server/assetRevision';
 type DeliveryEntry = { br: string; gzip: string; identity?: string; decodedBytes: number; brBytes: number; gzipBytes: number };
 const entries = delivery as Record<string, DeliveryEntry>;
 const textures: Record<string, { webp: string }> = textureDelivery;
+const raw: Record<string, string> = rawRevisions;
 const immutablePaths = new Set(Object.values(entries).flatMap(entry => [entry.br, entry.gzip, entry.identity].filter((path): path is string => !!path)));
 for (const texture of Object.values(textures)) immutablePaths.add(texture.webp);
+const chairURL=(chairLightmap as {url?:string}).url;
+if(chairURL) immutablePaths.add(chairURL);
 const totals = manifest.chunks.map(chunk => entries[chunk.url]).filter(Boolean).reduce((sum, entry) => ({ br: sum.br + entry.brBytes, gzip: sum.gzip + entry.gzipBytes, identity: sum.identity + entry.decodedBytes }), { br: 0, gzip: 0, identity: 0 });
 
 export function proxy(request: NextRequest) {
@@ -21,6 +26,20 @@ export function proxy(request: NextRequest) {
     const mutable = request.nextUrl.searchParams.has('__md_revalidate');
     response.headers.set('Cache-Control', mutable ? 'public, max-age=0, must-revalidate' : 'public, max-age=31536000, immutable');
     if (mutable && request.nextUrl.pathname.endsWith('.webp')) response.headers.set('Vary', 'Accept, Accept-Encoding');
+    return response;
+  }
+  const revision = raw[request.nextUrl.pathname];
+  if (revision && ['GET', 'HEAD'].includes(request.method)) {
+    const requested = request.nextUrl.searchParams.get('v');
+    if (requested !== null && requested !== revision) {
+      const current = request.nextUrl.clone();
+      current.searchParams.set('v', revision);
+      const response = NextResponse.redirect(current, 307);
+      response.headers.set('Cache-Control', 'no-store');
+      return response;
+    }
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', requested === revision ? 'public, max-age=31536000, immutable' : 'public, max-age=0, must-revalidate');
     return response;
   }
   const texture = textures[request.nextUrl.pathname];
@@ -57,4 +76,4 @@ export function proxy(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ['/assets/:path*.glb', '/assets/:path*.png', '/asset-delivery/:path*'] };
+export const config = { matcher: ['/assets/:path*.glb', '/assets/:path*.png', '/assets/:path*.exr', '/assets/:path*.ktx2', '/asset-delivery/:path*'] };

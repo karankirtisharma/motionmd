@@ -90,4 +90,17 @@ const hashed = await request(index[small].br,{},'HEAD');
 assert.equal(hashed.status,200); assert.match(hashed.headers['cache-control'],/max-age=31536000.*immutable/);
 const rewrittenLegacy = await request(index[small].br+'?__md_revalidate=1',{},'HEAD');
 assert.match(rewrittenLegacy.headers['cache-control'],/must-revalidate/);
+const raw = JSON.parse(fs.readFileSync(new URL('../src/generated/immutable-scene-assets.json', import.meta.url)));
+for (const extension of ['.exr','.ktx2']) {
+  const path=Object.keys(raw).find(url=>url.endsWith(extension)); if (!path) continue;
+  const current=versionedAssetPath(path,index,raw);
+  const response=await request(current,{'Accept-Encoding':'identity',Range:'bytes=0-31'});
+  assert.equal(response.status,206); assert.equal(response.wire,32);
+  assert.match(response.headers['cache-control'],/max-age=31536000.*immutable/);
+  assert.equal(response.sha256,createHash('sha256').update(fs.readFileSync(new URL('../public'+path,import.meta.url)).subarray(0,32)).digest('hex'));
+  const plain=await request(path,{},'HEAD');assert.match(plain.headers['cache-control'],/must-revalidate/);
+  const old=await request(path+'?keep=yes&v=outdated',{},'HEAD');
+  assert.equal(old.status,307); assert.equal(old.headers['cache-control'],'no-store');
+  const location=new URL(old.headers.location,origin);assert.equal(location.pathname,path);assert.equal(location.searchParams.get('v'),raw[path]);assert.equal(location.searchParams.get('keep'),'yes');
+}
 console.log('HTTP delivery, weights, HEAD, revalidation, immutable revisions and identity ranges passed.');
