@@ -5,8 +5,13 @@ type Projection = { width: number; height: number; matches: (query: string) => b
 export function serializeStudioCSS(rules: CSSRuleList, base: string, projection: Projection): string {
   const freeze = (text: string) => text.replace(/(-?[\d.]+)(dvh|svh|lvh|vh|vw)\b/g,
     (_, number, unit) => `${Number(number) * (unit === 'vw' ? projection.width : projection.height) / 100}px`);
-  const urls = (text: string) => text.replace(/url\(["']?([^"')]+)["']?\)/g,
-    (_, url) => url.startsWith('#') ? `url("${url}")` : `url("${new URL(url, base).href}")`);
+  // Data URLs can contain quoted SVG attributes and nested url(#filter) text.
+  // Consume the complete CSS string before resolving any relative asset path.
+  const urls = (text: string) => text.replace(/url\(\s*(?:"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'|([^)]*))\s*\)/gi,
+    (original, double: string | undefined, single: string | undefined, bare: string | undefined) => {
+      const url = double ?? single ?? bare?.trim() ?? '';
+      return !url || url.startsWith('#') || url.startsWith('data:') ? original : 'url("' + new URL(url, base).href + '")';
+    });
   const states = (text: string) => text.replace(/:(hover|focus-visible|focus-within|focus|active)\b/g, '[data-tv-$1]');
   return Array.from(rules).map(rule => {
     if (rule.type === 3) {

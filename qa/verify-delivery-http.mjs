@@ -59,6 +59,22 @@ const cached=await request(small,{'Accept-Encoding':'br','If-None-Match':head.he
 assert.equal(cached.status,304);assert.equal(cached.wire,0);
 const range=await request(small,{'Accept-Encoding':'identity',Range:'bytes=0-15'});
 assert.equal(range.status,206);assert.equal(range.decoded,16);
+const textures = JSON.parse(fs.readFileSync(new URL('../src/generated/texture-delivery.json',import.meta.url)));
+let pngTransfer = 0, webpTransfer = 0;
+for (const [url, entry] of Object.entries(textures)) {
+  const png = await request(url,{Accept:'image/png','Accept-Encoding':'br, gzip'});
+  const webp = await request(url,{Accept:'*/*','Accept-Encoding':'br, gzip'});
+  const original = fs.readFileSync(new URL('../public'+url,import.meta.url));
+  assert.equal(png.status,200); assert.equal(webp.status,200);
+  assert.match(png.headers['content-type'],/^image\/png/); assert.match(webp.headers['content-type'],/^image\/webp/);
+  assert.match(webp.headers.vary,/(^|,\s*)Accept(,|$)/i); assert.match(png.headers.vary,/(^|,\s*)Accept(,|$)/i);
+  assert.match(webp.headers['cache-control'],/must-revalidate/);
+  assert.equal(png.sha256,createHash('sha256').update(original).digest('hex'));
+  assert.equal(webp.sha256,entry.webp.split('/').at(-1).slice(0,64));
+  assert.equal(png.decoded,entry.sourceBytes); assert.equal(webp.decoded,entry.webpBytes);
+  pngTransfer += png.wire; webpTransfer += webp.wire;
+}
+console.log(`HTTP texture representations: ${pngTransfer} PNG bytes → ${webpTransfer} WebP bytes.`);
 if(process.env.MD_HTTP_REPORT)fs.writeFileSync(process.env.MD_HTTP_REPORT,JSON.stringify(records,null,2));
 const versioned = versionedAssetPath(small,index);
 const immutable = await request(versioned,{'Accept-Encoding':'br'},'HEAD');

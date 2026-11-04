@@ -28,3 +28,16 @@ test('direct generated hashes are immutable, and mutable requests cannot mark un
  assert.match(proxy(request(entry.br)).headers.get('cache-control'),/immutable/);
  assert.equal(proxy(request('/asset-delivery/unknown.glb')).headers.get('cache-control'),null);
 });
+const images = JSON.parse(fs.readFileSync(new URL('../src/generated/texture-delivery.json',import.meta.url)));
+test('texture requests negotiate WebP through a rewrite and PNG through the original URL', {skip:!Object.keys(images).length}, () => {
+  const [url, entry] = Object.entries(images)[0];
+  const withAccept = accept => new NextRequest(new URL(url,'http://127.0.0.1:3001'),{headers:{Accept:accept}});
+  const modern = proxy(withAccept('*/*')), original = proxy(withAccept('image/png'));
+  assert.equal(original.headers.get('x-middleware-rewrite'),null); assert.equal(original.headers.get('content-type'),'image/png');
+  const dest = new URL(modern.headers.get('x-middleware-rewrite')); assert.equal(dest.pathname,entry.webp);
+  for(const representation of [modern,original,proxy(request(dest))]) {
+    assert.match(representation.headers.get('vary'),/(^|,\s*)Accept(,|$)/);
+    assert.match(representation.headers.get('cache-control'),/must-revalidate/);
+  }
+  assert.match(proxy(request(entry.webp)).headers.get('cache-control'),/immutable/);
+});

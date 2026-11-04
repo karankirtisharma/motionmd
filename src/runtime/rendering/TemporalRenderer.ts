@@ -27,7 +27,8 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
         await renderer.compileAsync(scene,camera,null,onProgress);
       } finally {renderer.setRenderTarget(previousTarget);renderer.setMRT(previousMRT);}
       signal?.throwIfAborted();
-      pipeline.render();
+      // The caller submits the first temporal sample once the live reflection
+      // exists. Drawing here would seed history with an uninitialized mirror.
     },
     render() { pipeline.render(); },
     // Debug parity uses the identical glass viewport-copy format and render context.

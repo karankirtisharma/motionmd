@@ -1,4 +1,4 @@
-import { Mesh, type PerspectiveCamera, type Scene } from 'three';
+import { Group, Mesh, type PerspectiveCamera, type Scene } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
 
 // The 22 first-use mirror variants measured in the opening tour and TV movement
@@ -106,24 +106,29 @@ export function openingTourShaderMeshes(scene: Scene): Mesh[] {
   return targets;
 }
 
-/** Must run inside the target pass's real render context and camera. The pinned
- * r186 individual-object compile uses targetScene for identical light/cache keys.
- * Never reparent, change visibility/materials, or submit an extra rendered frame. */
+/** Compile the measured objects with the live scene's lights and cache keys.
+ * The detached selection only borrows references for the render-list traversal.
+ * The actual meshes keep their real parents and precomputed world matrices. */
 export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'compileAsync'>, scene: Scene,
   camera: PerspectiveCamera, signal?: AbortSignal, onProgress?: (loaded: number, total: number) => void) {
+  signal?.throwIfAborted();
   const targets = openingTourShaderMeshes(scene);
-  let completed = 0;
   onProgress?.(0, targets.length);
-  for (const mesh of targets) {
-    signal?.throwIfAborted();
-    const culled = mesh.frustumCulled;
-    try {
-      mesh.frustumCulled = false;
-      await renderer.compileAsync(mesh, camera, scene);
-    } finally { mesh.frustumCulled = culled; }
-    signal?.throwIfAborted();
-    completed++;
-    onProgress?.(completed, targets.length);
+  if (!targets.length) return 0;
+  const selection = new Group();
+  selection.matrixWorldAutoUpdate = false;
+  selection.children.push(...targets);
+  const culling = targets.map(mesh => mesh.frustumCulled);
+  try {
+    for (const mesh of targets) mesh.frustumCulled = false;
+    await renderer.compileAsync(selection, camera, scene, event => {
+      signal?.throwIfAborted();
+      if (event.lengthComputable) onProgress?.(event.loaded, event.total);
+    });
+  } finally {
+    targets.forEach((mesh, index) => { mesh.frustumCulled = culling[index]; });
+    selection.children.length = 0;
   }
-  return completed;
+  signal?.throwIfAborted();
+  return targets.length;
 }

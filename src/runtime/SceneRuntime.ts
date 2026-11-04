@@ -18,7 +18,7 @@ import { repairStudioThreshold } from './rendering/floorThreshold';
 import { repairEntranceApron } from './rendering/entranceApron';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
-import { RenderDiagnostics, type DiagnosticMode } from './rendering/diagnostics';
+import type { RenderDiagnostics, DiagnosticMode } from './rendering/diagnostics';
 import { CinematicPath, CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from './rendering/cinematic';
 import { createDesertEnvironment } from './rendering/DesertEnvironment';
 import { guardShaderCompilation } from './rendering/shaderValidation';
@@ -33,7 +33,7 @@ import { createDrawingBufferResizer } from './rendering/resizeDrawingBuffer';
 import { qualifiesAdaptiveWindow } from './rendering/adaptiveWindow';
 import { createInteractionController } from './interaction/InteractionController';
 
-import { RuntimeProfiler } from './rendering/RuntimeProfiler';
+import type { RuntimeProfiler } from './rendering/RuntimeProfiler';
 
 // r186 TRAA retains 95% of history per static sample. 128 frames leave <0.15%
 // of the initial history before a genuinely frozen view stops drawing.
@@ -115,7 +115,14 @@ export class SceneRuntime {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
       this.inspectionEnabled = query.get('debug') === '1';
+      if (this.inspectionEnabled) {
+        const { RenderDiagnostics } = await import('./rendering/diagnostics');
+        this.abort.signal.throwIfAborted();
+        this.diagnostics = new RenderDiagnostics(this.scene);
+      }
       if (this.inspectionEnabled && query.get('profile') === '1') {
+        const { RuntimeProfiler } = await import('./rendering/RuntimeProfiler');
+        this.abort.signal.throwIfAborted();
         this.profiler = new RuntimeProfiler(report => this.callbacks.onProfile?.(report), () => ({
           backend: this.renderer && 'isWebGPUBackend' in this.renderer.backend ? 'WebGPU' : 'WebGL 2', mode: this.mode, reference: this.referenceCamera, progress: this.progress, quality: this.quality, scale: this.resolutionScale,
           viewport: [this.container.clientWidth, this.container.clientHeight], dpr: window.devicePixelRatio,
@@ -257,16 +264,17 @@ export class SceneRuntime {
       this.abort.signal.throwIfAborted();
       this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: 'Finishing the first live reflection' });
       this.profiler?.phase('first reflection frame');
-      this.galleryMirror?.update(this.renderer, this.scene, this.camera);
+      // The opening camera and architecture are now final. The first render
+      // that needs the sun initializes it; the other pass reuses that map.
+      this.lighting.sun.shadow.autoUpdate = false;
+      this.lighting.sun.shadow.needsUpdate = true;
+      this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision);
       this.temporal.render();
       this.profiler?.phase('first GPU frame completion');
       await this.temporal.finishFirstFrame();
       console.info('[MD warmup] shader compilation complete', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });
       this.shaderValidation.assertCompiled();
       this.abort.signal.throwIfAborted();
-      // Source architecture and sunset are fixed. Reuse their shadow map throughout the
-      // cinematic; character motion invalidates it during exploration below.
-      this.lighting.sun.shadow.autoUpdate = false;
       this.setMode('tour');
       this.callbacks.onProgress?.({ phase: 'Ready', progress: 1 });
       this.callbacks.onReady?.();
@@ -507,8 +515,7 @@ export class SceneRuntime {
     this.invalidate();
     if (!this.inspectionEnabled || !this.manifest) return;
     // Interactive furniture is reparented into the scene after loading.
-    this.diagnostics ??= new RenderDiagnostics(this.scene);
-    this.diagnostics.setMode(mode);
+    this.diagnostics?.setMode(mode);
     this.staticSunShadowCache?.invalidate('material diagnostic');
     // Keep the cached ShadowNode/render target alive when comparing modes.
     if (this.lighting) this.lighting.sun.shadow.intensity = mode === 'no-shadows' ? 0 : 1;

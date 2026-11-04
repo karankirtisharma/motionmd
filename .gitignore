@@ -30,3 +30,4 @@ next-env.d.ts
 # Reproducible HTTP delivery variants, generated before dev/build.
 public/asset-delivery/
 src/generated/asset-delivery.json
+src/generated/texture-delivery.json

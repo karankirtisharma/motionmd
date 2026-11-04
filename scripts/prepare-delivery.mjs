@@ -9,12 +9,14 @@ import { fileURLToPath } from 'node:url';
 import { compactGLB } from './glb-storage.mjs';
 import { optimizeGLBImages } from './glb-images.mjs';
 import { optimizeMeshoptStreams } from './glb-meshopt.mjs';
+import { prepareTextureDelivery } from './external-images.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'public/asset-delivery');
 const generated = path.join(root, 'src/generated');
 await fs.mkdir(output, { recursive: true });
 await fs.mkdir(generated, { recursive: true });
+const textureIndex = await prepareTextureDelivery(root, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() && process.env.MD_GEOMETRY_STORAGE !== '0');
 if (process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
   await fs.writeFile(path.join(generated,'asset-delivery.json'),'{}\n');
   console.log('External asset origin: configure Brotli/Content-Encoding at the CDN; local rewrites are disabled.');
@@ -27,7 +29,7 @@ async function hashStream(...streams) {
   return hash.digest('hex');
 }
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
-const index = {}, report = [], retained = new Set();
+const index = {}, report = [], retained = new Set(Object.values(textureIndex).map(entry => path.basename(entry.webp)));
 const pipelineVersion = 3;
 let previous=[]; try { previous=JSON.parse(await fs.readFile(path.join(output,'report.json'),'utf8')); } catch {}
 const chunks=[...manifest.chunks, {id:'character',url:manifest.character.url}];
@@ -91,7 +93,7 @@ await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(report, null
 if (process.env.MD_PRUNE_DELIVERY === '1') for (const name of await fs.readdir(output)) {
   const target = path.resolve(output,name);
   if (path.dirname(target) !== output) throw Error('Invalid output path');
-  if (/^[a-f0-9]{64}(?:\.q9)?\.glb(?:\.br|\.gz)?(?:\.tmp)?$/.test(name) && !retained.has(name)) await fs.unlink(target);
+  if (/^[a-f0-9]{64}(?:(?:\.q9)?\.glb(?:\.br|\.gz)?|\.webp)(?:\.tmp)?$/.test(name) && !retained.has(name)) await fs.unlink(target);
 }
 const sum = key => report.reduce((value, entry) => value + entry[key], 0);
 console.log('Lossless delivery verified: ' + (sum('sourceBytes') / 1e6).toFixed(1) + ' MB source → ' + (sum('bytes') / 1e6).toFixed(1) + ' MB pixel/geometry-exact payload → Brotli ' + (sum('br') / 1e6).toFixed(1) + ' MB / gzip ' + (sum('gzip') / 1e6).toFixed(1) + ' MB.');

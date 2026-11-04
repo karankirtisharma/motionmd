@@ -1,4 +1,4 @@
-import { Mesh, MeshStandardMaterial, RepeatWrapping, Texture, type Object3D } from 'three';
+import { Mesh, MeshStandardMaterial, RedFormat, RepeatWrapping, Texture, type Object3D } from 'three';
 import { MeshPhysicalNodeMaterial } from 'three/webgpu';
 import { Fn, attribute, cameraViewMatrix, float, frontFacing, glslFn, modelNormalMatrix, modelWorldMatrix, mix, texture, vec3, wgslFn } from 'three/tsl';
 import type Node from 'three/src/nodes/core/Node.js';
@@ -58,7 +58,12 @@ function sourceNodes(color: Texture, roughness: Texture, height: Texture) {
   const fz = weights.z.div(weights.x.add(weights.y).add(weights.z));
   const sample = (image: Texture, scale: number) => {
     const q=p.mul(scale);
-    return mix(mix(texture(image,q.yz).rgb,texture(image,q.xz).rgb,fy),texture(image,q.xy).rgb,fz);
+    const read = (uv: Node<'vec2'>) => {
+      const texel = texture(image, uv);
+      // Preserve the original three-channel mix/dot for scalar surfaces.
+      return image.format === RedFormat ? vec3(texel.r) : texel.rgb;
+    };
+    return mix(mix(read(q.yz),read(q.xz),fy),read(q.xy),fz);
   };
   // The packed source is only 840px. Repeat it per 1.2m stone panel rather
   // than enlarging it across four panels; image pixels/colours stay untouched.
@@ -92,7 +97,7 @@ export async function restoreSourceStoneWalls(root: Object3D, signal?: AbortSign
   if(!targets.length) return [];
   const maps: Texture[]=[];
   try {
-    for(const [file,usage] of [['cream-stone-original.png','color'],['stone-roughness-original.jpg','data'],['stone-height-original.jpg','data']] as const) {
+    for(const [file,usage] of [['cream-stone-original.png','color'],['stone-roughness-original.jpg','scalar'],['stone-height-original.jpg','scalar']] as const) {
       const map=await loadTexture(`/assets/source-walls/${file}`,usage,signal);
       map.wrapS=map.wrapT=RepeatWrapping;
       // TextureLoader's default flipY matches Blender image coordinates; no glTF atlas convention here.

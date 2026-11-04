@@ -7,10 +7,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 // copying runtime source or dependencies into the QA directory.
 const project = process.env.MD_TEST_PROJECT_ROOT || resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const source = relative => import(pathToFileURL(join(project, relative)).href);
-const { Scene, PerspectiveCamera, Mesh, PlaneGeometry, MeshBasicMaterial, NoBlending } = await source('node_modules/three/build/three.module.js');
+const { Scene, PerspectiveCamera, Mesh, PlaneGeometry, MeshBasicMaterial } = await source('node_modules/three/build/three.module.js');
 const { createPresentationScreen } = await source('src/runtime/presentation/PresentationScreen.ts');
 const { createCurvedInput } = await source('src/runtime/presentation/curvedInput.ts');
-const { createCurvedStudioView } = await source('src/runtime/presentation/CurvedStudioView.ts');
+const { createLiveStudioSurface } = await source('src/runtime/presentation/LiveStudioSurface.ts');
 const { screenHomography, mapScreenPoint } = await source('src/runtime/presentation/projection.ts');
 
 function styleDeclaration() {
@@ -143,35 +143,38 @@ async function until(predicate, message) {
   while (!predicate()) { assert.ok(performance.now() < deadline, message || 'condition timed out'); await pause(); }
 }
 const findData = (parent, name) => parent.children.find(child => Object.hasOwn(child.dataset, name));
-function fixture(t) {
+function surfaceFixture(t) {
   const env = globals(t), { document, window } = env;
-  const viewport = document.createElement('div'), canvas = document.createElement('canvas'); viewport.append(canvas);
-  const scene = new Scene(), original = new MeshBasicMaterial({ color: 0x987654 });
-  const geometry = new PlaneGeometry(4, 2, 32, 1), position = geometry.getAttribute('position'), uv = geometry.getAttribute('uv');
-  for (let i = 0; i < uv.count; i++) { uv.setY(i, 1 - uv.getY(i)); const x = position.getX(i); position.setZ(i, -.35 * (1 - x * x / 4)); }
-  geometry.computeVertexNormals();
-  const mesh = new Mesh(geometry, original); mesh.name = 'PL78 | curved LED pixel surface'; scene.add(mesh);
-  const founder = new Mesh(new PlaneGeometry(3, 2), new MeshBasicMaterial()); founder.name = 'Founder | curved LED pixel surface'; scene.add(founder);
-  const founderOriginal = founder.material; scene.updateMatrixWorld(true);
-  const camera = new PerspectiveCamera(60, 4 / 3, .1, 100); camera.position.z = 5; camera.lookAt(0, 0, 0); camera.updateMatrixWorld(true);
-  const opens = []; let clear = true, inView = true;
-  const display = createPresentationScreen({ scene, camera, canvas, objectName: mesh.name, onOpen: bounds => opens.push(bounds), isUnobstructed: () => clear, isInView: () => inView });
-  const host = findData(document.body, 'liveStudio'), visual = findData(document.body, 'liveStudioVisual');
+  const canvas = document.createElement('canvas');
+  const frames = [], opens = [], painters = [];
+  const makePainter = ({ onPaint, document: doc }) => {
+    const output = doc.createElement('canvas');
+    const record = { visible: false, disposed: false, paints: 0 };
+    painters.push(record);
+    function draw() { record.paints++; onPaint(output); }
+    return { canvas: output, ready: Promise.resolve(), invalidate: () => { if (record.visible) draw(); },
+      setVisible(value) { if (record.visible === value) return; record.visible = value; if (value) queueMicrotask(() => { if (record.visible && !record.disposed) draw(); }); },
+      dispose() { record.disposed = true; } };
+  };
+  const surface = createLiveStudioSurface({ canvas, aspect: 4 / 1.4, onFocus() {}, onExpand() { opens.push(true); },
+    onFrame(frame) { frames.push(frame); }, sampleSurface(x, y) { return x >= 0 && y >= 0 ? {u:.5,v:.5} : null; }
+  }, makePainter);
+  const host = findData(document.body, 'liveStudio');
   const frame = () => host.children.find(child => child.tagName === 'IFRAME');
   const message = (type, origin = location.origin, sender = frame()?.contentWindow) => dispatch(window, 'message', { origin, source: sender, data: { type } });
-  const move = (x = 400, y = 300) => dispatch(window, 'pointermove', { clientX: x, clientY: y, buttons: 0 }, canvas);
-  const ready = async () => {
-    display.update(); const iframe = frame(); assert.ok(iframe, 'visible screen creates an iframe');
+  async function ready() {
+    surface.update(true); surface.setInteractive(true);
+    const iframe = frame();
     const root = iframe.contentDocument.createElement('main'); root.setAttribute('id', 'md-studio-root');
     const note = iframe.contentDocument.createElement('textarea'); note.value = 'Keep this brief'; root.append(note); iframe.contentDocument.body.append(root);
     iframe.dispatchEvent(new Event('load')); message('md-studio:ready');
-    await until(() => visual.style.visibility === 'visible', 'curved visual should finish its asynchronous build');
-    return { iframe, root, note };
-  };
-  t.after(() => { display.dispose(); geometry.dispose(); original.dispose(); founder.geometry.dispose(); founder.material.dispose(); env.restore(); });
-  return { ...env, display, host, visual, frame, message, move, ready, mesh, original, founder, founderOriginal, canvas, camera, opens,
-    setClear: value => { clear = value; }, setInView: value => { inView = value; } };
+    await until(() => frames.length > 0, 'first real paint should enable the TV');
+    return { iframe, note };
+  }
+  t.after(() => { surface.dispose(); env.restore(); });
+  return { ...env, canvas, surface, frame, frames, host, opens, painters, message, ready };
 }
+
 function inputFixture(t) {
   const env = globals(t), { document, window } = env;
   const canvas = document.createElement('canvas'), host = document.createElement('div'), frame = document.createElement('iframe');
@@ -198,169 +201,67 @@ test('perspective mapping preserves all screen corners and interior coordinates'
   assert.equal(screenHomography(Array(4).fill({ x: 0, y: 0 }), 1600, 560), null);
 });
 
-test('visible screen retains authored curved geometry, depth occlusion and one live app', async t => {
-  const f = fixture(t), geometry = f.mesh.geometry; assert.equal(f.frame(), undefined);
-  f.display.setActive(true); const { iframe } = await f.ready();
-  for (let i = 0; i < 120; i++) f.display.update();
+test('camera-only movement retains one iframe and requests no new UI paint', async t => {
+  const f = surfaceFixture(t);
+  assert.equal(f.frame(), undefined);
+  const { iframe } = await f.ready();
+  for (let i = 0; i < 120; i++) f.surface.update(true, [i]);
   assert.equal(f.frame(), iframe); assert.equal(iframe.sourceAssignments, 1);
-  assert.equal(f.host.children.filter(child => child.tagName === 'IFRAME').length, 1);
-  assert.equal(f.mesh.geometry, geometry); assert.equal(f.founder.material, f.founderOriginal);
-  assert.equal(f.mesh.material.blending, NoBlending); assert.equal(f.mesh.material.depthTest, true); assert.equal(f.mesh.material.depthWrite, true);
-  assert.ok(findData(f.visual, 'curvedStudioView').children.length > 1, 'curved surface uses multiple visual fragments');
+  assert.equal(f.painters.length, 1); assert.equal(f.frames.length, 1);
+  f.surface.update(false);
+  assert.equal(f.host.style.visibility, 'hidden'); assert.equal(f.painters[0].visible, false);
+  assert.equal(iframe.contentWindow.messages.at(-1)[0].type, 'md-studio:suspend');
+  f.surface.update(true); await pause();
+  assert.equal(f.frames.length, 2); assert.equal(iframe.contentWindow.messages.at(-1)[0].type, 'md-studio:resume');
 });
 
-test('fragment roots inherit visibility so hidden camera patches cannot paint through their hosts', async t => {
-  const f = fixture(t); f.display.setActive(true); await f.ready();
-  const view = findData(f.visual, 'curvedStudioView');
-  for (const slice of view.children) {
-    assert.equal(slice.shadowRoot.children[0].style.visibility, 'inherit');
-    assert.match(slice.shadowRoot.adoptedStyleSheets[0].css, /\[data-tv-slice-culled\]\s*\{display:none!important\}/,
-      'off-strip content must release painted/filter surfaces; the real iframe retains layout');
-  }
-  f.camera.lookAt(0, 0, 10); f.display.update();
-  for (const slice of view.children) {
-    assert.equal(slice.style.visibility, 'hidden');
-    assert.equal(slice.shadowRoot.children[0].style.visibility, 'inherit');
-  }
-});
-
-test('overflow resync preserves guarded source offsets after returning to the same camera pose', async t => {
-  const f = fixture(t); f.display.setActive(true); const { iframe, root } = await f.ready();
-  const view = findData(f.visual, 'curvedStudioView'), before = view.children.map(slice => slice.shadowRoot.children[0]);
-  const observer = iframe.contentDocument.observers.find(item => item.connected && item.target === root);
-  assert.ok(observer, 'source DOM has a live mutation observer');
-  f.camera.lookAt(0, 0, 10); f.display.update();
-  const added = Array.from({ length: 1001 }, () => iframe.contentDocument.createElement('span'));
-  root.append(...added);
-  observer.callback(added.map(node => ({ type: 'childList', target: root, addedNodes: [node], removedNodes: [], nextSibling: null })));
-  f.camera.lookAt(0, 0, 0); f.display.update();
-  const offset = index => `${1 - index * 1600 / view.children.length}px`;
-  await until(() => view.children.every((slice, index) => slice.shadowRoot.children[0] !== before[index] && slice.shadowRoot.children[0].style.left === offset(index)),
-    'all resynced roots must recover the constant guard without requiring another camera movement');
-  for (const [index, slice] of view.children.entries()) {
-    assert.equal(slice.shadowRoot.children[0].style.left, offset(index));
-    assert.equal(slice.shadowRoot.children[0].style.visibility, 'inherit');
-  }
-});
-test('hover and native form state tolerate sparse clone rows during incremental build', async t => {
-  const env = globals(t), sourceDocument = new FakeDocument();
-  const root = sourceDocument.createElement('main'); root.setAttribute('id', 'md-studio-root'); sourceDocument.body.append(root);
-  const parent = env.document.createElement('div'); env.document.body.append(parent);
-  const visual = createCurvedStudioView({ parent, document: sourceDocument, width: 1600, height: 558 });
-  t.after(() => { visual.dispose(); env.restore(); });
-  const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-  visual.update(Array.from({ length: 4 }, (_, index) => ({ matrix, visible: true, left: index * 400, width: 400 })));
-  const view = findData(parent, 'curvedStudioView');
-  assert.equal(view.children.length, 2, 'first build yields after two fragments');
-
-  const field = sourceDocument.createElement('input'); field.setAttribute('id', 'late-field'); field.value = 'Initial'; root.append(field);
-  const observer = sourceDocument.observers.find(item => item.connected && item.target === root);
-  observer.callback([{ type: 'childList', target: root, addedNodes: [field], removedNodes: [], nextSibling: null }]);
-  await visual.ready;
-  const clones = () => view.children.map(slice => slice.shadowRoot.querySelector('#late-field'));
-  assert.deepEqual(clones().map(Boolean), [false, false, true, true], 'new source child has holes in its copy row until queued reconciliation');
-
-  let hovered = true;
-  const originalQuery = root.querySelectorAll.bind(root);
-  root.querySelectorAll = selector => selector === ':hover' ? (hovered ? [field] : []) : originalQuery(selector);
-  visual.setVisible(true);
-  // A real input event can arrive before the next RAF reconciles early fragments.
-  dispatch(sourceDocument, 'pointerover', {}, field);
-  Object.assign(field, { value: 'Edited during build', checked: true, scrollTop: 19, scrollLeft: 7 });
-  dispatch(sourceDocument, 'input', {}, field);
-  for (const clone of clones().slice(2)) {
-    assert.equal(clone.hasAttribute('data-tv-hover'), true, 'existing later copies still receive hover');
-    assert.equal(clone.value, field.value); assert.equal(clone.checked, true);
-    assert.equal(clone.scrollTop, 19); assert.equal(clone.scrollLeft, 7);
-  }
-  await Promise.resolve();
-  assert.ok(clones().every(Boolean), 'queued child mutation fills the earlier fragments');
-  for (const clone of clones()) assert.equal(clone.hasAttribute('data-tv-hover'), true,
-    'late reconciled fragments inherit the held hover without a second pointer event');
-  hovered = false; dispatch(sourceDocument, 'pointerout', {}, field);
-  field.value = 'Final'; field.checked = false; dispatch(sourceDocument, 'change', {}, field);
-  for (const clone of clones()) {
-    assert.equal(clone.hasAttribute('data-tv-hover'), false);
-    assert.equal(clone.value, 'Final'); assert.equal(clone.checked, false);
-  }
-});
-test('native TV proxy is gated by active mode, ray visibility and occlusion', async t => {
-  const f = fixture(t); f.display.setActive(true); await f.ready();
-  f.move(); assert.equal(f.host.style.pointerEvents, 'auto'); assert.equal(f.host.style.opacity, '0');
-  assert.equal(f.canvas.style.pointerEvents, '', 'canvas is never relinquished globally');
-  f.display.setActive(false); f.move(); assert.equal(f.host.style.pointerEvents, 'none');
-  f.display.setActive(true); f.setClear(false); f.move(); assert.equal(f.host.style.pointerEvents, 'none');
-  f.setClear(true); f.move(0, 0); assert.equal(f.host.style.pointerEvents, 'none');
-});
-
-test('offscreen studio suspends, refuses hidden expansion and resumes without reload', async t => {
-  const f = fixture(t); f.display.setActive(true); const { iframe } = await f.ready();
-  f.camera.lookAt(0, 0, 10); f.display.update();
-  assert.equal(f.host.style.visibility, 'hidden'); assert.equal(iframe.contentWindow.messages.at(-1)[0].type, 'md-studio:suspend');
-  f.display.setAction('studio'); assert.equal(f.opens.length, 0);
-  f.camera.lookAt(0, 0, 0); f.display.update();
-  assert.equal(f.frame(), iframe); assert.equal(iframe.contentWindow.messages.at(-1)[0].type, 'md-studio:resume');
-});
-
-test('only the matching iframe origin/source can request expansion', async t => {
-  const f = fixture(t); f.display.setActive(true); await f.ready();
-  f.message('md-studio:expand', 'https://other.test'); f.message('md-studio:expand', location.origin, {}); assert.equal(f.opens.length, 0);
-  f.message('md-studio:expand'); assert.equal(f.opens.length, 1); assert.ok(f.opens[0].width > 100);
-});
-
-test('fullscreen preserves session/form state and keeps a complete visual through both fades', async t => {
-  const f = fixture(t); f.display.setActive(true); const { iframe, note } = await f.ready();
-  const oldView = findData(f.visual, 'curvedStudioView'); note.value = 'Draft survives fullscreen';
+test('expanded Studio and the curved TV retain the same document and unfinished form', async t => {
+  const f = surfaceFixture(t), { iframe, note } = await f.ready();
+  note.value = 'Draft survives fullscreen';
   dispatch(f.window, 'md-studio:layout', { detail: { open: true, reducedMotion: false } });
-  assert.equal(f.frame(), iframe); assert.equal(f.host.getAttribute('aria-modal'), 'true');
-  assert.equal(f.visual.style.visibility, 'visible', 'opening fade must retain its curved background');
+  assert.equal(f.host.getAttribute('aria-modal'), 'true');
+  assert.equal(f.painters[0].visible, false);
   f.document.animations.at(-1).finish(); await Promise.resolve();
-  assert.equal(f.host.style.width, '100vw'); assert.equal(f.visual.style.visibility, 'hidden');
-  const count = f.document.animations.length;
+  assert.equal(f.host.style.width, '100vw');
   dispatch(f.window, 'md-studio:layout', { detail: { open: false, reducedMotion: false } });
-  assert.equal(f.host.style.opacity, '1', 'same native iframe covers preparation');
-  assert.equal(f.visual.style.visibility, 'hidden', 'stale TV fragments stay frozen while source viewport changes');
-  assert.equal(oldView.parentNode, f.visual, 'old visual must remain until replacement is complete');
-  await until(() => f.document.animations.length > count, 'closing animation waits for new visual readiness');
-  assert.equal(oldView.parentNode, null); assert.equal(f.visual.style.visibility, 'visible');
-  f.document.animations.at(-1).finish(); await Promise.resolve();
-  assert.equal(f.host.style.zIndex, '2'); assert.equal(f.host.style.opacity, '0');
-  assert.equal(f.frame(), iframe); assert.equal(iframe.sourceAssignments, 1); assert.equal(note.value, 'Draft survives fullscreen');
+  f.document.animations.at(-1).finish(); await pause();
+  assert.equal(f.host.style.opacity, '0'); assert.equal(f.painters[0].visible, true);
+  assert.equal(f.frame(), iframe); assert.equal(iframe.sourceAssignments, 1);
+  assert.equal(note.value, 'Draft survives fullscreen');
 });
 
-test('reopening during return cancels pending visual work without replacing the app', async t => {
-  const f = fixture(t); f.display.setActive(true); const { iframe } = await f.ready();
-  dispatch(f.window, 'md-studio:layout', { detail: { open: true, reducedMotion: false } });
-  f.document.animations.at(-1).finish(); await Promise.resolve();
-  dispatch(f.window, 'md-studio:layout', { detail: { open: false, reducedMotion: false } });
-  await Promise.resolve(); await Promise.resolve();
-  assert.equal(f.visual.children.length, 2, 'old and in-progress replacement coexist during return');
-  dispatch(f.window, 'md-studio:layout', { detail: { open: true, reducedMotion: false } });
-  assert.equal(f.visual.children.length, 1, 'interrupted replacement is disposed');
-  f.document.animations.at(-1).finish(); await Promise.resolve(); await pause();
-  assert.equal(f.frame(), iframe); assert.equal(iframe.sourceAssignments, 1); assert.equal(f.host.style.opacity, '1');
-});
-test('disposal restores materials and releases both visual/input DOM exactly once', async t => {
-  const f = fixture(t); f.display.setActive(true); await f.ready(); let disposals = 0;
-  f.mesh.material.addEventListener('dispose', () => disposals++); f.display.dispose(); f.display.dispose();
-  assert.equal(disposals, 1); assert.equal(f.mesh.material, f.original); assert.equal(f.document.body.children.length, 0);
-  assert.equal(f.document.head.children.length, 0, 'copied font styles are released');
-  f.move(); f.message('md-studio:expand'); assert.equal(f.opens.length, 0); assert.equal(f.canvas.style.pointerEvents, '');
+test('reopened or disposed Studio cannot be changed by stale transition completion', async t => {
+  const f = surfaceFixture(t), { iframe } = await f.ready();
+  for (const open of [true, false, true]) dispatch(f.window, 'md-studio:layout', { detail: { open, reducedMotion: true } });
+  f.document.animations.at(-1).finish(); await pause();
+  assert.equal(f.host.style.opacity, '1'); assert.equal(f.frame(), iframe); assert.equal(f.painters.length, 1);
+  f.surface.dispose(); f.surface.dispose();
+  assert.equal(f.painters[0].disposed, true); assert.equal(f.document.body.children.length, 0);
 });
 
-test('wall-obscured screen defers app loading until sightline clears', t => {
-  const f = fixture(t); f.setInView(false); f.display.update();
-  assert.equal(f.frame(), undefined); assert.equal(f.host.style.visibility, 'hidden');
-  f.setInView(true); f.camera.position.x = .1; f.display.update();
-  assert.ok(f.frame()); assert.equal(f.host.style.visibility, 'visible');
+test('only the matching iframe origin and source can request expansion', async t => {
+  const f = surfaceFixture(t); await f.ready();
+  f.message('md-studio:expand', 'https://other.test'); f.message('md-studio:expand', location.origin, {});
+  assert.equal(f.opens.length, 0); f.message('md-studio:expand'); assert.equal(f.opens.length, 1);
 });
 
-test('nearby oblique camera views keep partially visible curved TV depth opening', t => {
-  const f = fixture(t); f.display.update(); const iframe = f.frame();
-  f.camera.position.set(0, 0, .35); f.camera.lookAt(1, 0, 0); f.camera.updateMatrixWorld(true); f.display.update();
-  assert.equal(f.host.style.visibility, 'visible'); assert.equal(f.frame(), iframe);
-  f.mesh.onBeforeRender(undefined, undefined, f.camera, undefined, undefined, undefined); assert.equal(f.mesh.material.opacity, 0);
-  f.camera.lookAt(0, 0, 10); f.camera.updateMatrixWorld(true); f.display.update(); assert.equal(f.host.style.visibility, 'hidden');
+test('wall occlusion defers iframe loading; looking away preserves the last physical TV', t => {
+  const env = globals(t), scene = new Scene(), original = new MeshBasicMaterial();
+  const geometry = new PlaneGeometry(4, 2, 16, 1);
+  const uv = geometry.getAttribute('uv');
+  for (let i = 0; i < uv.count; i++) uv.setY(i, 1 - uv.getY(i));
+  const mesh = new Mesh(geometry, original); mesh.name = 'TV'; scene.add(mesh); scene.updateMatrixWorld(true);
+  const camera = new PerspectiveCamera(60, 4 / 3, .1, 100); camera.position.z = 5; camera.lookAt(0,0,0);
+  let inView = false;
+  const display = createPresentationScreen({ scene, camera, canvas: env.document.createElement('canvas'), objectName: 'TV',
+    isInView: () => inView });
+  t.after(() => { display.dispose(); original.dispose(); mesh.geometry.dispose(); env.restore(); });
+  const host = findData(env.document.body, 'liveStudio');
+  display.update(); assert.equal(host.children.some(child => child.tagName === 'IFRAME'), false);
+  inView = true; camera.position.x = .1; display.update();
+  assert.equal(host.children.some(child => child.tagName === 'IFRAME'), true);
+  camera.lookAt(0,0,10); display.update(); assert.equal(host.style.visibility, 'hidden');
+  assert.equal(mesh.material, original, 'before first valid paint keep the authored screen instead of revealing a black hole');
 });
 
 // These tests exercise proxy routing/lifecycle with real EventTarget dispatch.
@@ -415,25 +316,4 @@ test('camera occlusion and pointer cancellation retract proxy without stale list
   const f = inputFixture(t); f.move(); f.setClear(false); f.input.updateCamera(); assert.equal(f.host.style.pointerEvents, 'none');
   f.setClear(true); f.move(); f.childEvent('pointerdown', { buttons: 1 }); f.childEvent('pointercancel'); assert.equal(f.host.style.pointerEvents, 'none');
   f.input.dispose(); f.host.style.transform = 'owner-restored'; f.move(); f.childEvent('pointermove'); assert.equal(f.host.style.transform, 'owner-restored');
-});
-
-test('the curved-TV backdrop fallback stays in shadow copies and preserves source glass and regular filters', async t => {
-  const env = globals(t), sourceDocument = new FakeDocument();
-  const root = sourceDocument.createElement('main'); root.setAttribute('id', 'md-studio-root'); sourceDocument.body.append(root);
-  const declarations = 'backdrop-filter:blur(2px);filter:blur(1px);background-image:url(/glass.webp);';
-  const originalRule = { type: 1, selectorText: '#md-studio-root .glass__edge', style: { cssText: declarations }, cssRules: [], cssText: `#md-studio-root .glass__edge{${declarations}}` };
-  sourceDocument.styleSheets.push({ href: null, cssRules: [originalRule] });
-  const parent = env.document.createElement('div'); env.document.body.append(parent);
-  const visual = createCurvedStudioView({ parent, document: sourceDocument, width: 1600, height: 558 });
-  t.after(() => { visual.dispose(); env.restore(); });
-  const matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-  visual.update([{ matrix, visible: true, left: 0, width: 100 }]); await visual.ready;
-  const slice = findData(parent, 'curvedStudioView').children[0];
-  const css = slice.shadowRoot.adoptedStyleSheets[0].css;
-  assert.match(css, /\*\{[^}]*backdrop-filter:none!important;[^}]*-webkit-backdrop-filter:none!important/);
-  assert.match(css, /filter:blur\(1px\)/, 'regular glass glow filters survive');
-  assert.match(css, /background-image:url\("https:\/\/lounge.test\/glass.webp"\)/, 'painted glass assets survive');
-  assert.equal(originalRule.style.cssText, declarations, 'the native iframe stylesheet must remain unchanged');
-  assert.equal(sourceDocument.head.children.length, 0, 'no fallback stylesheet is injected into the source document');
-  assert.ok(env.document.head.children.every(node => !node.textContent.includes('backdrop-filter:none')), 'fallback cannot leak into the parent UI');
 });

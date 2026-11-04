@@ -1,0 +1,38 @@
+{
+  "/assets/founder-lift-v10/bronze-orm.png": {
+    "source": "2a8b0dfa10ab6c5e4b312fe12c4dcb24abc632b9a51d5079b69d9cde27b21965",
+    "webp": "378538edfd836bacf6d04250cc9f5b050443d802c5a97f6d390e15493d39f403"
+  },
+  "/assets/founder-lift-v10/graphite-orm.png": {
+    "source": "cff763f01df1650300a255a03604fb3f8efd6ca89040269f4950a80db055a413",
+    "webp": "a37863a3076d3a9bf041b6b3d99f079b3122b8684436b5cf6fb311f85b738058"
+  },
+  "/assets/founder-lift-v10/limestone-orm.png": {
+    "source": "c019ca8e511fa4e985c91320a670a683b9d9661aaaf2702cb3bd8db2e2c9ee98",
+    "webp": "b5f35732bde18ba66a0504edca03820b00c2dea7ab0c371e29231fb5ded400b9"
+  },
+  "/assets/source-materials/founder-native-chair-base.png": {
+    "source": "7a7fc6b578573e3e48e2112b2d55dfe357f5a82b00a6267cb73d60930d4243bf",
+    "webp": "3644ac98502e722b766061993713960bf9b5789457c9b76c499aee3df492caf0"
+  },
+  "/assets/source-materials/founder-native-chair-normal.png": {
+    "source": "e36e4369f1eac9816f7312cd0214ccc1b12b255f906a6322a2f126cf7a799b1c",
+    "webp": "16c9162812e74a30f0ef90f5a7e6074b21df038b926e6f4d0cbf608bd34c5f62"
+  },
+  "/assets/source-materials/founder-native-chair-orm.png": {
+    "source": "aa5051fd676cef3ea5c680ab2aab96ed16263a0bc46aca155fdaac508bebe8fd",
+    "webp": "55baeabccef3cef2d4c04a9ca288cde2c250c4d0c54b62b2e8b057944bf771ea"
+  },
+  "/assets/source-walls/cream-stone-original.png": {
+    "source": "a48198b45cfa76d4474d4a2fc32029d27d7df954aaf15e2f7257445223bd43a8",
+    "webp": "77c1f21424c0891262eeb8aa3c43054cbe9ea4917db508b224c0da47792b8072"
+  },
+  "/assets/source-walls/greige-marble-original.png": {
+    "source": "c9e5f67aabd9f5ebbebdf5b744f8e77236b2fcb083f8ceea474f0a9a8a81f7ef",
+    "webp": "5ba1ce34bbfea905f92c08e77a6d5ca0e2c226a07ce7d3306cf006468f6255df"
+  },
+  "/assets/surface-v5/bronze-source-grain.png": {
+    "source": "be12443b883b7b4e496165519c714991eac9c900f0cc8f182a5519b359922edf",
+    "webp": "88027cc6806ca139d810d55c3c6c9a1df4a06fa4cb48449ec6a6e7e0eb2cb49d"
+  }
+}

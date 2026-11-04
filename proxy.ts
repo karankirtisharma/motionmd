@@ -1,12 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import delivery from './src/generated/asset-delivery.json';
+import textureDelivery from './src/generated/texture-delivery.json';
+import { prefersWebP } from './src/server/imageEncoding';
 import manifest from './public/assets/scene-manifest.json';
 import { selectAssetEncoding } from './src/server/assetEncoding';
 import { assetCacheControl } from './src/server/assetRevision';
 
 type DeliveryEntry = { br: string; gzip: string; identity?: string; decodedBytes: number; brBytes: number; gzipBytes: number };
 const entries = delivery as Record<string, DeliveryEntry>;
+const textures: Record<string, { webp: string }> = textureDelivery;
 const immutablePaths = new Set(Object.values(entries).flatMap(entry => [entry.br, entry.gzip, entry.identity].filter((path): path is string => !!path)));
+for (const texture of Object.values(textures)) immutablePaths.add(texture.webp);
 const totals = manifest.chunks.map(chunk => entries[chunk.url]).filter(Boolean).reduce((sum, entry) => ({ br: sum.br + entry.brBytes, gzip: sum.gzip + entry.gzipBytes, identity: sum.identity + entry.decodedBytes }), { br: 0, gzip: 0, identity: 0 });
 
 export function proxy(request: NextRequest) {
@@ -14,7 +18,20 @@ export function proxy(request: NextRequest) {
   // after a rewrite, which would otherwise mark mutable source URLs immutable.
   if (['GET', 'HEAD'].includes(request.method) && immutablePaths.has(request.nextUrl.pathname)) {
     const response = NextResponse.next();
-    response.headers.set('Cache-Control', request.nextUrl.searchParams.has('__md_revalidate') ? 'public, max-age=0, must-revalidate' : 'public, max-age=31536000, immutable');
+    const mutable = request.nextUrl.searchParams.has('__md_revalidate');
+    response.headers.set('Cache-Control', mutable ? 'public, max-age=0, must-revalidate' : 'public, max-age=31536000, immutable');
+    if (mutable && request.nextUrl.pathname.endsWith('.webp')) response.headers.set('Vary', 'Accept, Accept-Encoding');
+    return response;
+  }
+  const texture = textures[request.nextUrl.pathname];
+  if (texture && ['GET', 'HEAD'].includes(request.method)) {
+    const webp = prefersWebP(request.headers.get('accept'));
+    const target = new URL(texture.webp, request.url);
+    target.searchParams.set('__md_revalidate', '1');
+    const response = webp ? NextResponse.rewrite(target) : NextResponse.next();
+    response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate');
+    response.headers.set('Vary', 'Accept, Accept-Encoding');
+    response.headers.set('Content-Type', webp ? 'image/webp' : 'image/png');
     return response;
   }
   const entry = entries[request.nextUrl.pathname];
@@ -40,4 +57,4 @@ export function proxy(request: NextRequest) {
   return response;
 }
 
-export const config = { matcher: ['/assets/:path*.glb', '/asset-delivery/:path*'] };
+export const config = { matcher: ['/assets/:path*.glb', '/assets/:path*.png', '/asset-delivery/:path*'] };

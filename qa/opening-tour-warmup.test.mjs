@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Scene, Group, Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial, PerspectiveCamera, HalfFloatType } from 'three';
+import { RenderPipeline } from 'three/webgpu';
 import { createGalleryMirror } from '../src/runtime/rendering/galleryMirror.ts';
+import { createTemporalRenderer } from '../src/runtime/rendering/TemporalRenderer.ts';
 import { OPENING_TOUR_SHADERS, openingTourShaderMeshes, warmOpeningTourShaders } from '../src/runtime/rendering/openingTourWarmup.ts';
 
 function fixture() {
@@ -16,6 +18,33 @@ function fixture() {
   return { scene, parent, camera, targets };
 }
 
+test('temporal warmup compiles the HDR pass but only submits after the real opening reflection', async t => {
+  const events = [];
+  t.mock.method(RenderPipeline.prototype, 'render', () => events.push('render'));
+  const { scene, camera } = fixture();
+  const initialTarget = {}, initialMRT = {};
+  let target = initialTarget, mrt = initialMRT;
+  const renderer = {
+    getRenderTarget: () => target, setRenderTarget: value => { target = value; },
+    getMRT: () => mrt, setMRT: value => { mrt = value; },
+    async compileAsync(root, view) {
+      assert.equal(root, scene); assert.equal(view, camera);
+      assert.notEqual(target, initialTarget); assert.notEqual(mrt, initialMRT);
+      events.push('compile');
+    },
+    async readRenderTargetPixelsAsync() { events.push('fence'); },
+  };
+  const temporal = createTemporalRenderer(renderer, scene, camera);
+  try {
+    await temporal.warmup();
+    assert.deepEqual(events, ['compile']);
+    assert.equal(target, initialTarget); assert.equal(mrt, initialMRT);
+    events.push('reflection');
+    temporal.render(); await temporal.finishFirstFrame();
+    assert.deepEqual(events, ['compile', 'reflection', 'render', 'fence']);
+  } finally { temporal.dispose(); }
+});
+
 test('opening warmup selects only the twenty-two measured object/material pairs and preserves hierarchy, state and actual render context', async () => {
   const { scene, parent, camera, targets } = fixture();
   const wrongMaterial = targets[0].clone(); wrongMaterial.material = new MeshBasicMaterial({ name: 'Unrelated gold' }); parent.add(wrongMaterial);
@@ -24,14 +53,19 @@ test('opening warmup selects only the twenty-two measured object/material pairs 
   assert.equal(OPENING_TOUR_SHADERS.length, 22); assert.deepEqual(openingTourShaderMeshes(scene), targets);
   const states = targets.map(mesh => ({ parent: mesh.parent, culled: mesh.frustumCulled, visible: mesh.visible, geometry: mesh.geometry, material: mesh.material, world: mesh.matrixWorld.clone() }));
   const calls = [], progress = [];
-  const renderer = { target: { name: 'actual HDR and velocity' }, mrt: {}, async compileAsync(mesh, view, targetScene) {
-    assert.equal(view, camera); assert.equal(targetScene, scene); assert.equal(mesh.parent, parent);
-    assert.equal(mesh.frustumCulled, false); assert.equal(mesh.visible, true);
-    calls.push(mesh);
+  const renderer = { target: { name: 'actual HDR and velocity' }, mrt: {}, async compileAsync(selection, view, targetScene, report) {
+    assert.equal(view, camera); assert.equal(targetScene, scene); assert.equal(selection.parent, null);
+    assert.equal(selection.matrixWorldAutoUpdate, false); assert.deepEqual(selection.children, targets);
+    for (const mesh of selection.children) {
+      assert.equal(mesh.parent, parent); assert.equal(mesh.frustumCulled, false); assert.equal(mesh.visible, true);
+    }
+    report({lengthComputable: true, loaded: 22, total: 22});
+    calls.push(selection);
   } };
   const target = renderer.target, mrt = renderer.mrt;
   assert.equal(await warmOpeningTourShaders(renderer, scene, camera, undefined, (...p) => progress.push(p)), 22);
-  assert.deepEqual(calls, targets); assert.equal(renderer.target, target); assert.equal(renderer.mrt, mrt);
+  assert.equal(calls.length, 1); assert.deepEqual(calls[0].children, []);
+  assert.equal(renderer.target, target); assert.equal(renderer.mrt, mrt);
   assert.deepEqual(progress[0], [0, 22]); assert.deepEqual(progress.at(-1), [22, 22]);
   targets.forEach((mesh, i) => {
     const state = states[i];
@@ -40,13 +74,19 @@ test('opening warmup selects only the twenty-two measured object/material pairs 
   });
 });
 
-test('failed or cancelled targeted compilation restores culling and never starts the next variant', async () => {
+test('failed or cancelled targeted compilation restores every original culling flag', async () => {
   for (const kind of ['failure', 'abort']) {
     const { scene, camera, targets } = fixture(); const controller = new AbortController();
     let calls = 0;
-    const renderer = { async compileAsync() { calls++; if (kind === 'failure') throw Error('device lost'); controller.abort(); } };
+    const renderer = { async compileAsync(selection, view, targetScene, report) {
+      calls++;
+      if (kind === 'failure') throw Error('device lost');
+      controller.abort();
+      report({ lengthComputable: true, loaded: 1, total: 22 });
+      assert.fail('aborted compile must stop at its next progress callback');
+    } };
     await assert.rejects(warmOpeningTourShaders(renderer, scene, camera, controller.signal), kind === 'failure' ? /device lost/ : { name: 'AbortError' });
-    assert.equal(calls, 1); assert.equal(targets[0].frustumCulled, true); assert.equal(targets[1].frustumCulled, false);
+    assert.equal(calls, 1); targets.forEach((mesh, i) => assert.equal(mesh.frustumCulled, i % 2 === 0));
   }
 });
 
@@ -70,8 +110,9 @@ test('mirror warmup uses the actual reflection camera, MSAA target and no MRT; r
     const renderer = { autoClear: false, getRenderTarget: () => target, getMRT: () => mrt,
       setRenderTarget: value => { target = value; }, setMRT: value => { mrt = value; },
       getDrawingBufferSize: value => value.set(1280, 720), render: () => assert.fail('warmup cannot submit a frame'),
-      async compileAsync(mesh, camera, contextScene) {
-        calls++; assert.equal(contextScene, scene); assert.equal(mesh.parent, parent); assert.equal(pane.visible, false);
+      async compileAsync(selection, camera, contextScene) {
+        calls++; assert.equal(contextScene, scene); assert.deepEqual(selection.children, targets);
+        assert.ok(targets.every(mesh => mesh.parent === parent)); assert.equal(pane.visible, false);
         assert.equal(mrt, null); assert.equal(target.samples, 4); assert.equal(target.texture.type, HalfFloatType);
         assert.equal(target.texture.name, 'Gallery mirror reflection'); assert.notEqual(camera, view);
         if (mirrorTarget) { assert.equal(target, mirrorTarget); assert.equal(camera, mirrorCamera); }
@@ -81,7 +122,7 @@ test('mirror warmup uses the actual reflection camera, MSAA target and no MRT; r
     };
     if (failed) await assert.rejects(mirror.warmup(renderer, scene, view), /test compile failed/);
     else assert.equal(await mirror.warmup(renderer, scene, view), 22);
-    assert.equal(calls, failed ? 1 : 22); assert.equal(pane.visible, true);
+    assert.equal(calls, 1); assert.equal(pane.visible, true);
     assert.equal(target, initialTarget); assert.equal(mrt, initialMRT); assert.equal(renderer.autoClear, false);
     assert.equal(targets[0].frustumCulled, true); mirror.dispose();
   }

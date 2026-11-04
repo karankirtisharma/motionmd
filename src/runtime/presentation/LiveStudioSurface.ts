@@ -1,159 +1,174 @@
-import { createCurvedStudioView, type StudioSurfacePatch } from './CurvedStudioView.ts';
 import { createCurvedInput } from './curvedInput.ts';
+import { createStudioPaintSource } from './StudioPaintSource.ts';
 
-type Options = { canvas: HTMLCanvasElement; aspect: number; onExpand: () => void;
-  canInteract: (x: number, y: number) => boolean;
+type Options = {
+  canvas: HTMLCanvasElement;
+  aspect: number;
+  onExpand: () => void;
+  onFrame: (canvas: HTMLCanvasElement) => void;
   sampleSurface: (x: number, y: number) => { u: number; v: number } | null;
-  onFocus: () => void };
+  onFocus: () => void;
+};
 
-/** One real same-origin Studio session supplies both the curved visual fragments
- * and native input. The iframe never reloads or reparents on fullscreen changes. */
-export function createLiveStudioSurface(options: Options) {
+/** One native Studio owns navigation, input and fullscreen. Only UI changes
+ * repaint the texture on the mesh; camera movement never paints the document. */
+export function createLiveStudioSurface(options: Options, makePainter = createStudioPaintSource) {
   const width = 1600, height = Math.round(width / options.aspect);
-  const visual = document.createElement('div'); visual.dataset.liveStudioVisual = '';
-  Object.assign(visual.style, { position: 'fixed', inset: '0', overflow: 'hidden', contain: 'paint', zIndex: '0', pointerEvents: 'none', visibility: 'hidden' });
-  const host = document.createElement('div'); host.dataset.liveStudio = '';
+  const host = document.createElement('div');
+  host.dataset.liveStudio = '';
   Object.assign(host.style, { position: 'fixed', left: '0', top: '0', width: `${width}px`, height: `${height}px`,
     transformOrigin: '0 0', overflow: 'hidden', background: '#241b13', zIndex: '2', visibility: 'hidden', opacity: '0', pointerEvents: 'none' });
-  const status = document.createElement('div'); status.setAttribute('role', 'status');
+  const status = document.createElement('div');
+  status.setAttribute('role', 'status');
   Object.assign(status.style, { position: 'absolute', inset: '0', display: 'grid', placeContent: 'center', color: '#f6f1e7', font: '20px sans-serif' });
-  host.append(status); document.body.append(visual, host);
-  const viewport = options.canvas.parentElement, oldZ = viewport?.style.zIndex;
-  if (viewport) viewport.style.zIndex = '1';
-  let frame: HTMLIFrameElement | undefined, curved: ReturnType<typeof createCurvedStudioView> | undefined;
-  let patches: StudioSurfacePatch[] = [], transform = '', visible = false, interactive = false;
-  let expanded = false, ready = false, viewReady = false, disposed = false, suspended: boolean | undefined;
-  let animation: Animation | undefined, animationVersion = 0, loadTimer: ReturnType<typeof setTimeout> | undefined;
-  let inputEnabled: boolean | undefined, preparingReturn = false;
-  let pendingView: ReturnType<typeof createCurvedStudioView> | undefined;
+  host.append(status);
+  document.body.append(host);
+  let frame: HTMLIFrameElement | undefined, painter: ReturnType<typeof makePainter> | undefined;
+  let transform = 'none', visible = false, interactive = false, expanded = false, ready = false;
+  let painted = false, paintFailed = false, disposed = false, suspended: boolean | undefined;
+  let animation: Animation | undefined, transition = 0, inputEnabled = false;
+  let loadTimer: ReturnType<typeof setTimeout> | undefined;
   const input = createCurvedInput({ canvas: options.canvas, host, getFrame: () => frame, width, height,
-    hit: (x,y) => { const uv = options.sampleSurface(x,y); return uv ? { x: uv.u, y: uv.v } : null; }, onFocus: options.onFocus });
+    hit: (x, y) => { const uv = options.sampleSurface(x, y); return uv ? { x: uv.u, y: uv.v } : null; }, onFocus: options.onFocus });
   const post = (type: string, extra = {}) => frame?.contentWindow?.postMessage({ type, ...extra }, location.origin);
+
   function sync() {
-    host.style.visibility = expanded || visible ? 'visible' : 'hidden';
-    const showCurved = visible && !preparingReturn && (!expanded || !!animation);
-    visual.style.visibility = showCurved && viewReady ? 'visible' : 'hidden';
-    curved?.setVisible(showCurved);
-    const nextInput = !expanded && !animation && !preparingReturn && visible && interactive && viewReady && !document.hidden;
-    if (inputEnabled !== nextInput) { inputEnabled = nextInput; input.setEnabled(nextInput); }
-    if (!expanded && !animation && !preparingReturn) { host.style.opacity = '0'; if (!nextInput) host.style.pointerEvents = 'none'; }
-    if (frame) frame.tabIndex = expanded || nextInput ? 0 : -1;
+    host.style.visibility = expanded || visible || animation ? 'visible' : 'hidden';
+    painter?.setVisible(visible && !expanded && !document.hidden);
+    const enable = visible && interactive && painted && !expanded && !animation && !paintFailed && !document.hidden;
+    if (enable !== inputEnabled) { inputEnabled = enable; input.setEnabled(enable); }
+    if (!expanded && !animation) { host.style.opacity = '0'; if (!enable) host.style.pointerEvents = 'none'; }
+    if (frame) frame.tabIndex = expanded || enable ? 0 : -1;
     const next = document.hidden || !(expanded || visible);
     if (next !== suspended && ready) { suspended = next; post(next ? 'md-studio:suspend' : 'md-studio:resume'); }
   }
-  function createView() {
-    if (curved || !ready || !frame?.contentDocument?.querySelector('#md-studio-root') || expanded || preparingReturn || disposed) return;
-    curved = createCurvedStudioView({ parent: visual, document: frame.contentDocument, width, height,
-      onReady: () => { if (!disposed) { viewReady = true; sync(); } } });
-    curved.setVisible(visible); curved.update(patches);
+
+  function failed(error: Error) {
+    if (disposed || paintFailed) return;
+    paintFailed = true;
+    host.dataset.paintState = 'fallback';
+    console.warn('Studio TV paint unavailable', error);
+    // Browsers that cannot export this document can still open the native
+    // session by clicking the physical screen. Keep a legible affordance.
+    const card = document.createElement('canvas');
+    card.width = width; card.height = height;
+    const ctx = card.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#36241b'; ctx.fillRect(0, 0, width, height);
+      ctx.textAlign = 'center'; ctx.fillStyle = '#f6efdf'; ctx.font = '54px Georgia';
+      ctx.fillText('Motion Design Studio', width / 2, height / 2);
+      ctx.font = '24px sans-serif'; ctx.fillText('Open the studio', width / 2, height / 2 + 56);
+      options.onFrame(card);
+    }
+    sync();
   }
+
+  function ensurePainter() {
+    const doc = frame?.contentDocument;
+    if (painter || paintFailed || !ready || disposed || !doc?.querySelector('#md-studio-root')) return;
+    try {
+      painter = makePainter({ document: doc, width, height, onPaint: canvas => {
+        if (disposed || expanded) return;
+        options.onFrame(canvas);
+        if (!painted) { painted = true; host.dataset.paintState = 'live'; sync(); }
+      }, onError: failed });
+      sync();
+    } catch (error) { failed(error instanceof Error ? error : new Error(String(error))); }
+  }
+
   function receive(event: MessageEvent) {
     if (event.origin !== location.origin || event.source !== frame?.contentWindow) return;
     if (event.data?.type === 'md-studio:ready') {
-      ready = true; clearTimeout(loadTimer); status.style.display = 'none';
-      suspended = undefined; post('md-studio:display', { expanded }); createView(); sync();
+      ready = true; clearTimeout(loadTimer); status.style.display = 'none'; suspended = undefined;
+      post('md-studio:display', { expanded }); ensurePainter(); sync();
     } else if (event.data?.type === 'md-studio:expand' && interactive) options.onExpand();
     else if (event.data?.type === 'md-studio:exit' && !expanded) input.focusRoom();
   }
-  function startFrameLoad() {
+
+  function load() {
     if (!frame || disposed) return;
-    clearTimeout(loadTimer); curved?.dispose(); curved = undefined; viewReady = ready = false; suspended = undefined;
+    clearTimeout(loadTimer); painter?.dispose(); painter = undefined;
+    painted = paintFailed = ready = false; suspended = undefined;
+    host.dataset.paintState = 'loading';
     status.textContent = 'Opening the studio…'; status.style.display = 'grid';
     frame.src = '/studio?embed=lounge&display=tv&f=1&i=3';
     loadTimer = setTimeout(() => {
       if (ready || disposed) return;
       status.textContent = 'The studio is taking longer to load. ';
-      const retry = document.createElement('button'); retry.textContent = 'Retry'; retry.onclick = startFrameLoad; status.append(retry);
+      const retry = document.createElement('button'); retry.textContent = 'Retry'; retry.onclick = load; status.append(retry);
     }, 20000);
   }
+
   function ensureFrame() {
     if (frame) return;
     frame = document.createElement('iframe'); frame.dataset.liveStudioFrame = '';
     frame.title = 'Interactive Motion Design studio on the presentation screen'; frame.allowFullscreen = true;
     Object.assign(frame.style, { display: 'block', width: '100%', height: '100%', border: '0', background: '#241b13' });
-    frame.addEventListener('load', () => { input.refreshFrame(); post('md-studio:display', { expanded }); createView(); sync(); });
-    host.prepend(frame); input.refreshFrame(); startFrameLoad();
+    frame.addEventListener('load', () => { input.refreshFrame(); post('md-studio:display', { expanded }); ensurePainter(); sync(); });
+    host.prepend(frame); input.refreshFrame(); load();
   }
+
+  function clickFallback(event: MouseEvent) {
+    if (!interactive || expanded || !visible || (!paintFailed && ready)) return;
+    if (options.sampleSurface(event.clientX, event.clientY)) { event.preventDefault(); options.onExpand(); }
+  }
+
   function layout(event: Event) {
     const detail = (event as CustomEvent<{ open: boolean; reducedMotion: boolean }>).detail;
     if (!detail || disposed || expanded === detail.open) return;
-    const version = ++animationVersion;
-    animation?.cancel(); animation = undefined;
-    pendingView?.dispose(); pendingView = undefined;
-    expanded = detail.open; preparingReturn = !expanded;
-    ensureFrame(); options.onFocus(); input.setExpanded(true); sync();
+    const version = ++transition;
+    animation?.cancel(); expanded = detail.open;
+    ensureFrame(); options.onFocus(); input.setExpanded(true);
     host.style.zIndex = '1000'; host.style.width = `${width}px`; host.style.height = `${height}px`;
     host.style.visibility = 'visible'; host.style.pointerEvents = 'auto'; host.style.clipPath = 'none';
     host.setAttribute('role', expanded ? 'dialog' : 'region');
     host.setAttribute('aria-label', expanded ? 'Motion Design studio' : 'Interactive presentation screen');
     if (expanded) host.setAttribute('aria-modal', 'true'); else host.removeAttribute('aria-modal');
     const full = `matrix3d(${innerWidth / width},0,0,0,0,${innerHeight / height},0,0,0,0,1,0,0,0,0,1)`;
-    function animateHandoff() {
-      if (disposed || version !== animationVersion) return;
-      preparingReturn = false;
-      const destination = expanded ? full : transform;
-      host.style.transform = destination; host.style.opacity = expanded ? '1' : '0';
-      // Curved fragments stay visible beneath both fades. Only the intentional
-      // fullscreen handoff uses the native flat browser viewport.
-      animation = host.animate([{ transform: expanded ? transform : full, opacity: expanded ? 0 : 1 },
-        { transform: destination, opacity: expanded ? 1 : 0 }],
-        { duration: detail.reducedMotion ? 0 : 560, easing: 'cubic-bezier(.22,.68,0,1)' });
+    if (!expanded) post('md-studio:display', { expanded: false });
+    const destination = expanded ? full : transform;
+    host.style.transform = destination; host.style.opacity = expanded ? '1' : '0';
+    animation = host.animate([{ transform: expanded ? transform : full, opacity: expanded ? 0 : 1 },
+      { transform: destination, opacity: expanded ? 1 : 0 }],
+      { duration: detail.reducedMotion ? 0 : 560, easing: 'cubic-bezier(.22,.68,0,1)' });
+    sync();
+    if (!expanded) painter?.invalidate();
+    animation.finished.then(() => {
+      if (disposed || version !== transition) return;
+      animation = undefined;
+      if (expanded) {
+        host.style.width = '100vw'; host.style.height = '100dvh'; host.style.transform = 'none'; host.style.opacity = '1'; frame?.focus();
+        post('md-studio:display', { expanded: true });
+      } else {
+        host.style.zIndex = '2'; host.style.opacity = '0'; host.style.pointerEvents = 'none';
+        input.setExpanded(false); input.focusRoom();
+      }
       sync();
-      animation.finished.then(() => {
-        if (disposed || version !== animationVersion) return;
-        animation = undefined;
-        if (expanded) {
-          // Stop mirroring before the source document adopts fullscreen layout.
-          sync();
-          host.style.width = '100vw'; host.style.height = '100dvh'; host.style.transform = 'none'; host.style.opacity = '1'; frame?.focus();
-        } else {
-          host.style.zIndex = '2'; host.style.opacity = '0'; host.style.pointerEvents = 'none';
-          input.setExpanded(false); input.focusRoom();
-        }
-        post('md-studio:display', { expanded }); sync();
-        window.dispatchEvent(new CustomEvent('md-studio:layout-complete', { detail: { open: expanded } }));
-      }).catch(() => {});
-    }
-    if (expanded) animateHandoff();
-    else {
-      // Keep the same opaque iframe over the viewport while TV layout settles.
-      // Do not uncover the room or destroy its old visual until a replacement is ready.
-      host.style.transform = full; host.style.opacity = '1';
-      post('md-studio:display', { expanded: false });
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        if (disposed || version !== animationVersion) return;
-        const source = frame?.contentDocument;
-        if (!source?.querySelector('#md-studio-root')) { preparingReturn = false; animateHandoff(); return; }
-        const replacement = createCurvedStudioView({ parent: visual, document: source, width, height,
-          onReady: () => {
-            if (disposed || version !== animationVersion || pendingView !== replacement) return;
-            const previous = curved;
-            curved = replacement; pendingView = undefined; viewReady = true;
-            previous?.dispose(); animateHandoff();
-          } });
-        pendingView = replacement;
-        replacement.setVisible(true); replacement.update(patches);
-      }));
-    }
+      window.dispatchEvent(new CustomEvent('md-studio:layout-complete', { detail: { open: expanded } }));
+    }).catch(() => {});
   }
+
+  options.canvas.addEventListener('click', clickFallback);
   window.addEventListener('message', receive);
   window.addEventListener('md-studio:layout', layout);
   document.addEventListener('visibilitychange', sync);
   return {
     width, height,
-    update(next: StudioSurfacePatch[], inView: boolean, expandMatrix?: number[] | null) {
-      patches = next; visible = inView;
+    update(inView: boolean, expandMatrix?: number[] | null) {
       if (expandMatrix) transform = `matrix3d(${expandMatrix.join(',')})`;
-      if (visible) ensureFrame();
-      curved?.update(next); pendingView?.update(next); sync(); input.updateCamera();
+      if (visible !== inView) { visible = inView; if (visible) ensureFrame(); sync(); }
+      input.updateCamera();
     },
-    setInteractive(value: boolean) { interactive = value; sync(); },
+    setInteractive(value: boolean) { if (value !== interactive) { interactive = value; sync(); } },
     dispose() {
-      if (disposed) return; disposed = true; animationVersion++; animation?.cancel(); clearTimeout(loadTimer);
-      input.dispose(); curved?.dispose(); pendingView?.dispose();
-      window.removeEventListener('message', receive); window.removeEventListener('md-studio:layout', layout);
+      if (disposed) return;
+      disposed = true; transition++; animation?.cancel(); clearTimeout(loadTimer);
+      input.dispose(); painter?.dispose();
+      options.canvas.removeEventListener('click', clickFallback);
+      window.removeEventListener('message', receive);
+      window.removeEventListener('md-studio:layout', layout);
       document.removeEventListener('visibilitychange', sync);
-      host.remove(); visual.remove(); if (viewport) viewport.style.zIndex = oldZ ?? '';
+      host.remove();
     },
   };
 }

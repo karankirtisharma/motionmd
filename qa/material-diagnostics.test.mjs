@@ -35,3 +35,18 @@ test('diagnostic isolation restores source materials and removes normal-dependen
   assert.equal(lightMap.repeat.y,-1);assert.equal(lightMap.offset.y,1);
   review.dispose();mesh.geometry.dispose();material.dispose();lightMap.dispose();
 });
+
+test('restoring a review preserves a live material installed after inspection began', () => {
+  const authored = new MeshPhysicalNodeMaterial(), live = new MeshPhysicalNodeMaterial();
+  const mesh = new Mesh(new BoxGeometry(), authored);
+  const review = new RenderDiagnostics(new Scene().add(mesh));
+  review.setMode('full');
+  review.setMode('no-reflections');
+  mesh.material = live;
+  review.setMode('full');
+  assert.equal(mesh.material, live);
+  review.setMode('no-normals');
+  review.dispose();
+  assert.equal(mesh.material, live);
+  mesh.geometry.dispose(); live.dispose(); authored.dispose();
+});

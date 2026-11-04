@@ -21,7 +21,7 @@ export async function restoreSourceBronze(root:Object3D,signal?:AbortSignal):Pro
     }
   }});
   if(!materials.size)return [];
-  const map=await loadTexture('/assets/surface-v5/bronze-source-grain.png','data',signal);
+  const map=await loadTexture('/assets/surface-v5/bronze-source-grain.png','scalar',signal);
   try {
   map.wrapS=map.wrapT=MirroredRepeatWrapping;map.anisotropy=16;map.needsUpdate=true;
   const p=Fn(b=>('isWebGLBackend' in b.renderer.backend?worldGL:worldGPU)(attribute('position','vec3'),modelWorldMatrix))() as Node<'vec3'>;

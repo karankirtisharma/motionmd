@@ -24,3 +24,9 @@ test('font faces stay available to the parent document and shadow fragments',()=
  const p=options(),result=serializeStudioCSS([{type:5,cssText:'@font-face{font-family: Studio;src:url(../studio.woff2)}'}],'https://site.test/css/main.css',p);
  assert.equal(p.fonts.length,1);assert.equal(result,p.fonts[0]);assert.ok(result.includes('https://site.test/studio.woff2'));
 });
+
+test('embedded SVG grain keeps its nested filter URL rather than fetching %23n',()=>{
+ const grain=`url("data:image/svg+xml,%3Csvg width='220'%3E%3Crect filter='url(%23n)'/%3E%3C/svg%3E")`;
+ const result=serializeStudioCSS([style('.grain','background-image: '+grain+';')],'https://site.test/chunks/style.css',options());
+ assert.equal(result,'.grain{background-image: '+grain+';}');
+});

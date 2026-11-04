@@ -9,19 +9,26 @@ type Surface = Material & { color?: Color; colorNode?: MeshBasicNodeMaterial['co
 
 /** Review-only material substitutions. Shared source texture data is never modified. */
 export class RenderDiagnostics {
-  private originals = new Map<Mesh, Material | Material[]>();
+  private overrides = new Map<Mesh, { source: Material | Material[]; review: Material | Material[] }>();
   private variants = new Map<Material, Map<DiagnosticMode, Material>>();
 
   constructor(private root: Object3D) {}
 
   setMode(mode: DiagnosticMode) {
+    // Restore only materials this review still owns. The TV may install its
+    // first complete live texture (or another runtime material) between calls.
+    for (const [mesh, { source, review }] of this.overrides) {
+      if (mesh.material === review) mesh.material = source;
+    }
+    this.overrides.clear();
+    if (mode === 'full' || mode === 'no-shadows') return;
     this.root.traverse(object => {
       if (!(object instanceof Mesh)) return;
-      if (!this.originals.has(object)) this.originals.set(object, object.material);
-      const original = this.originals.get(object)!;
-      if (mode === 'full' || mode === 'no-shadows') { object.material = original; return; }
+      const source = object.material;
       const replace = (material: Material) => this.variant(material as Surface, mode);
-      object.material = Array.isArray(original) ? original.map(replace) : replace(original);
+      const review = Array.isArray(source) ? source.map(replace) : replace(source);
+      object.material = review;
+      this.overrides.set(object, { source, review });
     });
   }
 
@@ -67,9 +74,9 @@ export class RenderDiagnostics {
   }
 
   dispose() {
-    for (const [mesh, original] of this.originals) mesh.material = original;
+    this.setMode('full');
     for (const modes of this.variants.values()) for (const material of modes.values()) material.dispose();
-    this.originals.clear(); this.variants.clear();
+    this.variants.clear();
   }
 }
 

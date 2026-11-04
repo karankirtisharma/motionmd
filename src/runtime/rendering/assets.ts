@@ -5,6 +5,7 @@ import { fetchAssetBuffer } from './fetchAsset.ts';
 import { TextureLoader, Texture, NoColorSpace, SRGBColorSpace, LinearSRGBColorSpace, EquirectangularReflectionMapping } from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { loadEXRInWorker } from './exrDecode.ts';
+import { decodeScalarImage } from './scalarImage.ts';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 /** Use a public object-storage origin for large deployments; local assets work unchanged. */
@@ -35,7 +36,7 @@ export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (l
   } : undefined });
 }
 
-export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data' = 'data', signal?: AbortSignal): Promise<Texture> {
+export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data' | 'scalar' = 'data', signal?: AbortSignal): Promise<Texture> {
   signal?.throwIfAborted();
   const resolved = assetURL(url);
   const extension = url.split('?')[0].toLowerCase();
@@ -46,7 +47,16 @@ export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data
   else {
     const bytes = await fetchAssetBuffer(resolved, { signal });
     signal?.throwIfAborted();
-    const objectURL = URL.createObjectURL(new Blob([bytes]));
+    const blob = new Blob([bytes]);
+    if (usage === 'scalar') {
+      const compact = await decodeScalarImage(blob, signal);
+      if (compact) {
+        if (signal?.aborted) { compact.dispose(); signal.throwIfAborted(); }
+        return compact;
+      }
+      signal?.throwIfAborted();
+    }
+    const objectURL = URL.createObjectURL(blob);
     try {
       texture = await new Promise<Texture>((resolve, reject) => {
         let settled = false;
