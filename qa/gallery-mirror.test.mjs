@@ -42,6 +42,33 @@ test('removed panel and head are absent in the shipped geometry; mirror is solid
  assert.equal(rays,15);
 });
 
+test('upper gallery does not submit the hidden mirror when only its bounding sphere is on screen', async () => {
+  const root = await load('/assets/architecture-v21/mirror.glb'), scene = new T.Scene();
+  scene.add(root);
+  const mirror = createGalleryMirror(root);
+  let pane;
+  root.traverse(o => { if (o.userData.mdPlanarMirror && !o.userData.mirrorSide) pane = o; });
+  const view = new T.PerspectiveCamera(54, 1280/720, .1, 1800);
+  view.coordinateSystem = T.WebGPUCoordinateSystem; view._reversedDepth = true;
+  view.position.set(7.253727, 6.074473, -23.218117);
+  view.quaternion.set(-.046333, .865936, .081670, .491263).normalize();
+  view.updateProjectionMatrix(); view.updateMatrixWorld();
+  const frustum = new T.Frustum().setFromProjectionMatrix(new T.Matrix4().multiplyMatrices(view.projectionMatrix, view.matrixWorldInverse),view.coordinateSystem,view.reversedDepth);
+  assert.equal(frustum.intersectsObject(pane), true, 'old sphere test reached the offscreen mirror');
+  const bounds = new T.Box3().setFromObject(pane);
+  assert.equal(frustum.intersectsBox(bounds), false);
+  let draws = 0;
+  const renderer = { autoClear: true, getRenderTarget:()=>null, getMRT:()=>null,
+    setRenderTarget(){}, setMRT(){}, getDrawingBufferSize:v=>v.set(1280,720), render(){draws++;} };
+  try {
+    mirror.update(renderer, scene, view, 1);
+    assert.equal(draws, 0);
+    view.lookAt(bounds.getCenter(new T.Vector3())); view.updateMatrixWorld();
+    mirror.update(renderer, scene, view, 1);
+    assert.equal(draws, 1, 'a visible mirror still uses the exact live reflection');
+  } finally { mirror.dispose(); }
+});
+
 test('founder side covers the dark backing with a correctly facing live mirror and shares one render pass',async()=>{
  const root=await load('/assets/architecture-v21/mirror.glb'),scene=new T.Scene();scene.add(root);
  const originalCount=root.children.length,mirror=createGalleryMirror(root);scene.updateMatrixWorld(true);

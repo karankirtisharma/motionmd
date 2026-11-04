@@ -1,5 +1,5 @@
 import {
-  BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Vector3,
+  BufferGeometry, DoubleSide, Float32BufferAttribute, Matrix4, Mesh, MeshStandardMaterial, Vector3,
 } from 'three';
 import { sampleScreenSurface } from './curvedSurface.ts';
 
@@ -49,12 +49,15 @@ export function installFlatPanel(meshes: readonly Mesh[]) {
       }
     }
   }
+  // Preserve the authored dark bronze of the returns. Hard-edged trim facets
+  // use vertex colors on the same PBR material, so the bezel adds no draw.
+  const colors = revealVertices.flatMap(() => [...darkBronze]);
+  appendBezel(corners, normal, revealVertices, revealIndices, colors);
   const revealGeometry = geometry(revealVertices, revealIndices, transform);
-  // Match PL78 | dark bronze reveals in the shipped GLB. Its finish uses
-  // authored linear color and PBR factors, without any texture or UV atlas.
-  const finish = new MeshStandardMaterial({ color: new Color(.024, .017, .011), roughness: .30, metalness: .78, side: DoubleSide });
+  revealGeometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  const finish = new MeshStandardMaterial({ vertexColors: true, roughness: .30, metalness: .78, side: DoubleSide });
   const reveal = new Mesh(revealGeometry, finish);
-  reveal.name = 'Presentation display | bronze housing returns';
+  reveal.name = 'Presentation display | mitered bezel and bronze housing returns';
   reveal.receiveShadow = true;
 
   const worldVertices = [...corners, ...revealVertices];
@@ -81,6 +84,39 @@ export function installFlatPanel(meshes: readonly Mesh[]) {
       rectangle.dispose(); revealGeometry.dispose(); finish.dispose();
     },
   };
+}
+
+const darkBronze = [.024, .017, .011] as const;
+// Outset and depth in meters, measured from the active rectangle. The source
+// surround stands 31mm proud at the corner, rising to 50mm at the outer rim.
+// Each band specifies the finish on the facet leading to the next profile.
+const bezelProfile = [
+  { outset: 0, depth: 0, color: darkBronze },
+  { outset: .007, depth: .054, color: [.17, .095, .042] },
+  { outset: .012, depth: .060, color: [.38, .25, .13] },
+  { outset: .036, depth: .060, color: [.47, .32, .17] },
+  { outset: .042, depth: .055, color: [.12, .071, .037] },
+  { outset: .046, depth: .055, color: darkBronze },
+  { outset: .046, depth: -.003, color: darkBronze },
+] as const;
+
+function appendBezel(corners: Vector3[], normal: Vector3, vertices: Vector3[], indices: number[], colors: number[]) {
+  const across = corners[1].clone().sub(corners[0]).normalize();
+  const down = corners[3].clone().sub(corners[0]).normalize();
+  const rings = bezelProfile.map(({ outset, depth }) => corners.map((corner, i) =>
+    corner.clone().addScaledVector(across, i === 0 || i === 3 ? -outset : outset)
+      .addScaledVector(down, i < 2 ? -outset : outset).addScaledVector(normal, depth)));
+  for (let band = 0; band < rings.length; band++) {
+    const inner = rings[band], outer = rings[(band + 1) % rings.length];
+    for (let side = 0; side < 4; side++) {
+      const next = (side + 1) % 4, start = vertices.length;
+      // Adjacent sides have identical mitered endpoints. Separate facet
+      // vertices retain distinct normals on the chamfer and folded corners.
+      vertices.push(inner[side], inner[next], outer[next], outer[side]);
+      indices.push(start, start + 1, start + 2, start, start + 2, start + 3);
+      for (let i = 0; i < 4; i++) colors.push(...bezelProfile[band].color);
+    }
+  }
 }
 
 function geometry(points: readonly Vector3[], indices: number[], transform: Matrix4) {

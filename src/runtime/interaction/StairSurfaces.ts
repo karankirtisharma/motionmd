@@ -2,7 +2,7 @@ import * as THREE from 'three';
 /** Read-only contact surface from the exported visible treads, not the capsule ramp.
  * Index horizontal top triangles once; foot queries never raycast the whole room.
  */
-export function createStairSurfaces(scene: THREE.Object3D) {
+export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable' | 'stair-candidates' = 'all-walkable') {
     type Triangle = {
         a: THREE.Vector3;
         b: THREE.Vector3;
@@ -10,7 +10,9 @@ export function createStairSurfaces(scene: THREE.Object3D) {
         y: number; stair: boolean; authoredStair: boolean; stairCandidate: boolean;
         minX: number; maxX: number; minZ: number; maxZ: number; visited: number;
     };
-    const cells = new Map<string, Triangle[]>(), broad: Triangle[] = [], cellSize = .15;
+    const cells = new Map<string, Triangle[]>(), broad: Triangle[] = [];
+    // The speed gate looks 45 cm around the player; only sole contact needs the finer grid.
+    const cellSize = scope === 'stair-candidates' ? .45 : .15;
     const key = (x: number, z: number) => `${x},${z}`;
     scene.updateWorldMatrix(true, true);
     scene.traverse(object => {
@@ -18,7 +20,9 @@ export function createStairSurfaces(scene: THREE.Object3D) {
         if (!mesh.isMesh)
             return;
         const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        const eligible = materials.map(m => /(?:shell|entrance)__EH54 \| scanned cream limestone panels|v13__V(?:16|17).*?(?:stair glass|optical low iron laminated glass|polished aqua glass edge)|(?:v18|v19|v13|entrance|shell|lounge|founder|studio|gallery)__EH54 \| polished warm-grey cloud marble|(?:shell|lounge)__PL86 \| ground wing polished existing marble|shell__Neutral architectural ground|founder__FR82 \| polished ivory large format stone|lounge__PL78 \| circular hand woven wool|founder__FR79 \| (?:antique bronze hand knotted rug|reference wool fiber|FR83 natural taupe wool)/.test(m.name));
+        // Walking only needs the speed gate. Floor and rug sampling remains
+        // available for source audits without indexing those triangles on entry.
+        const eligible = materials.map(({ name }) => /(?:shell|entrance)__EH54 \| scanned cream limestone panels|v13__V(?:16|17).*?(?:stair glass|optical low iron laminated glass|polished aqua glass edge)|(?:v18|v19|v13|entrance|shell|lounge|founder|studio|gallery)__EH54 \| polished warm-grey cloud marble|(?:shell|lounge)__PL86 \| ground wing polished existing marble|shell__Neutral architectural ground|founder__FR82 \| polished ivory large format stone|lounge__PL78 \| circular hand woven wool|founder__FR79 \| (?:antique bronze hand knotted rug|reference wool fiber|FR83 natural taupe wool)/.test(name));
         if (!eligible.some(Boolean))
             return;
         const geometry = mesh.geometry, positions = geometry.attributes.position, index = geometry.index;
@@ -26,7 +30,12 @@ export function createStairSurfaces(scene: THREE.Object3D) {
         for (const group of groups) {
             if (!eligible[group.materialIndex ?? 0])
                 continue;
-            const entryStone = /scanned cream limestone/.test(materials[group.materialIndex ?? 0].name);
+            const material = materials[group.materialIndex ?? 0].name;
+            const entryStone = /scanned cream limestone/.test(material);
+            const authoredStair = /v13__V(?:16|17)/.test(material);
+            const stair = authoredStair || /(?:v13|v19)__EH54/.test(material);
+            const stairMarble = /(?:v13|v19|entrance|shell)__EH54 \| polished warm-grey cloud marble/.test(material);
+            if (scope === 'stair-candidates' && !authoredStair && !stairMarble && !entryStone) continue;
             for (let i = group.start; i < group.start + group.count; i += 3) {
                 const points = [0, 1, 2].map(k => new THREE.Vector3().fromBufferAttribute(positions, index ? index.getX(i + k) : i + k).applyMatrix4(mesh.matrixWorld));
                 const [a, b, c] = points;
@@ -38,12 +47,14 @@ export function createStairSurfaces(scene: THREE.Object3D) {
                 // The exported entry blocks have reversed top winding. Accept both
                 // horizontal windings and select the highest support, never a side face.
                 if (entryStone && Math.max(a.y,b.y,c.y) > .05) continue;
-                const stair = /v13__V(?:16|17)|(?:v13|v19)__EH54/.test(materials[group.materialIndex ?? 0].name);
-                const authoredStair = /v13__V(?:16|17)/.test(materials[group.materialIndex ?? 0].name);
-                const stairCandidate = authoredStair || /(?:v13|v19|entrance|shell)__EH54 \| polished warm-grey cloud marble/.test(materials[group.materialIndex ?? 0].name) || (entryStone && a.y < .05 && a.y > -.36);
+                const stairCandidate = authoredStair || stairMarble || (entryStone && a.y < .05 && a.y > -.36);
+                if (scope === 'stair-candidates' && !stairCandidate) continue;
                 const triangle = { a, b, c, stair, authoredStair, stairCandidate, y: (a.y + b.y + c.y) / 3, minX: Math.min(a.x,b.x,c.x), maxX: Math.max(a.x,b.x,c.x), minZ: Math.min(a.z,b.z,c.z), maxZ: Math.max(a.z,b.z,c.z), visited: 0 };
                 // Large context-ground triangles must not allocate millions of grid cells.
-                if ((triangle.maxX-triangle.minX)*(triangle.maxZ-triangle.minZ)/(cellSize*cellSize) > 4096) { broad.push(triangle); continue; }
+                if ((triangle.maxX-triangle.minX)*(triangle.maxZ-triangle.minZ) > 4096 * .15 ** 2) {
+                    if (scope === 'all-walkable') broad.push(triangle);
+                    continue;
+                }
                 for (let x = Math.floor(Math.min(a.x, b.x, c.x) / cellSize); x <= Math.floor(Math.max(a.x, b.x, c.x) / cellSize); x++) {
                     for (let z = Math.floor(Math.min(a.z, b.z, c.z) / cellSize); z <= Math.floor(Math.max(a.z, b.z, c.z) / cellSize); z++) {
                         const id = key(x, z), bucket = cells.get(id) ?? [];

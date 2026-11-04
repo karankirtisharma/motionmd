@@ -57,3 +57,32 @@ test('batched shoe clearance matches individual surface queries at stair edges',
   assert.ok(Math.abs(sample.clearance(points,support,.08)-expected)<1e-7,`batch differs at ${x}, support ${support}`);
  }
 });
+
+test('the production speed index matches the full source index on approach, treads, landings and the founder floor', async () => {
+  const {geometryFixture} = await import('./helpers/geometry-fixture.mjs');
+  const {readFile} = await import('node:fs/promises');
+  const manifest = JSON.parse(await readFile(new URL('../public/assets/scene-manifest.json', import.meta.url), 'utf8'));
+  const scene = new T.Group();
+  for (const id of ['v13', 'v18', 'v19', 'entrance', 'shell', 'founder']) {
+    scene.add((await geometryFixture(manifest.chunks.find(chunk => chunk.id === id).url)).root);
+  }
+  const full = createStairSurfaces(scene);
+  const stairs = createStairSurfaces(scene, 'stair-candidates');
+  const p = new T.Vector3();
+  let detected = 0, ordinary = 0;
+  for (let i = 0; i <= 500; i++) {
+    const t = i / 500, angle = (60 - 315*t)*Math.PI/180;
+    for (const [x,y,z] of [
+      [18.76+1.55*Math.cos(angle), .076+3.515*t, -(20.2+1.55*Math.sin(angle))],
+      [8.5-2.2*t, 3.675+.55*t, -23+.2*Math.cos(angle)],
+      [11+4*t, 4.265, -7.7+t],
+      [-8+8*t, -.355+.36*t, -17.1],
+    ]) {
+      p.set(x,y,z);
+      const expected = full.isStair(p,y);
+      assert.equal(stairs.isStair(p,y), expected, 'speed decision at '+p.toArray());
+      if (expected) detected++; else ordinary++;
+    }
+  }
+  assert.ok(detected > 200 && ordinary > 200);
+});

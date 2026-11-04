@@ -12,6 +12,7 @@ import { EASE_OUT, PRESS } from "@/studio/lib/motion";
 import { useBrief } from "@/studio/store/brief";
 import { Swap } from "./Chrome";
 import { Glint } from "./Glint";
+import { OVERVIEW_POSTER_SIZES } from "./overviewPosterIntent";
 import { clock, usePlayer } from "@/studio/store/player";
 import { LANGUAGES, usePrefs, useReduceMotion } from "@/studio/store/prefs";
 import { useUI } from "@/studio/store/ui";
@@ -238,31 +239,36 @@ function ControlCenter() {
 
   const tiles = [
     {
+      id: "sound",
       label: prefs.sound ? "Sound On" : "Sound Off",
       icon: prefs.sound ? <SoundIcon /> : <MuteIcon />,
       on: prefs.sound,
       act: () => prefs.set({ sound: !prefs.sound }),
     },
     {
+      id: "captions",
       label: prefs.captions ? "Captions On" : "Captions Off",
       icon: <CaptionsIcon />,
       on: prefs.captions,
       act: () => prefs.set({ captions: !prefs.captions }),
     },
     {
+      id: "reduce-motion",
       label: "Reduce Motion",
       icon: <MotionOffIcon />,
       on: prefs.reduceMotion,
       act: () => prefs.set({ reduceMotion: !prefs.reduceMotion }),
     },
     {
+      id: "language",
       label: `Language ${prefs.language}`,
       icon: <GlobeIcon />,
       on: false,
       act: () => prefs.set({ language: LANGUAGES[(LANGUAGES.indexOf(prefs.language) + 1) % LANGUAGES.length] }),
     },
-    { label: `Shortlist ${prefs.shortlist.length}`, icon: <StarIcon />, on: false, act: () => setOverlay("shortlist") },
+    { id: "shortlist", label: `Shortlist ${prefs.shortlist.length}`, icon: <StarIcon />, on: false, act: () => setOverlay("shortlist") },
     {
+      id: "brief",
       label: "Start a Brief",
       icon: <BriefIcon />,
       on: false,
@@ -271,7 +277,7 @@ function ControlCenter() {
         setView("brief");
       },
     },
-    { label: "Contact", icon: <MailIcon />, on: false, href: "mailto:hello@motiondesign.ad" },
+    { id: "contact", label: "Contact", icon: <MailIcon />, on: false, href: "mailto:hello@motiondesign.ad" },
   ];
 
   return (
@@ -310,11 +316,11 @@ function ControlCenter() {
                 style: { "--i": i } as CSSProperties,
               };
               return tile.href ? (
-                <a key={tile.label} href={tile.href} {...props}>
+                <a key={tile.id} href={tile.href} {...props}>
                   {inner}
                 </a>
               ) : (
-                <button key={tile.label} type="button" aria-pressed={tile.on} onClick={tile.act} {...props}>
+                <button key={tile.id} type="button" aria-pressed={tile.on} onClick={tile.act} {...props}>
                   {inner}
                 </button>
               );
@@ -557,7 +563,7 @@ function Overview() {
                         close();
                       }}
                     >
-                      <Image src={film.poster} alt="" fill loading="eager" sizes="(orientation: portrait) 18vw, 9vw" />
+                      <Image src={film.poster} alt="" fill loading="eager" sizes={OVERVIEW_POSTER_SIZES} />
                     </button>
                   );
                 })}

@@ -1,18 +1,45 @@
 "use client";
 
-import { FORMATS, INDUSTRIES, pad2 } from "@/studio/data/catalog";
+import { getImageProps } from "next/image";
+import { useEffect, useState } from "react";
+import { FILMS, FORMATS, INDUSTRIES, pad2 } from "@/studio/data/catalog";
 import { at } from "@/studio/lib/design";
 import { useBrief } from "@/studio/store/brief";
-import { useUI } from "@/studio/store/ui";
+import { useUI, useUIStore } from "@/studio/store/ui";
 import { Swap, Wordmark } from "./Chrome";
 import { CloseIcon, GridIcon, HeartIcon, ListIcon, SearchIcon, SlidersIcon } from "./Icons";
 import { Glint } from "./Glint";
 import { Segmented } from "./Segmented";
+import { createOverviewIntent, firstOverviewPosters, OVERVIEW_POSTER_SIZES } from "./overviewPosterIntent";
 
 export function TopBar({ shortlistCount = 0 }: { shortlistCount?: number }) {
   const view = useUI((s) => s.view);
   const setView = useUI((s) => s.setView);
   const setOverlay = useUI((s) => s.setOverlay);
+  const store = useUIStore();
+  const [overviewIntent] = useState(() => {
+    let lastSelection = "";
+    return createOverviewIntent(() => {
+      const { format, industry, overlay } = store.getState();
+      const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      if (overlay || document.hidden || document.getElementById("md-studio-root")?.hasAttribute("data-suspended")) return;
+      if (!navigator.onLine || connection?.saveData || connection?.effectiveType?.endsWith("2g")) return;
+      const selection = `${format}:${industry}:${window.innerWidth}:${window.devicePixelRatio}`;
+      if (lastSelection === selection) return;
+      lastSelection = selection;
+      for (const film of firstOverviewPosters(FILMS, format, industry)) {
+        const { props } = getImageProps({ src: film.poster, alt: "", fill: true, sizes: OVERVIEW_POSTER_SIZES });
+        const image = new Image();
+        image.decoding = "async";
+        image.fetchPriority = "low";
+        image.sizes = props.sizes ?? OVERVIEW_POSTER_SIZES;
+        image.srcset = props.srcSet ?? "";
+        image.src = props.src;
+        void image.decode().catch(() => {}); // The real image can still load normally on open.
+      }
+    });
+  });
+  useEffect(() => overviewIntent.cancel, [overviewIntent]);
 
   return (
     <>
@@ -33,7 +60,11 @@ export function TopBar({ shortlistCount = 0 }: { shortlistCount?: number }) {
         className="icon-btn glass at topbar-grid"
         style={at(1410, 57, 63, 63, "right")}
         aria-label="See all 50 films"
-        onClick={() => setOverlay("overview")}
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") overviewIntent.schedule(); }}
+        onPointerLeave={overviewIntent.cancel}
+        onFocus={overviewIntent.schedule}
+        onBlur={overviewIntent.cancel}
+        onClick={() => { overviewIntent.cancel(); setOverlay("overview"); }}
       >
         <GridIcon />
         <Glint capsule />

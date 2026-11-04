@@ -44,7 +44,7 @@ export async function createInteractionController(options: Options) {
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
   const workstation = createWorkstation(scene);
-  const stairContact = { sample: createStairSurfaces(scene), sprint: false, active: false };
+  const stairContact = { sample: createStairSurfaces(scene, 'stair-candidates'), sprint: false, active: false };
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;

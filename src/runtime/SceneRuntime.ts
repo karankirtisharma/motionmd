@@ -261,11 +261,11 @@ export class SceneRuntime {
       }, this.abort.signal);
       this.abort.signal.throwIfAborted();
       if (this.galleryMirror && (!this.inspectionEnabled || query.get('tourWarmup') !== '0')) {
-        this.profiler?.phase('opening reflection shaders');
+        this.profiler?.phase('opening and upper-gallery reflection shaders');
         const started = performance.now();
         const count = await this.galleryMirror.warmup(this.renderer, this.scene, this.camera, this.abort.signal,
           (loaded, total) => this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: `Prepared ${loaded} of ${total} measured reflection variants`, progress: total ? loaded / total : undefined }));
-        console.info('[MD warmup] measured opening reflection variants', { objects: count, ms: +(performance.now() - started).toFixed(1) });
+        console.info('[MD warmup] measured reflection variants', { objects: count, ms: +(performance.now() - started).toFixed(1) });
       }
       this.abort.signal.throwIfAborted();
       this.callbacks.onProgress?.({ phase: 'Preparing reflections', detail: 'Finishing the first live reflection' });

@@ -5,6 +5,7 @@ import { RenderPipeline } from 'three/webgpu';
 import { createGalleryMirror } from '../src/runtime/rendering/galleryMirror.ts';
 import { createTemporalRenderer } from '../src/runtime/rendering/TemporalRenderer.ts';
 import { OPENING_TOUR_SHADERS, openingTourShaderMeshes, warmOpeningTourShaders } from '../src/runtime/rendering/openingTourWarmup.ts';
+import { UPPER_GALLERY_SHADERS } from '../src/runtime/rendering/upperGalleryShaders.ts';
 
 function fixture() {
   const scene = new Scene(), parent = new Group(), camera = new PerspectiveCamera(); scene.add(parent);
@@ -45,7 +46,7 @@ test('temporal warmup compiles the HDR pass but only submits after the real open
   } finally { temporal.dispose(); }
 });
 
-test('opening warmup selects only the twenty-two measured object/material pairs and preserves hierarchy, state and actual render context', async () => {
+test('opening warmup preserves the original twenty-two exact object/material matches, hierarchy and actual render context', async () => {
   const { scene, parent, camera, targets } = fixture();
   const wrongMaterial = targets[0].clone(); wrongMaterial.material = new MeshBasicMaterial({ name: 'Unrelated gold' }); parent.add(wrongMaterial);
   const wrongObject = targets[1].clone(); wrongObject.name += ' Unmeasured object'; parent.add(wrongObject);
@@ -72,6 +73,33 @@ test('opening warmup selects only the twenty-two measured object/material pairs 
     for (const key of ['parent', 'visible', 'geometry', 'material']) assert.equal(mesh[key], state[key]);
     assert.equal(mesh.frustumCulled, state.culled); assert.ok(mesh.matrixWorld.equals(state.world));
   });
+});
+
+test('upper-gallery reflection preparation deduplicates the measured route and admits the hidden visitor only for compilation', async () => {
+  const { scene, camera, targets } = fixture(), visitor = new Group();
+  visitor.visible = false;
+  scene.add(visitor);
+  const expected = [...targets];
+  assert.equal(UPPER_GALLERY_SHADERS.length, 102);
+  for (const [name, materialName] of UPPER_GALLERY_SHADERS) {
+    const mesh = new Mesh(new BoxGeometry(), new MeshBasicMaterial({ name: materialName }));
+    mesh.name = name;
+    if (/^m005_/.test(materialName)) { mesh.isSkinnedMesh = true; visitor.add(mesh); }
+    else scene.add(mesh);
+    expected.push(mesh);
+  }
+  const actual = openingTourShaderMeshes(scene);
+  assert.equal(actual.length, new Set(actual).size);
+  assert.deepEqual(new Set(actual), new Set(expected));
+  const culled = new Map(actual.map(mesh => [mesh, mesh.frustumCulled]));
+  await assert.rejects(warmOpeningTourShaders({ async compileAsync(group) {
+    assert.equal(visitor.visible, false);
+    assert.deepEqual(new Set(group.children), new Set(expected));
+    assert.ok(group.children.every(mesh => !mesh.frustumCulled));
+    throw Error('gallery compile cancelled');
+  } }, scene, camera), /gallery compile cancelled/);
+  assert.equal(visitor.visible, false);
+  assert.ok(actual.every(mesh => mesh.frustumCulled === culled.get(mesh)));
 });
 
 test('failed or cancelled targeted compilation restores every original culling flag', async () => {

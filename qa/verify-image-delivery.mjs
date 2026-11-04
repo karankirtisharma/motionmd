@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import {MeshoptDecoder} from 'three/addons/libs/meshopt_decoder.module.js';
 await MeshoptDecoder.ready;
 import {readGLB} from '../scripts/glb-storage.mjs';
+import {hasRetiredStudioImage,omitRetiredStudioImage} from '../scripts/retired-studio-image.mjs';
 const report=JSON.parse(await fs.readFile(new URL('../public/asset-delivery/report.json',import.meta.url)));
 const index=JSON.parse(await fs.readFile(new URL('../src/generated/asset-delivery.json',import.meta.url)));
 const results=[];
@@ -13,7 +14,14 @@ for(const entry of report){
  const source=await fs.readFile(new URL('../public'+url,import.meta.url));
  assert.equal(createHash('sha256').update(source).digest('hex'),entry.sourceSHA256,'source asset must remain unchanged');
  const output=entry.entry.identity?await fs.readFile(new URL('../public'+entry.entry.identity,import.meta.url)):source;
- const a=readGLB(source),b=readGLB(output),changed=new Set(entry.images.map(image=>a.json.images[image.index].bufferView));
+ let comparison=source;
+ if(entry.retiredImage){
+   assert.ok(hasRetiredStudioImage(url,entry.sourceSHA256,'PL78 | curved LED pixel surface'));
+   const stripped=omitRetiredStudioImage(source);
+   assert.deepEqual(stripped.retiredImage,entry.retiredImage);
+   comparison=stripped.buffer;
+ }
+ const a=readGLB(comparison),b=readGLB(output),changed=new Set(entry.images.map(image=>a.json.images[image.index].bufferView));
  for(const key of ['scenes','scene','nodes','materials','meshes','accessors','skins','animations','samplers','cameras'])assert.deepEqual(a.json[key],b.json[key],`${entry.id}: ${key} changed`);
  const bytes=(data,view)=>data.subarray(view.byteOffset??0,(view.byteOffset??0)+view.byteLength);
  for(let i=0;i<a.json.bufferViews.length;i++){

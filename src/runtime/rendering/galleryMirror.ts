@@ -92,7 +92,7 @@ export function createGalleryMirror(root: Object3D) {
   }
   const camera = new PerspectiveCamera(), frustum = new Frustum(), matrix = new Matrix4(), size = new Vector2();
   const fullSize = new Vector2(), targetSize = new Vector2();
-  const point = new Vector3(), normal = new Vector3(), eye = new Vector3();
+  const point = new Vector3(), normal = new Vector3(), eye = new Vector3(), paneBounds = new Box3();
   const frameCache = new ReflectionFrameCache();
   const updateCamera = createMirrorCameraUpdater();
   const visibility = panes.map(() => true);
@@ -108,7 +108,10 @@ export function createGalleryMirror(root: Object3D) {
       point.copy(surface.point).applyMatrix4(surface.pane.matrixWorld);
       normal.copy(surface.normal).transformDirection(surface.pane.matrixWorld);
       eye.setFromMatrixPosition(view.matrixWorld);
-      return surface.pane.visible && eye.sub(point).dot(normal) > 0.01 && frustum.intersectsObject(surface.pane);
+      // Its bounding sphere extends far past this thin rectangle. On the
+      // upper stairs that sphere enters the frustum before any mirror pixel.
+      return surface.pane.visible && eye.sub(point).dot(normal) > 0.01 &&
+        frustum.intersectsBox(paneBounds.copy(surface.pane.geometry.boundingBox!).applyMatrix4(surface.pane.matrixWorld));
     });
     if (!active) return false;
     renderer.getDrawingBufferSize(size);

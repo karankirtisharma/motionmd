@@ -48,6 +48,43 @@ test('the shipping aperture, native UVs, depth face and returns share the same m
   assert.equal(meshes[0].userData.nativeStudioFace,undefined);
 });
 
+test('the continuous physical bezel clears the authored corners and leaves the full native screen open', () => {
+  const panel=installFlatPanel(meshes);
+  const housing=panel.face.children.find(child=>child.name.includes('mitered bezel'));
+  assert.ok(housing?.isMesh && !Array.isArray(housing.material) && housing.geometry.groups.length===0);
+  panel.face.updateWorldMatrix(true,true);
+  const across=panel.corners[1].clone().sub(panel.corners[0]).normalize();
+  const down=panel.corners[3].clone().sub(panel.corners[0]).normalize();
+  const siblings=[];
+  source.root.traverse(node=>{ if (node.isMesh && node.material.name.includes('satin architectural bronze')) siblings.push(node); });
+  assert.ok(siblings.length>0);
+  function ray(p) { return new Raycaster(p.clone().addScaledVector(panel.normal,.22),panel.normal.clone().negate()); }
+  let releasedGeometry=0, releasedFinish=0;
+  housing.geometry.addEventListener('dispose',()=>releasedGeometry++);
+  housing.material.addEventListener('dispose',()=>releasedFinish++);
+  try {
+    for (const t of [0,.02,.5,.98,1]) {
+      for (const [u,v,out] of [[t,0,down.clone().negate()],[t,1,down],[0,t,across.clone().negate()],[1,t,across]]) {
+        const p=panel.point(u,v).addScaledVector(out,.023);
+        const hit=ray(p).intersectObject(housing,false)[0]; assert.ok(hit,'crown continuous on every rail');
+        assert.ok(Math.abs(hit.point.clone().sub(p).dot(panel.normal)-.060)<.0001);
+      }
+    }
+    for (let i=0;i<4;i++) {
+      const p=panel.corners[i].clone().addScaledVector(across,(i===0 || i===3 ? -1 : 1)*.032)
+        .addScaledVector(down,(i<2 ? -1 : 1)*.032);
+      const r=ray(p), cap=r.intersectObject(housing,false)[0], old=r.intersectObjects(siblings,false)[0];
+      assert.ok(cap && old && old.distance-cap.distance>.004,'each outer miter sits above the old bronze');
+    }
+    for (const u of [.0001,.5,.9999]) for (const v of [.0001,.5,.9999]) {
+      const r=ray(panel.point(u,v));
+      assert.equal(r.intersectObject(housing,false).length,0,'no flange protrudes into the native aperture');
+      assert.ok(r.intersectObject(panel.face,false)[0].uv.distanceTo({x:u,y:v})<1e-6);
+    }
+  } finally { panel.dispose(); panel.dispose(); }
+  assert.equal(releasedGeometry,1); assert.equal(releasedFinish,1); assert.equal(housing.parent,null);
+});
+
 test('near and oblique iframe corners/interior stay registered to the actual flat face on both backends', () => {
   const panel=installFlatPanel(meshes);
   const poses=[
@@ -95,8 +132,13 @@ test('the camera and standing/sprinting capsule cannot enter the fitted front di
     const feet=center.clone().setY(0).addScaledVector(panel.normal,1.1);
     physics.place(feet);
     for(let i=0;i<90;i++) physics.move(new Vector3(-panel.normal.x*.06,-.02,-panel.normal.z*.06),1/60,feet);
-    const separation=feet.clone().sub(center).dot(panel.normal);
-    assert.ok(separation>.24 && separation<.42, 'actual body can touch the front face without crossing it: '+separation);
+    // At capsule height the lower rail is the first real contact surface.
+    const rail=panel.point(.5,1);rail.y-=.023;
+    const probe=new Raycaster(rail.clone().addScaledVector(panel.normal,.2),panel.normal.clone().negate());
+    panel.face.updateWorldMatrix(true,true);
+    const contact=probe.intersectObject(panel.face,true)[0].point;
+    const separation=feet.clone().sub(contact).dot(panel.normal);
+    assert.ok(separation>.24 && separation<.42, 'actual body can touch the physical frame without crossing it: '+separation);
     const count=physics.meshCount;physics.configurePresentationPanel(panel.collision.vertices,panel.collision.indices);assert.equal(physics.meshCount,count);
   } finally {physics.dispose();panel.dispose();floor.geometry.dispose();floor.material.dispose();}
 });

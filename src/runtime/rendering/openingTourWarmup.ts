@@ -1,5 +1,6 @@
 import { Group, Mesh, type PerspectiveCamera, type Scene } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
+import { UPPER_GALLERY_SHADERS } from './upperGalleryShaders.ts';
 
 // The 22 first-use mirror variants measured in the opening tour and TV movement
 // on 3 Nov 2026. Do not expand this to every material/room: broad prewarming
@@ -96,12 +97,26 @@ export const OPENING_TOUR_SHADERS: ReadonlyArray<readonly [string, string]> = [
   ]
 ];
 
+const reflectionMaterials = new Map<string, Set<string>>();
+for (const [object, material] of [...OPENING_TOUR_SHADERS, ...UPPER_GALLERY_SHADERS]) {
+  let names = reflectionMaterials.get(object);
+  if (!names) reflectionMaterials.set(object, names = new Set());
+  names.add(material);
+}
+
 export function openingTourShaderMeshes(scene: Scene): Mesh[] {
   const targets: Mesh[] = [];
-  scene.traverseVisible(object => {
-    if (!(object instanceof Mesh)) return;
+  scene.traverse(object => {
+    const names = reflectionMaterials.get(object.name);
+    if (!names || !(object instanceof Mesh) || !object.visible) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
-    if (OPENING_TOUR_SHADERS.some(([name, material]) => object.name === name && materials.some(value => value.name === material))) targets.push(object);
+    if (!materials.some(value => value.visible && names.has(value.name))) return;
+    // The measured visitor skins are eligible while their tour parent is hidden.
+    // Borrow them for compilation without making that parent visible in the room.
+    if (!('isSkinnedMesh' in object)) {
+      for (let parent = object.parent; parent; parent = parent.parent) if (!parent.visible) return;
+    }
+    targets.push(object);
   });
   return targets;
 }

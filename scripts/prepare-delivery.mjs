@@ -10,6 +10,7 @@ import { compactGLB } from './glb-storage.mjs';
 import { optimizeGLBImages } from './glb-images.mjs';
 import { optimizeMeshoptStreams } from './glb-meshopt.mjs';
 import { prepareTextureDelivery } from './external-images.mjs';
+import { hasRetiredStudioImage, omitRetiredStudioImage } from './retired-studio-image.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'public/asset-delivery');
@@ -30,16 +31,24 @@ async function hashStream(...streams) {
 }
 const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 const index = {}, report = [], retained = new Set(Object.values(textureIndex).map(entry => path.basename(entry.webp)));
-const pipelineVersion = 3;
 let previous=[]; try { previous=JSON.parse(await fs.readFile(path.join(output,'report.json'),'utf8')); } catch {}
 const chunks=[...manifest.chunks, {id:'character',url:manifest.character.url}];
+// Physics uses GLBs too. Serve compressed, versioned ORIGINAL bytes for them;
+// even their generator metadata and triangle ordering remain identical.
+if (manifest.collisions?.url) {
+  const urls=[manifest.collisions.url,...(manifest.collisions.additionalUrls ?? [])];
+  for (const [i,url] of urls.entries()) chunks.push({id:'collision-'+(i+1),url,transportOnly:true});
+}
 for (const chunk of chunks) {
   const originalPath = path.resolve(root, 'public', '.' + chunk.url);
   if (!originalPath.startsWith(path.join(root, 'public/assets') + path.sep)) throw Error('Invalid asset path');
   const original = await fs.readFile(originalPath);
   if (original.length < 128 || original.subarray(0,4).toString() !== 'glTF') throw Error('Hydrate the source GLB before preparing delivery: ' + chunk.url);
   const sourceSHA256 = digest(original);
-  const cached=previous.find(r=>r.id===chunk.id && r.sourceSHA256===sourceSHA256 && r.pipelineVersion===pipelineVersion && r.storageEnabled===(process.env.MD_GEOMETRY_STORAGE !== '0'));
+  const storageEnabled=!chunk.transportOnly && process.env.MD_GEOMETRY_STORAGE !== '0';
+  const removeGlobe=storageEnabled && hasRetiredStudioImage(chunk.url,sourceSHA256,manifest.screen?.objectName);
+  const pipelineVersion=removeGlobe ? 4 : 3;
+  const cached=previous.find(r=>r.id===chunk.id && r.sourceSHA256===sourceSHA256 && r.pipelineVersion===pipelineVersion && r.storageEnabled===storageEnabled);
   if(cached){
     let valid=true;
     for(const [encoding,url] of Object.entries(cached.entry).filter(([key])=>['br','gzip','identity'].includes(key))){
@@ -47,9 +56,10 @@ for (const chunk of chunks) {
     }
     if(valid){index[chunk.url]=cached.entry;report.push(cached); for(const key of ['identity','br','gzip'])if(cached.entry[key])retained.add(path.basename(cached.entry[key]));continue;}
   }
-  const imageResult=process.env.MD_GEOMETRY_STORAGE==='0'?{buffer:original,images:[]}:await optimizeGLBImages(original);
-  const meshopt = process.env.MD_GEOMETRY_STORAGE === '0' ? { buffer: original, streams: [] } : await optimizeMeshoptStreams(imageResult.buffer);
-  const compact = process.env.MD_GEOMETRY_STORAGE === '0' ? { buffer: original, verifiedRanges: 0 } : compactGLB(meshopt.buffer);
+  const display=removeGlobe ? omitRetiredStudioImage(original) : null;
+  const imageResult=storageEnabled?await optimizeGLBImages(display?.buffer ?? original):{buffer:original,images:[]};
+  const meshopt = storageEnabled ? await optimizeMeshoptStreams(imageResult.buffer) : {buffer:original,streams:[]};
+  const compact = storageEnabled ? compactGLB(meshopt.buffer) : {buffer:original,verifiedRanges:0};
   const saved = original.length - compact.buffer.length;
   // Tiny gains do not justify another identity representation.
   const optimized = saved >= 65536 || saved > original.length * .01;
@@ -81,7 +91,7 @@ for (const chunk of chunks) {
     entry[encoding + 'Bytes'] = (await fs.stat(target)).size;
   }
   index[chunk.url] = entry;
-  report.push({ id: chunk.id, pipelineVersion, storageEnabled:process.env.MD_GEOMETRY_STORAGE !== '0', entry, images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
+  report.push({ id: chunk.id, pipelineVersion, storageEnabled, entry, retiredImage:display?.retiredImage, images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
     br: (await fs.stat(path.join(root, 'public', entry.br))).size, gzip: (await fs.stat(path.join(root, 'public', entry.gzip))).size });
 }
 await fs.writeFile(path.join(generated, 'asset-delivery.json.tmp'), JSON.stringify(index, null, 2) + '\n');

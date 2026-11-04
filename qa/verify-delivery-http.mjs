@@ -29,7 +29,12 @@ function request(url,headers,method='GET') {
     req.on('error',reject);req.end();
   });
 }
-for(const chunk of [...manifest.chunks,{id:'character',url:manifest.character.url}]){
+const chunks=[...manifest.chunks,{id:'character',url:manifest.character.url}];
+if (manifest.collisions?.url) {
+  const urls=[manifest.collisions.url,...(manifest.collisions.additionalUrls ?? [])];
+  for (const [i,url] of urls.entries()) chunks.push({id:'collision-'+(i+1),url});
+}
+for(const chunk of chunks){
   const entry=index[chunk.url];
   assert.ok(entry,'Generate delivery variants first');
   const expected=fs.readFileSync(new URL('../public'+(entry.identity||chunk.url),import.meta.url));
