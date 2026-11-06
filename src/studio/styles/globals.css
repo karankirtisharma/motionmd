@@ -76,3 +76,16 @@
   #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__grid { left: 16px; right: 16px; top: 10px; height: 50px; }
   #md-studio-root[data-tv] .chrome[data-view="browse"] .minimap__label { top: 68px; font-size: 12px; }
 }
+
+/* Native 3D display: no cross-surface backdrop reads inside a perspective iframe.
+   Chromium can invalidate those tiles as the parent WebGPU canvas composites.
+   The authored gold rings, image detail, gradients and shadows stay intact;
+   standalone/expanded Studio retains the original lensing. */
+#md-studio-root[data-tv] { isolation: isolate; contain: paint; }
+#md-studio-root[data-tv] .stage__backdrop { transform: translateZ(0); }
+#md-studio-root[data-tv] :is(.glass--frost, .rail, .minimap, .brief-map,
+  .segmented, .rail-toggle, .topbar-brief, .glass__edge, .overview__ring,
+  .overlay-scrim) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}

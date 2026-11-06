@@ -36,6 +36,8 @@ export function createScreenAperture(mesh: Mesh, mainCamera: Camera) {
   });
   material.name = 'Presentation display | native Studio aperture';
   mesh.material = material;
+  const castShadow = mesh.userData.castShadow, originalCastShadow = mesh.castShadow;
+  mesh.userData.castShadow = false; mesh.castShadow = false;
   let live = false, dirty = true, disposed = false;
   mesh.onBeforeRender = function(renderer, scene, camera, geometry, renderedMaterial, group) {
     before.call(this, renderer, scene, camera, geometry, renderedMaterial, group);
@@ -53,7 +55,8 @@ export function createScreenAperture(mesh: Mesh, mainCamera: Camera) {
     dispose() {
       if (disposed) return;
       disposed = true; dirty = false;
-      mesh.material = original; mesh.onBeforeRender = before;
+      mesh.material = original; mesh.onBeforeRender = before; mesh.castShadow = originalCastShadow;
+      if (castShadow === undefined) delete mesh.userData.castShadow; else mesh.userData.castShadow = castShadow;
       wood.dispose(); material.map = null; material.dispose();
     },
   };

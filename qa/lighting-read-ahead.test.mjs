@@ -34,3 +34,19 @@ test('a failed early transfer retries on demand and a closed run releases pendin
   ctrl.abort(); await tick(); assert.equal(earlyAborted,true);
   await assert.rejects(pool.read('other'),{name:'AbortError'}); pool.close();
 });
+
+
+test('a material abort interrupts the transfer it claimed without canceling its neighbor', async () => {
+  const scene = new AbortController(), material = new AbortController();
+  const requests = new Map(), pool = createLightingReadAhead({ a: 1, b: 1 }, (url, signal) => {
+    requests.set(url, signal);
+    return new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  }, scene.signal, 2, 2);
+  await tick();
+  const claimed = pool.read('a', material.signal);
+  material.abort();
+  await assert.rejects(claimed, { name: 'AbortError' });
+  assert.ok(requests.get('a').aborted);
+  assert.equal(requests.get('b').aborted, false);
+  pool.close(); assert.ok(requests.get('b').aborted);
+});

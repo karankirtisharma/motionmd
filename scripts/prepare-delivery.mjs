@@ -14,6 +14,7 @@ import { optimizeGLBImages } from './glb-images.mjs';
 import { optimizeMeshoptStreams } from './glb-meshopt.mjs';
 import { prepareTextureDelivery } from './external-images.mjs';
 import { prepareChairLightmap } from './chair-lightmap.mjs';
+import { omitRetiredComputerImages } from './retired-computer-images.mjs';
 import { hasRetiredStudioImage, omitRetiredStudioImage } from './retired-studio-image.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -57,7 +58,8 @@ for (const chunk of chunks) {
   const removeGlobe=storageEnabled && hasRetiredStudioImage(chunk.url,sourceSHA256,manifest.screen?.objectName);
   // Other rooms did not produce a meaningful Brotli gain in the exact-content A/B.
   const pruneGeometry=storageEnabled && ['studio','lounge','entrance','founder'].includes(chunk.id);
-  const pipelineVersion=pruneGeometry ? 5 : removeGlobe ? 4 : 3;
+  const removeComputerImages=storageEnabled && chunk.id==='studio' && chunk.url==='/assets/architecture-v16/studio.glb';
+  const pipelineVersion=removeComputerImages ? 6 : pruneGeometry ? 5 : removeGlobe ? 4 : 3;
   const cached=previous.find(r=>r.id===chunk.id && r.sourceSHA256===sourceSHA256 && r.pipelineVersion===pipelineVersion && r.storageEnabled===storageEnabled);
   if(cached){
     let valid=true;
@@ -66,7 +68,7 @@ for (const chunk of chunks) {
     }
     if(valid){index[chunk.url]=cached.entry;report.push(cached); for(const key of ['identity','br','gzip'])if(cached.entry[key])retained.add(path.basename(cached.entry[key]));continue;}
   }
-  const display=removeGlobe ? omitRetiredStudioImage(original) : null;
+  const display=removeComputerImages ? omitRetiredComputerImages(original) : removeGlobe ? omitRetiredStudioImage(original) : null;
   const pruned=pruneGeometry ? pruneUnusedGeometry(display?.buffer ?? original) : null;
   const imageResult=storageEnabled?await optimizeGLBImages(pruned?.buffer ?? display?.buffer ?? original):{buffer:original,images:[]};
   const meshopt = storageEnabled ? await optimizeMeshoptStreams(imageResult.buffer) : {buffer:original,streams:[]};

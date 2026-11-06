@@ -44,6 +44,7 @@ async function load(url, omitImages = false) {
 const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
+  .replace("from './ComputerScreens'", `from ${JSON.stringify(new URL('../src/runtime/interaction/ComputerScreens.ts', import.meta.url).href)}`)
   .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
   .replace("from './StairSurfaces'", `from ${JSON.stringify(new URL('../src/runtime/interaction/StairSurfaces.ts', import.meta.url).href)}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)

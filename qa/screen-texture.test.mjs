@@ -145,8 +145,9 @@ test('the camera and standing/sprinting capsule cannot enter the fitted front di
 
 test('wood remains visible at startup and in reflections; only the ready native page opens the main-camera depth aperture', async () => {
   const original=new MeshBasicMaterial(), mesh=new Mesh(undefined,original), main=new PerspectiveCamera(), mirror=new PerspectiveCamera();
+  mesh.castShadow=true; mesh.userData.castShadow=true;
   const before=mesh.onBeforeRender, screen=createScreenAperture(mesh,main), mat=mesh.material, boot=mat.map;
-  assert.notEqual(mat,original);
+  assert.notEqual(mat,original); assert.equal(mesh.castShadow,false); assert.equal(mesh.userData.castShadow,false);
   assert.equal(mat.depthWrite,true);assert.equal(mat.depthTest,true);assert.equal(boot.flipY,false);
   mesh.onBeforeRender(undefined,undefined,main,mesh.geometry,mat,undefined);assert.equal(mat.opacity,1);
   assert.equal(screen.takeDirty(),true);assert.equal(screen.takeDirty(),false);
@@ -160,6 +161,6 @@ test('wood remains visible at startup and in reflections; only the ready native 
   let diff=0;for(let i=0;i<ref.length;i++)diff+=Math.abs(ref[i]-boot.image.data[Math.floor(i/3)*4+i%3]);
   assert.ok(diff/ref.length<4);
   let releases=0;boot.addEventListener('dispose',()=>releases++);screen.dispose();screen.dispose();
-  assert.equal(releases,1);assert.equal(mesh.onBeforeRender,before);assert.equal(mesh.material,original);
+  assert.equal(releases,1);assert.equal(mesh.castShadow,true);assert.equal(mesh.userData.castShadow,true);assert.equal(mesh.onBeforeRender,before);assert.equal(mesh.material,original);
   screen.setLive(true);assert.equal(screen.takeDirty(),false);
 });

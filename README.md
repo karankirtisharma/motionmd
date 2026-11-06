@@ -131,3 +131,10 @@ The PL78 presentation TV now contains the working Studio page: browse, scroll, s
 Run `npm run stage:release -- --dry-run` after `npm run prepare:delivery` to see the exact public-file bytes for this checkout. Supply a new, separate directory in place of `--dry-run` to write the staged public tree. The staging command checks the source digest, identity body and decompressed Brotli/gzip bodies before omitting a redundant model master. It includes active material and GLB dependencies, original compatibility assets, the Studio and all prior content-addressed variants present in the checkout.
 
 Vercel's build command stages this tree in the disposable hosted build checkout before compiling Next.js. It retains the source tree outside the served public folder. Local development and external-CDN builds keep their existing asset paths. A fresh local build with `MD_GEOMETRY_STORAGE=0` uses the original model and chair-lighting representations for comparisons.
+
+
+## Native workstation desktop and flicker correction — 6 November 2026
+
+All 18 Studio workstations use the supplied md. desktop with one live native iframe only while occupied; unoccupied monitors share a static preview. Entry/exit, reserved app keys and native pointer routing use the existing controller. Delivered Studio geometry excludes the two retired workflow screenshots while export masters remain intact.
+
+Embedded desktop/TV backdrop sampling is replaced by stable local/tinted layers, and temporal aperture coverage is aligned with the native document. Standalone desktop/Studio effects remain available. See `qa/md-desktop-flicker-2026-11-06.md` for root-cause evidence, functional checks, performance limits and the small embedded glass-effect trade-off.

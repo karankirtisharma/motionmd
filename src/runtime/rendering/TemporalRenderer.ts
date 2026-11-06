@@ -1,7 +1,8 @@
-import { type DirectionalLightShadow, type Object3D, PerspectiveCamera, RenderTarget, Scene } from 'three';
+import { type DirectionalLightShadow, type Object3D, PerspectiveCamera, RenderTarget, Scene, Vector2 } from 'three';
 import { RenderPipeline, type WebGPURenderer } from 'three/webgpu';
-import { mrt, output, pass, velocity, vec4 } from 'three/tsl';
+import { mrt, output, pass, velocity, vec4, uniform, uv } from 'three/tsl';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
+import { nativeScreenSampleOffset } from './nativeScreenSampleOffset.ts';
 
 /** Reproject live 3D samples, including the animated visitor's velocity.
  * HDR history is resolved before the existing source OCIO display transform.
@@ -14,9 +15,15 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
   // Prefer stable subpixel lines over the optional sharper square-pattern correction.
   temporal.useSubpixelCorrection = false;
   const pipeline = new RenderPipeline(renderer);
-  // TRAA's internal opaque resolve forces alpha to one. Preserve the current
-  // scene's depth-tested DOM opening while keeping the existing temporal RGB.
-  pipeline.outputNode = vec4(temporal.rgb, scenePass.getTextureNode('output').a);
+  // The browser projects native displays with the stable camera. TRAA jitters
+  // the beauty/depth draw by a subpixel each frame, so using its raw alpha makes
+  // screen openings and foreground silhouettes shimmer against that document.
+  // Sample the current alpha back in unjittered screen space; never accumulate
+  // browser cutouts in temporal history. No second scene draw or readback.
+  const sampleOffset = new Vector2();
+  const offset = uniform(sampleOffset).onRenderUpdate(() => nativeScreenSampleOffset(camera, sampleOffset));
+  const coverage = scenePass.getTextureNode('output').sample(uv().add(offset)).a;
+  pipeline.outputNode = vec4(temporal.rgb, coverage);
   const resetHistory = () => (temporal as typeof temporal & { setSize(width: number, height: number): void }).setSize(1, 1);
   return {
     // The first real nested draw prepares the actual HDR/velocity/shadow keys.

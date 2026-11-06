@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>md. Desktop</title>
+<script>if (new URLSearchParams(location.search).get("embed") === "monitor") document.documentElement.dataset.monitor = "";</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/desktop.css">
+<link rel="stylesheet" href="css/apps.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+  <!-- static wallpaper: assets/wallpaper.jpg (CSS gradient fallback until the file exists) -->
+  <div id="wall" aria-hidden="true"></div>
+  <header id="menubar"></header>
+  <div id="windows"></div>
+  <nav id="dock" class="glass" aria-label="Dock"></nav>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
