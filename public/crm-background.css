@@ -1,0 +1,7 @@
+/* Static founder wallpaper: one paint layer, no animation or extra blur. */
+.md-workspace {
+  background-image: url('./crm-walnut-marble.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
