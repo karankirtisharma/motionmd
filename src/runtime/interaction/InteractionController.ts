@@ -162,7 +162,7 @@ export async function createInteractionController(options: Options) {
     if (enabled && mode === 'explore') prompt({ text: 'Mouse lock unavailable here · Drag to look · V — Change view' });
   }
   function look(dx: number, dy: number) {
-    if (!enabled || mode !== 'explore') return;
+    if (!enabled || (mode !== 'explore' && !(mode === 'seated' && selected?.workstation && !founderFocused))) return;
     const next = applyLookInput(yaw, pitch, dx, dy, cameraView);
     yaw = next.yaw; pitch = next.pitch;
   }
@@ -431,7 +431,7 @@ export async function createInteractionController(options: Options) {
       // inherit the animated head's bob/roll, so looking still stays still.
       desiredCamera.copy(eyePosition).add(new THREE.Vector3(-Math.sin(yaw) * 0.075, 0, -Math.cos(yaw) * 0.075));
       lookTarget.copy(desiredCamera).add(new THREE.Vector3(direction.x, direction.y, direction.z));
-      if (seatedView && selected) lookTarget.copy(selected.computer?.center ?? selected.workstation?.screen ?? display?.getWorldCenter() ?? desiredCamera.clone().addScaledVector(selected.forward, 5));
+      if (seatedView && selected && !(selected.workstation && !founderFocused)) lookTarget.copy(selected.computer?.center ?? selected.workstation?.screen ?? display?.getWorldCenter() ?? desiredCamera.clone().addScaledVector(selected.forward, 5));
     } else if (seatedView && selected && !selected.workstation) {
       const screenPosition = display?.getWorldCenter() ?? selected.seat.clone().add(new THREE.Vector3(0, 1, -5));
       const viewDirection = screenPosition.clone().sub(pivot); viewDirection.y = 0; viewDirection.normalize();

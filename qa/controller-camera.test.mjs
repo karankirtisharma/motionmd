@@ -385,6 +385,11 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
     assert.ok(penetration<.004,'cushion does not cut through the sampled thigh skin');
     assert.ok(Math.abs(soleMin-4.265)<.002,'actual shoe sole rests on the rug');
     for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.1016)<.001,'wrist contact height');}
+    const seatedPosition=controller.player.position.clone(), beforeLook=camera.quaternion.clone();
+    controller.setVirtualInput(0,0,100,35);
+    for(let i=0;i<60;i++)controller.update(1/60);
+    assert.ok(camera.quaternion.angleTo(beforeLook)>.05,'seated founder can drag to look before focusing CRM');
+    assert.ok(controller.player.position.distanceTo(seatedPosition)<.001,'looking keeps the character seated');
     globalThis[fixtureKey].crmOptions.onRequestFocus();
     assert.equal(crmFocused,true,'explicit screen click focuses the CRM');
     assert.equal(controller.diagnostics.state.founderFocused,true);
