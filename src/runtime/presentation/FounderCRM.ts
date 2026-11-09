@@ -4,6 +4,7 @@ import { createScreenAperture } from './screenTexture.ts';
 import { projectScreenPlane } from './projection.ts';
 import { createNativeScreenInput } from './nativeScreenInput.ts';
 import { createCrmLifecycle } from './crmLifecycle.ts';
+import { installCrmEmbedStyles } from './crmEmbedStyles.ts';
 
 export function crmCanvasSize(width: number, height: number) {
   const aspect = width / height;
@@ -15,7 +16,7 @@ export function crmCanvasSize(width: number, height: number) {
  * its depth aperture. Reuses the proven presentation projection, not DOM slices. */
 export function createFounderCRM(options: {
   scene: THREE.Object3D; camera: THREE.Camera; canvas: HTMLCanvasElement;
-  onFocus: () => void; isInView: (points: THREE.Vector3[]) => boolean;
+  onFocus: () => void; onRequestFocus?: () => void; isInView: (points: THREE.Vector3[]) => boolean;
 }) {
   const meshes: THREE.Mesh[] = [];
   options.scene.traverse(object => {
@@ -35,12 +36,12 @@ export function createFounderCRM(options: {
   doc.body.append(host);
   const viewport = options.canvas.parentElement, previousZ = viewport?.style.zIndex ?? '';
   if (viewport) viewport.style.zIndex = '1';
-  let frame: HTMLIFrameElement | undefined, ready = false, seated = false, visible = false, enabled = true, disposed = false;
+  let frame: HTMLIFrameElement | undefined, ready = false, seated = false, focused = false, visible = false, enabled = true, disposed = false;
   let inspectionVisible = true;
   let dirty = true, lastWidth = 0, lastHeight = 0, lastState = '', transform = '', clip = '';
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
   const pointer = new THREE.Vector2(), ray = new THREE.Raycaster(), cameraPosition = new THREE.Vector3();
-  const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, onFocus: options.onFocus,
+  const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, onFocus: () => { if (!focused) options.onRequestFocus?.(); options.onFocus(); },
     hit(x,y) {
       if (!seated || !ready || !visible || !enabled) return null;
       pointer.set(x/win.innerWidth*2-1,1-y/win.innerHeight*2); ray.setFromCamera(pointer,options.camera);
@@ -57,7 +58,7 @@ export function createFounderCRM(options: {
   });
   function sync() {
     const show = inspectionVisible && enabled && visible && ready && !doc.hidden;
-    const state = !ready ? 'loading' : show ? seated ? 'seated' : 'attract' : 'hidden';
+    const state = !ready ? 'loading' : show ? focused ? 'focused' : seated ? 'seated' : 'attract' : 'hidden';
     lifecycle.update(ready, show, seated);
     if (state === lastState) return;
     lastState = state;
@@ -85,13 +86,14 @@ export function createFounderCRM(options: {
     // user preferences, route, form state, or the persistent iframe instance.
     const child = frame.contentDocument;
     if (child) {
+      installCrmEmbedStyles(child);
       const style = child.createElement('style');
       style.dataset.mdHostLifecycle = '';
       style.textContent = ':root[data-md-host-paused] *, :root[data-md-host-paused] *::before, :root[data-md-host-paused] *::after { animation-play-state: paused !important; }';
       child.head.append(style);
     }
     sync();
-    if (seated && enabled) frame.contentWindow?.focus();
+    if (focused && enabled) frame.contentWindow?.focus();
   }
   function visibility() { dirty = true; sync(); }
   win.addEventListener('message',receive); doc.addEventListener('visibilitychange',visibility);
@@ -100,11 +102,14 @@ export function createFounderCRM(options: {
     setInspectionVisible(value: boolean) { inspectionVisible = value; dirty = true; sync(); },
     setSeated(next: boolean) {
       if (seated === next) return;
-      seated = next; dirty = true;
-      if (next) { options.onFocus(); ensureFrame(); }
+      seated = next; if (!next) focused = false; dirty = true;
+      if (next) ensureFrame();
       sync();
-      if (next && ready) frame?.contentWindow?.focus();
-      else if (!next && doc.activeElement === frame) input.focusRoom();
+      if (!next && doc.activeElement === frame) input.focusRoom();
+    },
+    setFocused(next: boolean) {
+      focused = next && seated; dirty = true; sync();
+      if (focused && ready) frame?.contentWindow?.focus();
     },
     setEnabled(value: boolean) { if (value === enabled) return; enabled = value; dirty = true; sync(); },
     update() {

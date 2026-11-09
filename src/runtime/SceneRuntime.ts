@@ -671,12 +671,14 @@ export class SceneRuntime {
       this.targetProgress = transition.progress;
       this.applyTourCamera(0, true);
       if (transition.destination === 'explore' && this.controls) {
-        // Direct exploration still starts in the lounge; the completed tour hands
-        // off upstairs instead. Avoid flying the camera through the whole house.
-        this.controls.exitExplore();
-        const handoff = this.manifest.tour?.find(frame => frame.id === 'Explore handoff');
-        if (handoff) { this.camera.position.fromArray(handoff.position); this.camera.lookAt(new Vector3(...handoff.target)); }
-        this.controls.enterExplore({ position: this.camera.position.clone(), quaternion: this.camera.quaternion.clone() });
+        // Direct entry begins at the entrance. The completed cinematic retains
+        // its separate upstairs handoff in explore(). Position the camera here
+        // before revealing the scene, rather than blending across the building.
+        const spawn = this.manifest.spawn;
+        const forward = new Vector3(-Math.sin(spawn.yaw), 0, -Math.cos(spawn.yaw));
+        this.camera.position.fromArray(spawn.position).addScaledVector(forward, -2.45).add(new Vector3(0, 1.85, 0));
+        this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
+        this.controls.enterExplore(undefined, spawn);
         this.controls.update(0.001); this.controls.setEnabled(false); this.setMode('explore');
       }
       if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;

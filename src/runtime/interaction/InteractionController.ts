@@ -77,7 +77,7 @@ export async function createInteractionController(options: Options) {
     return { id: item.id, label: item.label ?? `Chair ${item.id.match(/\d+/)?.[0] ?? ''}`, seat, approach, approaches, forward, floor, height: seat.y - floor };
   });
   const crm = createFounderCRM({ scene, camera, canvas,
-    onFocus: () => releaseCursor(true),
+    onFocus: () => releaseCursor(true), onRequestFocus: focusFounderScreen,
     isInView: points => camera.position.y > 3 && points.some(point => physics.hasLineOfSight(camera.position, point, .08)),
   });
   if (crm) {
@@ -120,7 +120,8 @@ export async function createInteractionController(options: Options) {
   let chairPointer: { x: number; y: number; distance: number } | undefined;
   let actualSpeed = 0;
   const approachRoute: THREE.Vector3[] = [];
-  let computerLeaving = false;
+  let computerLeaving = false, founderFocused = false;
+  let deskCameraView: CameraView | undefined;
   let deskStage: 'entry-turn' | 'grip' | 'open' | 'ungrip' | 'seat-turn' | 'lower' | 'swivel-in' | 'reach' | 'work' | 'release' | 'swivel-out' | 'rise' | undefined;
   let deskTime = 0, handWeight = 0, stanceWeight = 0, balanceLean = 0;
   let chairAngle = Math.PI / 4, entryAngle = Math.PI / 4, entrySide = -1, gripWeight = 0, swivelFrom = 0;
@@ -255,7 +256,12 @@ export async function createInteractionController(options: Options) {
     return closest;
   }
   function beginSit(chair: Chair) {
-    if (chair.computer) display?.setActive(false);
+    if (chair.computer || chair.workstation) display?.setActive(false);
+    if (chair.workstation) {
+      founderFocused = false; deskCameraView = cameraView; cameraView = 'thirdPerson';
+      cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion); cameraBlend = 0; cameraBlendDuration = .65;
+      options.onCameraViewChange?.(cameraView);
+    }
     computerLeaving = false; selected = chair; mode = 'approach'; approachTime = 0; velocity.set(0, 0, 0);
     deskStage = undefined; deskTime = 0; handWeight = 0;
     approachRoute.length = 0;
@@ -265,7 +271,23 @@ export async function createInteractionController(options: Options) {
       const point = (forward: number, lateral: number) => chair.seat.clone().addScaledVector(chair.forward, forward).addScaledVector(side, lateral * sign).setY(chair.floor);
       // Approach through the aisle, around the armrest, then back onto the seat.
       chair.computerRoute = [point(-.8, 0), point(-.8, .477), point(.45, .477), point(.45, 0)];
-      approachRoute.push(...chair.computerRoute.map(p => p.clone()));
+      // Enter the nearest reachable part of THIS chair's aisle. Returning to
+      // its rear centre first made a nearby visitor walk away and then double back.
+      // Sample the same narrow seated capsule used by the actual approach; the
+      // complete authored route stays available for a safe stand-up exit.
+      physics.setDeskClearance(true);
+      let first = 0;
+      for (let index = chair.computerRoute.length - 1; index > 0; index--) {
+        const target = chair.computerRoute[index], steps = Math.max(1, Math.ceil(feet.distanceTo(target) / .05));
+        const probe = new THREE.Vector3();
+        let clear = true;
+        for (let step = 1; step <= steps; step++) {
+          probe.lerpVectors(feet, target, step / steps);
+          if (!physics.canStandAt(probe)) { clear = false; break; }
+        }
+        if (clear) { first = index; break; }
+      }
+      approachRoute.push(...chair.computerRoute.slice(first).map(p => p.clone()));
       chair.approach.copy(approachRoute.shift()!);
     }
     if (chair.workstation && Math.abs(chairAngle) > .01) {
@@ -304,9 +326,18 @@ export async function createInteractionController(options: Options) {
     if (lift?.interact(feet)) return;
     const chair = nearestChair(); if (chair) beginSit(chair);
   }
+  function focusFounderScreen() {
+    if (!enabled || mode !== 'seated' || !selected?.workstation || founderFocused) return;
+    founderFocused = true; resetInput(); releaseCursor(true);
+    cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion);
+    cameraBlend = 0; cameraBlendDuration = .65;
+    crm?.setFocused(true);
+    prompt({ text: 'Use the CRM - Stand up to leave', target: selected.id });
+  }
   function leaveSeat() {
     if (!enabled || mode !== 'seated' || !selected) return;
-    crm?.setSeated(false); desktop?.close(); resetInput(); canvas.focus({ preventScroll: true });
+    founderFocused = false; crm?.setSeated(false); desktop?.close(); resetInput();
+    cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion); cameraBlend = 0; cameraBlendDuration = .65; canvas.focus({ preventScroll: true });
     mode = 'standing'; transition = 0; transitionStart.copy(feet);
     if (selected.workstation) { deskStage = 'release'; deskTime = 0; }
     display?.setActive(false); options.onScreenMode?.(false);
@@ -392,7 +423,7 @@ export async function createInteractionController(options: Options) {
     desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * followDistance, Math.sin(pitch) * followDistance + 0.10, Math.cos(yaw) * Math.cos(pitch) * followDistance).add(pivot);
     // Obstructions shorten the follow boom below; only explicit V input changes
     // perspective. A corner must not trigger an eye-height/FOV transition.
-    const computerView = seatedView && (selected?.computer || selected?.workstation && crm);
+    const computerView = seatedView && (selected?.computer || founderFocused && selected?.workstation && crm);
     const firstPerson = cameraView === 'bodyCam' || !!computerView;
     if (firstPerson) {
       const direction = cameraLookDirection(yaw, pitch);
@@ -513,6 +544,7 @@ export async function createInteractionController(options: Options) {
       if (t === 1) {
         if (enteringSeat && Math.hypot(feet.x - aligned.x, feet.z - aligned.z) > .04) {
           physics.setDeskClearance(false); mode = 'explore'; selected = undefined; display?.setActive(enabled); deskStage = undefined;
+          if (deskCameraView) { cameraView = deskCameraView; deskCameraView = undefined; options.onCameraViewChange?.(cameraView); }
           prompt({ text: 'Move to the open side of the chair and try again' }); options.onStateChange?.('explore'); return;
         }
         advance(enteringSeat ? 'lower' : 'grip');
@@ -558,7 +590,7 @@ export async function createInteractionController(options: Options) {
     } else if (deskStage === 'reach') {
       const t = Math.min(1, deskTime / 1.2);
       feet.copy(seat); seatWeight = 1; handWeight = ease(t);
-      if (t === 1) { advance('work'); mode = 'seated'; crm?.setSeated(true); options.onStateChange?.('seated'); prompt({ text: crm ? 'Use the CRM · Stand up to leave' : 'E — Stand up · Drag to look · V — Change view', target: desk.id }); }
+      if (t === 1) { advance('work'); mode = 'seated'; crm?.setSeated(true); options.onStateChange?.('seated'); prompt({ text: crm ? 'Click the screen to use the CRM · Stand up to leave' : 'E — Stand up · Drag to look · V — Change view', target: desk.id }); }
     } else if (deskStage === 'work') {
       feet.copy(seat); seatWeight = handWeight = 1;
     } else if (deskStage === 'release') {
@@ -575,6 +607,7 @@ export async function createInteractionController(options: Options) {
         // the next horizontal movement belongs to the user's movement input.
         pendingNavigationClearance = !physics.restoreNavigationClearance(feet); physics.place(feet);
         mode = 'explore'; selected = undefined; display?.setActive(enabled); deskStage = undefined;
+        if (deskCameraView) { cameraView = deskCameraView; deskCameraView = undefined; options.onCameraViewChange?.(cameraView); }
         seatWeight = handWeight = stanceWeight = balanceLean = actualSpeed = 0;
         previousFeet.copy(feet); velocity.set(0, 0, 0); grounded = true; verticalVelocity = 0;
         nearestSamplePosition.set(Infinity, Infinity, Infinity); options.onStateChange?.('explore'); prompt(null);
@@ -652,7 +685,7 @@ export async function createInteractionController(options: Options) {
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
-    crm?.setSeated(false); desktop?.close();
+    founderFocused = false; deskCameraView = undefined; crm?.setSeated(false); desktop?.close();
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
     stairWalkHold = 0; stairContact.active = false;
     cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; display?.setActive(enabled); seatWeight = 0;
@@ -675,7 +708,7 @@ export async function createInteractionController(options: Options) {
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
   function exitExplore() {
-    crm?.setSeated(false); crm?.setEnabled(false); desktop?.close(); desktop?.setEnabled(false); physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
+    founderFocused = false; deskCameraView = undefined; crm?.setSeated(false); crm?.setEnabled(false); desktop?.close(); desktop?.setEnabled(false); physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
     avatar.setBodyView(false);
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
   }
@@ -714,7 +747,7 @@ export async function createInteractionController(options: Options) {
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },
-    diagnostics: { get state() { return { mode, locomotion: 'locomotion' in avatar ? avatar.locomotion : undefined, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
+    diagnostics: { get state() { return { mode, founderFocused, selectedChair: selected?.id, approachTarget: selected?.approach.toArray(), locomotion: 'locomotion' in avatar ? avatar.locomotion : undefined, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
     dispose() {
       if (disposed) return; exitExplore(); disposed = true;
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);

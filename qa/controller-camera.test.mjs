@@ -44,7 +44,7 @@ async function load(url, omitImages = false) {
 const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
-  .replace("from '../presentation/FounderCRM'", `from ${JSON.stringify(dataModule(`export const createFounderCRM=()=>undefined;`))}`)
+  .replace("from '../presentation/FounderCRM'", `from ${JSON.stringify(dataModule(`export const createFounderCRM=options=>{const f=globalThis.${fixtureKey};f.crmOptions=options;return f.crm;};`))}`)
   .replace("from './ComputerScreens'", `from ${JSON.stringify(new URL('../src/runtime/interaction/ComputerScreens.ts', import.meta.url).href)}`)
   .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
   .replace("from './StairSurfaces'", `from ${JSON.stringify(new URL('../src/runtime/interaction/StairSurfaces.ts', import.meta.url).href)}`)
@@ -209,7 +209,9 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
   const prior = {document:globalThis.document,window:globalThis.window,matchMedia:globalThis.matchMedia};
   globalThis.document={pointerLockElement:null,addEventListener(){},removeEventListener(){},exitPointerLock(){}};
   globalThis.window={addEventListener(){},removeEventListener(){}};globalThis.matchMedia=()=>({matches:false});
-  globalThis[fixtureKey]={physics,avatar};
+  let crmSeated=false,crmFocused=false;
+  const crm={center:new THREE.Vector3(20.79,6.3285,-5.3),corners:[new THREE.Vector3(20.79,7,-7),new THREE.Vector3(20.79,7,-3.6)],collision:{vertices:[100,100,100,101,100,100,100,101,100],indices:[0,1,2]},setEnabled(){},setSeated(v){crmSeated=v;if(!v)crmFocused=false;},setFocused(v){crmFocused=v;},update(){return false;},dispose(){}};
+  globalThis[fixtureKey]={physics,avatar,crm};
   const camera=new THREE.PerspectiveCamera(54,16/9,.1,1800); camera.position.set(12,6,-6);camera.lookAt(16,5.5,-5.3);
   let hint;
   const controller=await createInteractionController({scene,camera,canvas:{addEventListener(){},removeEventListener(){},focus(){},getBoundingClientRect(){return {left:0,top:0,width:1000,height:700};}},manifest:{...manifest,screen:undefined},onPrompt:p=>{hint=p;}});
@@ -319,10 +321,13 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
       });
       checkTransition();
       if(i===120||i===240)controller.handleInteract();
+      if(state.mode==='sitting') { globalThis[fixtureKey].crmOptions.onRequestFocus(); assert.equal(controller.diagnostics.state.founderFocused,false,'screen cannot interrupt sitting'); }
       if(state.mode==='seated')break;
     }
     context.diagnostic(JSON.stringify({stages:[...stages],state:controller.diagnostics.state,maximumStep,hint}));
     assert.equal(controller.diagnostics.state.mode,'seated');
+    assert.equal(crmSeated,true); assert.equal(crmFocused,false,'sit does not automatically focus CRM');
+    assert.ok(camera.position.distanceTo(controller.player.position)>1,'sitting remains visible from third person');
     for(const view of ['third-person','side','front']) {
       controller.inspectDeskView(view);
       for(let i=0;i<90;i++)controller.update(1/60);
@@ -380,7 +385,11 @@ for(const [entryLabel,initialPosition] of [['near side',[14.8,4.265,-6.1]],['far
     assert.ok(penetration<.004,'cushion does not cut through the sampled thigh skin');
     assert.ok(Math.abs(soleMin-4.265)<.002,'actual shoe sole rests on the rug');
     for(const hand of hands) {assert.ok(Math.abs(hand[0]-16.145)<.001,'wrist reaches desk');assert.ok(Math.abs(hand[1]-5.1016)<.001,'wrist contact height');}
+    globalThis[fixtureKey].crmOptions.onRequestFocus();
+    assert.equal(crmFocused,true,'explicit screen click focuses the CRM');
+    assert.equal(controller.diagnostics.state.founderFocused,true);
     controller.handleInteract();
+    assert.equal(crmSeated,false); assert.equal(crmFocused,false,'standing releases CRM inputs');
     const exitStages=new Set();
     let riseEnd;
     for(let i=0;i<900;i++) {

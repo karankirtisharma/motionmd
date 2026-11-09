@@ -175,6 +175,10 @@ export function createLiveStudioSurface(options: Options) {
   win.addEventListener('message', receive);
   win.addEventListener('md-studio:layout', layout);
   doc.addEventListener('visibilitychange', visibility);
+  // Warm the one live page during scene preparation, before the visitor can
+  // see the TV. Off-camera readiness immediately suspends its animations;
+  // camera movement only reveals the already-loaded document.
+  ensureFrame();
   return {
     width, height,
     update(inView: boolean, next?: number[] | null, polygon?: string | null) {

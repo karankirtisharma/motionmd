@@ -45,7 +45,7 @@ export function createComputerScreens(scene: THREE.Object3D, camera: THREE.Camer
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
   const ray = new THREE.Raycaster(), pointer = new THREE.Vector2();
   const viewport = canvas.parentElement, priorZ = viewport?.style.zIndex ?? '';
-  const input = createNativeScreenInput({ canvas, frame: () => frame,
+  const input = createNativeScreenInput({ canvas, frame: () => frame, exclusive: true,
     onFocus: () => { if (document.pointerLockElement === canvas) document.exitPointerLock(); },
     hit: (x, y) => {
       if (!active || !loaded || !enabled) return null;

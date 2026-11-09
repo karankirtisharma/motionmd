@@ -62,7 +62,7 @@ function fixture(t) {
 }
 
 test('one visible native frame registers the same planar corners as world ray coordinates',t=>{
-  const f=fixture(t);f.surface.update(false,null);assert.equal(f.frame(),undefined);
+  const f=fixture(t);f.surface.update(false,null);assert.ok(f.frame());
   f.surface.setInteractive(true);f.surface.update(true,matrix);const frame=f.frame();
   assert.equal(frame.src,'/studio?embed=lounge&display=tv&f=1&i=3');
   assert.equal(f.host.style.visibility,'hidden');assert.deepEqual(f.aperture,[]);
@@ -74,6 +74,25 @@ test('one visible native frame registers the same planar corners as world ray co
   f.surface.update(true,matrix,clip);assert.equal(f.host.style.clipPath,clip);
   f.child('wheel');const hit=mapScreenPoint(matrix,800,279);assert.deepEqual(f.rays.at(-1),[hit.x,hit.y]);
   assert.equal(f.canvas.style.pointerEvents,'none');assert.equal(frame.assignments,1);
+});
+
+test('Studio prepares before its first visible view and remains suspended without duplicate frames',t=>{
+  const f=fixture(t),frame=f.frame();
+  assert.ok(frame,'preload starts during screen construction, not first camera visibility');
+  assert.equal(frame.assignments,1);
+  assert.equal(f.host.style.visibility,'hidden');
+  assert.equal(frame.tabIndex,-1);
+  f.message('md-studio:ready');
+  assert.equal(frame.contentWindow.messages.at(-1)[0].type,'md-studio:suspend');
+  assert.deepEqual(f.aperture,[]);
+  for(let i=0;i<3;i++) f.surface.update(false,null);
+  assert.equal(frame.assignments,1);
+  f.surface.update(true,matrix);
+  assert.equal(f.host.style.visibility,'visible');
+  assert.equal(frame.contentWindow.messages.at(-1)[0].type,'md-studio:resume');
+  assert.deepEqual(f.aperture,[true]);
+  assert.equal(f.frame(),frame);
+  assert.equal(frame.assignments,1);
 });
 
 test('camera motion preserves native DOM and hides/reveals the aperture without restarting Studio',t=>{

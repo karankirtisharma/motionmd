@@ -72,13 +72,13 @@ test('all 18 measured computer chairs enter, reserve app keys, and exit through 
     const center = corners[0].clone().add(corners[2]).multiplyScalar(.5);
     return { id: `studio-computer-${index+1}`, seat, corners, center, forward: center.clone().sub(seat).setY(0).normalize() };
   });
-  let active, opens = 0;
-  const desktop = { computers, open(c){ assert.equal(active, undefined, 'one live computer at a time'); active=c; opens++; }, close(){active=undefined;}, setEnabled(){}, update(){return false;}, dispose(){} };
+  let active, clicked, opens = 0;
+  const desktop = { computers, pick(){return clicked;}, open(c){ assert.equal(active, undefined, 'one live computer at a time'); active=c; opens++; }, close(){active=undefined;}, setEnabled(){}, update(){return false;}, dispose(){} };
   let crmEnabled = false;
   const crm = { collision: { vertices: [100,100,100,101,100,100,100,101,100], indices: [0,1,2] }, setEnabled(value){crmEnabled=value;}, setSeated(){}, update(){return false;}, dispose(){} };
   globalThis[fixtureKey] = { physics, avatar, desktop, crm };
   const camera = new THREE.PerspectiveCamera(54,16/9,.1,1800);
-  const controller = await createInteractionController({ scene:new THREE.Scene(), camera, canvas:{addEventListener(){},removeEventListener(){},focus(){}}, manifest:{spawn:manifest.spawn,chairs:[]} });
+  const controller = await createInteractionController({ scene:new THREE.Scene(), camera, canvas:{addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(){},focus(){},getBoundingClientRect(){return {left:0,top:0,width:1000,height:700};}}, manifest:{spawn:manifest.spawn,chairs:[]} });
   const runUntil = (target, seconds=26) => {
     for(let frame=0;frame<seconds*60;frame++){controller.update(1/60); if(controller.diagnostics.state.mode===target)return;}
     assert.fail(`did not reach ${target}: ${JSON.stringify(controller.diagnostics.state)}`);
@@ -116,6 +116,24 @@ test('all 18 measured computer chairs enter, reserve app keys, and exit through 
       assert.ok(physics.canStandAt(exit),`${computer.id}: full navigation capsule restored`);
     }
     assert.equal(opens,18);
+    // The pointer-selected screen owns the chair, even beside another seat.
+    // Starting at its side aisle must not first backtrack to the rear centre.
+    for(const computer of computers) {
+      const side=new THREE.Vector3(computer.forward.z,0,-computer.forward.x);
+      const start=computer.seat.clone().addScaledVector(computer.forward,-.8).addScaledVector(side,.477).setY(.015);
+      controller.enterExplore(undefined,{position:start.toArray(),yaw:Math.atan2(-computer.forward.x,-computer.forward.z)});
+      for(let frame=0;frame<90;frame++)controller.update(1/60);
+      clicked=computer;
+      camera.position.copy(computer.center).addScaledVector(computer.forward,-.5);
+      listeners.get('pointerdown')({button:0,clientX:500,clientY:350,pointerType:'mouse'});
+      assert.equal(controller.diagnostics.state.selectedChair,computer.id,'clicked monitor retains its own seat');
+      const first=new THREE.Vector3().fromArray(controller.diagnostics.state.approachTarget);
+      const rear=computer.seat.clone().addScaledVector(computer.forward,-.8).setY(0);
+      assert.ok(Math.hypot(first.x-rear.x,first.z-rear.z)>.35,'side entry skips redundant rear-centre waypoint');
+      runUntil('seated'); assert.equal(active?.id,computer.id);
+      controller.leaveSeat();runUntil('explore');
+    }
+    assert.equal(opens,36);
     context.diagnostic('18/18 real collision routes, both monitor orientations, portrait/landscape fit, reserved app keys and exits passed');
   } finally { controller.dispose(); Object.assign(globalThis,prior); delete globalThis[fixtureKey]; }
 });

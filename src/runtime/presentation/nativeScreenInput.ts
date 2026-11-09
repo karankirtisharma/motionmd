@@ -11,11 +11,13 @@ type Options = {
     v: number;
   } | null;
   onFocus: () => void;
+  /** Fixed seated view: the native page owns input until the visitor stands. */
+  exclusive?: boolean;
 };
 /** The scene canvas visually occludes the iframe. Yield its pointer hit box only
  * while the actual cursor ray reaches the display. The browser then targets the
  * visible transformed document itself, including native drags, forms and wheel. */
-export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options) {
+export function createNativeScreenInput({ canvas, frame, hit, onFocus, exclusive = false }: Options) {
   let enabled = false, routed = false, dragging = false, disposed = false;
   let matrix: number[] | undefined, last: Point | undefined, child: Window | null = null;
   let savedPointer = '', releaseTimer: ReturnType<typeof setTimeout> | undefined;
@@ -49,11 +51,11 @@ export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options
   function focusRoom() { cancel(); canvas.focus({ preventScroll: true }); }
   function updateCamera(next: number[] | undefined) {
     matrix = next;
-    if (!dragging && last)
+    if (!exclusive && !dragging && last)
       route(allowed(last));
   }
   function parentMove(event: PointerEvent) {
-    if (!running() || dragging || event.buttons)
+    if (exclusive || !running() || dragging || event.buttons)
       return;
     // The HUD always owns its own interactive controls.
     if (event.target !== canvas) {
@@ -65,7 +67,7 @@ export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options
     route(allowed(last));
   }
   function parentDown(event: PointerEvent) {
-    if (!enabled || disposed || doc.hidden || event.target !== canvas || event.button !== 0)
+    if (exclusive || !enabled || disposed || doc.hidden || event.target !== canvas || event.button !== 0)
       return;
     const point = { x: event.clientX, y: event.clientY };
     if (doc.pointerLockElement === canvas) {
@@ -96,6 +98,10 @@ export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options
   function childPointer(event: Event) {
     if (!enabled || disposed)
       return; // fullscreen owns its own native event routing
+    // Seated monitors have a fixed camera and no room movement. Native browser
+    // hit testing already maps the transformed iframe precisely; re-raycasting
+    // those events can swallow valid controls during camera/renderer updates.
+    if (exclusive) return;
     const mouse = event as MouseEvent;
     if (event.type === 'click' && mouse.detail === 0)
       return; // keyboard activation
@@ -156,6 +162,8 @@ export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options
     queueMicrotask(() => { if (!disposed && (doc.activeElement !== frame() || !doc.hasFocus()))
       cancel(); });
   }
+  function focus() { if (exclusive && running()) route(true); }
+  window.addEventListener('focus', focus);
   window.addEventListener('pointermove', parentMove, true);
   window.addEventListener('pointerdown', parentDown, true);
   window.addEventListener('pointerup', release, true);
@@ -166,13 +174,14 @@ export function createNativeScreenInput({ canvas, frame, hit, onFocus }: Options
     refreshFrame, focusRoom, updateCamera,
     setEnabled(next: boolean) { if (next === enabled)
       return; enabled = next; if (!next)
-      cancel(); },
+      cancel(); else if (exclusive) { onFocus(); route(true); } },
     dispose() {
       if (disposed)
         return;
       disposed = true;
       cancel();
       detach();
+      window.removeEventListener('focus', focus);
       window.removeEventListener('pointermove', parentMove, true);
       window.removeEventListener('pointerdown', parentDown, true);
       window.removeEventListener('pointerup', release, true);
