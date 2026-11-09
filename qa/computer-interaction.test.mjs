@@ -44,6 +44,7 @@ async function load(url, omitImages = false) {
 const fixtureKey = '__mdControllerCameraQA';
 const controllerSource = transpile('../src/runtime/interaction/InteractionController.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
+  .replace("from '../presentation/FounderCRM'", `from ${JSON.stringify(dataModule(`export const createFounderCRM=()=>globalThis.${fixtureKey}.crm;`))}`)
   .replace("from './ComputerScreens'", `from ${JSON.stringify(dataModule(`export const createComputerScreens=()=>globalThis.${fixtureKey}.desktop;`))}`)
   .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
   .replace("from './StairSurfaces'", `from ${JSON.stringify(new URL('../src/runtime/interaction/StairSurfaces.ts', import.meta.url).href)}`)
@@ -73,7 +74,9 @@ test('all 18 measured computer chairs enter, reserve app keys, and exit through 
   });
   let active, opens = 0;
   const desktop = { computers, open(c){ assert.equal(active, undefined, 'one live computer at a time'); active=c; opens++; }, close(){active=undefined;}, setEnabled(){}, update(){return false;}, dispose(){} };
-  globalThis[fixtureKey] = { physics, avatar, desktop };
+  let crmEnabled = false;
+  const crm = { collision: { vertices: [100,100,100,101,100,100,100,101,100], indices: [0,1,2] }, setEnabled(value){crmEnabled=value;}, setSeated(){}, update(){return false;}, dispose(){} };
+  globalThis[fixtureKey] = { physics, avatar, desktop, crm };
   const camera = new THREE.PerspectiveCamera(54,16/9,.1,1800);
   const controller = await createInteractionController({ scene:new THREE.Scene(), camera, canvas:{addEventListener(){},removeEventListener(){},focus(){}}, manifest:{spawn:manifest.spawn,chairs:[]} });
   const runUntil = (target, seconds=26) => {
@@ -82,8 +85,10 @@ test('all 18 measured computer chairs enter, reserve app keys, and exit through 
   };
   try {
     for(const computer of computers) {
+      controller.setEnabled(false);
       const start=computer.seat.clone().addScaledVector(computer.forward,-.8).setY(.015);
       controller.enterExplore(undefined,{position:start.toArray(),yaw:Math.atan2(-computer.forward.x,-computer.forward.z)});
+      assert.equal(crmEnabled,true,'direct exploration re-enables native founder display');
       for(let frame=0;frame<90;frame++)controller.update(1/60);
       controller.handleInteract(); controller.handleInteract(); // repeated entry cannot restart
       runUntil('seated');

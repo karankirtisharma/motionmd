@@ -9,3 +9,5 @@
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 *.webp filter=lfs diff=lfs merge=lfs -text
 *.wasm filter=lfs diff=lfs merge=lfs -text
+# Preserve the supplied CRM build byte-for-byte across checkouts.
+public/crm/** -text

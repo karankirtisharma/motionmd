@@ -7,6 +7,7 @@ import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut
 import type { CameraView } from './movement';
 import { createPresentationScreen, type ScreenBounds } from '../presentation/PresentationScreen';
 import { createWorkstation, type Workstation } from './Workstation';
+import { createFounderCRM } from '../presentation/FounderCRM';
 import { createComputerScreens, type Computer } from './ComputerScreens';
 import { createStairSurfaces } from './StairSurfaces';
 
@@ -75,6 +76,15 @@ export async function createInteractionController(options: Options) {
     approach = approaches[0]?.clone() ?? approach;
     return { id: item.id, label: item.label ?? `Chair ${item.id.match(/\d+/)?.[0] ?? ''}`, seat, approach, approaches, forward, floor, height: seat.y - floor };
   });
+  const crm = createFounderCRM({ scene, camera, canvas,
+    onFocus: () => releaseCursor(true),
+    isInView: points => camera.position.y > 3 && points.some(point => physics.hasLineOfSight(camera.position, point, .08)),
+  });
+  if (crm) {
+    const tv = display?.collision;
+    physics.configurePresentationPanel(new Float32Array([...(tv?.vertices ?? []), ...crm.collision.vertices]),
+      new Uint32Array([...(tv?.indices ?? []), ...Array.from(crm.collision.indices, i => i + (tv?.vertices.length ?? 0) / 3)]));
+  }
   const desktop = createComputerScreens(scene, camera, canvas);
   for (const computer of desktop?.computers ?? []) {
     const floor = physics.groundAt(computer.seat.clone().addScaledVector(computer.forward, -1.1).setY(0), 1);
@@ -151,7 +161,7 @@ export async function createInteractionController(options: Options) {
     if (enabled && mode === 'explore') prompt({ text: 'Mouse lock unavailable here · Drag to look · V — Change view' });
   }
   function look(dx: number, dy: number) {
-    if (!enabled || (mode !== 'explore' && !(mode === 'seated' && selected?.workstation))) return;
+    if (!enabled || mode !== 'explore') return;
     const next = applyLookInput(yaw, pitch, dx, dy, cameraView);
     yaw = next.yaw; pitch = next.pitch;
   }
@@ -175,7 +185,7 @@ export async function createInteractionController(options: Options) {
     return target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(target.tagName) || target.closest('[role="dialog"]'));
   }
   function keyDown(event: KeyboardEvent) {
-    if (!enabled || isInput(event) || selected?.computer && mode !== 'explore' && mode !== 'approach') return;
+    if (!enabled || isInput(event) || (selected?.computer || selected?.workstation && crm) && mode !== 'explore' && mode !== 'approach') return;
     if (/^(Key[WASDELV]|ArrowUp|ArrowDown|ArrowLeft|ArrowRight|Space)$/.test(event.code)) event.preventDefault();
     const shortcut = cameraShortcut(event.code, event.repeat, false);
     if (shortcut === 'pointerLock') togglePointerLock();
@@ -296,7 +306,7 @@ export async function createInteractionController(options: Options) {
   }
   function leaveSeat() {
     if (!enabled || mode !== 'seated' || !selected) return;
-    desktop?.close(); resetInput(); canvas.focus({ preventScroll: true });
+    crm?.setSeated(false); desktop?.close(); resetInput(); canvas.focus({ preventScroll: true });
     mode = 'standing'; transition = 0; transitionStart.copy(feet);
     if (selected.workstation) { deskStage = 'release'; deskTime = 0; }
     display?.setActive(false); options.onScreenMode?.(false);
@@ -382,7 +392,7 @@ export async function createInteractionController(options: Options) {
     desiredCamera.set(Math.sin(yaw) * Math.cos(pitch) * followDistance, Math.sin(pitch) * followDistance + 0.10, Math.cos(yaw) * Math.cos(pitch) * followDistance).add(pivot);
     // Obstructions shorten the follow boom below; only explicit V input changes
     // perspective. A corner must not trigger an eye-height/FOV transition.
-    const computerView = seatedView && selected?.computer;
+    const computerView = seatedView && (selected?.computer || selected?.workstation && crm);
     const firstPerson = cameraView === 'bodyCam' || !!computerView;
     if (firstPerson) {
       const direction = cameraLookDirection(yaw, pitch);
@@ -548,7 +558,7 @@ export async function createInteractionController(options: Options) {
     } else if (deskStage === 'reach') {
       const t = Math.min(1, deskTime / 1.2);
       feet.copy(seat); seatWeight = 1; handWeight = ease(t);
-      if (t === 1) { advance('work'); mode = 'seated'; options.onStateChange?.('seated'); prompt({ text: 'E \u2014 Stand up \u00b7 Drag to look \u00b7 V \u2014 Change view', target: desk.id }); }
+      if (t === 1) { advance('work'); mode = 'seated'; crm?.setSeated(true); options.onStateChange?.('seated'); prompt({ text: crm ? 'Use the CRM · Stand up to leave' : 'E — Stand up · Drag to look · V — Change view', target: desk.id }); }
     } else if (deskStage === 'work') {
       feet.copy(seat); seatWeight = handWeight = 1;
     } else if (deskStage === 'release') {
@@ -642,7 +652,7 @@ export async function createInteractionController(options: Options) {
   }
   function enterExplore(pose?: { position?: THREE.Vector3; quaternion?: THREE.Quaternion }, inspectionSpawn?: { position: [number, number, number]; yaw: number }) {
     if (disposed) return;
-    desktop?.close();
+    crm?.setSeated(false); desktop?.close();
     cameraStart.copy(pose?.position ?? camera.position); cameraStartQuaternion.copy(pose?.quaternion ?? camera.quaternion);
     stairWalkHold = 0; stairContact.active = false;
     cameraBlend = 0; cameraBoom = undefined; cameraBlendDuration = 1.15; mode = 'explore'; selected = undefined; display?.setActive(enabled); seatWeight = 0;
@@ -660,12 +670,12 @@ export async function createInteractionController(options: Options) {
     if ('resetMotion' in avatar) avatar.resetMotion();
     avatar.update(0, 0, 0);
     avatar.root.visible = true;
-    enabled = true; resetInput(); display?.setActive(true); options.onStateChange?.('explore');
+    enabled = true; resetInput(); desktop?.setEnabled(true); crm?.setEnabled(true); display?.setActive(true); options.onStateChange?.('explore');
     options.onCameraViewChange?.(cameraView);
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
   function exitExplore() {
-    desktop?.close(); physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
+    crm?.setSeated(false); crm?.setEnabled(false); desktop?.close(); desktop?.setEnabled(false); physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
     avatar.setBodyView(false);
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
   }
@@ -694,11 +704,12 @@ export async function createInteractionController(options: Options) {
     get cameraView() { return cameraView; },
     consumeIntentionalUnlock() { const value = intentionalUnlock; intentionalUnlock = false; return value; },
     setEnabled(value: boolean) {
-      enabled = value; resetInput(); desktop?.setEnabled(value);
+      enabled = value; resetInput(); desktop?.setEnabled(value); crm?.setEnabled(value);
       display?.setActive(value && (mode === 'explore' || (mode === 'seated' && !selected?.workstation && !selected?.computer)));
       if (value) canvas.focus({ preventScroll: true });
     },
-    updatePresentation() { const screenChanged = display?.update() ?? false; return (desktop?.update() ?? false) || screenChanged; },
+    inspectFounderCRM(visible: boolean) { crm?.setInspectionVisible(visible); },
+    updatePresentation() { const screenChanged = display?.update() ?? false; const crmChanged = crm?.update() ?? false; return (desktop?.update() ?? false) || crmChanged || screenChanged; },
     setScreenAction(action: string) { display?.setAction(action); },
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
@@ -709,7 +720,7 @@ export async function createInteractionController(options: Options) {
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       canvas.removeEventListener('pointerdown', pointerDown); window.removeEventListener('pointerup', pointerUp); window.removeEventListener('pointermove', pointerMove);
       document.removeEventListener('pointerlockerror', pointerLockFallback);
-      avatar.root.removeFromParent(); avatar.dispose(); lift?.dispose(); physics.dispose(); desktop?.dispose(); display?.dispose();
+      avatar.root.removeFromParent(); avatar.dispose(); lift?.dispose(); physics.dispose(); crm?.dispose(); desktop?.dispose(); display?.dispose();
     },
   };
 }

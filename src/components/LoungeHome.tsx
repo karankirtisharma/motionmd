@@ -202,6 +202,8 @@ export default function LoungeHome() {
       {profiling && <details><summary>Performance capture</summary>
         <button onClick={() => changeQuality("high")}>Lock full quality</button>
         <button onClick={() => runtime.current?.startProfile(referenceCamera || mode)}>Capture 15 seconds</button>
+        <button onClick={() => { runtime.current?.inspectFounderCRM(true); runtime.current?.startProfile("founder CRM visible"); }}>Capture CRM visible</button>
+        <button onClick={() => { runtime.current?.inspectFounderCRM(false); runtime.current?.startProfile("founder CRM hidden"); }}>Capture CRM hidden</button>
         <button onClick={() => { dismissWelcome(); resume(); setReferenceCamera(""); runtime.current?.setReferenceCamera(""); runtime.current?.returnToTour(); runtime.current?.setTourProgress(0); runtime.current?.setCinematicPlaying(true); runtime.current?.startProfile("tour first 15s"); }}>Capture tour</button>
         <div><button onClick={() => runtime.current?.inspectShadowCaching(false)}>Use full shadow pass</button><button onClick={() => runtime.current?.inspectShadowCaching(true)}>Use cached static shadows</button><button onClick={() => void runtime.current?.inspectShadowParity()}>Verify shadow pixels</button></div>
         <pre data-testid="performance-report" style={{ maxHeight: 210, maxWidth: 420, overflow: "auto", fontSize: 10 }}>{profileReport}</pre>

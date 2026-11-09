@@ -138,3 +138,10 @@ Vercel's build command stages this tree in the disposable hosted build checkout 
 All 18 Studio workstations use the supplied md. desktop with one live native iframe only while occupied; unoccupied monitors share a static preview. Entry/exit, reserved app keys and native pointer routing use the existing controller. Delivered Studio geometry excludes the two retired workflow screenshots while export masters remain intact.
 
 Embedded desktop/TV backdrop sampling is replaced by stable local/tinted layers, and temporal aperture coverage is aligned with the native document. Standalone desktop/Studio effects remain available. See `qa/md-desktop-flicker-2026-11-06.md` for root-cause evidence, functional checks, performance limits and the small embedded glass-effect trade-off.
+
+
+## Founder CRM display — 9 November 2026
+
+The founder panoramic dashboard now hosts one native `/crm/index.html` iframe at the measured 1600 × 739 canvas. Its flat face and closed bronze returns reuse the presentation display geometry repair; the depth aperture and physical collision use that same plane. Sit at the executive desk to use the CRM; use the existing Stand up button to return to movement. The accepted chair animation remains unchanged.
+
+The supplied CRM distribution is copied byte-for-byte into `public/crm` (70 files, 1,927,318 bytes). It mounts once on first visibility, uses `quality=low`, preserves state across sit/stand and camera moves, and hides when off-camera. Native input is exclusive to the seated visitor. Public `md:ready` / `md:tour` messages control the attract mode. The app currently uses its supplied demo/local records; this integration does not introduce a backend. See `qa/founder-crm-ledger.md` for verification and performance limits.

@@ -27,11 +27,11 @@ function createWoodPreview() {
 /** An opaque wood surface while loading, and a depth-tested DOM aperture only
  * for the main camera after the native iframe is ready. Reflection cameras
  * cannot sample a browser window, so they retain the fitted wood surface. */
-export function createScreenAperture(mesh: Mesh, mainCamera: Camera) {
+export function createScreenAperture(mesh: Mesh, mainCamera: Camera, blackFallback = false) {
   const original = mesh.material, before = mesh.onBeforeRender;
-  const wood = createWoodPreview();
+  const wood = blackFallback ? null : createWoodPreview();
   const material = new MeshBasicMaterial({
-    map: wood, color: 0xffffff, toneMapped: false, fog: false,
+    map: wood, color: blackFallback ? 0x000000 : 0xffffff, toneMapped: false, fog: false,
     transparent: true, blending: NoBlending, depthTest: true, depthWrite: true,
   });
   material.name = 'Presentation display | native Studio aperture';
@@ -45,7 +45,7 @@ export function createScreenAperture(mesh: Mesh, mainCamera: Camera) {
     // Transparent black clears both RGB and alpha in the existing temporal
     // pipeline. The display still writes depth, so a chair/person in front wins.
     material.opacity = open ? 0 : 1;
-    material.color.setScalar(open ? 0 : 1);
+    material.color.setScalar(open || blackFallback ? 0 : 1);
   };
   return {
     setLive(next: boolean) {
@@ -57,7 +57,7 @@ export function createScreenAperture(mesh: Mesh, mainCamera: Camera) {
       disposed = true; dirty = false;
       mesh.material = original; mesh.onBeforeRender = before; mesh.castShadow = originalCastShadow;
       if (castShadow === undefined) delete mesh.userData.castShadow; else mesh.userData.castShadow = castShadow;
-      wood.dispose(); material.map = null; material.dispose();
+      wood?.dispose(); material.map = null; material.dispose();
     },
   };
 }

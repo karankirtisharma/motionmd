@@ -612,6 +612,7 @@ export class SceneRuntime {
     this.paused=true;this.invalidate();
   }
   playInspectionRoute(){if(this.inspectionEnabled && this.inspectionRoute){this.paused=false;this.controls?.setEnabled(true);}}
+  inspectFounderCRM(visible: boolean) { if (this.inspectionEnabled) { this.controls?.inspectFounderCRM(visible); this.invalidate(); } }
   inspectCharacterView(view:'third-person'|'side'|'front'){if(this.inspectionEnabled){this.controls?.inspectCharacterView(view);this.invalidate();}}
   inspectDeskView(view: 'third-person' | 'side' | 'front') { if (this.inspectionEnabled) this.controls?.inspectDeskView(view); }
   getInteractionState() { return this.inspectionEnabled ? this.controls?.diagnostics.state : undefined; }
