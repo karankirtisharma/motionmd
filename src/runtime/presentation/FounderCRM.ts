@@ -3,6 +3,7 @@ import { installFlatPanel } from './flatPanel.ts';
 import { createScreenAperture } from './screenTexture.ts';
 import { projectScreenPlane } from './projection.ts';
 import { createNativeScreenInput } from './nativeScreenInput.ts';
+import { createCrmLifecycle } from './crmLifecycle.ts';
 
 export function crmCanvasSize(width: number, height: number) {
   const aspect = width / height;
@@ -36,8 +37,7 @@ export function createFounderCRM(options: {
   if (viewport) viewport.style.zIndex = '1';
   let frame: HTMLIFrameElement | undefined, ready = false, seated = false, visible = false, enabled = true, disposed = false;
   let inspectionVisible = true;
-  let lastUserRoute = "/command";
-  let dirty = true, lastWidth = 0, lastHeight = 0, wasHidden = false, observer: MutationObserver | undefined;
+  let dirty = true, lastWidth = 0, lastHeight = 0, lastState = '', transform = '', clip = '';
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
   const pointer = new THREE.Vector2(), ray = new THREE.Raycaster(), cameraPosition = new THREE.Vector3();
   const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, onFocus: options.onFocus,
@@ -48,47 +48,48 @@ export function createFounderCRM(options: {
       return hit?.uv ? {u:hit.uv.x,v:hit.uv.y} : null;
     },
   });
-  const tour = (on: boolean) => { if (ready) frame?.contentWindow?.postMessage({type:'md:tour',on},win.location.origin); };
+  const lifecycle = createCrmLifecycle({
+    tour: on => { if (ready) frame?.contentWindow?.postMessage({type:'md:tour',on},win.location.origin); },
+    pause: paused => {
+      const root = frame?.contentDocument?.documentElement;
+      if (root) root.toggleAttribute('data-md-host-paused', paused);
+    },
+  });
   function sync() {
     const show = inspectionVisible && enabled && visible && ready && !doc.hidden;
-    host.dataset.crmState = !ready ? 'loading' : show ? seated ? 'seated' : 'attract' : 'hidden';
+    const state = !ready ? 'loading' : show ? seated ? 'seated' : 'attract' : 'hidden';
+    lifecycle.update(ready, show, seated);
+    if (state === lastState) return;
+    lastState = state;
+    host.dataset.crmState = state;
     host.dataset.crmVisible = String(visible); host.dataset.crmEnabled = String(enabled);
     host.style.visibility = show ? 'visible' : 'hidden';
     host.style.pointerEvents = show && seated ? 'auto' : 'none';
     if (frame) frame.tabIndex = show && seated ? 0 : -1;
     input.setEnabled(show && seated); aperture.setLive(show);
-    if (!show) { if (!wasHidden) tour(false); wasHidden = true; }
-    else if (wasHidden) { wasHidden = false; tour(!seated); }
+
   }
   function ensureFrame() {
     if (frame) return;
     frame = doc.createElement('iframe'); frame.title = "MotionDesign.ad Founder's Room CRM";
     Object.assign(frame.style,{width:size.width+'px',height:size.height+'px',border:'0',display:'block',background:'#000'});
-    frame.src = `/crm/index.html?w=${size.width}&h=${size.height}&quality=low&tour=idle#/command`;
+    frame.src = `/crm/index.html?w=${size.width}&h=${size.height}&quality=low&tour=0#/command`;
     frame.addEventListener('load', () => { host.dataset.crmLoaded = 'true'; });
     host.append(frame);
   }
   function receive(event: MessageEvent) {
     if (!frame || event.source !== frame.contentWindow || event.origin !== win.location.origin) return;
-    if (event.data?.type === 'md:route') {
-      if (frame.contentDocument?.documentElement.dataset.tour !== 'on' && typeof event.data.path === 'string') lastUserRoute = event.data.path;
-      return;
-    }
     if (event.data?.type !== 'md:ready' || ready) return;
-    ready = true; dirty = true; wasHidden = false; input.refreshFrame();
-    // The supplied app's idle timer can restart its tour even after md:tour false.
-    // Keep seated input stable using the public API; never edit the supplied build.
-    observer = new MutationObserver(() => {
-      if (!seated && visible && enabled && inspectionVisible && !doc.hidden) return;
-      if (frame?.contentDocument?.documentElement.dataset.tour === 'on') {
-        tour(false);
-        // Restore the user's route if the supplied idle timer attempted its first tour step.
-        frame.contentWindow?.postMessage({type:'md:navigate',path:lastUserRoute},win.location.origin);
-      }
-    });
-    const root = frame.contentDocument?.documentElement;
-    if (root) observer.observe(root,{attributes:true,attributeFilter:['data-tour']});
-    if (seated) tour(false);
+    ready = true; dirty = true; input.refreshFrame();
+    // Pause invisible CSS animation without changing the supplied static build,
+    // user preferences, route, form state, or the persistent iframe instance.
+    const child = frame.contentDocument;
+    if (child) {
+      const style = child.createElement('style');
+      style.dataset.mdHostLifecycle = '';
+      style.textContent = ':root[data-md-host-paused] *, :root[data-md-host-paused] *::before, :root[data-md-host-paused] *::after { animation-play-state: paused !important; }';
+      child.head.append(style);
+    }
     sync();
     if (seated && enabled) frame.contentWindow?.focus();
   }
@@ -101,7 +102,7 @@ export function createFounderCRM(options: {
       if (seated === next) return;
       seated = next; dirty = true;
       if (next) { options.onFocus(); ensureFrame(); }
-      tour(!next); sync();
+      sync();
       if (next && ready) frame?.contentWindow?.focus();
       else if (!next && doc.activeElement === frame) input.focusRoom();
     },
@@ -116,11 +117,15 @@ export function createFounderCRM(options: {
       const projection = projectScreenPlane(corners,options.camera,w,h,size.width,size.height);
       visible = !!projection?.visible && normal.dot(cameraPosition.clone().sub(center))>.005 && cameraPosition.distanceToSquared(center)<25**2 && options.isInView(samples);
       if (visible && enabled) ensureFrame();
-      if (projection) {host.style.transform=`matrix3d(${projection.matrix.join(',')})`;host.style.clipPath=projection.clipPolygon??'none';input.updateCamera(projection.matrix);}
+      if (projection && visible) {
+        const nextTransform = `matrix3d(${projection.matrix.join(',')})`, nextClip = projection.clipPolygon ?? 'none';
+        if (transform !== nextTransform) { transform = nextTransform; host.style.transform = transform; input.updateCamera(projection.matrix); }
+        if (clip !== nextClip) { clip = nextClip; host.style.clipPath = clip; }
+      }
       sync();return changed || aperture.takeDirty();
     },
     dispose() {
-      if(disposed)return;disposed=true;observer?.disconnect();input.dispose();win.removeEventListener('message',receive);doc.removeEventListener('visibilitychange',visibility);
+      if(disposed)return;disposed=true;lifecycle.dispose();input.dispose();win.removeEventListener('message',receive);doc.removeEventListener('visibilitychange',visibility);
       host.remove();aperture.dispose();panel.dispose();if(viewport)viewport.style.zIndex=previousZ;
     },
   };

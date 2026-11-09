@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { crmCanvasSize } from '../src/runtime/presentation/FounderCRM.ts';
+import { Mesh, MeshBasicMaterial, PlaneGeometry, PerspectiveCamera, Texture } from 'three';
+import { createScreenAperture } from '../src/runtime/presentation/screenTexture.ts';
 import { installFlatPanel } from '../src/runtime/presentation/flatPanel.ts';
 async function load(url, omitImages = false) {
   assert.ok(url.startsWith('/assets/'));
@@ -42,4 +44,17 @@ test('founder face closes the curved housing with an aspect-matched CRM canvas',
   assert.throws(() => crmCanvasSize(0, 3));
   panel.dispose();
   assert.equal(screens[0].geometry, original, 'disposal restores source geometry');
+});
+
+// The retired dashboard map must never appear during boot, culling or reflection.
+test('founder screen never uses the old dashboard image in any display state', () => {
+  const old = new Texture(), mesh = new Mesh(new PlaneGeometry(7,3), new MeshBasicMaterial({map:old}));
+  const main = new PerspectiveCamera(), reflected = new PerspectiveCamera();
+  const aperture = createScreenAperture(mesh,main,true);
+  for (const live of [false,true,false,true]) for (const camera of [main,reflected]) {
+    aperture.setLive(live); mesh.onBeforeRender(null,null,camera,mesh.geometry,mesh.material,null);
+    assert.equal(mesh.material.map,null); assert.equal(mesh.material.color.getHex(),0);
+    assert.equal(mesh.material.opacity,live && camera === main ? 0 : 1);
+  }
+  aperture.dispose(); mesh.material.dispose(); mesh.geometry.dispose(); old.dispose();
 });

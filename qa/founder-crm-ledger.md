@@ -37,3 +37,41 @@ All captures reported visible-tab cadence suitable for comparison, zero long tas
 
 Limitations: supplied CRM is a local-data/demo application; integration does not add a server backend. Only the current Windows browser/GPU was measured, not other hardware. Loading/reflection fallback is intentionally black; native browser content is not rendered into reflection probes.
 
+
+## 9 November 2026 — production access and lifecycle repair
+
+Vercel MCP access verified. Production motionmd-6ipx was READY at GitHub main
+329d9a7296f25971f582b2ab07052ebcb2c59978, and the CRM was visually present on that
+deployment. The reported missing app was not reproduced in a fresh production tab.
+The old dashboard/Earth image was absent. Added a regression check proving the
+CRM aperture never samples that image during boot, hidden states or reflections.
+
+Root cause repaired: the copied app's `tour=idle` timer ignores a host tour-stop
+message and wakes after 40 seconds even while seated/off-camera. The old host
+observer then navigated back, creating avoidable React updates and view transitions.
+The embed now uses `tour=0` with a single host-owned, visibility-aware idle timer.
+Initial visible standing waits 40 seconds; standing up resumes the tour immediately.
+Sitting, hiding and disposal cancel it. Hidden CSS animations are paused by a
+host lifecycle attribute; no user preference, route or CRM file is rewritten.
+Projection CSS is updated only when changed and visible; input/state synchronization
+runs on state edges instead of every camera update. One persistent iframe remains.
+
+Production build/TypeScript passed. 17 focused tests passed, including all 18 computer
+chair routes, display registration, no-old-texture fallback and lifecycle transitions.
+All 70 copied CRM files (1,927,318 bytes) match source dist SHA-256 values exactly.
+
+Single sequential 15-second captures, WebGPU, 1280x720, DPR 1, locked high quality,
+same seated Command view, 130 draws / 2,921,796 triangles:
+- Existing Vercel build: 140.2 FPS; p50/p95/p99 7.0/8.8/10.3 ms; zero >50 ms.
+- Fixed local production build, CRM visible: 164.4 FPS; 6.1/6.4/9.7 ms; zero >50 ms.
+- Fixed local production build, CRM hidden: 164.7 FPS; 6.1/6.2/6.4 ms; zero >50 ms.
+All samples had suitable visible-tab cadence. These are short sequential captures,
+not a universal improvement claim or a controlled cross-device benchmark. The visible
+versus hidden difference was 0.3 FPS in this run. Earlier high-resolution captures
+remain above for context. Browser/native app timers are not fully suspended by CSS;
+this patch specifically eliminates tour wakeups and invisible CSS animation work.
+
+Native screen-coordinate clicks opened Clients and search; typing Aurelia returned
+results, and Escape closed search without standing up. Semantic automation inside
+perspective-transformed iframes did not correctly target pointer coordinates, so
+visible screen-coordinate clicks were used to verify actual native hit alignment.
