@@ -17,7 +17,7 @@ function componentHarness(name, device, saved = '3d', search = '?mode=3d&debug=1
   const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const exported = {};
   const context = {
-    exports: exported, require, isAndroidPhone,
+    exports: exported, require, isAndroidPhone, MaquetteIntro: () => null, styles: {},
     navigator: device,
     location: { search, replace: url => replacements.push(url) },
     localStorage: { getItem() { storageReads++; return saved; } },
@@ -34,7 +34,7 @@ function componentHarness(name, device, saved = '3d', search = '?mode=3d&debug=1
 }
 function elements(tree) {
   if (!tree || typeof tree !== 'object') return [];
-  const children = tree.props?.children;
+  const children = [tree.props?.children, tree.props?.choices];
   return [tree, ...[children].flat(Infinity).flatMap(elements)];
 }
 

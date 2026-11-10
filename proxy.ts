@@ -57,7 +57,10 @@ export function proxy(request: NextRequest) {
   if (!entry || !['GET', 'HEAD'].includes(request.method)) return NextResponse.next();
   const encoding = selectAssetEncoding(request.headers.get('accept-encoding'));
   if (!encoding) return new NextResponse(null, { status: 406, headers: { Vary: 'Accept-Encoding' } });
-  const selected = encoding;
+  // Local browser bridges may strip Content-Encoding while forwarding a
+  // precompressed file. Keep development previews raw; production still uses
+  // negotiated Brotli/gzip delivery and the same verified asset payload.
+  const selected = process.env.NODE_ENV === 'development' && entry.identity ? 'identity' : encoding;
   const destination = selected === 'identity' ? entry.identity : entry[selected];
   const cacheControl = assetCacheControl(request.nextUrl.searchParams.get('v'), entry);
   const target = destination ? new URL(destination, request.url) : undefined;

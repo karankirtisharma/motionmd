@@ -18,20 +18,20 @@ test('the chooser imports no lounge code until selected and a failed UI chunk ca
         return [state[slot],v=>{state[slot]=typeof v==='function'?v(state[slot]):v;}];},
       useEffect(fn,deps){if(previous!==deps[0]){previous=deps[0];effects.push(fn);}},
     };
+    if(id==='@/components/maquette/MaquetteIntro')return {default:()=>null,MaquettePreferences:()=>null};
     if(id==='@/studio/components/LoungeEntry')return {default:Gate};
     if(id==='@/components/LoungeHome'){attempts++;if(attempts===1)throw Error('simulated chunk failure');return {default:Experience};}
     return require(id);
   }};
   vm.runInNewContext(compiled,context);
-  const chooser=api.default();
+  const chooser=api.default().props.children;
   assert.equal(chooser.type,Gate);assert.equal(attempts,0);
   const render=()=>{index=0;return chooser.props.children.type();};
   const runEffect=()=>{dispose?.();dispose=effects.shift()();};
-  const nodes=tree=>tree&&typeof tree==='object'?[tree,...[tree.props?.children].flat(Infinity).flatMap(nodes)]:[];
-  assert.ok(nodes(render()).some(x=>x.props?.role==='status'));runEffect();await flush();
-  const fallback=nodes(render());
-  assert.ok(fallback.some(x=>x.props?.href==='/studio?entry=direct'));
-  const retry=fallback.find(x=>x.type==='button');retry.props.onClick();
+  assert.equal(render().props.state,'boot');runEffect();await flush();
+  const fallback=render();
+  assert.equal(fallback.props.state,'error');
+  fallback.props.onRetry();
   render();runEffect();await flush();
   assert.equal(attempts,2);assert.equal(render().type,Experience);
   dispose();

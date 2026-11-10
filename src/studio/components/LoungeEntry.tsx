@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState, type ReactNode } from 'react';
 
+import MaquetteIntro from '@/components/maquette/MaquetteIntro';
+import styles from '@/components/maquette/MaquetteIntro.module.css';
+
 import { isAndroidPhone } from '../lib/entryDevice';
 
 /** This gate must mount before the lounge effect imports the 3D runtime. */
@@ -16,23 +19,13 @@ export default function LoungeEntry({ children }: { children: ReactNode }) {
     setChoice('choose');
   }, []);
   if (choice === '3d') return children;
-  return <main className="welcome-layer" style={{ minHeight: '100dvh', background: 'var(--ink)', overflowY: 'auto' }}>
-    <section className="lounge-panel welcome-panel" aria-label="Choose how to visit" style={{ width: 'min(760px, calc(100% - 32px))', margin: 'auto' }}>
-      <p className="eyebrow">Motion Design</p><h1>How would you like to visit?</h1>
-      <p className="panel-copy">Open the studio instantly, or explore the full 3D world.</p>
-      {choice === 'pending' ? <p role="status">Preparing your visit.</p> : <div className="entry-options">
-        <a className="entry-option" href="/studio?entry=direct">
-          <span className="eyebrow">{recommendLight ? 'Recommended for your device' : 'The studio'}</span>
-          <strong>Open the studio <span aria-hidden="true">↗</span></strong><span>Films, projects and ideas. No 3D download.</span>
-        </a>
-        <button className="entry-option" type="button" onClick={() => setChoice('3d')}>
-          <span className="eyebrow">The experience</span><strong>Explore the 3D world <span aria-hidden="true">→</span></strong>
-          <span>The complete interactive lounge. A large download; best on a desktop or laptop.</span>
-        </button>
-      </div>}
-      <p className="panel-note">The 3D world downloads only when you choose to explore it.</p>
-      <noscript><a href="/studio">Open the studio</a></noscript>
-    </section>
-    <style>{`.entry-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}.entry-option{display:flex;flex-direction:column;gap:15px;padding:26px;text-align:left;text-decoration:none;color:var(--ivory);background:var(--ink-soft);border:1px solid var(--line);border-radius:8px;font:inherit;line-height:1.6}.entry-option strong{font-size:21px;font-weight:500;line-height:1.3}.entry-option>span:last-child{font-size:13px;color:var(--muted)}.entry-option:hover{border-color:var(--gold)}.entry-option .eyebrow{font-size:10px;margin:0;color:var(--gold)}@media(max-width:600px){.entry-options{grid-template-columns:1fr}.entry-option{padding:20px}.welcome-panel:has(.entry-options){padding:28px}}`}</style>
-  </main>;
+  return <MaquetteIntro state="choose" choices={<>
+    <p className={styles.eyebrow}>CHOOSE YOUR EXPERIENCE</p>
+    <div className={styles.choices}>
+      {choice === 'choose' && <button className={styles.primary} type="button" onClick={() => setChoice('3d')}>3D environment <span aria-hidden="true">→</span></button>}
+      <a className={styles.secondary} href="/studio?entry=direct">Light version <span aria-hidden="true">↗</span></a>
+    </div>
+    {recommendLight && <p className={styles.subtitle}>The light version is recommended for your device.</p>}
+    <noscript><p>Open the light version to visit without JavaScript.</p></noscript>
+  </>} />;
 }

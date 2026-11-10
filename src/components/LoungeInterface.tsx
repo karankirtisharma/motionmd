@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 
+import MaquetteIntro from './maquette/MaquetteIntro';
 import { TourTimeline } from './TourProgress';
 import type { TourProgressStore } from '@/runtime/tourProgress';
 
@@ -135,7 +136,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
   const active = mode === 'explore' || mode === 'seated';
   const usingComputer = mode === 'seated' && typeof seatedChair === 'string' && seatedChair.startsWith('studio-computer-');
   const modal = mode === 'loading' || mode === 'welcome' || mode === 'menu' || mode === 'error' || mode === 'handoff';
-  const measuredProgress = typeof loading?.progress === 'number' && Number.isFinite(loading.progress) ? Math.max(0, Math.min(1, loading.progress)) : null;
+  if (mode === 'loading' || mode === 'welcome' || mode === 'error') return <MaquetteIntro state={mode === 'welcome' ? 'ready' : mode} loading={loading} error={error} onEnter={onExploreDirect || onExplore} onCinematic={onCinematic || onRestart} onRetry={onRetry} />;
   return <div className={`lounge-interface mode-${mode}${reducedMotion ? ' reduced-motion' : ''}`}>
     <header className="lounge-header" aria-hidden={modal ? true : undefined}>
       <div className="lounge-brand"><span className="brand-mark">md.</span><span className="brand-rule" /><span className="brand-name">The Lounge<span>motiondesign.ad</span></span></div>
@@ -145,25 +146,6 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
         {!modal && onMenu && <button type="button" className="icon-button" aria-label="Open experience menu" title="Menu" onClick={onMenu}><Icon name="menu" /></button>}
       </div>
     </header>
-
-    {mode === 'loading' && <div className="loading-layer"><div className="loading-content" role="status" aria-live="polite">
-      <div className="loading-emblem" aria-hidden="true"><span>md.</span><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" /><circle className={measuredProgress === null ? 'loading-orbit' : 'loading-measured'} cx="60" cy="60" r="56" style={measuredProgress !== null ? { strokeDasharray: 352, strokeDashoffset: 352 * (1 - measuredProgress) } : undefined} /></svg></div>
-      <p className="eyebrow">A space worth experiencing</p><h1>Preparing your visit.</h1>
-      <p className="loading-phase">{loading?.phase || 'Preparing the scene'}{measuredProgress !== null && <span className="loading-percentage" aria-hidden="true">{Math.round(measuredProgress * 100)}%</span>}</p>
-      {loading?.detail && <p className="loading-detail">{loading.detail}</p>}
-      {measuredProgress !== null && <progress className="visually-hidden" aria-label={loading?.phase || 'Loading scene'} value={measuredProgress} max={1} />}
-      <div className="loading-footnote"><Icon name="sun" size={14} /><span>Architecture, light, and a little time to take it in.</span></div>
-    </div><p className="loading-bottom">Preparing the space for your visit.</p></div>}
-
-    {mode === 'error' && <div className="modal-layer"><FocusPanel label="Scene could not load" className="error-panel"><p className="eyebrow">The lounge</p><h1>A moment, please.</h1><p className="panel-copy">{error || 'The scene could not be loaded. Check your connection and try again.'}</p><div className="panel-actions">{onRetry && <button className="button button-primary" type="button" onClick={onRetry}>Try again<Icon name="arrow" /></button>}</div><p className="panel-note">A recent browser with hardware acceleration gives this space its best light.</p></FocusPanel></div>}
-
-    {mode === 'welcome' && <div className="welcome-layer"><FocusPanel label="Choose your experience" className="welcome-panel">
-      <p className="eyebrow">The presentation lounge</p><h1>Come on in.</h1><p className="panel-copy">Find your own perspective, or let the architecture lead the way.</p>
-      <div className="welcome-choices">
-        <button type="button" className="experience-choice" onClick={onExploreDirect || onExplore}><span className="choice-icon"><Icon name="move" size={22} /></span><span><strong>Explore</strong><small>Walk freely through the space.</small></span><Icon name="arrow" /></button>
-        <button type="button" className="experience-choice" onClick={onCinematic || onRestart}><span className="choice-icon"><Icon name="play" size={22} /></span><span><strong>Cinematic</strong><small>A {duration}-second guided perspective.</small></span><Icon name="arrow" /></button>
-      </div><p className="panel-note">Take your time.</p>
-    </FocusPanel></div>}
 
     {cinematic && <div className="cinematic-hud" aria-hidden={mode === 'handoff' ? true : undefined}>
       <div className="tour-caption"><p className="eyebrow">A guided perspective</p><p className="tour-title">Space. Light. Possibility.</p></div>

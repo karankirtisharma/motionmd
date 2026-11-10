@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type ComponentType } from 'react';
 import LoungeEntry from '@/studio/components/LoungeEntry';
+import MaquetteIntro, { MaquettePreferences } from '@/components/maquette/MaquetteIntro';
 
-export default function Home() { return <LoungeEntry><LoungeLaunch /></LoungeEntry>; }
+export default function Home() { return <MaquettePreferences><LoungeEntry><LoungeLaunch /></LoungeEntry></MaquettePreferences>; }
 
 // The chooser and the Android redirect do not need the lounge UI or its
 // diagnostics. Mounting this component means the visitor explicitly chose 3D.
@@ -20,16 +21,5 @@ function LoungeLaunch() {
   }, [attempt]);
 
   if (Experience) return <Experience />;
-  return <main className="welcome-layer">
-    <section className="lounge-panel welcome-panel" aria-label="Opening the lounge">
-      <p className="eyebrow">The lounge</p>
-      {failed ? <>
-        <h1>We couldn’t open the lounge.</h1>
-        <div className="panel-actions">
-          <button type="button" className="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>Try again</button>
-          <a className="button button-quiet" href="/studio?entry=direct">Open the studio</a>
-        </div>
-      </> : <p className="panel-copy" role="status">Opening the 3D lounge…</p>}
-    </section>
-  </main>;
+  return <MaquetteIntro state={failed ? 'error' : 'boot'} error="We couldn’t open the lounge. Check your connection and try again." onRetry={() => { setFailed(false); setAttempt(value => value + 1); }} />;
 }
