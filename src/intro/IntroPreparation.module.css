@@ -1,7 +1,7 @@
 .screen {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 201;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -15,12 +15,20 @@
   font-weight: 400;
   letter-spacing: -.045em;
   line-height: 1.2;
-  animation: breathe 2.4s cubic-bezier(.45, 0, .55, 1) infinite;
+  animation: arrive 1100ms cubic-bezier(.22, 1, .36, 1) both;
 }
-@keyframes breathe {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .55; }
+/* Composite-only, single reveal. Loading never restarts the wordmark. */
+@keyframes arrive {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.screen[data-leaving="true"] {
+  animation: depart 600ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes depart {
+  to { opacity: 0; visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) {
   .brand { animation: none; }
+  .screen[data-leaving="true"] { animation-duration: 160ms; }
 }

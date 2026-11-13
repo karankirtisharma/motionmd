@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import IntroPreparation from '@/intro/IntroPreparation';
 import LivingMaquetteLoader from '@/intro/LivingMaquetteLoader';
 import { createWorldIntroHost } from '@/intro/worldIntroHost.mjs';
 import { useMaquettePreferences } from '@/components/maquette/MaquetteIntro';
@@ -207,7 +206,7 @@ export default function LoungeHome() {
     {introOpen && (introStarted ? <LivingMaquetteLoader host={introHost} initialReducedMotion={introReduced} onExit={() => {
       setIntroOpen(false); dismissWelcome();
       runtime.current?.setStudioCovered(false); resume();
-    }} /> : <IntroPreparation />)}
+    }} /> : null)}
     <div hidden={introOpen || transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}

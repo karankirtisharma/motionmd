@@ -455,8 +455,15 @@ export function mountLivingMaquette(container, options = {}) {
     });
     if (name === stillShown) return;
     stillShown = name;
-    refs.poster.onerror = () => { refs.poster.dataset.visible = 'false'; };
-    refs.poster.onload = () => { if (ui.graphics !== '3d') refs.poster.dataset.visible = 'true'; };
+    refs.poster.onerror = () => {
+      refs.poster.dataset.visible = 'false';
+      if (!disposed && ui.graphics === 'still') emitEvent('intro_still_ready', { unavailable: true });
+    };
+    refs.poster.onload = () => {
+      if (disposed) return;
+      if (ui.graphics !== '3d') refs.poster.dataset.visible = 'true';
+      if (ui.graphics === 'still') emitEvent('intro_still_ready', {});
+    };
     refs.poster.src = `${base}images/stills/${name}.webp`;
   }
 
@@ -525,6 +532,8 @@ export function mountLivingMaquette(container, options = {}) {
         onInterfaceCues: applyCues,
       });
       director.start();
+      // Commit a populated canvas before replacing the poster or releasing the splash.
+      stage.renderOnce();
       ui.graphics = '3d';
       root.dataset.graphics = '3d';
       render();
