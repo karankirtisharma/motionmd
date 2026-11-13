@@ -1,0 +1,366 @@
+{
+  "evidence": "simulated host, headless Chrome software renderer",
+  "base": "http://127.0.0.1:8080/index.html",
+  "captures": [
+    {
+      "id": "D01",
+      "file": "docs/evidence/captures/D01.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing the studio",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D01_vs_approved.jpg"
+    },
+    {
+      "id": "D02",
+      "file": "docs/evidence/captures/D02.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing the structure",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D02_vs_approved.jpg"
+    },
+    {
+      "id": "D03",
+      "file": "docs/evidence/captures/D03.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing lighting",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D03_vs_approved.jpg"
+    },
+    {
+      "id": "D04",
+      "file": "docs/evidence/captures/D04.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Small details. A room that feels yours.",
+      "status": "Preparing room details",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D04_vs_approved.jpg"
+    },
+    {
+      "id": "D05",
+      "file": "docs/evidence/captures/D05.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing Motion floor",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D05_vs_approved.jpg"
+    },
+    {
+      "id": "D06",
+      "file": "docs/evidence/captures/D06.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing lighting",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D06_vs_approved.jpg"
+    },
+    {
+      "id": "D07",
+      "file": "docs/evidence/captures/D07.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing the room",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D07_vs_approved.jpg"
+    },
+    {
+      "id": "D08",
+      "file": "docs/evidence/captures/D08.jpg",
+      "problems": [],
+      "mode": "ready",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "The lounge is ready for you.",
+      "status": "Ready to enter",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D08_vs_approved.jpg"
+    },
+    {
+      "id": "D09",
+      "file": "docs/evidence/captures/D09.jpg",
+      "problems": [],
+      "mode": "slow",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your room is still preparing.",
+      "status": "Still preparing the studio",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D09_vs_approved.jpg"
+    },
+    {
+      "id": "D10",
+      "file": "docs/evidence/captures/D10.jpg",
+      "problems": [],
+      "mode": "failed",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "A small pause. Your room is still here.",
+      "status": "Preparation paused",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D10_vs_approved.jpg"
+    },
+    {
+      "id": "D11",
+      "file": "docs/evidence/captures/D11.jpg",
+      "problems": [],
+      "mode": "light-landing",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "A quieter way to explore.",
+      "status": "Lite Version",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D11_vs_approved.jpg"
+    },
+    {
+      "id": "D12",
+      "file": "docs/evidence/captures/D12.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing lighting",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D12_vs_approved.jpg"
+    },
+    {
+      "id": "D13",
+      "file": "docs/evidence/captures/D13.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing the room",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/D13_vs_approved.jpg"
+    },
+    {
+      "id": "M01",
+      "file": "docs/evidence/captures/M01.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing lighting",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M01_vs_approved.jpg"
+    },
+    {
+      "id": "M02",
+      "file": "docs/evidence/captures/M02.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing Motion floor",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M02_vs_approved.jpg"
+    },
+    {
+      "id": "M03",
+      "file": "docs/evidence/captures/M03.jpg",
+      "problems": [],
+      "mode": "ready",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Your room is ready.",
+      "status": "Ready to enter",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M03_vs_approved.jpg"
+    },
+    {
+      "id": "M04",
+      "file": "docs/evidence/captures/M04.jpg",
+      "problems": [],
+      "mode": "slow",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "A little longer.",
+      "status": "Still preparing the studio",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M04_vs_approved.jpg"
+    },
+    {
+      "id": "M05",
+      "file": "docs/evidence/captures/M05.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing the room",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M05_vs_approved.jpg"
+    },
+    {
+      "id": "M06",
+      "file": "docs/evidence/captures/M06.jpg",
+      "problems": [],
+      "mode": "ready",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Your room is ready.",
+      "status": "Ready to enter",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M06_vs_approved.jpg"
+    },
+    {
+      "id": "M07",
+      "file": "docs/evidence/captures/M07.jpg",
+      "problems": [],
+      "mode": "failed",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "A small pause. Your room is still here.",
+      "status": "Preparation paused",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M07_vs_approved.jpg"
+    },
+    {
+      "id": "M08",
+      "file": "docs/evidence/captures/M08.jpg",
+      "problems": [],
+      "mode": "retrying",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "Let us prepare that again.",
+      "status": "Trying again",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M08_vs_approved.jpg"
+    },
+    {
+      "id": "M09",
+      "file": "docs/evidence/captures/M09.jpg",
+      "problems": [],
+      "mode": "light-landing",
+      "layout": "stacked",
+      "graphics": "3d",
+      "heading": "A quieter way to explore.",
+      "status": "Lite Version",
+      "scroll": [
+        390,
+        844
+      ],
+      "comparison": "docs/evidence/captures/M09_vs_approved.jpg"
+    },
+    {
+      "id": "R01",
+      "file": "docs/evidence/captures/R01.jpg",
+      "problems": [],
+      "mode": "loading",
+      "layout": "desktop",
+      "graphics": "3d",
+      "heading": "Your first room is taking shape.",
+      "status": "Preparing lighting",
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/R01_vs_approved.jpg"
+    },
+    {
+      "id": "T01",
+      "file": "docs/evidence/captures/T01.jpg",
+      "problems": [],
+      "mode": null,
+      "layout": null,
+      "graphics": "3d",
+      "heading": null,
+      "status": null,
+      "scroll": [
+        1440,
+        900
+      ],
+      "comparison": "docs/evidence/captures/T01_vs_approved.jpg"
+    }
+  ]
+}

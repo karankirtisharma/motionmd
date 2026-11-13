@@ -1,0 +1,7535 @@
+{
+  "schema_version": 2,
+  "units": "meters (maquette proportional scene)",
+  "coordinate_system": {
+    "source": "Blender Z-up",
+    "GLB": "glTF Y-up",
+    "convert_position": "[x, y, z] in Blender becomes [x, z, -y] in glTF",
+    "assembly_delta_rule": "Convert the difference exploded_positions minus ready_positions, then add to each imported glTF node rest position."
+  },
+  "canonical_camera": {
+    "position": [
+      -12.0,
+      -18.0,
+      6.800000190734863
+    ],
+    "target": [
+      0,
+      0,
+      3.4
+    ],
+    "orthographic_scale": 18.5,
+    "shift_x": -0.17000000178813934
+  },
+  "collections": {
+    "PLINTH": [
+      "Plinth_oval_brushed_bronze",
+      "Plinth_lower_reveal",
+      "Plinth_top_highlight"
+    ],
+    "STONE": [
+      "Floor_lower_travertine",
+      "Floor_upper_travertine",
+      "Floor_upper_front_bridge",
+      "Floor_upper_rear_bridge",
+      "Roof_travertine",
+      "Column_lower_0",
+      "Column_lower_1",
+      "Column_lower_2",
+      "Column_upper_0",
+      "Column_upper_1",
+      "Column_upper_2"
+    ],
+    "GLAZING": [
+      "Mullion_left_s0_0",
+      "Mullion_left_s0_1",
+      "Mullion_left_s0_2",
+      "Mullion_left_s0_3",
+      "Glass_left_s0_0",
+      "Glass_left_s0_0_frameV_-1",
+      "Glass_left_s0_0_frameH_-1",
+      "Glass_left_s0_0_frameV_1",
+      "Glass_left_s0_0_frameH_1",
+      "Glass_left_s0_1",
+      "Glass_left_s0_1_frameV_-1",
+      "Glass_left_s0_1_frameH_-1",
+      "Glass_left_s0_1_frameV_1",
+      "Glass_left_s0_1_frameH_1",
+      "Glass_left_s0_2",
+      "Glass_left_s0_2_frameV_-1",
+      "Glass_left_s0_2_frameH_-1",
+      "Glass_left_s0_2_frameV_1",
+      "Glass_left_s0_2_frameH_1",
+      "Mullion_front_s0_0",
+      "Mullion_front_s0_1",
+      "Mullion_front_s0_2",
+      "Mullion_front_s0_3",
+      "Mullion_front_s0_4",
+      "Glass_front_s0_0",
+      "Glass_front_s0_0_frameV_-1",
+      "Glass_front_s0_0_frameH_-1",
+      "Glass_front_s0_0_frameV_1",
+      "Glass_front_s0_0_frameH_1",
+      "Glass_front_s0_1",
+      "Glass_front_s0_1_frameV_-1",
+      "Glass_front_s0_1_frameH_-1",
+      "Glass_front_s0_1_frameV_1",
+      "Glass_front_s0_1_frameH_1",
+      "Glass_front_s0_2",
+      "Glass_front_s0_2_frameV_-1",
+      "Glass_front_s0_2_frameH_-1",
+      "Glass_front_s0_2_frameV_1",
+      "Glass_front_s0_2_frameH_1",
+      "Glass_front_s0_3",
+      "Glass_front_s0_3_frameV_-1",
+      "Glass_front_s0_3_frameH_-1",
+      "Glass_front_s0_3_frameV_1",
+      "Glass_front_s0_3_frameH_1",
+      "Glazing_header_s0_-2.74",
+      "Glazing_header_s0_2.74",
+      "Glazing_side_header_s0",
+      "Mullion_left_s1_0",
+      "Mullion_left_s1_1",
+      "Mullion_left_s1_2",
+      "Mullion_left_s1_3",
+      "Glass_left_s1_0",
+      "Glass_left_s1_0_frameV_-1",
+      "Glass_left_s1_0_frameH_-1",
+      "Glass_left_s1_0_frameV_1",
+      "Glass_left_s1_0_frameH_1",
+      "Glass_left_s1_1",
+      "Glass_left_s1_1_frameV_-1",
+      "Glass_left_s1_1_frameH_-1",
+      "Glass_left_s1_1_frameV_1",
+      "Glass_left_s1_1_frameH_1",
+      "Glass_left_s1_2",
+      "Glass_left_s1_2_frameV_-1",
+      "Glass_left_s1_2_frameH_-1",
+      "Glass_left_s1_2_frameV_1",
+      "Glass_left_s1_2_frameH_1",
+      "Mullion_front_s1_0",
+      "Mullion_front_s1_1",
+      "Mullion_front_s1_2",
+      "Mullion_front_s1_3",
+      "Mullion_front_s1_4",
+      "Glass_front_s1_0",
+      "Glass_front_s1_0_frameV_-1",
+      "Glass_front_s1_0_frameH_-1",
+      "Glass_front_s1_0_frameV_1",
+      "Glass_front_s1_0_frameH_1",
+      "Glass_front_s1_1",
+      "Glass_front_s1_1_frameV_-1",
+      "Glass_front_s1_1_frameH_-1",
+      "Glass_front_s1_1_frameV_1",
+      "Glass_front_s1_1_frameH_1",
+      "Glass_front_s1_2",
+      "Glass_front_s1_2_frameV_-1",
+      "Glass_front_s1_2_frameH_-1",
+      "Glass_front_s1_2_frameV_1",
+      "Glass_front_s1_2_frameH_1",
+      "Glass_front_s1_3",
+      "Glass_front_s1_3_frameV_-1",
+      "Glass_front_s1_3_frameH_-1",
+      "Glass_front_s1_3_frameV_1",
+      "Glass_front_s1_3_frameH_1",
+      "Glazing_header_s1_-2.74",
+      "Glazing_header_s1_2.74",
+      "Glazing_side_header_s1",
+      "Upper_guard_post",
+      "Upper_guard_post.001",
+      "Upper_guard_post.002",
+      "Upper_guard_top",
+      "Glass_upper_internal_guard",
+      "Glass_upper_internal_guard_frameV_-1",
+      "Glass_upper_internal_guard_frameH_-1",
+      "Glass_upper_internal_guard_frameV_1",
+      "Glass_upper_internal_guard_frameH_1"
+    ],
+    "STAIR": [
+      "Stair_tread_01",
+      "Stair_riser_light_01",
+      "Stair_tread_02",
+      "Stair_riser_light_02",
+      "Stair_tread_03",
+      "Stair_riser_light_03",
+      "Stair_tread_04",
+      "Stair_riser_light_04",
+      "Stair_tread_05",
+      "Stair_riser_light_05",
+      "Stair_tread_06",
+      "Stair_riser_light_06",
+      "Stair_tread_07",
+      "Stair_riser_light_07",
+      "Stair_tread_08",
+      "Stair_riser_light_08",
+      "Stair_tread_09",
+      "Stair_riser_light_09",
+      "Stair_tread_10",
+      "Stair_riser_light_10",
+      "Stair_tread_11",
+      "Stair_riser_light_11",
+      "Stair_tread_12",
+      "Stair_riser_light_12",
+      "Stair_tread_13",
+      "Stair_riser_light_13",
+      "Stair_tread_14",
+      "Stair_riser_light_14",
+      "Stair_tread_15",
+      "Stair_riser_light_15",
+      "Stair_tread_16",
+      "Stair_riser_light_16",
+      "Stair_tread_17",
+      "Stair_riser_light_17",
+      "Stair_tread_18",
+      "Stair_riser_light_18",
+      "Stair_tread_19",
+      "Stair_riser_light_19",
+      "Stair_tread_20",
+      "Stair_riser_light_20",
+      "Stair_tread_21",
+      "Stair_riser_light_21",
+      "Stair_tread_22",
+      "Stair_riser_light_22",
+      "Stair_continuous_bronze_guard"
+    ],
+    "SHELVING": [
+      "Shelf_backing_walnut",
+      "Shelf_horizontal_0",
+      "Shelf_horizontal_1",
+      "Shelf_horizontal_2",
+      "Shelf_horizontal_3",
+      "Shelf_vertical_0",
+      "Shelf_vertical_1",
+      "Shelf_vertical_2",
+      "Shelf_vertical_3",
+      "Shelf_vertical_4",
+      "Shelf_vertical_5",
+      "Shelf_bronze_border_top",
+      "Shelf_bronze_border_side",
+      "Shelf_bronze_border_side.001",
+      "Shelf_warm_reveal",
+      "Shelf_warm_reveal.001"
+    ],
+    "FURNITURE": [
+      "LoungeChair_Swivel",
+      "LoungeChair_Foot_0",
+      "LoungeChair_Foot_1",
+      "LoungeChair_Foot_2",
+      "LoungeChair_Foot_3",
+      "LoungeChair_LowerShell",
+      "LoungeChair_SeatCushion",
+      "LoungeChair_BackCushion",
+      "LoungeChair_BackShell",
+      "LoungeChair_LeftArm",
+      "LoungeChair_ArmSupport_-1",
+      "LoungeChair_RightArm",
+      "LoungeChair_ArmSupport_1",
+      "LoungeChair_SeatPiping",
+      "LoungeChair_BackPiping",
+      "LoungeChair_BackCentreSeam",
+      "BronzeTable_LowDrum",
+      "BronzeTable_InsetTop",
+      "BronzeTable_BookPages_0",
+      "BronzeTable_BookCover_0_-1",
+      "BronzeTable_BookCover_0_1",
+      "BronzeTable_BookPages_1",
+      "BronzeTable_BookCover_1_-1",
+      "BronzeTable_BookCover_1_1",
+      "BronzeTable_BookPages_2",
+      "BronzeTable_BookCover_2_-1",
+      "BronzeTable_BookCover_2_1"
+    ],
+    "SCULPTURE": [
+      "RibbonStudy_StonePedestal",
+      "RibbonStudy_RibbonSurface"
+    ],
+    "PLANTS": [
+      "TreeLower_BronzePlanter",
+      "TreeLower_Soil",
+      "TreeLower_Trunk",
+      "TreeLower_Branch_0",
+      "TreeLower_Twig_0_0",
+      "TreeLower_Twig_0_1",
+      "TreeLower_Twig_0_2",
+      "TreeLower_Twig_0_3",
+      "TreeLower_Branch_1",
+      "TreeLower_Twig_1_0",
+      "TreeLower_Twig_1_1",
+      "TreeLower_Twig_1_2",
+      "TreeLower_Twig_1_3",
+      "TreeLower_Branch_2",
+      "TreeLower_Twig_2_0",
+      "TreeLower_Twig_2_1",
+      "TreeLower_Twig_2_2",
+      "TreeLower_Twig_2_3",
+      "TreeLower_Branch_3",
+      "TreeLower_Twig_3_0",
+      "TreeLower_Twig_3_1",
+      "TreeLower_Twig_3_2",
+      "TreeLower_Twig_3_3",
+      "TreeLower_Branch_4",
+      "TreeLower_Twig_4_0",
+      "TreeLower_Twig_4_1",
+      "TreeLower_Twig_4_2",
+      "TreeLower_Twig_4_3",
+      "TreeLower_Branch_5",
+      "TreeLower_Twig_5_0",
+      "TreeLower_Twig_5_1",
+      "TreeLower_Twig_5_2",
+      "TreeLower_Twig_5_3",
+      "TreeLower_Branch_6",
+      "TreeLower_Twig_6_0",
+      "TreeLower_Twig_6_1",
+      "TreeLower_Twig_6_2",
+      "TreeLower_Twig_6_3",
+      "TreeLower_Branch_7",
+      "TreeLower_Twig_7_0",
+      "TreeLower_Twig_7_1",
+      "TreeLower_Twig_7_2",
+      "TreeLower_Twig_7_3",
+      "TreeLower_Branch_8",
+      "TreeLower_Twig_8_0",
+      "TreeLower_Twig_8_1",
+      "TreeLower_Twig_8_2",
+      "TreeLower_Twig_8_3",
+      "TreeLower_Branch_9",
+      "TreeLower_Twig_9_0",
+      "TreeLower_Twig_9_1",
+      "TreeLower_Twig_9_2",
+      "TreeLower_Twig_9_3",
+      "TreeLower_Branch_10",
+      "TreeLower_Twig_10_0",
+      "TreeLower_Twig_10_1",
+      "TreeLower_Twig_10_2",
+      "TreeLower_Twig_10_3",
+      "TreeLower_Branch_11",
+      "TreeLower_Twig_11_0",
+      "TreeLower_Twig_11_1",
+      "TreeLower_Twig_11_2",
+      "TreeLower_Twig_11_3",
+      "TreeLower_Foliage",
+      "TreeUpper_BronzePlanter",
+      "TreeUpper_Soil",
+      "TreeUpper_Trunk",
+      "TreeUpper_Branch_0",
+      "TreeUpper_Twig_0_0",
+      "TreeUpper_Twig_0_1",
+      "TreeUpper_Twig_0_2",
+      "TreeUpper_Twig_0_3",
+      "TreeUpper_Branch_1",
+      "TreeUpper_Twig_1_0",
+      "TreeUpper_Twig_1_1",
+      "TreeUpper_Twig_1_2",
+      "TreeUpper_Twig_1_3",
+      "TreeUpper_Branch_2",
+      "TreeUpper_Twig_2_0",
+      "TreeUpper_Twig_2_1",
+      "TreeUpper_Twig_2_2",
+      "TreeUpper_Twig_2_3",
+      "TreeUpper_Branch_3",
+      "TreeUpper_Twig_3_0",
+      "TreeUpper_Twig_3_1",
+      "TreeUpper_Twig_3_2",
+      "TreeUpper_Twig_3_3",
+      "TreeUpper_Branch_4",
+      "TreeUpper_Twig_4_0",
+      "TreeUpper_Twig_4_1",
+      "TreeUpper_Twig_4_2",
+      "TreeUpper_Twig_4_3",
+      "TreeUpper_Branch_5",
+      "TreeUpper_Twig_5_0",
+      "TreeUpper_Twig_5_1",
+      "TreeUpper_Twig_5_2",
+      "TreeUpper_Twig_5_3",
+      "TreeUpper_Branch_6",
+      "TreeUpper_Twig_6_0",
+      "TreeUpper_Twig_6_1",
+      "TreeUpper_Twig_6_2",
+      "TreeUpper_Twig_6_3",
+      "TreeUpper_Branch_7",
+      "TreeUpper_Twig_7_0",
+      "TreeUpper_Twig_7_1",
+      "TreeUpper_Twig_7_2",
+      "TreeUpper_Twig_7_3",
+      "TreeUpper_Branch_8",
+      "TreeUpper_Twig_8_0",
+      "TreeUpper_Twig_8_1",
+      "TreeUpper_Twig_8_2",
+      "TreeUpper_Twig_8_3",
+      "TreeUpper_Branch_9",
+      "TreeUpper_Twig_9_0",
+      "TreeUpper_Twig_9_1",
+      "TreeUpper_Twig_9_2",
+      "TreeUpper_Twig_9_3",
+      "TreeUpper_Branch_10",
+      "TreeUpper_Twig_10_0",
+      "TreeUpper_Twig_10_1",
+      "TreeUpper_Twig_10_2",
+      "TreeUpper_Twig_10_3",
+      "TreeUpper_Branch_11",
+      "TreeUpper_Twig_11_0",
+      "TreeUpper_Twig_11_1",
+      "TreeUpper_Twig_11_2",
+      "TreeUpper_Twig_11_3",
+      "TreeUpper_Foliage"
+    ],
+    "ACCESSORIES": [
+      "ShelfObjects_Vase_0_0",
+      "ShelfObjects_ShelfBook_0_1_0",
+      "ShelfObjects_ShelfBook_0_1_1",
+      "ShelfObjects_ShelfBook_0_1_2",
+      "ShelfObjects_ShelfBook_0_1_3",
+      "ShelfObjects_HorizontalBook_0_2_0",
+      "ShelfObjects_HorizontalBook_0_2_1",
+      "ShelfObjects_HorizontalBook_0_2_2",
+      "ShelfObjects_Vase_0_3",
+      "ShelfObjects_ShelfBook_0_4_0",
+      "ShelfObjects_ShelfBook_0_4_1",
+      "ShelfObjects_ShelfBook_0_4_2",
+      "ShelfObjects_ShelfBook_0_4_3",
+      "ShelfObjects_Vase_1_0",
+      "ShelfObjects_ShelfBook_1_1_0",
+      "ShelfObjects_ShelfBook_1_1_1",
+      "ShelfObjects_ShelfBook_1_1_2",
+      "ShelfObjects_ShelfBook_1_1_3",
+      "ShelfObjects_Vase_1_2",
+      "ShelfObjects_ShelfBook_1_3_0",
+      "ShelfObjects_ShelfBook_1_3_1",
+      "ShelfObjects_ShelfBook_1_3_2",
+      "ShelfObjects_ShelfBook_1_3_3",
+      "ShelfObjects_HorizontalBook_1_4_0",
+      "ShelfObjects_HorizontalBook_1_4_1",
+      "ShelfObjects_HorizontalBook_1_4_2",
+      "ShelfObjects_ShelfBook_2_0_0",
+      "ShelfObjects_ShelfBook_2_0_1",
+      "ShelfObjects_ShelfBook_2_0_2",
+      "ShelfObjects_ShelfBook_2_0_3",
+      "ShelfObjects_HorizontalBook_2_1_0",
+      "ShelfObjects_HorizontalBook_2_1_1",
+      "ShelfObjects_HorizontalBook_2_1_2",
+      "ShelfObjects_Vase_2_2",
+      "ShelfObjects_ShelfBook_2_3_0",
+      "ShelfObjects_ShelfBook_2_3_1",
+      "ShelfObjects_ShelfBook_2_3_2",
+      "ShelfObjects_ShelfBook_2_3_3",
+      "ShelfObjects_Vase_2_4"
+    ],
+    "WORKSPACE": [
+      "Workstation_1_DeskTop",
+      "Workstation_1_DeskUnderframe",
+      "Workstation_1_DeskLeg_-0.724_-0.295",
+      "Workstation_1_FootPad_-0.724_-0.295",
+      "Workstation_1_DeskLeg_-0.724_0.295",
+      "Workstation_1_FootPad_-0.724_0.295",
+      "Workstation_1_DeskLeg_0.724_-0.295",
+      "Workstation_1_FootPad_0.724_-0.295",
+      "Workstation_1_DeskLeg_0.724_0.295",
+      "Workstation_1_FootPad_0.724_0.295",
+      "Workstation_1_MonitorBase",
+      "Workstation_1_MonitorStem",
+      "Workstation_1_MonitorCasing",
+      "Workstation_1_MonitorScreen",
+      "Workstation_1_MonitorChin",
+      "Workstation_1_MonitorPowerDot",
+      "Workstation_1_MonitorCable",
+      "Workstation_1_KeyboardBody",
+      "Workstation_1_Keycaps",
+      "Workstation_1_Mouse",
+      "Workstation_1_ChairLift",
+      "Workstation_1_ChairCollar",
+      "Workstation_1_ChairFoot_0",
+      "Workstation_1_Caster_0",
+      "Workstation_1_ChairFoot_1",
+      "Workstation_1_Caster_1",
+      "Workstation_1_ChairFoot_2",
+      "Workstation_1_Caster_2",
+      "Workstation_1_ChairFoot_3",
+      "Workstation_1_Caster_3",
+      "Workstation_1_ChairFoot_4",
+      "Workstation_1_Caster_4",
+      "Workstation_1_TaskSeat",
+      "Workstation_1_TaskSeatShell",
+      "Workstation_1_TaskBack",
+      "Workstation_1_TaskBackShell",
+      "Workstation_1_ArmFrame_-1",
+      "Workstation_1_ArmPad_-1",
+      "Workstation_1_ArmFrame_1",
+      "Workstation_1_ArmPad_1",
+      "Workstation_1_TaskBackSeam",
+      "Workstation_2_DeskTop",
+      "Workstation_2_DeskUnderframe",
+      "Workstation_2_DeskLeg_-0.724_-0.295",
+      "Workstation_2_FootPad_-0.724_-0.295",
+      "Workstation_2_DeskLeg_-0.724_0.295",
+      "Workstation_2_FootPad_-0.724_0.295",
+      "Workstation_2_DeskLeg_0.724_-0.295",
+      "Workstation_2_FootPad_0.724_-0.295",
+      "Workstation_2_DeskLeg_0.724_0.295",
+      "Workstation_2_FootPad_0.724_0.295",
+      "Workstation_2_MonitorBase",
+      "Workstation_2_MonitorStem",
+      "Workstation_2_MonitorCasing",
+      "Workstation_2_MonitorScreen",
+      "Workstation_2_MonitorChin",
+      "Workstation_2_MonitorPowerDot",
+      "Workstation_2_MonitorCable",
+      "Workstation_2_KeyboardBody",
+      "Workstation_2_Keycaps",
+      "Workstation_2_Mouse",
+      "Workstation_2_ChairLift",
+      "Workstation_2_ChairCollar",
+      "Workstation_2_ChairFoot_0",
+      "Workstation_2_Caster_0",
+      "Workstation_2_ChairFoot_1",
+      "Workstation_2_Caster_1",
+      "Workstation_2_ChairFoot_2",
+      "Workstation_2_Caster_2",
+      "Workstation_2_ChairFoot_3",
+      "Workstation_2_Caster_3",
+      "Workstation_2_ChairFoot_4",
+      "Workstation_2_Caster_4",
+      "Workstation_2_TaskSeat",
+      "Workstation_2_TaskSeatShell",
+      "Workstation_2_TaskBack",
+      "Workstation_2_TaskBackShell",
+      "Workstation_2_ArmFrame_-1",
+      "Workstation_2_ArmPad_-1",
+      "Workstation_2_ArmFrame_1",
+      "Workstation_2_ArmPad_1",
+      "Workstation_2_TaskBackSeam",
+      "Workstation_3_DeskTop",
+      "Workstation_3_DeskUnderframe",
+      "Workstation_3_DeskLeg_-0.724_-0.295",
+      "Workstation_3_FootPad_-0.724_-0.295",
+      "Workstation_3_DeskLeg_-0.724_0.295",
+      "Workstation_3_FootPad_-0.724_0.295",
+      "Workstation_3_DeskLeg_0.724_-0.295",
+      "Workstation_3_FootPad_0.724_-0.295",
+      "Workstation_3_DeskLeg_0.724_0.295",
+      "Workstation_3_FootPad_0.724_0.295",
+      "Workstation_3_MonitorBase",
+      "Workstation_3_MonitorStem",
+      "Workstation_3_MonitorCasing",
+      "Workstation_3_MonitorScreen",
+      "Workstation_3_MonitorChin",
+      "Workstation_3_MonitorPowerDot",
+      "Workstation_3_MonitorCable",
+      "Workstation_3_KeyboardBody",
+      "Workstation_3_Keycaps",
+      "Workstation_3_Mouse",
+      "Workstation_3_ChairLift",
+      "Workstation_3_ChairCollar",
+      "Workstation_3_ChairFoot_0",
+      "Workstation_3_Caster_0",
+      "Workstation_3_ChairFoot_1",
+      "Workstation_3_Caster_1",
+      "Workstation_3_ChairFoot_2",
+      "Workstation_3_Caster_2",
+      "Workstation_3_ChairFoot_3",
+      "Workstation_3_Caster_3",
+      "Workstation_3_ChairFoot_4",
+      "Workstation_3_Caster_4",
+      "Workstation_3_TaskSeat",
+      "Workstation_3_TaskSeatShell",
+      "Workstation_3_TaskBack",
+      "Workstation_3_TaskBackShell",
+      "Workstation_3_ArmFrame_-1",
+      "Workstation_3_ArmPad_-1",
+      "Workstation_3_ArmFrame_1",
+      "Workstation_3_ArmPad_1",
+      "Workstation_3_TaskBackSeam"
+    ],
+    "LIGHTS": [
+      "Ceiling_side_light",
+      "Ceiling_side_light.001",
+      "Ceiling_frontback_light",
+      "Ceiling_frontback_light.001",
+      "Ceiling_side_light.002",
+      "Ceiling_side_light.003",
+      "Ceiling_frontback_light.002",
+      "Ceiling_frontback_light.003",
+      "Key_softbox",
+      "Fill_softbox",
+      "Rim_strip",
+      "Sun_late_afternoon"
+    ],
+    "STUDIO": [
+      "Studio_ground",
+      "Camera_Hero"
+    ]
+  },
+  "ready_positions": {
+    "BronzeTable_BookCover_0_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.2999999523162842
+    ],
+    "BronzeTable_BookCover_0_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.350000023841858
+    ],
+    "BronzeTable_BookCover_1_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3600000143051147
+    ],
+    "BronzeTable_BookCover_1_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.409999966621399
+    ],
+    "BronzeTable_BookCover_2_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4200000762939453
+    ],
+    "BronzeTable_BookCover_2_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4700000286102295
+    ],
+    "BronzeTable_BookPages_0": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3250000476837158
+    ],
+    "BronzeTable_BookPages_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3849999904632568
+    ],
+    "BronzeTable_BookPages_2": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4449999332427979
+    ],
+    "BronzeTable_InsetTop": [
+      0.6399999856948853,
+      -1.5,
+      1.2820000648498535
+    ],
+    "BronzeTable_LowDrum": [
+      0.6399999856948853,
+      -1.5,
+      1.1150000095367432
+    ],
+    "Ceiling_frontback_light": [
+      0.0,
+      -2.4700000286102295,
+      3.5199999809265137
+    ],
+    "Ceiling_frontback_light.001": [
+      0.0,
+      2.4700000286102295,
+      3.5199999809265137
+    ],
+    "Ceiling_frontback_light.002": [
+      0.0,
+      -2.4700000286102295,
+      6.135000228881836
+    ],
+    "Ceiling_frontback_light.003": [
+      0.0,
+      2.4700000286102295,
+      6.135000228881836
+    ],
+    "Ceiling_side_light": [
+      -3.630000114440918,
+      0.0,
+      3.5199999809265137
+    ],
+    "Ceiling_side_light.001": [
+      3.630000114440918,
+      0.0,
+      3.5199999809265137
+    ],
+    "Ceiling_side_light.002": [
+      -3.630000114440918,
+      0.0,
+      6.135000228881836
+    ],
+    "Ceiling_side_light.003": [
+      3.630000114440918,
+      0.0,
+      6.135000228881836
+    ],
+    "Column_lower_0": [
+      -3.5,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_lower_1": [
+      -0.550000011920929,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_lower_2": [
+      3.5,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_upper_0": [
+      -3.299999952316284,
+      2.380000114440918,
+      4.960000038146973
+    ],
+    "Column_upper_1": [
+      0.20000000298023224,
+      2.380000114440918,
+      4.960000038146973
+    ],
+    "Column_upper_2": [
+      3.4000000953674316,
+      2.380000114440918,
+      4.960000038146973
+    ],
+    "Floor_lower_travertine": [
+      0.0,
+      0.0,
+      0.7900000214576721
+    ],
+    "Floor_upper_front_bridge": [
+      2.5399999618530273,
+      -2.0,
+      3.6500000953674316
+    ],
+    "Floor_upper_rear_bridge": [
+      2.5399999618530273,
+      2.5199999809265137,
+      3.6500000953674316
+    ],
+    "Floor_upper_travertine": [
+      -1.4600000381469727,
+      0.0,
+      3.6500000953674316
+    ],
+    "Glass_front_s0_0": [
+      -2.984999895095825,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_0_frameH_-1": [
+      -2.984999895095825,
+      -2.75,
+      0.9399999976158142
+    ],
+    "Glass_front_s0_0_frameH_1": [
+      -2.984999895095825,
+      -2.75,
+      3.5
+    ],
+    "Glass_front_s0_0_frameV_-1": [
+      -3.9549999237060547,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_0_frameV_1": [
+      -2.015000104904175,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_1": [
+      -0.9950000047683716,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_1_frameH_-1": [
+      -0.9950000047683716,
+      -2.75,
+      0.9399999976158142
+    ],
+    "Glass_front_s0_1_frameH_1": [
+      -0.9950000047683716,
+      -2.75,
+      3.5
+    ],
+    "Glass_front_s0_1_frameV_-1": [
+      -1.965000033378601,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_1_frameV_1": [
+      -0.02500000037252903,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_2": [
+      0.9950000047683716,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_2_frameH_-1": [
+      0.9950000047683716,
+      -2.75,
+      0.9399999976158142
+    ],
+    "Glass_front_s0_2_frameH_1": [
+      0.9950000047683716,
+      -2.75,
+      3.5
+    ],
+    "Glass_front_s0_2_frameV_-1": [
+      0.02500000037252903,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_2_frameV_1": [
+      1.965000033378601,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_3": [
+      2.984999895095825,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_3_frameH_-1": [
+      2.984999895095825,
+      -2.75,
+      0.9399999976158142
+    ],
+    "Glass_front_s0_3_frameH_1": [
+      2.984999895095825,
+      -2.75,
+      3.5
+    ],
+    "Glass_front_s0_3_frameV_-1": [
+      2.015000104904175,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s0_3_frameV_1": [
+      3.9549999237060547,
+      -2.75,
+      2.2200000286102295
+    ],
+    "Glass_front_s1_0": [
+      -2.984999895095825,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_0_frameH_-1": [
+      -2.984999895095825,
+      -2.75,
+      3.7899999618530273
+    ],
+    "Glass_front_s1_0_frameH_1": [
+      -2.984999895095825,
+      -2.75,
+      6.110000133514404
+    ],
+    "Glass_front_s1_0_frameV_-1": [
+      -3.9549999237060547,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_0_frameV_1": [
+      -2.015000104904175,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_1": [
+      -0.9950000047683716,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_1_frameH_-1": [
+      -0.9950000047683716,
+      -2.75,
+      3.7899999618530273
+    ],
+    "Glass_front_s1_1_frameH_1": [
+      -0.9950000047683716,
+      -2.75,
+      6.110000133514404
+    ],
+    "Glass_front_s1_1_frameV_-1": [
+      -1.965000033378601,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_1_frameV_1": [
+      -0.02500000037252903,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_2": [
+      0.9950000047683716,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_2_frameH_-1": [
+      0.9950000047683716,
+      -2.75,
+      3.7899999618530273
+    ],
+    "Glass_front_s1_2_frameH_1": [
+      0.9950000047683716,
+      -2.75,
+      6.110000133514404
+    ],
+    "Glass_front_s1_2_frameV_-1": [
+      0.02500000037252903,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_2_frameV_1": [
+      1.965000033378601,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_3": [
+      2.984999895095825,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_3_frameH_-1": [
+      2.984999895095825,
+      -2.75,
+      3.7899999618530273
+    ],
+    "Glass_front_s1_3_frameH_1": [
+      2.984999895095825,
+      -2.75,
+      6.110000133514404
+    ],
+    "Glass_front_s1_3_frameV_-1": [
+      2.015000104904175,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_front_s1_3_frameV_1": [
+      3.9549999237060547,
+      -2.75,
+      4.949999809265137
+    ],
+    "Glass_left_s0_0": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_0_frameH_-1": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      0.9350000023841858
+    ],
+    "Glass_left_s0_0_frameH_1": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      3.505000114440918
+    ],
+    "Glass_left_s0_0_frameV_-1": [
+      -3.984999895095825,
+      -2.694999933242798,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_0_frameV_1": [
+      -3.984999895095825,
+      -0.9449999928474426,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_1": [
+      -3.984999895095825,
+      0.0,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_1_frameH_-1": [
+      -3.984999895095825,
+      0.0,
+      0.9350000023841858
+    ],
+    "Glass_left_s0_1_frameH_1": [
+      -3.984999895095825,
+      0.0,
+      3.505000114440918
+    ],
+    "Glass_left_s0_1_frameV_-1": [
+      -3.984999895095825,
+      -0.8949999809265137,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_1_frameV_1": [
+      -3.984999895095825,
+      0.8949999809265137,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_2": [
+      -3.984999895095825,
+      1.8200000524520874,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_2_frameH_-1": [
+      -3.984999895095825,
+      1.8200000524520874,
+      0.9350000023841858
+    ],
+    "Glass_left_s0_2_frameH_1": [
+      -3.984999895095825,
+      1.8200000524520874,
+      3.505000114440918
+    ],
+    "Glass_left_s0_2_frameV_-1": [
+      -3.984999895095825,
+      0.9449999928474426,
+      2.2200000286102295
+    ],
+    "Glass_left_s0_2_frameV_1": [
+      -3.984999895095825,
+      2.694999933242798,
+      2.2200000286102295
+    ],
+    "Glass_left_s1_0": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      4.949999809265137
+    ],
+    "Glass_left_s1_0_frameH_-1": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      3.7850000858306885
+    ],
+    "Glass_left_s1_0_frameH_1": [
+      -3.984999895095825,
+      -1.8200000524520874,
+      6.114999771118164
+    ],
+    "Glass_left_s1_0_frameV_-1": [
+      -3.984999895095825,
+      -2.694999933242798,
+      4.949999809265137
+    ],
+    "Glass_left_s1_0_frameV_1": [
+      -3.984999895095825,
+      -0.9449999928474426,
+      4.949999809265137
+    ],
+    "Glass_left_s1_1": [
+      -3.984999895095825,
+      0.0,
+      4.949999809265137
+    ],
+    "Glass_left_s1_1_frameH_-1": [
+      -3.984999895095825,
+      0.0,
+      3.7850000858306885
+    ],
+    "Glass_left_s1_1_frameH_1": [
+      -3.984999895095825,
+      0.0,
+      6.114999771118164
+    ],
+    "Glass_left_s1_1_frameV_-1": [
+      -3.984999895095825,
+      -0.8949999809265137,
+      4.949999809265137
+    ],
+    "Glass_left_s1_1_frameV_1": [
+      -3.984999895095825,
+      0.8949999809265137,
+      4.949999809265137
+    ],
+    "Glass_left_s1_2": [
+      -3.984999895095825,
+      1.8200000524520874,
+      4.949999809265137
+    ],
+    "Glass_left_s1_2_frameH_-1": [
+      -3.984999895095825,
+      1.8200000524520874,
+      3.7850000858306885
+    ],
+    "Glass_left_s1_2_frameH_1": [
+      -3.984999895095825,
+      1.8200000524520874,
+      6.114999771118164
+    ],
+    "Glass_left_s1_2_frameV_-1": [
+      -3.984999895095825,
+      0.9449999928474426,
+      4.949999809265137
+    ],
+    "Glass_left_s1_2_frameV_1": [
+      -3.984999895095825,
+      2.694999933242798,
+      4.949999809265137
+    ],
+    "Glass_upper_internal_guard": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Glass_upper_internal_guard_frameH_-1": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      3.7699999809265137
+    ],
+    "Glass_upper_internal_guard_frameH_1": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      4.590000152587891
+    ],
+    "Glass_upper_internal_guard_frameV_-1": [
+      -3.190000057220459,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Glass_upper_internal_guard_frameV_1": [
+      2.0899999141693115,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Glazing_header_s0_-2.74": [
+      0.0,
+      -2.740000009536743,
+      3.5199999809265137
+    ],
+    "Glazing_header_s0_2.74": [
+      0.0,
+      2.740000009536743,
+      3.5199999809265137
+    ],
+    "Glazing_header_s1_-2.74": [
+      0.0,
+      -2.740000009536743,
+      6.130000114440918
+    ],
+    "Glazing_header_s1_2.74": [
+      0.0,
+      2.740000009536743,
+      6.130000114440918
+    ],
+    "Glazing_side_header_s0": [
+      -3.9800000190734863,
+      0.0,
+      3.5199999809265137
+    ],
+    "Glazing_side_header_s1": [
+      -3.9800000190734863,
+      0.0,
+      6.130000114440918
+    ],
+    "LoungeChair_ArmSupport_-1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_ArmSupport_1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackCentreSeam": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackCushion": [
+      -0.6947078704833984,
+      -0.7841546535491943,
+      1.9749999046325684
+    ],
+    "LoungeChair_BackPiping": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackShell": [
+      -0.6812584400177002,
+      -0.6951652765274048,
+      1.9549999237060547
+    ],
+    "LoungeChair_Foot_0": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_2": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_3": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_LeftArm": [
+      -1.2678968906402588,
+      -1.0970113277435303,
+      1.774999976158142
+    ],
+    "LoungeChair_LowerShell": [
+      -0.7477584481239319,
+      -1.135168433189392,
+      1.475000023841858
+    ],
+    "LoungeChair_RightArm": [
+      -0.23957502841949463,
+      -1.252427101135254,
+      1.774999976158142
+    ],
+    "LoungeChair_SeatCushion": [
+      -0.7619550824165344,
+      -1.2291016578674316,
+      1.600000023841858
+    ],
+    "LoungeChair_SeatPiping": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Swivel": [
+      -0.7425280809402466,
+      -1.1005613803863525,
+      1.1749999523162842
+    ],
+    "Mullion_front_s0_0": [
+      -3.9800000190734863,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_1": [
+      -1.9900000095367432,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_2": [
+      0.0,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_3": [
+      1.9900000095367432,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_4": [
+      3.9800000190734863,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s1_0": [
+      -3.9800000190734863,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_1": [
+      -1.9900000095367432,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_2": [
+      0.0,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_3": [
+      1.9900000095367432,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_4": [
+      3.9800000190734863,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_left_s0_0": [
+      -3.9800000190734863,
+      -2.7200000286102295,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_1": [
+      -3.9800000190734863,
+      -0.9200000166893005,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_2": [
+      -3.9800000190734863,
+      0.9200000166893005,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_3": [
+      -3.9800000190734863,
+      2.7200000286102295,
+      2.2200000286102295
+    ],
+    "Mullion_left_s1_0": [
+      -3.9800000190734863,
+      -2.7200000286102295,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_1": [
+      -3.9800000190734863,
+      -0.9200000166893005,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_2": [
+      -3.9800000190734863,
+      0.9200000166893005,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_3": [
+      -3.9800000190734863,
+      2.7200000286102295,
+      4.949999809265137
+    ],
+    "Plinth_lower_reveal": [
+      0.0,
+      0.0,
+      0.11500000208616257
+    ],
+    "Plinth_oval_brushed_bronze": [
+      0.0,
+      0.0,
+      0.3799999952316284
+    ],
+    "Plinth_top_highlight": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "RibbonStudy_RibbonSurface": [
+      1.2200000286102295,
+      0.05000000074505806,
+      0.9350000023841858
+    ],
+    "RibbonStudy_StonePedestal": [
+      1.2200000286102295,
+      0.05000000074505806,
+      1.0449999570846558
+    ],
+    "Roof_travertine": [
+      0.0,
+      0.0,
+      6.260000228881836
+    ],
+    "Shelf_backing_walnut": [
+      -1.0499999523162842,
+      1.8899999856948853,
+      2.180000066757202
+    ],
+    "Shelf_bronze_border_side": [
+      -3.640000104904175,
+      1.409999966621399,
+      2.200000047683716
+    ],
+    "Shelf_bronze_border_side.001": [
+      1.5399999618530273,
+      1.409999966621399,
+      2.200000047683716
+    ],
+    "Shelf_bronze_border_top": [
+      -1.0499999523162842,
+      1.409999966621399,
+      3.4800000190734863
+    ],
+    "Shelf_horizontal_0": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      0.9700000286102295
+    ],
+    "Shelf_horizontal_1": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      1.7899999618530273
+    ],
+    "Shelf_horizontal_2": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      2.609999895095825
+    ],
+    "Shelf_horizontal_3": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      3.430000066757202
+    ],
+    "Shelf_vertical_0": [
+      -3.5799999237060547,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_1": [
+      -2.569999933242798,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_2": [
+      -1.559999942779541,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_3": [
+      -0.550000011920929,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_4": [
+      0.46000000834465027,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_5": [
+      1.4700000286102295,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_warm_reveal": [
+      -1.0499999523162842,
+      1.4700000286102295,
+      2.6700000762939453
+    ],
+    "Shelf_warm_reveal.001": [
+      -1.0499999523162842,
+      1.4700000286102295,
+      3.4600000381469727
+    ],
+    "ShelfObjects_HorizontalBook_0_2_0": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.0449999570846558
+    ],
+    "ShelfObjects_HorizontalBook_0_2_1": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.090000033378601
+    ],
+    "ShelfObjects_HorizontalBook_0_2_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.1349999904632568
+    ],
+    "ShelfObjects_HorizontalBook_1_4_0": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.8650000095367432
+    ],
+    "ShelfObjects_HorizontalBook_1_4_1": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.909999966621399
+    ],
+    "ShelfObjects_HorizontalBook_1_4_2": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.9550000429153442
+    ],
+    "ShelfObjects_HorizontalBook_2_1_0": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.684999942779541
+    ],
+    "ShelfObjects_HorizontalBook_2_1_1": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.7300000190734863
+    ],
+    "ShelfObjects_HorizontalBook_2_1_2": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.7750000953674316
+    ],
+    "ShelfObjects_ShelfBook_0_1_0": [
+      -2.1689999103546143,
+      1.6100000143051147,
+      1.2138041257858276
+    ],
+    "ShelfObjects_ShelfBook_0_1_1": [
+      -2.1029999256134033,
+      1.6100000143051147,
+      1.2640057802200317
+    ],
+    "ShelfObjects_ShelfBook_0_1_2": [
+      -2.0369999408721924,
+      1.6100000143051147,
+      1.2949085235595703
+    ],
+    "ShelfObjects_ShelfBook_0_1_3": [
+      -1.9709999561309814,
+      1.6100000143051147,
+      1.2382090091705322
+    ],
+    "ShelfObjects_ShelfBook_0_4_0": [
+      0.8610000014305115,
+      1.6100000143051147,
+      1.2101842164993286
+    ],
+    "ShelfObjects_ShelfBook_0_4_1": [
+      0.9269999861717224,
+      1.6100000143051147,
+      1.214589238166809
+    ],
+    "ShelfObjects_ShelfBook_0_4_2": [
+      0.9929999709129333,
+      1.6100000143051147,
+      1.2328046560287476
+    ],
+    "ShelfObjects_ShelfBook_0_4_3": [
+      1.059000015258789,
+      1.6100000143051147,
+      1.201941728591919
+    ],
+    "ShelfObjects_ShelfBook_1_1_0": [
+      -2.1689999103546143,
+      1.6100000143051147,
+      2.0166242122650146
+    ],
+    "ShelfObjects_ShelfBook_1_1_1": [
+      -2.1029999256134033,
+      1.6100000143051147,
+      2.0793886184692383
+    ],
+    "ShelfObjects_ShelfBook_1_1_2": [
+      -2.0369999408721924,
+      1.6100000143051147,
+      2.0622458457946777
+    ],
+    "ShelfObjects_ShelfBook_1_1_3": [
+      -1.9709999561309814,
+      1.6100000143051147,
+      2.071061372756958
+    ],
+    "ShelfObjects_ShelfBook_1_3_0": [
+      -0.14900000393390656,
+      1.6100000143051147,
+      2.109335422515869
+    ],
+    "ShelfObjects_ShelfBook_1_3_1": [
+      -0.08299999684095383,
+      1.6100000143051147,
+      2.109334707260132
+    ],
+    "ShelfObjects_ShelfBook_1_3_2": [
+      -0.017000000923871994,
+      1.6100000143051147,
+      2.1025006771087646
+    ],
+    "ShelfObjects_ShelfBook_1_3_3": [
+      0.04899999871850014,
+      1.6100000143051147,
+      2.1021981239318848
+    ],
+    "ShelfObjects_ShelfBook_2_0_0": [
+      -3.178999900817871,
+      1.6100000143051147,
+      2.84024977684021
+    ],
+    "ShelfObjects_ShelfBook_2_0_1": [
+      -3.11299991607666,
+      1.6100000143051147,
+      2.9297499656677246
+    ],
+    "ShelfObjects_ShelfBook_2_0_2": [
+      -3.046999931335449,
+      1.6100000143051147,
+      2.85075306892395
+    ],
+    "ShelfObjects_ShelfBook_2_0_3": [
+      -2.9809999465942383,
+      1.6100000143051147,
+      2.883527994155884
+    ],
+    "ShelfObjects_ShelfBook_2_3_0": [
+      -0.14900000393390656,
+      1.6100000143051147,
+      2.8832788467407227
+    ],
+    "ShelfObjects_ShelfBook_2_3_1": [
+      -0.08299999684095383,
+      1.6100000143051147,
+      2.8556079864501953
+    ],
+    "ShelfObjects_ShelfBook_2_3_2": [
+      -0.017000000923871994,
+      1.6100000143051147,
+      2.858018398284912
+    ],
+    "ShelfObjects_ShelfBook_2_3_3": [
+      0.04899999871850014,
+      1.6100000143051147,
+      2.9176032543182373
+    ],
+    "ShelfObjects_Vase_0_0": [
+      -3.0799999237060547,
+      1.6100000143051147,
+      1.034999966621399
+    ],
+    "ShelfObjects_Vase_0_3": [
+      -0.05000000074505806,
+      1.6100000143051147,
+      1.034999966621399
+    ],
+    "ShelfObjects_Vase_1_0": [
+      -3.0799999237060547,
+      1.6100000143051147,
+      1.8550000190734863
+    ],
+    "ShelfObjects_Vase_1_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.8550000190734863
+    ],
+    "ShelfObjects_Vase_2_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      2.674999952316284
+    ],
+    "ShelfObjects_Vase_2_4": [
+      0.9599999785423279,
+      1.6100000143051147,
+      2.674999952316284
+    ],
+    "Stair_continuous_bronze_guard": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_01": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_02": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_03": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_04": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_05": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_06": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_07": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_08": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_09": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_10": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_11": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_12": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_13": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_17": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_18": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_19": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_20": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_21": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_01": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_02": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_03": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_04": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_05": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_06": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_07": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_08": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_09": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_10": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_11": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_12": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_13": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_17": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_18": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_19": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_20": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_21": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "TreeLower_Branch_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_10": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_11": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_4": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_5": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_6": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_7": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_8": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_9": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_BronzePlanter": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Foliage": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Soil": [
+      -2.75,
+      -0.30000001192092896,
+      1.3669999837875366
+    ],
+    "TreeLower_Trunk": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeUpper_Branch_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_10": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_11": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_4": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_5": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_6": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_7": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_8": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Branch_9": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_BronzePlanter": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Foliage": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Soil": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.202000141143799
+    ],
+    "TreeUpper_Trunk": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_0_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_0_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_0_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_0_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_10_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_10_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_10_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_10_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_11_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_11_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_11_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_11_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_1_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_1_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_1_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_1_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_2_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_2_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_2_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_2_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_3_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_3_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_3_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_3_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_4_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_4_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_4_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_4_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_5_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_5_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_5_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_5_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_6_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_6_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_6_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_6_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_7_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_7_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_7_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_7_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_8_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_8_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_8_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_8_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_9_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_9_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_9_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "TreeUpper_Twig_9_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      3.7699999809265137
+    ],
+    "Upper_guard_post": [
+      -3.200000047683716,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Upper_guard_post.001": [
+      -0.4000000059604645,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Upper_guard_post.002": [
+      2.0999999046325684,
+      -1.0199999809265137,
+      4.179999828338623
+    ],
+    "Upper_guard_top": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      4.610000133514404
+    ],
+    "Workstation_1_ArmFrame_-1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ArmFrame_1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ArmPad_-1": [
+      -3.0859999656677246,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_1_ArmPad_1": [
+      -2.5139999389648438,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_1_Caster_0": [
+      -2.5,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_1": [
+      -2.7072949409484863,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_2": [
+      -3.0427050590515137,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_3": [
+      -3.0427050590515137,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_4": [
+      -2.7072949409484863,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_1_ChairCollar": [
+      -2.799999952316284,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_1_ChairFoot_0": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_2": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_3": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_4": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairLift": [
+      -2.799999952316284,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_1_DeskLeg_-0.724_-0.295": [
+      -3.5239999294281006,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_-0.724_0.295": [
+      -3.5239999294281006,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_0.724_-0.295": [
+      -2.0759999752044678,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_0.724_0.295": [
+      -2.0759999752044678,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskTop": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_1_DeskUnderframe": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_1_FootPad_-0.724_-0.295": [
+      -3.5239999294281006,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_-0.724_0.295": [
+      -3.5239999294281006,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_0.724_-0.295": [
+      -2.0759999752044678,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_0.724_0.295": [
+      -2.0759999752044678,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_1_KeyboardBody": [
+      -2.8550000190734863,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_1_Keycaps": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_MonitorBase": [
+      -2.799999952316284,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_1_MonitorCable": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_MonitorCasing": [
+      -2.799999952316284,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_1_MonitorChin": [
+      -2.799999952316284,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_1_MonitorPowerDot": [
+      -2.5169999599456787,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_1_MonitorScreen": [
+      -2.799999952316284,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_1_MonitorStem": [
+      -2.799999952316284,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_1_Mouse": [
+      -2.4649999141693115,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_1_TaskBack": [
+      -2.799999952316284,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_1_TaskBackSeam": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_TaskBackShell": [
+      -2.799999952316284,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_1_TaskSeat": [
+      -2.799999952316284,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_1_TaskSeatShell": [
+      -2.799999952316284,
+      -0.8519999980926514,
+      1.3760000467300415
+    ],
+    "Workstation_2_ArmFrame_-1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ArmFrame_1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ArmPad_-1": [
+      -1.3359999656677246,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_2_ArmPad_1": [
+      -0.7639999389648438,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_2_Caster_0": [
+      -0.7499999403953552,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_1": [
+      -0.9572948217391968,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_2": [
+      -1.2927050590515137,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_3": [
+      -1.2927050590515137,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_4": [
+      -0.9572948217391968,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_2_ChairCollar": [
+      -1.0499999523162842,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_2_ChairFoot_0": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_2": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_3": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_4": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairLift": [
+      -1.0499999523162842,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_2_DeskLeg_-0.724_-0.295": [
+      -1.7739999294281006,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_-0.724_0.295": [
+      -1.7739999294281006,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_0.724_-0.295": [
+      -0.3259999752044678,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_0.724_0.295": [
+      -0.3259999752044678,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskTop": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_2_DeskUnderframe": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_2_FootPad_-0.724_-0.295": [
+      -1.7739999294281006,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_-0.724_0.295": [
+      -1.7739999294281006,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_0.724_-0.295": [
+      -0.3259999752044678,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_0.724_0.295": [
+      -0.3259999752044678,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_2_KeyboardBody": [
+      -1.1049998998641968,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_2_Keycaps": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_MonitorBase": [
+      -1.0499999523162842,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_2_MonitorCable": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_MonitorCasing": [
+      -1.0499999523162842,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_2_MonitorChin": [
+      -1.0499999523162842,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_2_MonitorPowerDot": [
+      -0.7669999599456787,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_2_MonitorScreen": [
+      -1.0499999523162842,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_2_MonitorStem": [
+      -1.0499999523162842,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_2_Mouse": [
+      -0.7149999141693115,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_2_TaskBack": [
+      -1.0499999523162842,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_2_TaskBackSeam": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_TaskBackShell": [
+      -1.0499999523162842,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_2_TaskSeat": [
+      -1.0499999523162842,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_2_TaskSeatShell": [
+      -1.0499999523162842,
+      -0.8519999980926514,
+      1.3760000467300415
+    ],
+    "Workstation_3_ArmFrame_-1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ArmFrame_1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ArmPad_-1": [
+      0.4139999747276306,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_3_ArmPad_1": [
+      0.9860000014305115,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_3_Caster_0": [
+      1.0,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_1": [
+      0.7927050590515137,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_2": [
+      0.45729488134384155,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_3": [
+      0.45729488134384155,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_4": [
+      0.7927050590515137,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_3_ChairCollar": [
+      0.699999988079071,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_3_ChairFoot_0": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_2": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_3": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_4": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairLift": [
+      0.699999988079071,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_3_DeskLeg_-0.724_-0.295": [
+      -0.02399998903274536,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_-0.724_0.295": [
+      -0.02399998903274536,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_0.724_-0.295": [
+      1.4240000247955322,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_0.724_0.295": [
+      1.4240000247955322,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskTop": [
+      0.699999988079071,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_3_DeskUnderframe": [
+      0.699999988079071,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_3_FootPad_-0.724_-0.295": [
+      -0.02399998903274536,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_-0.724_0.295": [
+      -0.02399998903274536,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_0.724_-0.295": [
+      1.4240000247955322,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_0.724_0.295": [
+      1.4240000247955322,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_3_KeyboardBody": [
+      0.6449999809265137,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_3_Keycaps": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_MonitorBase": [
+      0.699999988079071,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_3_MonitorCable": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_MonitorCasing": [
+      0.699999988079071,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_3_MonitorChin": [
+      0.699999988079071,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_3_MonitorPowerDot": [
+      0.9829999804496765,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_3_MonitorScreen": [
+      0.699999988079071,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_3_MonitorStem": [
+      0.699999988079071,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_3_Mouse": [
+      1.034999966621399,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_3_TaskBack": [
+      0.699999988079071,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_3_TaskBackSeam": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_TaskBackShell": [
+      0.699999988079071,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_3_TaskSeat": [
+      0.699999988079071,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_3_TaskSeatShell": [
+      0.699999988079071,
+      -0.8519999980926514,
+      1.3760000467300415
+    ]
+  },
+  "exploded_positions": {
+    "BronzeTable_BookCover_0_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.2999999523162842
+    ],
+    "BronzeTable_BookCover_0_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.350000023841858
+    ],
+    "BronzeTable_BookCover_1_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3600000143051147
+    ],
+    "BronzeTable_BookCover_1_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.409999966621399
+    ],
+    "BronzeTable_BookCover_2_-1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4200000762939453
+    ],
+    "BronzeTable_BookCover_2_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4700000286102295
+    ],
+    "BronzeTable_BookPages_0": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3250000476837158
+    ],
+    "BronzeTable_BookPages_1": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.3849999904632568
+    ],
+    "BronzeTable_BookPages_2": [
+      0.5199999809265137,
+      -1.475000023841858,
+      1.4449999332427979
+    ],
+    "BronzeTable_InsetTop": [
+      0.6399999856948853,
+      -1.5,
+      1.2820000648498535
+    ],
+    "BronzeTable_LowDrum": [
+      0.6399999856948853,
+      -1.5,
+      1.1150000095367432
+    ],
+    "Ceiling_frontback_light": [
+      0.0,
+      -2.4700000286102295,
+      3.9999999809265137
+    ],
+    "Ceiling_frontback_light.001": [
+      0.0,
+      2.4700000286102295,
+      3.9999999809265137
+    ],
+    "Ceiling_frontback_light.002": [
+      0.0,
+      -2.4700000286102295,
+      7.055000228881836
+    ],
+    "Ceiling_frontback_light.003": [
+      0.0,
+      2.4700000286102295,
+      7.055000228881836
+    ],
+    "Ceiling_side_light": [
+      -3.630000114440918,
+      0.0,
+      3.9999999809265137
+    ],
+    "Ceiling_side_light.001": [
+      3.630000114440918,
+      0.0,
+      3.9999999809265137
+    ],
+    "Ceiling_side_light.002": [
+      -3.630000114440918,
+      0.0,
+      7.055000228881836
+    ],
+    "Ceiling_side_light.003": [
+      3.630000114440918,
+      0.0,
+      7.055000228881836
+    ],
+    "Column_lower_0": [
+      -3.5,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_lower_1": [
+      -0.550000011920929,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_lower_2": [
+      3.5,
+      2.4200000762939453,
+      2.190000057220459
+    ],
+    "Column_upper_0": [
+      -3.299999952316284,
+      2.380000114440918,
+      5.440000038146973
+    ],
+    "Column_upper_1": [
+      0.20000000298023224,
+      2.380000114440918,
+      5.440000038146973
+    ],
+    "Column_upper_2": [
+      3.4000000953674316,
+      2.380000114440918,
+      5.440000038146973
+    ],
+    "Floor_lower_travertine": [
+      0.0,
+      0.0,
+      0.7900000214576721
+    ],
+    "Floor_upper_front_bridge": [
+      2.5399999618530273,
+      -2.0,
+      4.130000095367432
+    ],
+    "Floor_upper_rear_bridge": [
+      2.5399999618530273,
+      2.5199999809265137,
+      4.130000095367432
+    ],
+    "Floor_upper_travertine": [
+      -1.4600000381469727,
+      0.0,
+      4.130000095367432
+    ],
+    "Glass_front_s0_0": [
+      -3.462599992752075,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_0_frameH_-1": [
+      -3.462599992752075,
+      -3.130000114440918,
+      1.1100001335144043
+    ],
+    "Glass_front_s0_0_frameH_1": [
+      -3.462599992752075,
+      -3.130000114440918,
+      3.6700003147125244
+    ],
+    "Glass_front_s0_0_frameV_-1": [
+      -4.432600021362305,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_0_frameV_1": [
+      -2.492600202560425,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_1_frameH_-1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      1.1100001335144043
+    ],
+    "Glass_front_s0_1_frameH_1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      3.6700003147125244
+    ],
+    "Glass_front_s0_1_frameV_-1": [
+      -2.124199867248535,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_1_frameV_1": [
+      -0.18419992923736572,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_2": [
+      1.1541999578475952,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_2_frameH_-1": [
+      1.1541999578475952,
+      -3.130000114440918,
+      1.1100001335144043
+    ],
+    "Glass_front_s0_2_frameH_1": [
+      1.1541999578475952,
+      -3.130000114440918,
+      3.6700003147125244
+    ],
+    "Glass_front_s0_2_frameV_-1": [
+      0.18419992923736572,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_2_frameV_1": [
+      2.124199867248535,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_3": [
+      3.462599992752075,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_3_frameH_-1": [
+      3.462599992752075,
+      -3.130000114440918,
+      1.1100001335144043
+    ],
+    "Glass_front_s0_3_frameH_1": [
+      3.462599992752075,
+      -3.130000114440918,
+      3.6700003147125244
+    ],
+    "Glass_front_s0_3_frameV_-1": [
+      2.492600202560425,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s0_3_frameV_1": [
+      4.432600021362305,
+      -3.130000114440918,
+      2.390000104904175
+    ],
+    "Glass_front_s1_0": [
+      -3.462599992752075,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_0_frameH_-1": [
+      -3.462599992752075,
+      -3.130000114440918,
+      4.239999771118164
+    ],
+    "Glass_front_s1_0_frameH_1": [
+      -3.462599992752075,
+      -3.130000114440918,
+      6.560000419616699
+    ],
+    "Glass_front_s1_0_frameV_-1": [
+      -4.432600021362305,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_0_frameV_1": [
+      -2.492600202560425,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_1_frameH_-1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      4.239999771118164
+    ],
+    "Glass_front_s1_1_frameH_1": [
+      -1.1541999578475952,
+      -3.130000114440918,
+      6.560000419616699
+    ],
+    "Glass_front_s1_1_frameV_-1": [
+      -2.124199867248535,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_1_frameV_1": [
+      -0.18419992923736572,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_2": [
+      1.1541999578475952,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_2_frameH_-1": [
+      1.1541999578475952,
+      -3.130000114440918,
+      4.239999771118164
+    ],
+    "Glass_front_s1_2_frameH_1": [
+      1.1541999578475952,
+      -3.130000114440918,
+      6.560000419616699
+    ],
+    "Glass_front_s1_2_frameV_-1": [
+      0.18419992923736572,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_2_frameV_1": [
+      2.124199867248535,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_3": [
+      3.462599992752075,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_3_frameH_-1": [
+      3.462599992752075,
+      -3.130000114440918,
+      4.239999771118164
+    ],
+    "Glass_front_s1_3_frameH_1": [
+      3.462599992752075,
+      -3.130000114440918,
+      6.560000419616699
+    ],
+    "Glass_front_s1_3_frameV_-1": [
+      2.492600202560425,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_front_s1_3_frameV_1": [
+      4.432600021362305,
+      -3.130000114440918,
+      5.399999618530273
+    ],
+    "Glass_left_s0_0": [
+      -4.484999656677246,
+      -2.0566000938415527,
+      2.390000104904175
+    ],
+    "Glass_left_s0_0_frameH_-1": [
+      -4.484999656677246,
+      -2.0566000938415527,
+      1.1050000190734863
+    ],
+    "Glass_left_s0_0_frameH_1": [
+      -4.484999656677246,
+      -2.0566000938415527,
+      3.6750004291534424
+    ],
+    "Glass_left_s0_0_frameV_-1": [
+      -4.484999656677246,
+      -2.9316000938415527,
+      2.390000104904175
+    ],
+    "Glass_left_s0_0_frameV_1": [
+      -4.484999656677246,
+      -1.1815999746322632,
+      2.390000104904175
+    ],
+    "Glass_left_s0_1": [
+      -4.484999656677246,
+      0.0,
+      2.390000104904175
+    ],
+    "Glass_left_s0_1_frameH_-1": [
+      -4.484999656677246,
+      0.0,
+      1.1050000190734863
+    ],
+    "Glass_left_s0_1_frameH_1": [
+      -4.484999656677246,
+      0.0,
+      3.6750004291534424
+    ],
+    "Glass_left_s0_1_frameV_-1": [
+      -4.484999656677246,
+      -0.8949999809265137,
+      2.390000104904175
+    ],
+    "Glass_left_s0_1_frameV_1": [
+      -4.484999656677246,
+      0.8949999809265137,
+      2.390000104904175
+    ],
+    "Glass_left_s0_2": [
+      -4.484999656677246,
+      2.0566000938415527,
+      2.390000104904175
+    ],
+    "Glass_left_s0_2_frameH_-1": [
+      -4.484999656677246,
+      2.0566000938415527,
+      1.1050000190734863
+    ],
+    "Glass_left_s0_2_frameH_1": [
+      -4.484999656677246,
+      2.0566000938415527,
+      3.6750004291534424
+    ],
+    "Glass_left_s0_2_frameV_-1": [
+      -4.484999656677246,
+      1.1815999746322632,
+      2.390000104904175
+    ],
+    "Glass_left_s0_2_frameV_1": [
+      -4.484999656677246,
+      2.9316000938415527,
+      2.390000104904175
+    ],
+    "Glass_left_s1_0": [
+      -4.684999942779541,
+      -2.0566000938415527,
+      5.399999618530273
+    ],
+    "Glass_left_s1_0_frameH_-1": [
+      -4.685000419616699,
+      -2.0566000938415527,
+      4.234999656677246
+    ],
+    "Glass_left_s1_0_frameH_1": [
+      -4.685000419616699,
+      -2.0566000938415527,
+      6.564999580383301
+    ],
+    "Glass_left_s1_0_frameV_-1": [
+      -4.685000419616699,
+      -2.9316000938415527,
+      5.399999618530273
+    ],
+    "Glass_left_s1_0_frameV_1": [
+      -4.685000419616699,
+      -1.1815999746322632,
+      5.399999618530273
+    ],
+    "Glass_left_s1_1": [
+      -4.684999942779541,
+      0.0,
+      5.399999618530273
+    ],
+    "Glass_left_s1_1_frameH_-1": [
+      -4.685000419616699,
+      0.0,
+      4.234999656677246
+    ],
+    "Glass_left_s1_1_frameH_1": [
+      -4.685000419616699,
+      0.0,
+      6.564999580383301
+    ],
+    "Glass_left_s1_1_frameV_-1": [
+      -4.685000419616699,
+      -0.8949999809265137,
+      5.399999618530273
+    ],
+    "Glass_left_s1_1_frameV_1": [
+      -4.685000419616699,
+      0.8949999809265137,
+      5.399999618530273
+    ],
+    "Glass_left_s1_2": [
+      -4.684999942779541,
+      2.0566000938415527,
+      5.399999618530273
+    ],
+    "Glass_left_s1_2_frameH_-1": [
+      -4.685000419616699,
+      2.0566000938415527,
+      4.234999656677246
+    ],
+    "Glass_left_s1_2_frameH_1": [
+      -4.685000419616699,
+      2.0566000938415527,
+      6.564999580383301
+    ],
+    "Glass_left_s1_2_frameV_-1": [
+      -4.685000419616699,
+      1.1815999746322632,
+      5.399999618530273
+    ],
+    "Glass_left_s1_2_frameV_1": [
+      -4.685000419616699,
+      2.9316000938415527,
+      5.399999618530273
+    ],
+    "Glass_upper_internal_guard": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      4.659999847412109
+    ],
+    "Glass_upper_internal_guard_frameH_-1": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      4.250000476837158
+    ],
+    "Glass_upper_internal_guard_frameH_1": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      5.070000171661377
+    ],
+    "Glass_upper_internal_guard_frameV_-1": [
+      -3.190000057220459,
+      -1.0199999809265137,
+      4.660000324249268
+    ],
+    "Glass_upper_internal_guard_frameV_1": [
+      2.0899999141693115,
+      -1.0199999809265137,
+      4.660000324249268
+    ],
+    "Glazing_header_s0_-2.74": [
+      0.0,
+      -2.740000009536743,
+      3.5199999809265137
+    ],
+    "Glazing_header_s0_2.74": [
+      0.0,
+      2.740000009536743,
+      3.5199999809265137
+    ],
+    "Glazing_header_s1_-2.74": [
+      0.0,
+      -2.740000009536743,
+      6.130000114440918
+    ],
+    "Glazing_header_s1_2.74": [
+      0.0,
+      2.740000009536743,
+      6.130000114440918
+    ],
+    "Glazing_side_header_s0": [
+      -3.9800000190734863,
+      0.0,
+      3.5199999809265137
+    ],
+    "Glazing_side_header_s1": [
+      -3.9800000190734863,
+      0.0,
+      6.130000114440918
+    ],
+    "LoungeChair_ArmSupport_-1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_ArmSupport_1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackCentreSeam": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackCushion": [
+      -0.6947078704833984,
+      -0.7841546535491943,
+      1.9749999046325684
+    ],
+    "LoungeChair_BackPiping": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_BackShell": [
+      -0.6812584400177002,
+      -0.6951652765274048,
+      1.9549999237060547
+    ],
+    "LoungeChair_Foot_0": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_1": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_2": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Foot_3": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_LeftArm": [
+      -1.2678968906402588,
+      -1.0970113277435303,
+      1.774999976158142
+    ],
+    "LoungeChair_LowerShell": [
+      -0.7477584481239319,
+      -1.135168433189392,
+      1.475000023841858
+    ],
+    "LoungeChair_RightArm": [
+      -0.23957502841949463,
+      -1.252427101135254,
+      1.774999976158142
+    ],
+    "LoungeChair_SeatCushion": [
+      -0.7619550824165344,
+      -1.2291016578674316,
+      1.600000023841858
+    ],
+    "LoungeChair_SeatPiping": [
+      -0.75,
+      -1.149999976158142,
+      0.9350000023841858
+    ],
+    "LoungeChair_Swivel": [
+      -0.7425280809402466,
+      -1.1005613803863525,
+      1.1749999523162842
+    ],
+    "Mullion_front_s0_0": [
+      -3.9800000190734863,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_1": [
+      -1.9900000095367432,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_2": [
+      0.0,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_3": [
+      1.9900000095367432,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s0_4": [
+      3.9800000190734863,
+      -2.740000009536743,
+      2.2200000286102295
+    ],
+    "Mullion_front_s1_0": [
+      -3.9800000190734863,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_1": [
+      -1.9900000095367432,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_2": [
+      0.0,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_3": [
+      1.9900000095367432,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_front_s1_4": [
+      3.9800000190734863,
+      -2.740000009536743,
+      4.949999809265137
+    ],
+    "Mullion_left_s0_0": [
+      -3.9800000190734863,
+      -2.7200000286102295,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_1": [
+      -3.9800000190734863,
+      -0.9200000166893005,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_2": [
+      -3.9800000190734863,
+      0.9200000166893005,
+      2.2200000286102295
+    ],
+    "Mullion_left_s0_3": [
+      -3.9800000190734863,
+      2.7200000286102295,
+      2.2200000286102295
+    ],
+    "Mullion_left_s1_0": [
+      -3.9800000190734863,
+      -2.7200000286102295,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_1": [
+      -3.9800000190734863,
+      -0.9200000166893005,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_2": [
+      -3.9800000190734863,
+      0.9200000166893005,
+      4.949999809265137
+    ],
+    "Mullion_left_s1_3": [
+      -3.9800000190734863,
+      2.7200000286102295,
+      4.949999809265137
+    ],
+    "Plinth_lower_reveal": [
+      0.0,
+      0.0,
+      0.11500000208616257
+    ],
+    "Plinth_oval_brushed_bronze": [
+      0.0,
+      0.0,
+      0.3799999952316284
+    ],
+    "Plinth_top_highlight": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "RibbonStudy_RibbonSurface": [
+      1.2200000286102295,
+      0.05000000074505806,
+      0.9350000023841858
+    ],
+    "RibbonStudy_StonePedestal": [
+      1.2200000286102295,
+      0.05000000074505806,
+      1.0449999570846558
+    ],
+    "Roof_travertine": [
+      0.0,
+      0.0,
+      7.180000228881836
+    ],
+    "Shelf_backing_walnut": [
+      -1.0499999523162842,
+      1.8899999856948853,
+      2.180000066757202
+    ],
+    "Shelf_bronze_border_side": [
+      -3.640000104904175,
+      1.409999966621399,
+      2.200000047683716
+    ],
+    "Shelf_bronze_border_side.001": [
+      1.5399999618530273,
+      1.409999966621399,
+      2.200000047683716
+    ],
+    "Shelf_bronze_border_top": [
+      -1.0499999523162842,
+      1.409999966621399,
+      3.4800000190734863
+    ],
+    "Shelf_horizontal_0": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      0.9700000286102295
+    ],
+    "Shelf_horizontal_1": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      1.7899999618530273
+    ],
+    "Shelf_horizontal_2": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      2.609999895095825
+    ],
+    "Shelf_horizontal_3": [
+      -1.0499999523162842,
+      1.6699999570846558,
+      3.430000066757202
+    ],
+    "Shelf_vertical_0": [
+      -3.5799999237060547,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_1": [
+      -2.569999933242798,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_2": [
+      -1.559999942779541,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_3": [
+      -0.550000011920929,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_4": [
+      0.46000000834465027,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_vertical_5": [
+      1.4700000286102295,
+      1.6699999570846558,
+      2.190000057220459
+    ],
+    "Shelf_warm_reveal": [
+      -1.0499999523162842,
+      1.4700000286102295,
+      2.6700000762939453
+    ],
+    "Shelf_warm_reveal.001": [
+      -1.0499999523162842,
+      1.4700000286102295,
+      3.4600000381469727
+    ],
+    "ShelfObjects_HorizontalBook_0_2_0": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.0449999570846558
+    ],
+    "ShelfObjects_HorizontalBook_0_2_1": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.090000033378601
+    ],
+    "ShelfObjects_HorizontalBook_0_2_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.1349999904632568
+    ],
+    "ShelfObjects_HorizontalBook_1_4_0": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.8650000095367432
+    ],
+    "ShelfObjects_HorizontalBook_1_4_1": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.909999966621399
+    ],
+    "ShelfObjects_HorizontalBook_1_4_2": [
+      0.9599999785423279,
+      1.6100000143051147,
+      1.9550000429153442
+    ],
+    "ShelfObjects_HorizontalBook_2_1_0": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.684999942779541
+    ],
+    "ShelfObjects_HorizontalBook_2_1_1": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.7300000190734863
+    ],
+    "ShelfObjects_HorizontalBook_2_1_2": [
+      -2.069999933242798,
+      1.6100000143051147,
+      2.7750000953674316
+    ],
+    "ShelfObjects_ShelfBook_0_1_0": [
+      -2.1689999103546143,
+      1.6100000143051147,
+      1.2138041257858276
+    ],
+    "ShelfObjects_ShelfBook_0_1_1": [
+      -2.1029999256134033,
+      1.6100000143051147,
+      1.2640057802200317
+    ],
+    "ShelfObjects_ShelfBook_0_1_2": [
+      -2.0369999408721924,
+      1.6100000143051147,
+      1.2949085235595703
+    ],
+    "ShelfObjects_ShelfBook_0_1_3": [
+      -1.9709999561309814,
+      1.6100000143051147,
+      1.2382090091705322
+    ],
+    "ShelfObjects_ShelfBook_0_4_0": [
+      0.8610000014305115,
+      1.6100000143051147,
+      1.2101842164993286
+    ],
+    "ShelfObjects_ShelfBook_0_4_1": [
+      0.9269999861717224,
+      1.6100000143051147,
+      1.214589238166809
+    ],
+    "ShelfObjects_ShelfBook_0_4_2": [
+      0.9929999709129333,
+      1.6100000143051147,
+      1.2328046560287476
+    ],
+    "ShelfObjects_ShelfBook_0_4_3": [
+      1.059000015258789,
+      1.6100000143051147,
+      1.201941728591919
+    ],
+    "ShelfObjects_ShelfBook_1_1_0": [
+      -2.1689999103546143,
+      1.6100000143051147,
+      2.0166242122650146
+    ],
+    "ShelfObjects_ShelfBook_1_1_1": [
+      -2.1029999256134033,
+      1.6100000143051147,
+      2.0793886184692383
+    ],
+    "ShelfObjects_ShelfBook_1_1_2": [
+      -2.0369999408721924,
+      1.6100000143051147,
+      2.0622458457946777
+    ],
+    "ShelfObjects_ShelfBook_1_1_3": [
+      -1.9709999561309814,
+      1.6100000143051147,
+      2.071061372756958
+    ],
+    "ShelfObjects_ShelfBook_1_3_0": [
+      -0.14900000393390656,
+      1.6100000143051147,
+      2.109335422515869
+    ],
+    "ShelfObjects_ShelfBook_1_3_1": [
+      -0.08299999684095383,
+      1.6100000143051147,
+      2.109334707260132
+    ],
+    "ShelfObjects_ShelfBook_1_3_2": [
+      -0.017000000923871994,
+      1.6100000143051147,
+      2.1025006771087646
+    ],
+    "ShelfObjects_ShelfBook_1_3_3": [
+      0.04899999871850014,
+      1.6100000143051147,
+      2.1021981239318848
+    ],
+    "ShelfObjects_ShelfBook_2_0_0": [
+      -3.178999900817871,
+      1.6100000143051147,
+      2.84024977684021
+    ],
+    "ShelfObjects_ShelfBook_2_0_1": [
+      -3.11299991607666,
+      1.6100000143051147,
+      2.9297499656677246
+    ],
+    "ShelfObjects_ShelfBook_2_0_2": [
+      -3.046999931335449,
+      1.6100000143051147,
+      2.85075306892395
+    ],
+    "ShelfObjects_ShelfBook_2_0_3": [
+      -2.9809999465942383,
+      1.6100000143051147,
+      2.883527994155884
+    ],
+    "ShelfObjects_ShelfBook_2_3_0": [
+      -0.14900000393390656,
+      1.6100000143051147,
+      2.8832788467407227
+    ],
+    "ShelfObjects_ShelfBook_2_3_1": [
+      -0.08299999684095383,
+      1.6100000143051147,
+      2.8556079864501953
+    ],
+    "ShelfObjects_ShelfBook_2_3_2": [
+      -0.017000000923871994,
+      1.6100000143051147,
+      2.858018398284912
+    ],
+    "ShelfObjects_ShelfBook_2_3_3": [
+      0.04899999871850014,
+      1.6100000143051147,
+      2.9176032543182373
+    ],
+    "ShelfObjects_Vase_0_0": [
+      -3.0799999237060547,
+      1.6100000143051147,
+      1.034999966621399
+    ],
+    "ShelfObjects_Vase_0_3": [
+      -0.05000000074505806,
+      1.6100000143051147,
+      1.034999966621399
+    ],
+    "ShelfObjects_Vase_1_0": [
+      -3.0799999237060547,
+      1.6100000143051147,
+      1.8550000190734863
+    ],
+    "ShelfObjects_Vase_1_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      1.8550000190734863
+    ],
+    "ShelfObjects_Vase_2_2": [
+      -1.059999942779541,
+      1.6100000143051147,
+      2.674999952316284
+    ],
+    "ShelfObjects_Vase_2_4": [
+      0.9599999785423279,
+      1.6100000143051147,
+      2.674999952316284
+    ],
+    "Stair_continuous_bronze_guard": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_01": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_02": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_03": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_04": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_05": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_06": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_07": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_08": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_09": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_10": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_11": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_12": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_13": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_17": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_18": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_19": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_20": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_21": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_riser_light_22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_01": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_02": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_03": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_04": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_05": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_06": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_07": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_08": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_09": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_10": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_11": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_12": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_13": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_14": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_15": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_16": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_17": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_18": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_19": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_20": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_21": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "Stair_tread_22": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "TreeLower_Branch_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_10": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_11": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_4": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_5": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_6": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_7": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_8": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Branch_9": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_BronzePlanter": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Foliage": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Soil": [
+      -2.75,
+      -0.30000001192092896,
+      1.3669999837875366
+    ],
+    "TreeLower_Trunk": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_0_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_10_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_11_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_1_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_2_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_3_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_4_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_5_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_6_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_7_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_8_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_0": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_1": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_2": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeLower_Twig_9_3": [
+      -2.75,
+      -0.30000001192092896,
+      0.9350000023841858
+    ],
+    "TreeUpper_Branch_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_10": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_11": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_4": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_5": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_6": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_7": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_8": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Branch_9": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_BronzePlanter": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Foliage": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Soil": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.682000141143799
+    ],
+    "TreeUpper_Trunk": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_0_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_0_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_0_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_0_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_10_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_10_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_10_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_10_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_11_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_11_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_11_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_11_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_1_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_1_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_1_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_1_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_2_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_2_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_2_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_2_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_3_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_3_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_3_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_3_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_4_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_4_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_4_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_4_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_5_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_5_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_5_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_5_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_6_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_6_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_6_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_6_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_7_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_7_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_7_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_7_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_8_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_8_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_8_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_8_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_9_0": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_9_1": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_9_2": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "TreeUpper_Twig_9_3": [
+      -0.550000011920929,
+      0.4000000059604645,
+      4.249999980926514
+    ],
+    "Upper_guard_post": [
+      -3.200000047683716,
+      -1.0199999809265137,
+      4.6599998283386235
+    ],
+    "Upper_guard_post.001": [
+      -0.4000000059604645,
+      -1.0199999809265137,
+      4.6599998283386235
+    ],
+    "Upper_guard_post.002": [
+      2.0999999046325684,
+      -1.0199999809265137,
+      4.6599998283386235
+    ],
+    "Upper_guard_top": [
+      -0.550000011920929,
+      -1.0199999809265137,
+      5.090000133514405
+    ],
+    "Workstation_1_ArmFrame_-1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ArmFrame_1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ArmPad_-1": [
+      -3.0859999656677246,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_1_ArmPad_1": [
+      -2.5139999389648438,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_1_Caster_0": [
+      -2.5,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_1": [
+      -2.7072949409484863,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_2": [
+      -3.0427050590515137,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_3": [
+      -3.0427050590515137,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_1_Caster_4": [
+      -2.7072949409484863,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_1_ChairCollar": [
+      -2.799999952316284,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_1_ChairFoot_0": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_1": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_2": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_3": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairFoot_4": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_ChairLift": [
+      -2.799999952316284,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_1_DeskLeg_-0.724_-0.295": [
+      -3.5239999294281006,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_-0.724_0.295": [
+      -3.5239999294281006,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_0.724_-0.295": [
+      -2.0759999752044678,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskLeg_0.724_0.295": [
+      -2.0759999752044678,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_1_DeskTop": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_1_DeskUnderframe": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_1_FootPad_-0.724_-0.295": [
+      -3.5239999294281006,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_-0.724_0.295": [
+      -3.5239999294281006,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_0.724_-0.295": [
+      -2.0759999752044678,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_1_FootPad_0.724_0.295": [
+      -2.0759999752044678,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_1_KeyboardBody": [
+      -2.8550000190734863,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_1_Keycaps": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_MonitorBase": [
+      -2.799999952316284,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_1_MonitorCable": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_MonitorCasing": [
+      -2.799999952316284,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_1_MonitorChin": [
+      -2.799999952316284,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_1_MonitorPowerDot": [
+      -2.5169999599456787,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_1_MonitorScreen": [
+      -2.799999952316284,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_1_MonitorStem": [
+      -2.799999952316284,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_1_Mouse": [
+      -2.4649999141693115,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_1_TaskBack": [
+      -2.799999952316284,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_1_TaskBackSeam": [
+      -2.799999952316284,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_1_TaskBackShell": [
+      -2.799999952316284,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_1_TaskSeat": [
+      -2.799999952316284,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_1_TaskSeatShell": [
+      -2.799999952316284,
+      -0.8519999980926514,
+      1.3760000467300415
+    ],
+    "Workstation_2_ArmFrame_-1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ArmFrame_1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ArmPad_-1": [
+      -1.3359999656677246,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_2_ArmPad_1": [
+      -0.7639999389648438,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_2_Caster_0": [
+      -0.7499999403953552,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_1": [
+      -0.9572948217391968,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_2": [
+      -1.2927050590515137,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_3": [
+      -1.2927050590515137,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_2_Caster_4": [
+      -0.9572948217391968,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_2_ChairCollar": [
+      -1.0499999523162842,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_2_ChairFoot_0": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_1": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_2": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_3": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairFoot_4": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_ChairLift": [
+      -1.0499999523162842,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_2_DeskLeg_-0.724_-0.295": [
+      -1.7739999294281006,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_-0.724_0.295": [
+      -1.7739999294281006,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_0.724_-0.295": [
+      -0.3259999752044678,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskLeg_0.724_0.295": [
+      -0.3259999752044678,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_2_DeskTop": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_2_DeskUnderframe": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_2_FootPad_-0.724_-0.295": [
+      -1.7739999294281006,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_-0.724_0.295": [
+      -1.7739999294281006,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_0.724_-0.295": [
+      -0.3259999752044678,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_2_FootPad_0.724_0.295": [
+      -0.3259999752044678,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_2_KeyboardBody": [
+      -1.1049998998641968,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_2_Keycaps": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_MonitorBase": [
+      -1.0499999523162842,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_2_MonitorCable": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_MonitorCasing": [
+      -1.0499999523162842,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_2_MonitorChin": [
+      -1.0499999523162842,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_2_MonitorPowerDot": [
+      -0.7669999599456787,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_2_MonitorScreen": [
+      -1.0499999523162842,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_2_MonitorStem": [
+      -1.0499999523162842,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_2_Mouse": [
+      -0.7149999141693115,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_2_TaskBack": [
+      -1.0499999523162842,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_2_TaskBackSeam": [
+      -1.0499999523162842,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_2_TaskBackShell": [
+      -1.0499999523162842,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_2_TaskSeat": [
+      -1.0499999523162842,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_2_TaskSeatShell": [
+      -1.0499999523162842,
+      -0.8519999980926514,
+      1.3760000467300415
+    ],
+    "Workstation_3_ArmFrame_-1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ArmFrame_1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ArmPad_-1": [
+      0.4139999747276306,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_3_ArmPad_1": [
+      0.9860000014305115,
+      -0.8400000333786011,
+      1.5989999771118164
+    ],
+    "Workstation_3_Caster_0": [
+      1.0,
+      -0.8600000143051147,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_1": [
+      0.7927050590515137,
+      -0.5746830701828003,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_2": [
+      0.45729488134384155,
+      -0.6836644411087036,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_3": [
+      0.45729488134384155,
+      -1.0363355875015259,
+      0.9729999899864197
+    ],
+    "Workstation_3_Caster_4": [
+      0.7927050590515137,
+      -1.1453169584274292,
+      0.9729999899864197
+    ],
+    "Workstation_3_ChairCollar": [
+      0.699999988079071,
+      -0.8600000143051147,
+      1.3300000429153442
+    ],
+    "Workstation_3_ChairFoot_0": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_1": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_2": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_3": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairFoot_4": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_ChairLift": [
+      0.699999988079071,
+      -0.8600000143051147,
+      1.190999984741211
+    ],
+    "Workstation_3_DeskLeg_-0.724_-0.295": [
+      -0.02399998903274536,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_-0.724_0.295": [
+      -0.02399998903274536,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_0.724_-0.295": [
+      1.4240000247955322,
+      -0.39499998092651367,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskLeg_0.724_0.295": [
+      1.4240000247955322,
+      0.19499999284744263,
+      1.3140000104904175
+    ],
+    "Workstation_3_DeskTop": [
+      0.699999988079071,
+      -0.10000000149011612,
+      1.7350000143051147
+    ],
+    "Workstation_3_DeskUnderframe": [
+      0.699999988079071,
+      -0.10000000149011612,
+      1.694000005722046
+    ],
+    "Workstation_3_FootPad_-0.724_-0.295": [
+      -0.02399998903274536,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_-0.724_0.295": [
+      -0.02399998903274536,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_0.724_-0.295": [
+      1.4240000247955322,
+      -0.39499998092651367,
+      0.9440000057220459
+    ],
+    "Workstation_3_FootPad_0.724_0.295": [
+      1.4240000247955322,
+      0.19499999284744263,
+      0.9440000057220459
+    ],
+    "Workstation_3_KeyboardBody": [
+      0.6449999809265137,
+      -0.24799999594688416,
+      1.7769999504089355
+    ],
+    "Workstation_3_Keycaps": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_MonitorBase": [
+      0.699999988079071,
+      0.08700000494718552,
+      1.7769999504089355
+    ],
+    "Workstation_3_MonitorCable": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_MonitorCasing": [
+      0.699999988079071,
+      0.1080000028014183,
+      2.063999891281128
+    ],
+    "Workstation_3_MonitorChin": [
+      0.699999988079071,
+      0.07900000363588333,
+      1.874000072479248
+    ],
+    "Workstation_3_MonitorPowerDot": [
+      0.9829999804496765,
+      0.07499999552965164,
+      1.875999927520752
+    ],
+    "Workstation_3_MonitorScreen": [
+      0.699999988079071,
+      0.08299999684095383,
+      2.068000078201294
+    ],
+    "Workstation_3_MonitorStem": [
+      0.699999988079071,
+      0.1119999960064888,
+      1.88100004196167
+    ],
+    "Workstation_3_Mouse": [
+      1.034999966621399,
+      -0.24000000953674316,
+      1.7890000343322754
+    ],
+    "Workstation_3_TaskBack": [
+      0.699999988079071,
+      -1.0399999618530273,
+      1.7669999599456787
+    ],
+    "Workstation_3_TaskBackSeam": [
+      0.699999988079071,
+      -0.10000000149011612,
+      0.9350000023841858
+    ],
+    "Workstation_3_TaskBackShell": [
+      0.699999988079071,
+      -1.0779999494552612,
+      1.75600004196167
+    ],
+    "Workstation_3_TaskSeat": [
+      0.699999988079071,
+      -0.8450000286102295,
+      1.4219999313354492
+    ],
+    "Workstation_3_TaskSeatShell": [
+      0.699999988079071,
+      -0.8519999980926514,
+      1.3760000467300415
+    ]
+  },
+  "detail_groups": {
+    "chair": [
+      "LoungeChair_Swivel",
+      "LoungeChair_Foot_0",
+      "LoungeChair_Foot_1",
+      "LoungeChair_Foot_2",
+      "LoungeChair_Foot_3",
+      "LoungeChair_LowerShell",
+      "LoungeChair_SeatCushion",
+      "LoungeChair_BackCushion",
+      "LoungeChair_BackShell",
+      "LoungeChair_LeftArm",
+      "LoungeChair_ArmSupport_-1",
+      "LoungeChair_RightArm",
+      "LoungeChair_ArmSupport_1",
+      "LoungeChair_SeatPiping",
+      "LoungeChair_BackPiping",
+      "LoungeChair_BackCentreSeam"
+    ],
+    "table": [
+      "BronzeTable_LowDrum",
+      "BronzeTable_InsetTop",
+      "BronzeTable_BookPages_0",
+      "BronzeTable_BookCover_0_-1",
+      "BronzeTable_BookCover_0_1",
+      "BronzeTable_BookPages_1",
+      "BronzeTable_BookCover_1_-1",
+      "BronzeTable_BookCover_1_1",
+      "BronzeTable_BookPages_2",
+      "BronzeTable_BookCover_2_-1",
+      "BronzeTable_BookCover_2_1"
+    ],
+    "ribbon": [
+      "RibbonStudy_StonePedestal",
+      "RibbonStudy_RibbonSurface"
+    ],
+    "tree_lower": [
+      "TreeLower_BronzePlanter",
+      "TreeLower_Soil",
+      "TreeLower_Trunk",
+      "TreeLower_Branch_0",
+      "TreeLower_Twig_0_0",
+      "TreeLower_Twig_0_1",
+      "TreeLower_Twig_0_2",
+      "TreeLower_Twig_0_3",
+      "TreeLower_Branch_1",
+      "TreeLower_Twig_1_0",
+      "TreeLower_Twig_1_1",
+      "TreeLower_Twig_1_2",
+      "TreeLower_Twig_1_3",
+      "TreeLower_Branch_2",
+      "TreeLower_Twig_2_0",
+      "TreeLower_Twig_2_1",
+      "TreeLower_Twig_2_2",
+      "TreeLower_Twig_2_3",
+      "TreeLower_Branch_3",
+      "TreeLower_Twig_3_0",
+      "TreeLower_Twig_3_1",
+      "TreeLower_Twig_3_2",
+      "TreeLower_Twig_3_3",
+      "TreeLower_Branch_4",
+      "TreeLower_Twig_4_0",
+      "TreeLower_Twig_4_1",
+      "TreeLower_Twig_4_2",
+      "TreeLower_Twig_4_3",
+      "TreeLower_Branch_5",
+      "TreeLower_Twig_5_0",
+      "TreeLower_Twig_5_1",
+      "TreeLower_Twig_5_2",
+      "TreeLower_Twig_5_3",
+      "TreeLower_Branch_6",
+      "TreeLower_Twig_6_0",
+      "TreeLower_Twig_6_1",
+      "TreeLower_Twig_6_2",
+      "TreeLower_Twig_6_3",
+      "TreeLower_Branch_7",
+      "TreeLower_Twig_7_0",
+      "TreeLower_Twig_7_1",
+      "TreeLower_Twig_7_2",
+      "TreeLower_Twig_7_3",
+      "TreeLower_Branch_8",
+      "TreeLower_Twig_8_0",
+      "TreeLower_Twig_8_1",
+      "TreeLower_Twig_8_2",
+      "TreeLower_Twig_8_3",
+      "TreeLower_Branch_9",
+      "TreeLower_Twig_9_0",
+      "TreeLower_Twig_9_1",
+      "TreeLower_Twig_9_2",
+      "TreeLower_Twig_9_3",
+      "TreeLower_Branch_10",
+      "TreeLower_Twig_10_0",
+      "TreeLower_Twig_10_1",
+      "TreeLower_Twig_10_2",
+      "TreeLower_Twig_10_3",
+      "TreeLower_Branch_11",
+      "TreeLower_Twig_11_0",
+      "TreeLower_Twig_11_1",
+      "TreeLower_Twig_11_2",
+      "TreeLower_Twig_11_3",
+      "TreeLower_Foliage"
+    ],
+    "tree_upper": [
+      "TreeUpper_BronzePlanter",
+      "TreeUpper_Soil",
+      "TreeUpper_Trunk",
+      "TreeUpper_Branch_0",
+      "TreeUpper_Twig_0_0",
+      "TreeUpper_Twig_0_1",
+      "TreeUpper_Twig_0_2",
+      "TreeUpper_Twig_0_3",
+      "TreeUpper_Branch_1",
+      "TreeUpper_Twig_1_0",
+      "TreeUpper_Twig_1_1",
+      "TreeUpper_Twig_1_2",
+      "TreeUpper_Twig_1_3",
+      "TreeUpper_Branch_2",
+      "TreeUpper_Twig_2_0",
+      "TreeUpper_Twig_2_1",
+      "TreeUpper_Twig_2_2",
+      "TreeUpper_Twig_2_3",
+      "TreeUpper_Branch_3",
+      "TreeUpper_Twig_3_0",
+      "TreeUpper_Twig_3_1",
+      "TreeUpper_Twig_3_2",
+      "TreeUpper_Twig_3_3",
+      "TreeUpper_Branch_4",
+      "TreeUpper_Twig_4_0",
+      "TreeUpper_Twig_4_1",
+      "TreeUpper_Twig_4_2",
+      "TreeUpper_Twig_4_3",
+      "TreeUpper_Branch_5",
+      "TreeUpper_Twig_5_0",
+      "TreeUpper_Twig_5_1",
+      "TreeUpper_Twig_5_2",
+      "TreeUpper_Twig_5_3",
+      "TreeUpper_Branch_6",
+      "TreeUpper_Twig_6_0",
+      "TreeUpper_Twig_6_1",
+      "TreeUpper_Twig_6_2",
+      "TreeUpper_Twig_6_3",
+      "TreeUpper_Branch_7",
+      "TreeUpper_Twig_7_0",
+      "TreeUpper_Twig_7_1",
+      "TreeUpper_Twig_7_2",
+      "TreeUpper_Twig_7_3",
+      "TreeUpper_Branch_8",
+      "TreeUpper_Twig_8_0",
+      "TreeUpper_Twig_8_1",
+      "TreeUpper_Twig_8_2",
+      "TreeUpper_Twig_8_3",
+      "TreeUpper_Branch_9",
+      "TreeUpper_Twig_9_0",
+      "TreeUpper_Twig_9_1",
+      "TreeUpper_Twig_9_2",
+      "TreeUpper_Twig_9_3",
+      "TreeUpper_Branch_10",
+      "TreeUpper_Twig_10_0",
+      "TreeUpper_Twig_10_1",
+      "TreeUpper_Twig_10_2",
+      "TreeUpper_Twig_10_3",
+      "TreeUpper_Branch_11",
+      "TreeUpper_Twig_11_0",
+      "TreeUpper_Twig_11_1",
+      "TreeUpper_Twig_11_2",
+      "TreeUpper_Twig_11_3",
+      "TreeUpper_Foliage"
+    ],
+    "accessories": [
+      "ShelfObjects_Vase_0_0",
+      "ShelfObjects_ShelfBook_0_1_0",
+      "ShelfObjects_ShelfBook_0_1_1",
+      "ShelfObjects_ShelfBook_0_1_2",
+      "ShelfObjects_ShelfBook_0_1_3",
+      "ShelfObjects_HorizontalBook_0_2_0",
+      "ShelfObjects_HorizontalBook_0_2_1",
+      "ShelfObjects_HorizontalBook_0_2_2",
+      "ShelfObjects_Vase_0_3",
+      "ShelfObjects_ShelfBook_0_4_0",
+      "ShelfObjects_ShelfBook_0_4_1",
+      "ShelfObjects_ShelfBook_0_4_2",
+      "ShelfObjects_ShelfBook_0_4_3",
+      "ShelfObjects_Vase_1_0",
+      "ShelfObjects_ShelfBook_1_1_0",
+      "ShelfObjects_ShelfBook_1_1_1",
+      "ShelfObjects_ShelfBook_1_1_2",
+      "ShelfObjects_ShelfBook_1_1_3",
+      "ShelfObjects_Vase_1_2",
+      "ShelfObjects_ShelfBook_1_3_0",
+      "ShelfObjects_ShelfBook_1_3_1",
+      "ShelfObjects_ShelfBook_1_3_2",
+      "ShelfObjects_ShelfBook_1_3_3",
+      "ShelfObjects_HorizontalBook_1_4_0",
+      "ShelfObjects_HorizontalBook_1_4_1",
+      "ShelfObjects_HorizontalBook_1_4_2",
+      "ShelfObjects_ShelfBook_2_0_0",
+      "ShelfObjects_ShelfBook_2_0_1",
+      "ShelfObjects_ShelfBook_2_0_2",
+      "ShelfObjects_ShelfBook_2_0_3",
+      "ShelfObjects_HorizontalBook_2_1_0",
+      "ShelfObjects_HorizontalBook_2_1_1",
+      "ShelfObjects_HorizontalBook_2_1_2",
+      "ShelfObjects_Vase_2_2",
+      "ShelfObjects_ShelfBook_2_3_0",
+      "ShelfObjects_ShelfBook_2_3_1",
+      "ShelfObjects_ShelfBook_2_3_2",
+      "ShelfObjects_ShelfBook_2_3_3",
+      "ShelfObjects_Vase_2_4"
+    ]
+  },
+  "phase_visibility": {
+    "structure": {
+      "hidden_ids": [
+        "BronzeTable_BookCover_0_-1",
+        "BronzeTable_BookCover_0_1",
+        "BronzeTable_BookCover_1_-1",
+        "BronzeTable_BookCover_1_1",
+        "BronzeTable_BookCover_2_-1",
+        "BronzeTable_BookCover_2_1",
+        "BronzeTable_BookPages_0",
+        "BronzeTable_BookPages_1",
+        "BronzeTable_BookPages_2",
+        "BronzeTable_InsetTop",
+        "BronzeTable_LowDrum",
+        "Glass_front_s0_0",
+        "Glass_front_s0_0_frameH_-1",
+        "Glass_front_s0_0_frameH_1",
+        "Glass_front_s0_0_frameV_-1",
+        "Glass_front_s0_0_frameV_1",
+        "Glass_front_s0_1",
+        "Glass_front_s0_1_frameH_-1",
+        "Glass_front_s0_1_frameH_1",
+        "Glass_front_s0_1_frameV_-1",
+        "Glass_front_s0_1_frameV_1",
+        "Glass_front_s0_2",
+        "Glass_front_s0_2_frameH_-1",
+        "Glass_front_s0_2_frameH_1",
+        "Glass_front_s0_2_frameV_-1",
+        "Glass_front_s0_2_frameV_1",
+        "Glass_front_s0_3",
+        "Glass_front_s0_3_frameH_-1",
+        "Glass_front_s0_3_frameH_1",
+        "Glass_front_s0_3_frameV_-1",
+        "Glass_front_s0_3_frameV_1",
+        "Glass_front_s1_0",
+        "Glass_front_s1_0_frameH_-1",
+        "Glass_front_s1_0_frameH_1",
+        "Glass_front_s1_0_frameV_-1",
+        "Glass_front_s1_0_frameV_1",
+        "Glass_front_s1_1",
+        "Glass_front_s1_1_frameH_-1",
+        "Glass_front_s1_1_frameH_1",
+        "Glass_front_s1_1_frameV_-1",
+        "Glass_front_s1_1_frameV_1",
+        "Glass_front_s1_2",
+        "Glass_front_s1_2_frameH_-1",
+        "Glass_front_s1_2_frameH_1",
+        "Glass_front_s1_2_frameV_-1",
+        "Glass_front_s1_2_frameV_1",
+        "Glass_front_s1_3",
+        "Glass_front_s1_3_frameH_-1",
+        "Glass_front_s1_3_frameH_1",
+        "Glass_front_s1_3_frameV_-1",
+        "Glass_front_s1_3_frameV_1",
+        "Glass_left_s0_0",
+        "Glass_left_s0_0_frameH_-1",
+        "Glass_left_s0_0_frameH_1",
+        "Glass_left_s0_0_frameV_-1",
+        "Glass_left_s0_0_frameV_1",
+        "Glass_left_s0_1",
+        "Glass_left_s0_1_frameH_-1",
+        "Glass_left_s0_1_frameH_1",
+        "Glass_left_s0_1_frameV_-1",
+        "Glass_left_s0_1_frameV_1",
+        "Glass_left_s0_2",
+        "Glass_left_s0_2_frameH_-1",
+        "Glass_left_s0_2_frameH_1",
+        "Glass_left_s0_2_frameV_-1",
+        "Glass_left_s0_2_frameV_1",
+        "Glass_left_s1_0",
+        "Glass_left_s1_0_frameH_-1",
+        "Glass_left_s1_0_frameH_1",
+        "Glass_left_s1_0_frameV_-1",
+        "Glass_left_s1_0_frameV_1",
+        "Glass_left_s1_1",
+        "Glass_left_s1_1_frameH_-1",
+        "Glass_left_s1_1_frameH_1",
+        "Glass_left_s1_1_frameV_-1",
+        "Glass_left_s1_1_frameV_1",
+        "Glass_left_s1_2",
+        "Glass_left_s1_2_frameH_-1",
+        "Glass_left_s1_2_frameH_1",
+        "Glass_left_s1_2_frameV_-1",
+        "Glass_left_s1_2_frameV_1",
+        "Glass_upper_internal_guard",
+        "Glass_upper_internal_guard_frameH_-1",
+        "Glass_upper_internal_guard_frameH_1",
+        "Glass_upper_internal_guard_frameV_-1",
+        "Glass_upper_internal_guard_frameV_1",
+        "Glazing_header_s0_-2.74",
+        "Glazing_header_s1_-2.74",
+        "LoungeChair_ArmSupport_-1",
+        "LoungeChair_ArmSupport_1",
+        "LoungeChair_BackCentreSeam",
+        "LoungeChair_BackCushion",
+        "LoungeChair_BackPiping",
+        "LoungeChair_BackShell",
+        "LoungeChair_Foot_0",
+        "LoungeChair_Foot_1",
+        "LoungeChair_Foot_2",
+        "LoungeChair_Foot_3",
+        "LoungeChair_LeftArm",
+        "LoungeChair_LowerShell",
+        "LoungeChair_RightArm",
+        "LoungeChair_SeatCushion",
+        "LoungeChair_SeatPiping",
+        "LoungeChair_Swivel",
+        "Mullion_front_s0_1",
+        "Mullion_front_s0_2",
+        "Mullion_front_s0_3",
+        "Mullion_front_s1_1",
+        "Mullion_front_s1_2",
+        "Mullion_front_s1_3",
+        "RibbonStudy_RibbonSurface",
+        "RibbonStudy_StonePedestal",
+        "ShelfObjects_HorizontalBook_0_2_0",
+        "ShelfObjects_HorizontalBook_0_2_1",
+        "ShelfObjects_HorizontalBook_0_2_2",
+        "ShelfObjects_HorizontalBook_1_4_0",
+        "ShelfObjects_HorizontalBook_1_4_1",
+        "ShelfObjects_HorizontalBook_1_4_2",
+        "ShelfObjects_HorizontalBook_2_1_0",
+        "ShelfObjects_HorizontalBook_2_1_1",
+        "ShelfObjects_HorizontalBook_2_1_2",
+        "ShelfObjects_ShelfBook_0_1_0",
+        "ShelfObjects_ShelfBook_0_1_1",
+        "ShelfObjects_ShelfBook_0_1_2",
+        "ShelfObjects_ShelfBook_0_1_3",
+        "ShelfObjects_ShelfBook_0_4_0",
+        "ShelfObjects_ShelfBook_0_4_1",
+        "ShelfObjects_ShelfBook_0_4_2",
+        "ShelfObjects_ShelfBook_0_4_3",
+        "ShelfObjects_ShelfBook_1_1_0",
+        "ShelfObjects_ShelfBook_1_1_1",
+        "ShelfObjects_ShelfBook_1_1_2",
+        "ShelfObjects_ShelfBook_1_1_3",
+        "ShelfObjects_ShelfBook_1_3_0",
+        "ShelfObjects_ShelfBook_1_3_1",
+        "ShelfObjects_ShelfBook_1_3_2",
+        "ShelfObjects_ShelfBook_1_3_3",
+        "ShelfObjects_ShelfBook_2_0_0",
+        "ShelfObjects_ShelfBook_2_0_1",
+        "ShelfObjects_ShelfBook_2_0_2",
+        "ShelfObjects_ShelfBook_2_0_3",
+        "ShelfObjects_ShelfBook_2_3_0",
+        "ShelfObjects_ShelfBook_2_3_1",
+        "ShelfObjects_ShelfBook_2_3_2",
+        "ShelfObjects_ShelfBook_2_3_3",
+        "ShelfObjects_Vase_0_0",
+        "ShelfObjects_Vase_0_3",
+        "ShelfObjects_Vase_1_0",
+        "ShelfObjects_Vase_1_2",
+        "ShelfObjects_Vase_2_2",
+        "ShelfObjects_Vase_2_4",
+        "TreeLower_Branch_0",
+        "TreeLower_Branch_1",
+        "TreeLower_Branch_10",
+        "TreeLower_Branch_11",
+        "TreeLower_Branch_2",
+        "TreeLower_Branch_3",
+        "TreeLower_Branch_4",
+        "TreeLower_Branch_5",
+        "TreeLower_Branch_6",
+        "TreeLower_Branch_7",
+        "TreeLower_Branch_8",
+        "TreeLower_Branch_9",
+        "TreeLower_BronzePlanter",
+        "TreeLower_Foliage",
+        "TreeLower_Soil",
+        "TreeLower_Trunk",
+        "TreeLower_Twig_0_0",
+        "TreeLower_Twig_0_1",
+        "TreeLower_Twig_0_2",
+        "TreeLower_Twig_0_3",
+        "TreeLower_Twig_10_0",
+        "TreeLower_Twig_10_1",
+        "TreeLower_Twig_10_2",
+        "TreeLower_Twig_10_3",
+        "TreeLower_Twig_11_0",
+        "TreeLower_Twig_11_1",
+        "TreeLower_Twig_11_2",
+        "TreeLower_Twig_11_3",
+        "TreeLower_Twig_1_0",
+        "TreeLower_Twig_1_1",
+        "TreeLower_Twig_1_2",
+        "TreeLower_Twig_1_3",
+        "TreeLower_Twig_2_0",
+        "TreeLower_Twig_2_1",
+        "TreeLower_Twig_2_2",
+        "TreeLower_Twig_2_3",
+        "TreeLower_Twig_3_0",
+        "TreeLower_Twig_3_1",
+        "TreeLower_Twig_3_2",
+        "TreeLower_Twig_3_3",
+        "TreeLower_Twig_4_0",
+        "TreeLower_Twig_4_1",
+        "TreeLower_Twig_4_2",
+        "TreeLower_Twig_4_3",
+        "TreeLower_Twig_5_0",
+        "TreeLower_Twig_5_1",
+        "TreeLower_Twig_5_2",
+        "TreeLower_Twig_5_3",
+        "TreeLower_Twig_6_0",
+        "TreeLower_Twig_6_1",
+        "TreeLower_Twig_6_2",
+        "TreeLower_Twig_6_3",
+        "TreeLower_Twig_7_0",
+        "TreeLower_Twig_7_1",
+        "TreeLower_Twig_7_2",
+        "TreeLower_Twig_7_3",
+        "TreeLower_Twig_8_0",
+        "TreeLower_Twig_8_1",
+        "TreeLower_Twig_8_2",
+        "TreeLower_Twig_8_3",
+        "TreeLower_Twig_9_0",
+        "TreeLower_Twig_9_1",
+        "TreeLower_Twig_9_2",
+        "TreeLower_Twig_9_3",
+        "TreeUpper_Branch_0",
+        "TreeUpper_Branch_1",
+        "TreeUpper_Branch_10",
+        "TreeUpper_Branch_11",
+        "TreeUpper_Branch_2",
+        "TreeUpper_Branch_3",
+        "TreeUpper_Branch_4",
+        "TreeUpper_Branch_5",
+        "TreeUpper_Branch_6",
+        "TreeUpper_Branch_7",
+        "TreeUpper_Branch_8",
+        "TreeUpper_Branch_9",
+        "TreeUpper_BronzePlanter",
+        "TreeUpper_Foliage",
+        "TreeUpper_Soil",
+        "TreeUpper_Trunk",
+        "TreeUpper_Twig_0_0",
+        "TreeUpper_Twig_0_1",
+        "TreeUpper_Twig_0_2",
+        "TreeUpper_Twig_0_3",
+        "TreeUpper_Twig_10_0",
+        "TreeUpper_Twig_10_1",
+        "TreeUpper_Twig_10_2",
+        "TreeUpper_Twig_10_3",
+        "TreeUpper_Twig_11_0",
+        "TreeUpper_Twig_11_1",
+        "TreeUpper_Twig_11_2",
+        "TreeUpper_Twig_11_3",
+        "TreeUpper_Twig_1_0",
+        "TreeUpper_Twig_1_1",
+        "TreeUpper_Twig_1_2",
+        "TreeUpper_Twig_1_3",
+        "TreeUpper_Twig_2_0",
+        "TreeUpper_Twig_2_1",
+        "TreeUpper_Twig_2_2",
+        "TreeUpper_Twig_2_3",
+        "TreeUpper_Twig_3_0",
+        "TreeUpper_Twig_3_1",
+        "TreeUpper_Twig_3_2",
+        "TreeUpper_Twig_3_3",
+        "TreeUpper_Twig_4_0",
+        "TreeUpper_Twig_4_1",
+        "TreeUpper_Twig_4_2",
+        "TreeUpper_Twig_4_3",
+        "TreeUpper_Twig_5_0",
+        "TreeUpper_Twig_5_1",
+        "TreeUpper_Twig_5_2",
+        "TreeUpper_Twig_5_3",
+        "TreeUpper_Twig_6_0",
+        "TreeUpper_Twig_6_1",
+        "TreeUpper_Twig_6_2",
+        "TreeUpper_Twig_6_3",
+        "TreeUpper_Twig_7_0",
+        "TreeUpper_Twig_7_1",
+        "TreeUpper_Twig_7_2",
+        "TreeUpper_Twig_7_3",
+        "TreeUpper_Twig_8_0",
+        "TreeUpper_Twig_8_1",
+        "TreeUpper_Twig_8_2",
+        "TreeUpper_Twig_8_3",
+        "TreeUpper_Twig_9_0",
+        "TreeUpper_Twig_9_1",
+        "TreeUpper_Twig_9_2",
+        "TreeUpper_Twig_9_3"
+      ]
+    },
+    "exploded": {
+      "hidden_ids": [
+        "Glass_front_s0_1",
+        "Glass_front_s0_1_frameH_-1",
+        "Glass_front_s0_1_frameH_1",
+        "Glass_front_s0_1_frameV_-1",
+        "Glass_front_s0_1_frameV_1",
+        "Glass_front_s0_2",
+        "Glass_front_s0_2_frameH_-1",
+        "Glass_front_s0_2_frameH_1",
+        "Glass_front_s0_2_frameV_-1",
+        "Glass_front_s0_2_frameV_1",
+        "Glass_front_s1_1",
+        "Glass_front_s1_1_frameH_-1",
+        "Glass_front_s1_1_frameH_1",
+        "Glass_front_s1_1_frameV_-1",
+        "Glass_front_s1_1_frameV_1",
+        "Glass_front_s1_2",
+        "Glass_front_s1_2_frameH_-1",
+        "Glass_front_s1_2_frameH_1",
+        "Glass_front_s1_2_frameV_-1",
+        "Glass_front_s1_2_frameV_1",
+        "Glazing_header_s0_-2.74",
+        "Glazing_header_s1_-2.74",
+        "Mullion_front_s0_1",
+        "Mullion_front_s0_2",
+        "Mullion_front_s0_3",
+        "Mullion_front_s1_1",
+        "Mullion_front_s1_2",
+        "Mullion_front_s1_3"
+      ]
+    },
+    "ready": {
+      "hidden_ids": []
+    }
+  },
+  "destination_hide_groups": {
+    "motion-floor": [
+      "chair",
+      "table",
+      "ribbon",
+      "tree_lower"
+    ],
+    "lounge": []
+  },
+  "workspace_objects": [
+    "Workstation_1_DeskTop",
+    "Workstation_1_DeskUnderframe",
+    "Workstation_1_DeskLeg_-0.724_-0.295",
+    "Workstation_1_FootPad_-0.724_-0.295",
+    "Workstation_1_DeskLeg_-0.724_0.295",
+    "Workstation_1_FootPad_-0.724_0.295",
+    "Workstation_1_DeskLeg_0.724_-0.295",
+    "Workstation_1_FootPad_0.724_-0.295",
+    "Workstation_1_DeskLeg_0.724_0.295",
+    "Workstation_1_FootPad_0.724_0.295",
+    "Workstation_1_MonitorBase",
+    "Workstation_1_MonitorStem",
+    "Workstation_1_MonitorCasing",
+    "Workstation_1_MonitorScreen",
+    "Workstation_1_MonitorChin",
+    "Workstation_1_MonitorPowerDot",
+    "Workstation_1_MonitorCable",
+    "Workstation_1_KeyboardBody",
+    "Workstation_1_Keycaps",
+    "Workstation_1_Mouse",
+    "Workstation_1_ChairLift",
+    "Workstation_1_ChairCollar",
+    "Workstation_1_ChairFoot_0",
+    "Workstation_1_Caster_0",
+    "Workstation_1_ChairFoot_1",
+    "Workstation_1_Caster_1",
+    "Workstation_1_ChairFoot_2",
+    "Workstation_1_Caster_2",
+    "Workstation_1_ChairFoot_3",
+    "Workstation_1_Caster_3",
+    "Workstation_1_ChairFoot_4",
+    "Workstation_1_Caster_4",
+    "Workstation_1_TaskSeat",
+    "Workstation_1_TaskSeatShell",
+    "Workstation_1_TaskBack",
+    "Workstation_1_TaskBackShell",
+    "Workstation_1_ArmFrame_-1",
+    "Workstation_1_ArmPad_-1",
+    "Workstation_1_ArmFrame_1",
+    "Workstation_1_ArmPad_1",
+    "Workstation_1_TaskBackSeam",
+    "Workstation_2_DeskTop",
+    "Workstation_2_DeskUnderframe",
+    "Workstation_2_DeskLeg_-0.724_-0.295",
+    "Workstation_2_FootPad_-0.724_-0.295",
+    "Workstation_2_DeskLeg_-0.724_0.295",
+    "Workstation_2_FootPad_-0.724_0.295",
+    "Workstation_2_DeskLeg_0.724_-0.295",
+    "Workstation_2_FootPad_0.724_-0.295",
+    "Workstation_2_DeskLeg_0.724_0.295",
+    "Workstation_2_FootPad_0.724_0.295",
+    "Workstation_2_MonitorBase",
+    "Workstation_2_MonitorStem",
+    "Workstation_2_MonitorCasing",
+    "Workstation_2_MonitorScreen",
+    "Workstation_2_MonitorChin",
+    "Workstation_2_MonitorPowerDot",
+    "Workstation_2_MonitorCable",
+    "Workstation_2_KeyboardBody",
+    "Workstation_2_Keycaps",
+    "Workstation_2_Mouse",
+    "Workstation_2_ChairLift",
+    "Workstation_2_ChairCollar",
+    "Workstation_2_ChairFoot_0",
+    "Workstation_2_Caster_0",
+    "Workstation_2_ChairFoot_1",
+    "Workstation_2_Caster_1",
+    "Workstation_2_ChairFoot_2",
+    "Workstation_2_Caster_2",
+    "Workstation_2_ChairFoot_3",
+    "Workstation_2_Caster_3",
+    "Workstation_2_ChairFoot_4",
+    "Workstation_2_Caster_4",
+    "Workstation_2_TaskSeat",
+    "Workstation_2_TaskSeatShell",
+    "Workstation_2_TaskBack",
+    "Workstation_2_TaskBackShell",
+    "Workstation_2_ArmFrame_-1",
+    "Workstation_2_ArmPad_-1",
+    "Workstation_2_ArmFrame_1",
+    "Workstation_2_ArmPad_1",
+    "Workstation_2_TaskBackSeam",
+    "Workstation_3_DeskTop",
+    "Workstation_3_DeskUnderframe",
+    "Workstation_3_DeskLeg_-0.724_-0.295",
+    "Workstation_3_FootPad_-0.724_-0.295",
+    "Workstation_3_DeskLeg_-0.724_0.295",
+    "Workstation_3_FootPad_-0.724_0.295",
+    "Workstation_3_DeskLeg_0.724_-0.295",
+    "Workstation_3_FootPad_0.724_-0.295",
+    "Workstation_3_DeskLeg_0.724_0.295",
+    "Workstation_3_FootPad_0.724_0.295",
+    "Workstation_3_MonitorBase",
+    "Workstation_3_MonitorStem",
+    "Workstation_3_MonitorCasing",
+    "Workstation_3_MonitorScreen",
+    "Workstation_3_MonitorChin",
+    "Workstation_3_MonitorPowerDot",
+    "Workstation_3_MonitorCable",
+    "Workstation_3_KeyboardBody",
+    "Workstation_3_Keycaps",
+    "Workstation_3_Mouse",
+    "Workstation_3_ChairLift",
+    "Workstation_3_ChairCollar",
+    "Workstation_3_ChairFoot_0",
+    "Workstation_3_Caster_0",
+    "Workstation_3_ChairFoot_1",
+    "Workstation_3_Caster_1",
+    "Workstation_3_ChairFoot_2",
+    "Workstation_3_Caster_2",
+    "Workstation_3_ChairFoot_3",
+    "Workstation_3_Caster_3",
+    "Workstation_3_ChairFoot_4",
+    "Workstation_3_Caster_4",
+    "Workstation_3_TaskSeat",
+    "Workstation_3_TaskSeatShell",
+    "Workstation_3_TaskBack",
+    "Workstation_3_TaskBackShell",
+    "Workstation_3_ArmFrame_-1",
+    "Workstation_3_ArmPad_-1",
+    "Workstation_3_ArmFrame_1",
+    "Workstation_3_ArmPad_1",
+    "Workstation_3_TaskBackSeam"
+  ],
+  "workspace_usage": "Hide lounge chair/table/ribbon/lower-tree groups and attach a workspace export at model origin.",
+  "runtime_batches": {
+    "main": {
+      "Batch_table_01": {
+        "member_ids": [
+          "BronzeTable_BookCover_0_-1",
+          "BronzeTable_BookCover_0_1",
+          "BronzeTable_BookCover_1_-1",
+          "BronzeTable_BookCover_1_1",
+          "BronzeTable_BookCover_2_-1",
+          "BronzeTable_BookCover_2_1",
+          "BronzeTable_BookPages_0",
+          "BronzeTable_BookPages_1",
+          "BronzeTable_BookPages_2",
+          "BronzeTable_InsetTop",
+          "BronzeTable_LowDrum"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_LIGHTS_02": {
+        "member_ids": [
+          "Ceiling_frontback_light",
+          "Ceiling_frontback_light.001",
+          "Ceiling_side_light",
+          "Ceiling_side_light.001"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.48
+        ],
+        "hidden_phases": []
+      },
+      "Batch_LIGHTS_03": {
+        "member_ids": [
+          "Ceiling_frontback_light.002",
+          "Ceiling_frontback_light.003",
+          "Ceiling_side_light.002",
+          "Ceiling_side_light.003"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.92
+        ],
+        "hidden_phases": []
+      },
+      "Batch_STONE_04": {
+        "member_ids": [
+          "Column_lower_0",
+          "Column_lower_1",
+          "Column_lower_2",
+          "Floor_lower_travertine"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_STONE_05": {
+        "member_ids": [
+          "Column_upper_0",
+          "Column_upper_1",
+          "Column_upper_2"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.48
+        ],
+        "hidden_phases": []
+      },
+      "Batch_Glass_front_s0_0_06": {
+        "member_ids": [
+          "Glass_front_s0_0",
+          "Glass_front_s0_0_frameH_-1",
+          "Glass_front_s0_0_frameH_1",
+          "Glass_front_s0_0_frameV_-1",
+          "Glass_front_s0_0_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.4776,
+          -0.38,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_front_s0_1_07": {
+        "member_ids": [
+          "Glass_front_s0_1",
+          "Glass_front_s0_1_frameH_-1",
+          "Glass_front_s0_1_frameH_1",
+          "Glass_front_s0_1_frameV_-1",
+          "Glass_front_s0_1_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.1592,
+          -0.38,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure",
+          "exploded"
+        ]
+      },
+      "Batch_Glass_front_s0_2_08": {
+        "member_ids": [
+          "Glass_front_s0_2",
+          "Glass_front_s0_2_frameH_-1",
+          "Glass_front_s0_2_frameH_1",
+          "Glass_front_s0_2_frameV_-1",
+          "Glass_front_s0_2_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.1592,
+          -0.38,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure",
+          "exploded"
+        ]
+      },
+      "Batch_Glass_front_s0_3_09": {
+        "member_ids": [
+          "Glass_front_s0_3",
+          "Glass_front_s0_3_frameH_-1",
+          "Glass_front_s0_3_frameH_1",
+          "Glass_front_s0_3_frameV_-1",
+          "Glass_front_s0_3_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.4776,
+          -0.38,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_front_s1_0_10": {
+        "member_ids": [
+          "Glass_front_s1_0",
+          "Glass_front_s1_0_frameH_-1",
+          "Glass_front_s1_0_frameH_1",
+          "Glass_front_s1_0_frameV_-1",
+          "Glass_front_s1_0_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.4776,
+          -0.38,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_front_s1_1_11": {
+        "member_ids": [
+          "Glass_front_s1_1",
+          "Glass_front_s1_1_frameH_-1",
+          "Glass_front_s1_1_frameH_1",
+          "Glass_front_s1_1_frameV_-1",
+          "Glass_front_s1_1_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.1592,
+          -0.38,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure",
+          "exploded"
+        ]
+      },
+      "Batch_Glass_front_s1_2_12": {
+        "member_ids": [
+          "Glass_front_s1_2",
+          "Glass_front_s1_2_frameH_-1",
+          "Glass_front_s1_2_frameH_1",
+          "Glass_front_s1_2_frameV_-1",
+          "Glass_front_s1_2_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.1592,
+          -0.38,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure",
+          "exploded"
+        ]
+      },
+      "Batch_Glass_front_s1_3_13": {
+        "member_ids": [
+          "Glass_front_s1_3",
+          "Glass_front_s1_3_frameH_-1",
+          "Glass_front_s1_3_frameH_1",
+          "Glass_front_s1_3_frameV_-1",
+          "Glass_front_s1_3_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.4776,
+          -0.38,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s0_0_14": {
+        "member_ids": [
+          "Glass_left_s0_0",
+          "Glass_left_s0_0_frameH_-1",
+          "Glass_left_s0_0_frameH_1",
+          "Glass_left_s0_0_frameV_-1",
+          "Glass_left_s0_0_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.5,
+          -0.2366,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s0_1_15": {
+        "member_ids": [
+          "Glass_left_s0_1",
+          "Glass_left_s0_1_frameH_-1",
+          "Glass_left_s0_1_frameH_1",
+          "Glass_left_s0_1_frameV_-1",
+          "Glass_left_s0_1_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.5,
+          0.0,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s0_2_16": {
+        "member_ids": [
+          "Glass_left_s0_2",
+          "Glass_left_s0_2_frameH_-1",
+          "Glass_left_s0_2_frameH_1",
+          "Glass_left_s0_2_frameV_-1",
+          "Glass_left_s0_2_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.5,
+          0.2366,
+          0.17
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s1_0_17": {
+        "member_ids": [
+          "Glass_left_s1_0_frameH_-1",
+          "Glass_left_s1_0_frameH_1",
+          "Glass_left_s1_0_frameV_-1",
+          "Glass_left_s1_0_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.700001,
+          -0.2366,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s1_1_18": {
+        "member_ids": [
+          "Glass_left_s1_1_frameH_-1",
+          "Glass_left_s1_1_frameH_1",
+          "Glass_left_s1_1_frameV_-1",
+          "Glass_left_s1_1_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.700001,
+          0.0,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_left_s1_2_19": {
+        "member_ids": [
+          "Glass_left_s1_2_frameH_-1",
+          "Glass_left_s1_2_frameH_1",
+          "Glass_left_s1_2_frameV_-1",
+          "Glass_left_s1_2_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          -0.700001,
+          0.2366,
+          0.45
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_Glass_upper_internal_guard_20": {
+        "member_ids": [
+          "Glass_upper_internal_guard",
+          "Glass_upper_internal_guard_frameH_-1",
+          "Glass_upper_internal_guard_frameH_1",
+          "Glass_upper_internal_guard_frameV_-1",
+          "Glass_upper_internal_guard_frameV_1"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.48
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_GLAZING_21": {
+        "member_ids": [
+          "Glazing_header_s0_-2.74",
+          "Glazing_header_s1_-2.74",
+          "Mullion_front_s0_1",
+          "Mullion_front_s0_2",
+          "Mullion_front_s0_3",
+          "Mullion_front_s1_1",
+          "Mullion_front_s1_2",
+          "Mullion_front_s1_3"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure",
+          "exploded"
+        ]
+      },
+      "Batch_GLAZING_22": {
+        "member_ids": [
+          "Glazing_header_s0_2.74",
+          "Glazing_header_s1_2.74",
+          "Glazing_side_header_s0",
+          "Glazing_side_header_s1",
+          "Mullion_front_s0_0",
+          "Mullion_front_s0_4",
+          "Mullion_front_s1_0",
+          "Mullion_front_s1_4",
+          "Mullion_left_s0_0",
+          "Mullion_left_s0_1",
+          "Mullion_left_s0_2",
+          "Mullion_left_s0_3",
+          "Mullion_left_s1_0",
+          "Mullion_left_s1_1",
+          "Mullion_left_s1_2",
+          "Mullion_left_s1_3"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_chair_23": {
+        "member_ids": [
+          "LoungeChair_ArmSupport_-1",
+          "LoungeChair_ArmSupport_1",
+          "LoungeChair_BackCentreSeam",
+          "LoungeChair_BackCushion",
+          "LoungeChair_BackPiping",
+          "LoungeChair_BackShell",
+          "LoungeChair_Foot_0",
+          "LoungeChair_Foot_1",
+          "LoungeChair_Foot_2",
+          "LoungeChair_Foot_3",
+          "LoungeChair_LeftArm",
+          "LoungeChair_LowerShell",
+          "LoungeChair_RightArm",
+          "LoungeChair_SeatCushion",
+          "LoungeChair_SeatPiping",
+          "LoungeChair_Swivel"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_PLINTH_24": {
+        "member_ids": [
+          "Plinth_lower_reveal",
+          "Plinth_oval_brushed_bronze",
+          "Plinth_top_highlight"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_ribbon_25": {
+        "member_ids": [
+          "RibbonStudy_RibbonSurface",
+          "RibbonStudy_StonePedestal"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_SHELVING_26": {
+        "member_ids": [
+          "Shelf_backing_walnut",
+          "Shelf_bronze_border_side",
+          "Shelf_bronze_border_side.001",
+          "Shelf_bronze_border_top",
+          "Shelf_horizontal_0",
+          "Shelf_horizontal_1",
+          "Shelf_horizontal_2",
+          "Shelf_horizontal_3",
+          "Shelf_vertical_0",
+          "Shelf_vertical_1",
+          "Shelf_vertical_2",
+          "Shelf_vertical_3",
+          "Shelf_vertical_4",
+          "Shelf_vertical_5",
+          "Shelf_warm_reveal",
+          "Shelf_warm_reveal.001"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_accessories_27": {
+        "member_ids": [
+          "ShelfObjects_HorizontalBook_0_2_0",
+          "ShelfObjects_HorizontalBook_0_2_1",
+          "ShelfObjects_HorizontalBook_0_2_2",
+          "ShelfObjects_HorizontalBook_1_4_0",
+          "ShelfObjects_HorizontalBook_1_4_1",
+          "ShelfObjects_HorizontalBook_1_4_2",
+          "ShelfObjects_HorizontalBook_2_1_0",
+          "ShelfObjects_HorizontalBook_2_1_1",
+          "ShelfObjects_HorizontalBook_2_1_2",
+          "ShelfObjects_ShelfBook_0_1_0",
+          "ShelfObjects_ShelfBook_0_1_1",
+          "ShelfObjects_ShelfBook_0_1_2",
+          "ShelfObjects_ShelfBook_0_1_3",
+          "ShelfObjects_ShelfBook_0_4_0",
+          "ShelfObjects_ShelfBook_0_4_1",
+          "ShelfObjects_ShelfBook_0_4_2",
+          "ShelfObjects_ShelfBook_0_4_3",
+          "ShelfObjects_ShelfBook_1_1_0",
+          "ShelfObjects_ShelfBook_1_1_1",
+          "ShelfObjects_ShelfBook_1_1_2",
+          "ShelfObjects_ShelfBook_1_1_3",
+          "ShelfObjects_ShelfBook_1_3_0",
+          "ShelfObjects_ShelfBook_1_3_1",
+          "ShelfObjects_ShelfBook_1_3_2",
+          "ShelfObjects_ShelfBook_1_3_3",
+          "ShelfObjects_ShelfBook_2_0_0",
+          "ShelfObjects_ShelfBook_2_0_1",
+          "ShelfObjects_ShelfBook_2_0_2",
+          "ShelfObjects_ShelfBook_2_0_3",
+          "ShelfObjects_ShelfBook_2_3_0",
+          "ShelfObjects_ShelfBook_2_3_1",
+          "ShelfObjects_ShelfBook_2_3_2",
+          "ShelfObjects_ShelfBook_2_3_3",
+          "ShelfObjects_Vase_0_0",
+          "ShelfObjects_Vase_0_3",
+          "ShelfObjects_Vase_1_0",
+          "ShelfObjects_Vase_1_2",
+          "ShelfObjects_Vase_2_2",
+          "ShelfObjects_Vase_2_4"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_STAIR_28": {
+        "member_ids": [
+          "Stair_continuous_bronze_guard",
+          "Stair_riser_light_01",
+          "Stair_riser_light_02",
+          "Stair_riser_light_03",
+          "Stair_riser_light_04",
+          "Stair_riser_light_05",
+          "Stair_riser_light_06",
+          "Stair_riser_light_07",
+          "Stair_riser_light_08",
+          "Stair_riser_light_09",
+          "Stair_riser_light_10",
+          "Stair_riser_light_11",
+          "Stair_riser_light_12",
+          "Stair_riser_light_13",
+          "Stair_riser_light_14",
+          "Stair_riser_light_15",
+          "Stair_riser_light_16",
+          "Stair_riser_light_17",
+          "Stair_riser_light_18",
+          "Stair_riser_light_19",
+          "Stair_riser_light_20",
+          "Stair_riser_light_21",
+          "Stair_riser_light_22",
+          "Stair_tread_01",
+          "Stair_tread_02",
+          "Stair_tread_03",
+          "Stair_tread_04",
+          "Stair_tread_05",
+          "Stair_tread_06",
+          "Stair_tread_07",
+          "Stair_tread_08",
+          "Stair_tread_09",
+          "Stair_tread_10",
+          "Stair_tread_11",
+          "Stair_tread_12",
+          "Stair_tread_13",
+          "Stair_tread_14",
+          "Stair_tread_15",
+          "Stair_tread_16",
+          "Stair_tread_17",
+          "Stair_tread_18",
+          "Stair_tread_19",
+          "Stair_tread_20",
+          "Stair_tread_21",
+          "Stair_tread_22"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_tree_lower_29": {
+        "member_ids": [
+          "TreeLower_Branch_0",
+          "TreeLower_Branch_1",
+          "TreeLower_Branch_10",
+          "TreeLower_Branch_11",
+          "TreeLower_Branch_2",
+          "TreeLower_Branch_3",
+          "TreeLower_Branch_4",
+          "TreeLower_Branch_5",
+          "TreeLower_Branch_6",
+          "TreeLower_Branch_7",
+          "TreeLower_Branch_8",
+          "TreeLower_Branch_9",
+          "TreeLower_BronzePlanter",
+          "TreeLower_Foliage",
+          "TreeLower_Soil",
+          "TreeLower_Trunk",
+          "TreeLower_Twig_0_0",
+          "TreeLower_Twig_0_1",
+          "TreeLower_Twig_0_2",
+          "TreeLower_Twig_0_3",
+          "TreeLower_Twig_10_0",
+          "TreeLower_Twig_10_1",
+          "TreeLower_Twig_10_2",
+          "TreeLower_Twig_10_3",
+          "TreeLower_Twig_11_0",
+          "TreeLower_Twig_11_1",
+          "TreeLower_Twig_11_2",
+          "TreeLower_Twig_11_3",
+          "TreeLower_Twig_1_0",
+          "TreeLower_Twig_1_1",
+          "TreeLower_Twig_1_2",
+          "TreeLower_Twig_1_3",
+          "TreeLower_Twig_2_0",
+          "TreeLower_Twig_2_1",
+          "TreeLower_Twig_2_2",
+          "TreeLower_Twig_2_3",
+          "TreeLower_Twig_3_0",
+          "TreeLower_Twig_3_1",
+          "TreeLower_Twig_3_2",
+          "TreeLower_Twig_3_3",
+          "TreeLower_Twig_4_0",
+          "TreeLower_Twig_4_1",
+          "TreeLower_Twig_4_2",
+          "TreeLower_Twig_4_3",
+          "TreeLower_Twig_5_0",
+          "TreeLower_Twig_5_1",
+          "TreeLower_Twig_5_2",
+          "TreeLower_Twig_5_3",
+          "TreeLower_Twig_6_0",
+          "TreeLower_Twig_6_1",
+          "TreeLower_Twig_6_2",
+          "TreeLower_Twig_6_3",
+          "TreeLower_Twig_7_0",
+          "TreeLower_Twig_7_1",
+          "TreeLower_Twig_7_2",
+          "TreeLower_Twig_7_3",
+          "TreeLower_Twig_8_0",
+          "TreeLower_Twig_8_1",
+          "TreeLower_Twig_8_2",
+          "TreeLower_Twig_8_3",
+          "TreeLower_Twig_9_0",
+          "TreeLower_Twig_9_1",
+          "TreeLower_Twig_9_2",
+          "TreeLower_Twig_9_3"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_tree_upper_30": {
+        "member_ids": [
+          "TreeUpper_Branch_0",
+          "TreeUpper_Branch_1",
+          "TreeUpper_Branch_10",
+          "TreeUpper_Branch_11",
+          "TreeUpper_Branch_2",
+          "TreeUpper_Branch_3",
+          "TreeUpper_Branch_4",
+          "TreeUpper_Branch_5",
+          "TreeUpper_Branch_6",
+          "TreeUpper_Branch_7",
+          "TreeUpper_Branch_8",
+          "TreeUpper_Branch_9",
+          "TreeUpper_BronzePlanter",
+          "TreeUpper_Foliage",
+          "TreeUpper_Soil",
+          "TreeUpper_Trunk",
+          "TreeUpper_Twig_0_0",
+          "TreeUpper_Twig_0_1",
+          "TreeUpper_Twig_0_2",
+          "TreeUpper_Twig_0_3",
+          "TreeUpper_Twig_10_0",
+          "TreeUpper_Twig_10_1",
+          "TreeUpper_Twig_10_2",
+          "TreeUpper_Twig_10_3",
+          "TreeUpper_Twig_11_0",
+          "TreeUpper_Twig_11_1",
+          "TreeUpper_Twig_11_2",
+          "TreeUpper_Twig_11_3",
+          "TreeUpper_Twig_1_0",
+          "TreeUpper_Twig_1_1",
+          "TreeUpper_Twig_1_2",
+          "TreeUpper_Twig_1_3",
+          "TreeUpper_Twig_2_0",
+          "TreeUpper_Twig_2_1",
+          "TreeUpper_Twig_2_2",
+          "TreeUpper_Twig_2_3",
+          "TreeUpper_Twig_3_0",
+          "TreeUpper_Twig_3_1",
+          "TreeUpper_Twig_3_2",
+          "TreeUpper_Twig_3_3",
+          "TreeUpper_Twig_4_0",
+          "TreeUpper_Twig_4_1",
+          "TreeUpper_Twig_4_2",
+          "TreeUpper_Twig_4_3",
+          "TreeUpper_Twig_5_0",
+          "TreeUpper_Twig_5_1",
+          "TreeUpper_Twig_5_2",
+          "TreeUpper_Twig_5_3",
+          "TreeUpper_Twig_6_0",
+          "TreeUpper_Twig_6_1",
+          "TreeUpper_Twig_6_2",
+          "TreeUpper_Twig_6_3",
+          "TreeUpper_Twig_7_0",
+          "TreeUpper_Twig_7_1",
+          "TreeUpper_Twig_7_2",
+          "TreeUpper_Twig_7_3",
+          "TreeUpper_Twig_8_0",
+          "TreeUpper_Twig_8_1",
+          "TreeUpper_Twig_8_2",
+          "TreeUpper_Twig_8_3",
+          "TreeUpper_Twig_9_0",
+          "TreeUpper_Twig_9_1",
+          "TreeUpper_Twig_9_2",
+          "TreeUpper_Twig_9_3"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.48
+        ],
+        "hidden_phases": [
+          "structure"
+        ]
+      },
+      "Batch_GLAZING_31": {
+        "member_ids": [
+          "Upper_guard_post",
+          "Upper_guard_post.001",
+          "Upper_guard_post.002",
+          "Upper_guard_top"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.48
+        ],
+        "hidden_phases": []
+      }
+    },
+    "workspace": {
+      "Batch_Workstation_1_01": {
+        "member_ids": [
+          "Workstation_1_DeskTop",
+          "Workstation_1_DeskUnderframe",
+          "Workstation_1_DeskLeg_-0.724_-0.295",
+          "Workstation_1_FootPad_-0.724_-0.295",
+          "Workstation_1_DeskLeg_-0.724_0.295",
+          "Workstation_1_FootPad_-0.724_0.295",
+          "Workstation_1_DeskLeg_0.724_-0.295",
+          "Workstation_1_FootPad_0.724_-0.295",
+          "Workstation_1_DeskLeg_0.724_0.295",
+          "Workstation_1_FootPad_0.724_0.295",
+          "Workstation_1_MonitorBase",
+          "Workstation_1_MonitorStem",
+          "Workstation_1_MonitorCasing",
+          "Workstation_1_MonitorScreen",
+          "Workstation_1_MonitorChin",
+          "Workstation_1_MonitorPowerDot",
+          "Workstation_1_MonitorCable",
+          "Workstation_1_KeyboardBody",
+          "Workstation_1_Keycaps",
+          "Workstation_1_Mouse",
+          "Workstation_1_ChairLift",
+          "Workstation_1_ChairCollar",
+          "Workstation_1_ChairFoot_0",
+          "Workstation_1_Caster_0",
+          "Workstation_1_ChairFoot_1",
+          "Workstation_1_Caster_1",
+          "Workstation_1_ChairFoot_2",
+          "Workstation_1_Caster_2",
+          "Workstation_1_ChairFoot_3",
+          "Workstation_1_Caster_3",
+          "Workstation_1_ChairFoot_4",
+          "Workstation_1_Caster_4",
+          "Workstation_1_TaskSeat",
+          "Workstation_1_TaskSeatShell",
+          "Workstation_1_TaskBack",
+          "Workstation_1_TaskBackShell",
+          "Workstation_1_ArmFrame_-1",
+          "Workstation_1_ArmPad_-1",
+          "Workstation_1_ArmFrame_1",
+          "Workstation_1_ArmPad_1",
+          "Workstation_1_TaskBackSeam"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_Workstation_2_02": {
+        "member_ids": [
+          "Workstation_2_DeskTop",
+          "Workstation_2_DeskUnderframe",
+          "Workstation_2_DeskLeg_-0.724_-0.295",
+          "Workstation_2_FootPad_-0.724_-0.295",
+          "Workstation_2_DeskLeg_-0.724_0.295",
+          "Workstation_2_FootPad_-0.724_0.295",
+          "Workstation_2_DeskLeg_0.724_-0.295",
+          "Workstation_2_FootPad_0.724_-0.295",
+          "Workstation_2_DeskLeg_0.724_0.295",
+          "Workstation_2_FootPad_0.724_0.295",
+          "Workstation_2_MonitorBase",
+          "Workstation_2_MonitorStem",
+          "Workstation_2_MonitorCasing",
+          "Workstation_2_MonitorScreen",
+          "Workstation_2_MonitorChin",
+          "Workstation_2_MonitorPowerDot",
+          "Workstation_2_MonitorCable",
+          "Workstation_2_KeyboardBody",
+          "Workstation_2_Keycaps",
+          "Workstation_2_Mouse",
+          "Workstation_2_ChairLift",
+          "Workstation_2_ChairCollar",
+          "Workstation_2_ChairFoot_0",
+          "Workstation_2_Caster_0",
+          "Workstation_2_ChairFoot_1",
+          "Workstation_2_Caster_1",
+          "Workstation_2_ChairFoot_2",
+          "Workstation_2_Caster_2",
+          "Workstation_2_ChairFoot_3",
+          "Workstation_2_Caster_3",
+          "Workstation_2_ChairFoot_4",
+          "Workstation_2_Caster_4",
+          "Workstation_2_TaskSeat",
+          "Workstation_2_TaskSeatShell",
+          "Workstation_2_TaskBack",
+          "Workstation_2_TaskBackShell",
+          "Workstation_2_ArmFrame_-1",
+          "Workstation_2_ArmPad_-1",
+          "Workstation_2_ArmFrame_1",
+          "Workstation_2_ArmPad_1",
+          "Workstation_2_TaskBackSeam"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      },
+      "Batch_Workstation_3_03": {
+        "member_ids": [
+          "Workstation_3_DeskTop",
+          "Workstation_3_DeskUnderframe",
+          "Workstation_3_DeskLeg_-0.724_-0.295",
+          "Workstation_3_FootPad_-0.724_-0.295",
+          "Workstation_3_DeskLeg_-0.724_0.295",
+          "Workstation_3_FootPad_-0.724_0.295",
+          "Workstation_3_DeskLeg_0.724_-0.295",
+          "Workstation_3_FootPad_0.724_-0.295",
+          "Workstation_3_DeskLeg_0.724_0.295",
+          "Workstation_3_FootPad_0.724_0.295",
+          "Workstation_3_MonitorBase",
+          "Workstation_3_MonitorStem",
+          "Workstation_3_MonitorCasing",
+          "Workstation_3_MonitorScreen",
+          "Workstation_3_MonitorChin",
+          "Workstation_3_MonitorPowerDot",
+          "Workstation_3_MonitorCable",
+          "Workstation_3_KeyboardBody",
+          "Workstation_3_Keycaps",
+          "Workstation_3_Mouse",
+          "Workstation_3_ChairLift",
+          "Workstation_3_ChairCollar",
+          "Workstation_3_ChairFoot_0",
+          "Workstation_3_Caster_0",
+          "Workstation_3_ChairFoot_1",
+          "Workstation_3_Caster_1",
+          "Workstation_3_ChairFoot_2",
+          "Workstation_3_Caster_2",
+          "Workstation_3_ChairFoot_3",
+          "Workstation_3_Caster_3",
+          "Workstation_3_ChairFoot_4",
+          "Workstation_3_Caster_4",
+          "Workstation_3_TaskSeat",
+          "Workstation_3_TaskSeatShell",
+          "Workstation_3_TaskBack",
+          "Workstation_3_TaskBackShell",
+          "Workstation_3_ArmFrame_-1",
+          "Workstation_3_ArmPad_-1",
+          "Workstation_3_ArmFrame_1",
+          "Workstation_3_ArmPad_1",
+          "Workstation_3_TaskBackSeam"
+        ],
+        "ready_position": [
+          0,
+          0,
+          0
+        ],
+        "exploded_position": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "hidden_phases": []
+      }
+    }
+  },
+  "identity": {
+    "node_extra": "maquette_id",
+    "batch_anchor_extra": "maquette_batch_id",
+    "batch_members_extra": "maquette_members",
+    "members_separator": "|"
+  },
+  "materials": [
+    "Dots Stroke",
+    "Furnishing_Champagne_Bronze",
+    "Furnishing_Cream_Cover",
+    "Furnishing_Dark_Bronze",
+    "Furnishing_Graphite_Metal",
+    "Furnishing_Ivory_Ceramic",
+    "Furnishing_Ivory_Leather",
+    "Furnishing_Ivory_Piping",
+    "Furnishing_Key_Plastic",
+    "Furnishing_Leaf_Dark",
+    "Furnishing_Leaf_Light",
+    "Furnishing_Leaf_Olive",
+    "Furnishing_Monitor_Glass",
+    "Furnishing_Paper",
+    "Furnishing_Soil",
+    "Furnishing_Stone_Pedestal",
+    "Furnishing_Task_Chair_Black",
+    "Furnishing_Tree_Bark",
+    "Furnishing_Walnut",
+    "MAT_Architectural_Clear_Glass",
+    "MAT_Bronze_Seam",
+    "MAT_Champagne_Bronze",
+    "MAT_Ivory_Upholstery",
+    "MAT_Light_3000K",
+    "MAT_Polished_Bronze_Edge",
+    "MAT_Shelf_Ambient_Glow",
+    "MAT_Studio_Ivory",
+    "MAT_Travertine_Ivory",
+    "MAT_Warm_Walnut",
+    "Material"
+  ],
+  "notes": [
+    "Quality GLBs contain independent named geometry. Runtime GLBs preserve logical identities with empty anchors for batched members.",
+    "Studio ground, camera, HDR and physical lights live in Blender. Eight architectural ceiling-emission meshes are included in the quality main GLB.",
+    "Architecture uses single, double-sided panes and low-opacity alpha blending."
+  ],
+  "lighting": {
+    "physical_studio_lights": [
+      {
+        "name": "Key_softbox",
+        "type": "AREA",
+        "location": [
+          -8.0,
+          -7.0,
+          11.0
+        ],
+        "rotation_euler_radians": [
+          0.8962916135787964,
+          -5.0785285310439576e-08,
+          -0.8519663214683533
+        ],
+        "energy": 1200.0,
+        "color": [
+          1.0,
+          0.8299999833106995,
+          0.6499999761581421
+        ],
+        "size": 5.0
+      },
+      {
+        "name": "Fill_softbox",
+        "type": "AREA",
+        "location": [
+          3.0,
+          -1.0,
+          9.0
+        ],
+        "rotation_euler_radians": [
+          0.4527928829193115,
+          3.258363889813154e-08,
+          1.2490458488464355
+        ],
+        "energy": 350.0,
+        "color": [
+          1.0,
+          0.8999999761581421,
+          0.7799999713897705
+        ],
+        "size": 8.0
+      },
+      {
+        "name": "Rim_strip",
+        "type": "AREA",
+        "location": [
+          5.0,
+          5.0,
+          9.0
+        ],
+        "rotation_euler_radians": [
+          0.867157518863678,
+          5.1506493292663436e-08,
+          2.3561947345733643
+        ],
+        "energy": 820.0,
+        "color": [
+          1.0,
+          0.7200000286102295,
+          0.4300000071525574
+        ],
+        "size": 5.0
+      },
+      {
+        "name": "Sun_late_afternoon",
+        "type": "SUN",
+        "location": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation_euler_radians": [
+          0.9430359601974487,
+          -7.335771812222447e-08,
+          -1.0135008096694946
+        ],
+        "energy": 2.200000047683716,
+        "color": [
+          1.0,
+          0.8199999928474426,
+          0.6100000143051147
+        ],
+        "size": null
+      }
+    ],
+    "world_color": [
+      1.0,
+      0.9399999976158142,
+      0.8399999737739563,
+      1.0
+    ],
+    "world_strength": 0.41999998688697815,
+    "environment": "02_artwork/textures/E01_studio_warm.hdr",
+    "color_management": {
+      "view_transform": "AgX",
+      "look": "AgX - Medium High Contrast",
+      "exposure": 0.5400000214576721
+    },
+    "model_included_emissive_meshes": [
+      "Ceiling_side_light",
+      "Ceiling_side_light.001",
+      "Ceiling_frontback_light",
+      "Ceiling_frontback_light.001",
+      "Ceiling_side_light.002",
+      "Ceiling_side_light.003",
+      "Ceiling_frontback_light.002",
+      "Ceiling_frontback_light.003"
+    ]
+  },
+  "runtime_look": {
+    "coordinate_system": "glTF Y-up",
+    "camera": {
+      "position": [
+        -12.0,
+        6.800000190734863,
+        18.0
+      ],
+      "target": [
+        0,
+        3.4,
+        0
+      ],
+      "orthographic_width": 18.5,
+      "horizontal_frame_shift": -0.17000000178813934
+    },
+    "environment": "02_artwork/textures/E01_studio_warm.hdr",
+    "key_direction_towards_model": [
+      0.69,
+      -0.59,
+      -0.43
+    ],
+    "key_color_srgb": "#ffe9c9",
+    "background_srgb": "#f4e8db",
+    "ground_srgb": "#ead6bd",
+    "glass": {
+      "alpha_mode": "BLEND",
+      "alpha": 0.048,
+      "two_sided": true,
+      "surface": "single plane"
+    },
+    "note": "Art-direction starting values. Calibrate exposure, shadow softness and HDR intensity in the chosen renderer."
+  },
+  "prototype_limitations": [
+    "Editable reconstruction for implementation. The approved artwork is the finish target.",
+    "Runtime batch anchors retain identity and pose metadata. Use the quality GLB to change individual batched mesh materials or transforms.",
+    "Application integration, collision/navigation, measured mobile frame time and visitor retention are outside this model."
+  ]
+}

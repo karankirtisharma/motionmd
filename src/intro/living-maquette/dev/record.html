@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Living Maquette · transition recorder</title>
+<script type="importmap">
+{ "imports": {
+  "three": "../node_modules/three/build/three.module.js",
+  "three/addons/": "../node_modules/three/examples/jsm/"
+} }
+</script>
+<link rel="stylesheet" href="../src/ui/intro.css">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  #frame { position: relative; width: 960px; height: 640px; overflow: hidden;
+    background: radial-gradient(120% 92% at 14% 8%, #fdeedd 0%, #f6dcc6 38%, #eecdb4 68%, #e2bba2 100%); }
+  #scene { position: absolute; inset: 0; width: 960px; height: 640px; display: block; }
+  #caption { position: absolute; left: 28px; top: 24px; right: 28px; display: flex; justify-content: space-between; align-items: baseline;
+    font: 400 15px/1.4 "Noto Sans", sans-serif; color: #3b2415; }
+  #caption b { font: 400 26px/1.2 "Noto Serif Display", serif; }
+  #caption span { font-size: 12px; color: #72563f; }
+</style>
+</head>
+<body>
+<div id="frame">
+  <canvas id="scene"></canvas>
+  <div id="caption"><b id="title"></b><span id="clock"></span></div>
+</div>
+<script type="module">
+// Offline renderer for a representative runtime transition. The stage, look and
+// director are the live ones; only the clock is virtual, so each frame is one
+// step of the same eased motion a visitor sees. Driven by tools/record-transition.mjs.
+import { createStage } from '../src/scene/stage.mjs';
+import { createDirector } from '../src/scene/director.mjs';
+
+const manifest = await fetch('../assets/models/scene_manifest.json').then((response) => response.json());
+const canvas = document.getElementById('scene');
+const stage = await createStage({
+  canvas,
+  manifest,
+  assets: {
+    mainModel: ['../assets/models/Living_Maquette_meshopt.glb', '../assets/models/Living_Maquette_quantized.glb'],
+    workspaceModel: ['../assets/models/MotionFloor_Furnishings_meshopt.glb', '../assets/models/MotionFloor_Furnishings_quantized.glb'],
+  },
+});
+stage.resize({ width: 960, height: 640 }, { x: 150, y: 70, width: 660, height: 540 });
+await stage.loadWorkspace();
+stage.animate = () => () => {}; // frames are stepped by hand
+
+let virtualNow = 0;
+const director = createDirector({ stage, manifest, initial: {}, now: () => virtualNow });
+director.start();
+
+const title = document.getElementById('title');
+const clock = document.getElementById('clock');
+const actions = {
+  ready: () => director.setReady(true),
+  soft: () => director.setLightMode('soft'),
+  warm: () => director.setLightMode('warm'),
+  right: () => director.rotateBy(1),
+  left: () => director.rotateBy(-1),
+  'motion-floor': () => director.setDestination('motion-floor'),
+  lounge: () => director.setDestination('lounge'),
+  enter: () => director.setEntering(true),
+};
+
+window.recorder = {
+  /** Jump the virtual clock to a decorative time without drawing intermediate frames. */
+  seek(seconds) {
+    virtualNow = seconds * 1000;
+    director.seek(seconds);
+    // seek() rebases the director's start so that its clock continues from here.
+  },
+  /** Advance by dt seconds, apply any named actions first, draw one frame. */
+  frame({ dt, label, apply = [] }) {
+    for (const name of apply) actions[name]();
+    virtualNow += dt * 1000;
+    director.tick(virtualNow);
+    stage.renderOnce();
+    title.textContent = label ?? '';
+    clock.textContent = `decorative time ${director.time.toFixed(1)} s · three.js r186 · simulated readiness`;
+    return director.time;
+  },
+};
+await document.fonts.ready;
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "observed": "2026-11-11, Asia/Calcutta afternoon, in the owner's desktop Chrome (WebGPU available), one cold first visit",
+  "url": "https://www.motiondesign.ad/",
+  "evidence_class": "actual-site observation (read-only); not an integration test",
+  "stack": {
+    "framework": "Next.js 16.4.3 (Turbopack chunks under /_next/static/immutable/chunks)",
+    "renderer": "three.js r186 (window.__THREE__ === '186') drawing to a WebGPU canvas context",
+    "assets": "GLB chunks + KTX2 textures + EXR indirect-light maps + AgX LUT (blender-agx-medium-high.rgba16f.gz) + 246 KB wasm transcoder",
+    "manifest": "/assets/scene-manifest.json (version 2; source MD_Presentation_Lounge_v21.blend, Blender 5.2.0 LTS)"
+  },
+  "landing": {
+    "choices": ["Open the studio (link to /studio, no 3D download)", "Explore the 3D world (button; starts the world download in-page)"],
+    "note": "The 3D world downloads only after the visitor chooses to explore it."
+  },
+  "loader_stages_ms_from_click": [
+    {"t": 86, "label": "Opening the 3D lounge…"},
+    {"t": 325, "label": "Preparing your visit"},
+    {"t": 911, "label": "Checking the graphics device"},
+    {"t": 5287, "label": "Loading the architecture N%", "detail": "Scene files: 188.6 MB compressed · 308.2 MB unpacked", "measured_percent": true},
+    {"t": 50353, "label": "Loading the architecture 100%"},
+    {"t": 55750, "label": "Preparing the light", "detail": "Loading source materials and room illumination"},
+    {"t": 72928, "label": "Preparing exploration", "detail": "Loading movement, collisions and interactions"},
+    {"t": 75926, "label": "Preparing textures N%", "detail": "Uploaded X of 115 textures"},
+    {"t": 76836, "label": "Preparing reflections N%", "detail": "Prepared X of 127 measured reflection variants"},
+    {"t": 107867, "label": "Preparing reflections", "detail": "Finishing the first live reflection"},
+    {"t": 131204, "label": "THE PRESENTATION LOUNGE / Come on in.", "detail": "Explore (walk freely) or Cinematic (90-second guided perspective)", "usable": true}
+  ],
+  "architecture_percent_samples": [[5287,0],[16003,9],[22679,18],[24806,27],[26916,36],[34945,46],[36843,55],[38944,64],[41245,74],[42745,84],[44945,93],[50353,100]],
+  "time_to_usable_room_ms": 131204,
+  "transfer_by_then": {"requests": 175, "megabytes": 572},
+  "world_chunks_bytes": {"lounge": 26212432, "entrance": 15790368, "shell": 3085848, "gallery": 712016, "founder": 100150584, "studio": 300537632, "founder-lift": 2979108, "v13": 7931076, "v18": 503476, "v19": 494872, "gallery-mirror": 102908},
+  "spawn": {"position": [-8, -0.355, -17.1], "yaw": -1.5707963267948966, "note": "Only one spawn is published in the manifest."},
+  "named_cameras_relevant": ["EN98 | Exterior overview", "EN98 | Entrance hero", "PL78 | Screen and seating", "PL78 | Interior reverse", "MF01_Studio"],
+  "entry_modes": ["Explore — Walk freely through the space.", "Cinematic — A 90-second guided perspective."]
+}

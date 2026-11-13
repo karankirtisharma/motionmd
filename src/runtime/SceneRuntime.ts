@@ -642,6 +642,26 @@ export class SceneRuntime {
     if (restart || this.mode !== 'tour') this.beginSceneTransition('tour', restart ? 0 : this.targetProgress);
     else { this.paused = false; this.referenceCamera = ''; this.applyTourCamera(0, true); }
   }
+  /** Commit the real spawn beneath the intro's own exit transition. */
+  prepareIntroArrival() {
+    if (!this.controls || this.mode === 'loading' || this.mode === 'error' || this.disposed) return false;
+    this.setCinematicPlaying(false);
+    this.sceneTransition = undefined; this.referenceCamera = '';
+    this.controls.exitExplore();
+    this.positionAtEntrance();
+    this.paused = true; this.temporal?.reset();
+    this.setStudioCovered(false);
+    return true;
+  }
+  private positionAtEntrance() {
+    const spawn = this.manifest.spawn;
+    const forward = new Vector3(-Math.sin(spawn.yaw), 0, -Math.cos(spawn.yaw));
+    this.camera.position.fromArray(spawn.position).addScaledVector(forward, -2.45).add(new Vector3(0, 1.85, 0));
+    this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
+    this.controls!.enterExplore(undefined, spawn);
+    this.controls!.update(0.001); this.controls!.setEnabled(false); this.setMode('explore');
+    if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
+  }
   exploreDirectly() {
     if (!this.controls || this.mode === 'loading' || this.mode === 'error' || this.disposed) return;
     this.setCinematicPlaying(false);
@@ -674,12 +694,7 @@ export class SceneRuntime {
         // Direct entry begins at the entrance. The completed cinematic retains
         // its separate upstairs handoff in explore(). Position the camera here
         // before revealing the scene, rather than blending across the building.
-        const spawn = this.manifest.spawn;
-        const forward = new Vector3(-Math.sin(spawn.yaw), 0, -Math.cos(spawn.yaw));
-        this.camera.position.fromArray(spawn.position).addScaledVector(forward, -2.45).add(new Vector3(0, 1.85, 0));
-        this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));
-        this.controls.enterExplore(undefined, spawn);
-        this.controls.update(0.001); this.controls.setEnabled(false); this.setMode('explore');
+        this.positionAtEntrance();
       }
       if (this.lighting) this.lighting.sun.shadow.needsUpdate = true;
     }

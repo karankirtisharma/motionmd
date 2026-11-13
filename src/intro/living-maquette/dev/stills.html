@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Living Maquette · still renderer</title>
+<script type="importmap">
+{ "imports": {
+  "three": "../node_modules/three/build/three.module.js",
+  "three/addons/": "../node_modules/three/examples/jsm/"
+} }
+</script>
+<style>
+  html, body { margin: 0; background: transparent; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<script type="module">
+// Renders the stills used for first paint, reduced motion and the graphics
+// fallback from the same stage, camera frame and direction as the live scene.
+// tools/render-stills.mjs drives this page; see that file for the list.
+import { createStage } from '../src/scene/stage.mjs';
+import { createDirector } from '../src/scene/director.mjs';
+import { LOOK } from '../src/scene/look.mjs';
+import { STILL } from '../src/index.mjs';
+
+const manifest = await fetch('../assets/models/scene_manifest.json').then((response) => response.json());
+const canvas = document.getElementById('scene');
+
+window.renderStill = async ({ name, pixelsPerUnit = 72, quality = 0.84 }) => {
+  const [kind, ...rest] = name.split('-');
+  const lightMode = rest.pop();
+  const destinationId = rest.join('-') || 'lounge';
+  const frame = LOOK.camera.frame;
+  const width = Math.round(frame.width * STILL.bleed * pixelsPerUnit);
+  const height = Math.round(frame.height * STILL.bleed * pixelsPerUnit);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  const stage = await createStage({
+    canvas,
+    manifest,
+    look: { ...LOOK, renderer: { ...LOOK.renderer, maxPixelRatio: 1, maxPixels: 8_000_000 } },
+    assets: {
+      // ?model=source draws the uncompressed export (models-source/), for comparison.
+      ...(new URLSearchParams(location.search).get('model') === 'source' ? {
+        mainModel: '../models-source/Living_Maquette_LOD_web.glb',
+        workspaceModel: '../models-source/MotionFloor_Furnishings_LOD.glb',
+      } : {
+        mainModel: ['../assets/models/Living_Maquette_meshopt.glb', '../assets/models/Living_Maquette_quantized.glb'],
+        workspaceModel: ['../assets/models/MotionFloor_Furnishings_meshopt.glb', '../assets/models/MotionFloor_Furnishings_quantized.glb'],
+      }),
+    },
+  });
+  window.__stage = stage;
+  const inset = (1 - 1 / STILL.bleed) / 2;
+  stage.resize({ width, height }, { x: width * inset, y: height * inset, width: width / STILL.bleed, height: height / STILL.bleed });
+  if (destinationId === 'motion-floor') await stage.loadWorkspace();
+  const composed = kind !== 'structure';
+  const director = createDirector({
+    stage,
+    manifest,
+    initial: { ready: kind === 'ready', reducedMotion: composed, destinationId, lightMode },
+  });
+  director.start();
+  if (!composed) director.seek(0);
+  stage.renderOnce();
+  // Copy in the same task as the draw, before the buffer is cleared, and let
+  // the studio-floor shadows dissolve towards the edges of the still.
+  const flat = document.createElement('canvas');
+  flat.width = canvas.width;
+  flat.height = canvas.height;
+  const context = flat.getContext('2d');
+  context.drawImage(canvas, 0, 0);
+  context.globalCompositeOperation = 'destination-in';
+  const feather = (x0, y0, x1, y1) => {
+    const gradient = context.createLinearGradient(x0, y0, x1, y1);
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(0.1, 'rgba(0,0,0,1)');
+    gradient.addColorStop(0.9, 'rgba(0,0,0,1)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, flat.width, flat.height);
+  };
+  feather(0, 0, flat.width, 0);
+  feather(0, 0, 0, flat.height);
+  const dataUrl = flat.toDataURL('image/webp', quality);
+  director.dispose();
+  stage.dispose();
+  return { name, width, height, dataUrl };
+};
+window.__ready = true;
+</script>
+</body>
+</html>

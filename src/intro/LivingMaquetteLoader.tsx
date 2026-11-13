@@ -1,0 +1,43 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import type { createWorldIntroHost } from './worldIntroHost.mjs';
+import './living-maquette/src/ui/intro.css';
+
+type Props = {
+  host: ReturnType<typeof createWorldIntroHost>;
+  initialReducedMotion: boolean;
+  onExit: () => void;
+};
+
+/** The supplied UI owns its DOM; React owns only its lifetime. */
+export default function LivingMaquetteLoader({ host, initialReducedMotion, onExit }: Props) {
+  const element = useRef<HTMLDivElement>(null);
+  const exit = useRef(onExit);
+  exit.current = onExit;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let active = true;
+    let intro: { dispose: () => void } | undefined;
+    import('./living-maquette/src/index.mjs').then(({ mountLivingMaquette }) => {
+      if (!active || !element.current) return;
+      intro = mountLivingMaquette(element.current, {
+        host,
+        assetBase: '/living-maquette/assets/',
+        destinations: ['lounge'],
+        expectedWaitMs: 131000,
+        entryHint: matchMedia('(pointer: coarse)').matches ? 'touch' : 'keyboard',
+        sound: false,
+        initialPreferences: { reducedMotion: initialReducedMotion },
+        onExit: () => { if (active) exit.current(); },
+        onEvent: (name: string, detail: Record<string, unknown>) => {
+          if (new URLSearchParams(location.search).has('profile')) console.info('[living-maquette]', name, detail);
+        },
+      });
+    }).catch(() => { if (active) setFailed(true); });
+    return () => { active = false; intro?.dispose(); };
+  }, [host, initialReducedMotion]);
+  return <div ref={element} data-testid="living-maquette-loader" style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#f6efe5', overflow: 'hidden' }}>
+    {failed && <div role="alert" style={{ padding: 32, color: '#352416' }}>The arrival screen could not load. <button onClick={() => location.reload()}>Try again</button> <a href="/studio?entry=direct">Use Lite Version</a></div>}
+  </div>;
+}

@@ -1,6 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import LivingMaquetteLoader from '@/intro/LivingMaquetteLoader';
+import { createWorldIntroHost } from '@/intro/worldIntroHost.mjs';
+import { useMaquettePreferences } from '@/components/maquette/MaquetteIntro';
 import { createPortal } from 'react-dom';
 import LoungeStudioOverlay, { type StudioBounds } from '@/studio/components/LoungeStudioOverlay';
 import LoungeInterface, { type LoungeMode } from '@/components/LoungeInterface';
@@ -49,6 +52,23 @@ export default function LoungeHome() {
   const [quality, setQuality] = useState<Quality>('auto');
   const [stats, setStats] = useState<RuntimeStats | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const arrivalPreferences = useMaquettePreferences();
+  const [introStarted, setIntroStarted] = useState(false);
+  const [introOpen, setIntroOpen] = useState(true);
+  const [introReduced] = useState(arrivalPreferences.reduced);
+  const [introHost] = useState(() => createWorldIntroHost({
+    preferences: (preferences: { reducedMotion: boolean }) => {
+      setReducedMotion(preferences.reducedMotion);
+      runtime.current?.setReducedMotion(preferences.reducedMotion);
+    },
+    retry: () => { setGeneration(value => value + 1); },
+    light: () => { location.assign('/studio?entry=direct'); },
+    enter: (preferences: { reducedMotion: boolean }, scope: { signal: AbortSignal }) => {
+      if (!runtime.current || scope.signal.aborted) return false;
+      runtime.current.setReducedMotion(preferences.reducedMotion);
+      return runtime.current.prepareIntroArrival();
+    },
+  }));
   const [screenActive, setScreenActive] = useState(false);
   const [profileReport, setProfileReport] = useState('');
   const [profiling, setProfiling] = useState(false);
@@ -67,7 +87,8 @@ export default function LoungeHome() {
   useEffect(() => {
     let cancelled = false;
     let ownedRuntime: SceneRuntime | undefined;
-    const progressUpdates = createLoadingProgressPublisher(value => { if (!cancelled) setLoading(value); });
+    const load = introHost.beginLoad();
+    const progressUpdates = createLoadingProgressPublisher(value => { if (!cancelled) { setLoading(value); load.progress(value); } });
     loadingPublisher.current = progressUpdates;
     setMode('loading'); setLoading({ phase: 'Preparing your visit' }); setError(''); tourProgress.set(0); tourCompleteRef.current = false; setTourComplete(false);
     setReferenceCameras([]); setReferenceCamera(''); setDiagnosticMode('full');
@@ -75,7 +96,7 @@ export default function LoungeHome() {
     welcomeRef.current = true; setWelcome(true); setPlaying(false);
     menuRef.current = false; setMenu(false);
     modeRef.current = 'loading';
-    const preferredReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const preferredReduced = introReduced;
     setReducedMotion(preferredReduced);
     const profileEnabled = new URLSearchParams(window.location.search).get('profile') === '1';
     setProfiling(profileEnabled); setStats(null);
@@ -86,7 +107,7 @@ export default function LoungeHome() {
       if (cancelled || !viewport.current) return;
       const instance = new SceneRuntime(viewport.current, {
         onProgress: progressUpdates.push,
-        onReady: () => { progressUpdates.flush(); progressUpdates.dispose(); if (!cancelled) { setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
+        onReady: () => { progressUpdates.flush(); progressUpdates.dispose(); if (!cancelled) { load.ready(); setReferenceCameras(instance.manifest.cameras.map(camera => camera.id)); setDuration(instance.getCinematicDuration()); } },
         onModeChange: value => { if (!cancelled) { modeRef.current = value; setMode(value); if (value === 'error') { progressUpdates.dispose(); menuRef.current = false; setMenu(false); } } },
         onTourProgress: value => {
           if (cancelled) return;
@@ -97,7 +118,7 @@ export default function LoungeHome() {
         onHint: value => { if (!cancelled) setHint(value); },
         onProfile: value => { if (!cancelled) setProfileReport(value); },
         onStats: diagnosticsEnabled || profileEnabled ? value => { if (!cancelled) setStats(value); } : undefined,
-        onError: value => { progressUpdates.dispose(); if (!cancelled) setError(value); },
+        onError: value => { progressUpdates.dispose(); if (!cancelled) { setError(value); load.fail(); setIntroStarted(true); setIntroOpen(true); } },
         onScreenMode: value => { if (!cancelled) setScreenActive(value); },
         onStudioOpen: bounds => {
           if (cancelled || studioOpenRef.current) return;
@@ -113,11 +134,16 @@ export default function LoungeHome() {
       ownedRuntime = instance; runtime.current = instance;
       instance.setQuality(quality);
       instance.setReducedMotion(preferredReduced);
-      await instance.init();
+      instance.setStudioCovered(true);
+      instance.setPaused(true);
+      const initialization = instance.init();
+      // Start the actual host before the kit schedules its optional miniature.
+      setIntroStarted(true);
+      await initialization;
       if (cancelled) await instance.dispose();
-    }).catch(reason => { progressUpdates.dispose(); if (!cancelled) { setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
+    }).catch(reason => { progressUpdates.dispose(); if (!cancelled) { load.fail(); setIntroStarted(true); setMode('error'); setError(reason instanceof Error ? reason.message : 'The experience could not start.'); } });
     return () => {
-      cancelled = true; progressUpdates.dispose();
+      cancelled = true; load.cancel(); progressUpdates.dispose();
       if (loadingPublisher.current === progressUpdates) loadingPublisher.current = null;
       if (ownedRuntime) teardown.current = ownedRuntime.dispose();
       if (runtime.current === ownedRuntime) runtime.current = null;
@@ -177,7 +203,11 @@ export default function LoungeHome() {
 
   return <><main inert={studioOpen} className="lounge-experience" data-mode={mode} data-screen-active={screenActive}>
     <div ref={viewport} className="scene-viewport" />
-    <div hidden={transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
+    {introOpen && (introStarted ? <LivingMaquetteLoader host={introHost} initialReducedMotion={introReduced} onExit={() => {
+      setIntroOpen(false); dismissWelcome();
+      runtime.current?.setStudioCovered(false); resume();
+    }} /> : <div role="status" style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#f6efe5', color: '#352416', padding: 32 }}>Preparing your visit</div>)}
+    <div hidden={introOpen || transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}

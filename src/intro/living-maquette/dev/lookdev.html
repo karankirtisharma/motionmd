@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Living Maquette · look development</title>
+<script type="importmap">
+{ "imports": {
+  "three": "../node_modules/three/build/three.module.js",
+  "three/addons/": "../node_modules/three/examples/jsm/"
+} }
+</script>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body { background: radial-gradient(120% 90% at 14% 8%, #fdeedd 0%, #f6dcc6 38%, #eecdb4 68%, #e2bba2 100%); }
+  canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #anchor { position: fixed; inset: 0; width: 100vw; height: 100vh; opacity: 0; pointer-events: none; object-fit: fill; }
+  #stage { position: fixed; outline: 0 dashed rgba(200,0,0,.5); pointer-events: none; }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<img id="anchor" alt="">
+<div id="stage"></div>
+<script type="module">
+import { createStage } from '../src/scene/stage.mjs';
+import { LOOK } from '../src/scene/look.mjs';
+const q = new URLSearchParams(location.search);
+// Optional camera override for look development:
+// ?cam=azimuth,pitch,distance,eyeHeight,frameWidth,frameHeight,offsetX,offsetY
+const look = structuredClone(LOOK);
+// ?look=<JSON patch> merges over the look settings (objects merge, arrays replace).
+const merge = (target, patch) => {
+  for (const [key, value] of Object.entries(patch)) {
+    if (value && typeof value === 'object' && !Array.isArray(value) && target[key] && typeof target[key] === 'object' && !Array.isArray(target[key])) merge(target[key], value);
+    else target[key] = value;
+  }
+};
+if (q.get('look')) merge(look, JSON.parse(q.get('look')));
+if (q.get('cam')) {
+  const [az, pitch, dist, eye, fw, fh, ox, oy] = q.get('cam').split(',').map(Number);
+  const c = look.camera;
+  if (Number.isFinite(az)) c.azimuthDeg = az;
+  if (Number.isFinite(pitch)) c.pitchDeg = pitch;
+  if (Number.isFinite(dist)) c.distance = dist;
+  if (Number.isFinite(eye)) c.target[1] = eye;
+  if (Number.isFinite(fw)) c.frame.width = fw;
+  if (Number.isFinite(fh)) c.frame.height = fh;
+  if (Number.isFinite(ox)) c.frame.offsetX = ox;
+  if (Number.isFinite(oy)) c.frame.offsetY = oy;
+}
+const manifest = await fetch('../assets/models/scene_manifest.json').then(r => r.json());
+const canvas = document.getElementById('scene');
+const stageEl = document.getElementById('stage');
+const mobile = innerWidth < 768;
+// Stage rectangle: where the model frame sits, in CSS px.
+const rect = mobile
+  ? { x: 0, y: 255, width: innerWidth, height: 305 }
+  : { x: innerWidth * 0.369, y: innerHeight * 0.046, width: innerWidth * (1 - 0.369 - 0.026), height: innerHeight * (1 - 0.046) - 121 };
+Object.assign(stageEl.style, { left: rect.x + 'px', top: rect.y + 'px', width: rect.width + 'px', height: rect.height + 'px' });
+if (q.get('outline')) stageEl.style.outlineWidth = '1px';
+const stage = await createStage({
+  canvas, manifest, look,
+  assets: {
+    mainModel: ['../assets/models/Living_Maquette_meshopt.glb', '../assets/models/Living_Maquette_quantized.glb'],
+    workspaceModel: ['../assets/models/MotionFloor_Furnishings_meshopt.glb', '../assets/models/MotionFloor_Furnishings_quantized.glb'],
+    environment: q.get('hdr') ? './env/E01_studio_warm.hdr' : null,
+  },
+});
+stage.resize({ width: innerWidth, height: innerHeight }, rect);
+const phase = q.get('phase') || 'exploded';
+stage.setPhaseVisibility(phase === 'none' ? null : phase);
+stage.setExplodedAmount(Number(q.get('explode') ?? 1));
+if (q.get('light') === 'soft') stage.setLightMix(1);
+if (q.get('yaw')) stage.setYaw(Number(q.get('yaw')) * Math.PI / 180);
+if (q.get('dest') === 'motion-floor') { await stage.loadWorkspace(); stage.setDestinationVisual('motion-floor'); }
+if (q.get('anchor')) { const a = document.getElementById('anchor'); a.src = q.get('anchor'); a.style.opacity = q.get('alpha') || '0.5'; }
+if (q.get('cookie') === 'grid') {
+  const tex = stage.lights.key.map; const c = tex.image; const g = c.getContext('2d');
+  g.globalAlpha = 1; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+  const n = 8, cell = c.width / n; g.font = (cell * 0.5) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    g.fillStyle = (i + j) % 2 ? '#fff' : '#999'; g.fillRect(i * cell, j * cell, cell, cell);
+    g.fillStyle = '#000'; g.fillText(String.fromCharCode(65 + i) + j, (i + .5) * cell, (j + .5) * cell);
+  }
+  tex.needsUpdate = true; stage.invalidate(true);
+}
+if (q.get('zoom')) stage.setView({ zoom: Number(q.get('zoom')) });
+stage.renderOnce();
+// Projected bounds of the model's vertices, in CSS px (look development only).
+window.__silhouette = () => {
+  const V = stage.camera.position.constructor;
+  const v = new V();
+  stage.scene.updateMatrixWorld(true);
+  stage.camera.updateMatrixWorld(true);
+  const b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  const roots = [stage.mainRoot, stage.workspaceRoot].filter(Boolean);
+  for (const root of roots) root.traverseVisible((mesh) => {
+    if (!mesh.isMesh || mesh.userData.maquette_anchor) return;
+    const p = mesh.geometry.attributes.position;
+    for (let i = 0; i < p.count; i += 1) {
+      v.fromBufferAttribute(p, i).applyMatrix4(mesh.matrixWorld).project(stage.camera);
+      const x = (v.x * 0.5 + 0.5) * innerWidth, y = (1 - (v.y * 0.5 + 0.5)) * innerHeight;
+      if (x < b.minX) b.minX = x; if (x > b.maxX) b.maxX = x;
+      if (y < b.minY) b.minY = y; if (y > b.maxY) b.maxY = y;
+    }
+  });
+  return Object.fromEntries(Object.entries(b).map(([k, n]) => [k, Math.round(n)]));
+};
+window.__stage = stage;
+window.__ready = true;
+</script>
+</body>
+</html>

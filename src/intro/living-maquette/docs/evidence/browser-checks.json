@@ -1,0 +1,578 @@
+{
+  "evidence": "simulated host; headless Chrome, software renderer",
+  "base": "http://127.0.0.1:8080/index.html",
+  "ran": "2026-11-13T11:07:21.708Z",
+  "passed": 21,
+  "failed": 0,
+  "results": [
+    {
+      "check": "keyboard-order-desktop",
+      "pass": true,
+      "ms": 4828,
+      "detail": {
+        "order": [
+          "sound",
+          "lm-light-warm",
+          "lm-destination-lounge",
+          "version-immersive",
+          "version-lite",
+          "rotate-left",
+          "rotate-right",
+          "studies"
+        ],
+        "note": "sound and light in the header, then room, version, rotation, studies; the Enter action follows when the room is ready"
+      }
+    },
+    {
+      "check": "keyboard-choices-and-entry",
+      "pass": true,
+      "ms": 4796,
+      "detail": {
+        "entered": {
+          "destinationId": "lounge",
+          "preferences": {
+            "destinationId": "lounge",
+            "lightMode": "soft",
+            "soundEnabled": false,
+            "reducedMotion": false
+          },
+          "entryRequestId": 1
+        }
+      }
+    },
+    {
+      "check": "focus-visible",
+      "pass": true,
+      "ms": 4913,
+      "detail": {
+        "rings": {
+          "sound": "2px solid rgb(59, 36, 21), offset 4px",
+          "lm-light-warm": "2px solid rgb(59, 36, 21), offset 4px",
+          "lm-destination-lounge": "2px solid rgb(59, 36, 21), offset 4px",
+          "version-immersive": "2px solid rgb(59, 36, 21), offset 4px",
+          "version-lite": "2px solid rgb(59, 36, 21), offset 4px",
+          "rotate-left": "2px solid rgb(59, 36, 21), offset 4px",
+          "rotate-right": "2px solid rgb(59, 36, 21), offset 4px",
+          "studies": "2px solid rgb(59, 36, 21), offset 4px"
+        }
+      }
+    },
+    {
+      "check": "target-sizes",
+      "pass": true,
+      "ms": 11153,
+      "detail": {
+        "desktop": {
+          "controls": 10,
+          "smallest": 44
+        },
+        "phone": {
+          "controls": 10,
+          "smallest": 44
+        },
+        "phone-failure": {
+          "controls": 4,
+          "smallest": 44
+        }
+      }
+    },
+    {
+      "check": "rotation-buttons-and-drag",
+      "pass": true,
+      "ms": 90920,
+      "detail": {
+        "buttonsYawRad": 0.314,
+        "limitRad": 0.384,
+        "afterDragRad": 0.213
+      }
+    },
+    {
+      "check": "touch-rotation-and-scroll",
+      "pass": true,
+      "ms": 11270,
+      "detail": {
+        "touchAction": "pan-y",
+        "dragYawRad": 0.311,
+        "afterButtonRad": 0.154,
+        "podSize": [
+          122,
+          66
+        ]
+      }
+    },
+    {
+      "check": "studies-focus-return-and-ready-in-sheet",
+      "pass": true,
+      "ms": 14768,
+      "detail": {
+        "opened": {
+          "focus": "sheet-title",
+          "inert": true
+        },
+        "detail": {
+          "focus": "sheet-title",
+          "title": "Light",
+          "view": "detail"
+        },
+        "atReady": {
+          "focus": "sheet-title",
+          "sheetOpen": true,
+          "view": "detail",
+          "readyRow": true,
+          "enterLabel": "Enter the lounge",
+          "live": "Your room is ready when you are."
+        },
+        "backToList": {
+          "view": "list",
+          "focus": "light",
+          "loadingContinuesShown": false
+        },
+        "closed": {
+          "focus": "studies",
+          "hidden": true,
+          "inert": false
+        }
+      }
+    },
+    {
+      "check": "system-reduced-motion-first-paint",
+      "pass": true,
+      "ms": 11340,
+      "detail": {
+        "first": {
+          "motion": "reduced",
+          "reduced": true,
+          "rotateHidden": true
+        },
+        "later": {
+          "yaw": 0,
+          "rotateHidden": true,
+          "lightControlVisible": true,
+          "runningAnimations": 0
+        },
+        "identicalFramesSixSecondsApart": true
+      }
+    },
+    {
+      "check": "system-motion-setting-followed",
+      "pass": true,
+      "ms": 21386,
+      "detail": {
+        "controls": {
+          "motionControl": false,
+          "lightInHeader": true,
+          "version": [
+            "Immersive Version:true",
+            "Lite Version:false"
+          ]
+        },
+        "on": {
+          "reduced": true,
+          "rotateHidden": true,
+          "hostPreference": true,
+          "yaw": 0
+        }
+      }
+    },
+    {
+      "check": "graphics-fallback-still",
+      "pass": true,
+      "ms": 2828,
+      "detail": {
+        "graphics": "still",
+        "poster": "loading-lounge-warm.webp",
+        "canvasVisible": "false",
+        "body": "A simpler preview is shown while the full studio prepares.",
+        "status": "Preparing lighting",
+        "percent": "63%",
+        "rotateHidden": true,
+        "threeLoaded": false,
+        "afterChoices": "loading-motion-floor-soft.webp"
+      }
+    },
+    {
+      "check": "graphics-context-loss",
+      "pass": true,
+      "ms": 3261,
+      "detail": {
+        "status": "loading",
+        "mode": "loading",
+        "destination": true,
+        "note": "the intro renderer failing is not a load failure"
+      }
+    },
+    {
+      "check": "strict-content-security-policy",
+      "pass": true,
+      "ms": 5268,
+      "detail": {
+        "policy": "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'",
+        "refusedBlobFetches": 8,
+        "modelsRequested": {
+          "usualPage": [
+            "Living_Maquette_meshopt.glb"
+          ],
+          "strictPolicy": [
+            "Living_Maquette_quantized.glb"
+          ]
+        },
+        "surfacesWithImage": {
+          "usualPage": 20,
+          "strictPolicy": 20
+        },
+        "decodedThrough": {
+          "usualPage": [
+            "HTMLCanvasElement",
+            "ImageBitmap"
+          ],
+          "strictPolicy": [
+            "HTMLCanvasElement",
+            "HTMLImageElement"
+          ]
+        },
+        "fonts": [
+          "Noto Sans",
+          "Noto Serif Display"
+        ]
+      }
+    },
+    {
+      "check": "viewports-and-enlarged-text",
+      "pass": true,
+      "ms": 43498,
+      "detail": {
+        "desktop 1440x900": {
+          "layout": "desktop",
+          "page": "1440x900",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "16.992px"
+        },
+        "desktop 1440x900 failure": {
+          "layout": "desktop",
+          "page": "1440x900",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "16.992px"
+        },
+        "desktop 1440x900 stall, three actions": {
+          "layout": "desktop",
+          "page": "1440x900",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "16.992px"
+        },
+        "desktop 1280x720": {
+          "layout": "desktop",
+          "page": "1280x720",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "desktop 1280x720 stall, three actions": {
+          "layout": "desktop",
+          "page": "1280x720",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "desktop 1920x1080": {
+          "layout": "desktop",
+          "page": "1920x1080",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "19px"
+        },
+        "desktop 1024x768": {
+          "layout": "desktop",
+          "page": "1024x768",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "short 1280x560": {
+          "layout": "desktop",
+          "page": "1280x613",
+          "scrolls": true,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "tablet 820x1180": {
+          "layout": "stacked",
+          "page": "820x1180",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 390x844": {
+          "layout": "stacked",
+          "page": "390x844",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 390x844 ready": {
+          "layout": "stacked",
+          "page": "390x844",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 390x844 failure": {
+          "layout": "stacked",
+          "page": "390x844",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 390x844 stall, three actions": {
+          "layout": "stacked",
+          "page": "390x844",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 360x800": {
+          "layout": "stacked",
+          "page": "360x800",
+          "scrolls": false,
+          "rootText": "16px",
+          "bodyText": "14px"
+        },
+        "phone 360x640 short": {
+          "layout": "stacked",
+          "page": "360x780",
+          "scrolls": true,
+          "rootText": "16px",
+          "bodyText": "14px",
+          "focusedControlsClearOfRail": 6
+        },
+        "phone 360x800 text 150%": {
+          "layout": "stacked",
+          "page": "360x1020",
+          "scrolls": true,
+          "rootText": "24px",
+          "bodyText": "21px",
+          "focusedControlsClearOfRail": 6
+        },
+        "phone 360x800 text 150% failure": {
+          "layout": "stacked",
+          "page": "360x1012",
+          "scrolls": true,
+          "rootText": "24px",
+          "bodyText": "21px",
+          "focusedControlsClearOfRail": 4
+        },
+        "phone 360x800 text 150% ready": {
+          "layout": "stacked",
+          "page": "360x992",
+          "scrolls": true,
+          "rootText": "24px",
+          "bodyText": "21px",
+          "focusedControlsClearOfRail": 7
+        },
+        "phone 390x844 text 200%": {
+          "layout": "stacked",
+          "page": "390x1364",
+          "scrolls": true,
+          "rootText": "32px",
+          "bodyText": "28px",
+          "focusedControlsClearOfRail": 6
+        },
+        "phone 390x844 text 200% failure": {
+          "layout": "stacked",
+          "page": "390x1321",
+          "scrolls": true,
+          "rootText": "32px",
+          "bodyText": "28px",
+          "focusedControlsClearOfRail": 4
+        },
+        "desktop 1440x900 text 150%": {
+          "layout": "desktop",
+          "page": "1440x938",
+          "scrolls": true,
+          "rootText": "24px",
+          "bodyText": "21px"
+        },
+        "desktop 1440x900 text 200%": {
+          "layout": "stacked",
+          "page": "1440x1007",
+          "scrolls": true,
+          "rootText": "32px",
+          "bodyText": "28px",
+          "focusedControlsClearOfRail": 6
+        },
+        "browser zoom 200% (720x450)": {
+          "layout": "stacked",
+          "page": "720x772",
+          "scrolls": true,
+          "rootText": "16px",
+          "bodyText": "14px",
+          "focusedControlsClearOfRail": 6
+        }
+      }
+    },
+    {
+      "check": "early-entry-while-decoration-unfinished",
+      "pass": true,
+      "ms": 30443,
+      "detail": {
+        "decorativePlanSeconds": 80,
+        "atReady": {
+          "decorativeSeconds": 8.3,
+          "sinceMountMs": 6151,
+          "enter": "Enter the lounge",
+          "heading": "The lounge is ready for you."
+        },
+        "pending": {
+          "busy": "true",
+          "label": "Entering the lounge"
+        },
+        "enteredAfterMountMs": 27079,
+        "handedOver": {
+          "destinationId": "lounge",
+          "preferences": {
+            "destinationId": "lounge",
+            "lightMode": "warm",
+            "soundEnabled": false,
+            "reducedMotion": false
+          },
+          "entryRequestId": 1
+        }
+      }
+    },
+    {
+      "check": "already-ready-on-arrival",
+      "pass": true,
+      "ms": 203,
+      "detail": {
+        "readyAfterMountMs": 11,
+        "enter": "Enter the lounge",
+        "graphics": "still"
+      }
+    },
+    {
+      "check": "route-change-rejects-stale-readiness",
+      "pass": true,
+      "ms": 11687,
+      "detail": {
+        "rejected": {
+          "scope": {
+            "attemptId": 0,
+            "destinationId": "lounge",
+            "destinationRequestId": 0
+          },
+          "accepted": false,
+          "reason": "superseded-scope"
+        },
+        "enterOfferedAfterRejection": false,
+        "grantedBy": {
+          "attemptId": 0,
+          "destinationId": "lounge",
+          "destinationRequestId": 2
+        }
+      }
+    },
+    {
+      "check": "failure-retry-keeps-choices",
+      "pass": true,
+      "ms": 30086,
+      "detail": {
+        "failed": {
+          "alert": "A small pause. Your room is still here. We could not finish preparing the studio. Try again, or use the Lite Version.",
+          "focusable": [
+            "Try again",
+            "Use Lite Version"
+          ],
+          "studies": true
+        },
+        "after": {
+          "retries": 1,
+          "preferences": {
+            "destinationId": "motion-floor",
+            "lightMode": "warm",
+            "soundEnabled": false,
+            "reducedMotion": false
+          },
+          "staleRejected": 2,
+          "canEnter": false
+        },
+        "ready": {
+          "heading": "The Motion floor is ready for you.",
+          "attemptId": 1
+        }
+      }
+    },
+    {
+      "check": "stall-keep-waiting",
+      "pass": true,
+      "ms": 32129,
+      "detail": {
+        "stalled": {
+          "heading": "The studio is taking a little longer.",
+          "actions": [
+            "Try again",
+            "Use Lite Version",
+            "Keep waiting"
+          ],
+          "alert": ""
+        },
+        "waiting": {
+          "mode": "stalled-waiting",
+          "focus": "recovery-reopen",
+          "choices": true
+        },
+        "cleared": "the host reported progress again and the page returned to loading"
+      }
+    },
+    {
+      "check": "entry-declined-then-retried",
+      "pass": true,
+      "ms": 1668,
+      "detail": {
+        "declined": {
+          "note": "We could not enter the room. Your choices are kept; please try again.",
+          "alert": "We could not enter the room. Your choices are kept; please try again.",
+          "focus": "enter",
+          "busy": null,
+          "mode": "ready"
+        },
+        "secondRequestEntered": 2
+      }
+    },
+    {
+      "check": "light-version-route",
+      "pass": true,
+      "ms": 1351,
+      "detail": {
+        "offeredFromFirstReport": true,
+        "landing": {
+          "heading": "A quieter way to explore.",
+          "focus": "heading",
+          "actions": [
+            "Explore the Lite Version",
+            "Back to full studio"
+          ]
+        },
+        "back": {
+          "mode": "loading",
+          "destination": "motion-floor",
+          "immersiveCurrent": true
+        }
+      }
+    },
+    {
+      "check": "hidden-tab-pauses-decoration",
+      "pass": true,
+      "ms": 10871,
+      "detail": {
+        "framesInTwoAndAHalfSecondsVisible": 4,
+        "whileHidden": {
+          "frames": 0,
+          "clockAdvanced": 0,
+          "hostStillReporting": true
+        }
+      }
+    }
+  ]
+}

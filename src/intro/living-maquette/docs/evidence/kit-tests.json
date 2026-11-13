@@ -1,0 +1,37 @@
+{
+  "node": "v22.23.4",
+  "ran": "2026-11-13T11:08:04.876Z",
+  "results": [
+    {
+      "run": "supplied",
+      "files": [
+        "<kit>/01_ui_package/components/loader-controller.test.mjs",
+        "<kit>/05_components/maquette-scene-adapter.test.mjs"
+      ],
+      "tests": 47,
+      "pass": 47,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "run": "adapter",
+      "files": [
+        "/tmp/lm-kit-tests-k0EksI/components/loader-controller.test.mjs"
+      ],
+      "tests": 32,
+      "pass": 32,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "run": "copies",
+      "files": [
+        "/tmp/lm-kit-tests-k0EksI/05_components/maquette-scene-adapter.test.mjs"
+      ],
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "exitCode": 0
+    }
+  ]
+}

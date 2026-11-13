@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    Rehearsal under a strict content security policy: only this origin's own
+    scripts, styles, fonts and requests; images from this origin, data: and
+    blob:. No inline script or style, and no fetch() of blob: URLs, so the
+    model's embedded images take the image-element path.
+    Run `npm run build` first; open /dev/csp.html.
+  -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'">
+  <link rel="icon" href="data:,">
+  <title>Living Maquette intro, strict policy rehearsal</title>
+  <link rel="stylesheet" href="../dist/intro.css">
+  <link rel="stylesheet" href="../dist/demo.css">
+</head>
+<body>
+  <main id="living-maquette" data-asset-base="../assets/"></main>
+  <script type="module" src="../dist/demo.js"></script>
+</body>
+</html>

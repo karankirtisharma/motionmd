@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 
-import MaquetteIntro from './maquette/MaquetteIntro';
+
 import styles from './LoungeInterface.module.css';
 import { TourTimeline } from './TourProgress';
 import type { TourProgressStore } from '@/runtime/tourProgress';
@@ -137,7 +137,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
   const active = mode === 'explore' || mode === 'seated';
   const usingComputer = mode === 'seated' && typeof seatedChair === 'string' && seatedChair.startsWith('studio-computer-');
   const modal = mode === 'loading' || mode === 'welcome' || mode === 'menu' || mode === 'error' || mode === 'handoff';
-  if (mode === 'loading' || mode === 'welcome' || mode === 'error') return <MaquetteIntro state={mode === 'welcome' ? 'ready' : mode} loading={loading} error={error} onEnter={onExploreDirect || onExplore} onCinematic={onCinematic || onRestart} onRetry={onRetry} />;
+  if (mode === 'loading' || mode === 'welcome' || mode === 'error') return null;
   return <div className={`${styles.theme} lounge-interface mode-${mode}${reducedMotion ? ' reduced-motion' : ''}`}>
     <header className="lounge-header" aria-hidden={modal ? true : undefined}>
       <div className="lounge-brand"><span className="brand-mark">md.</span><span className="brand-rule" /><span className="brand-name">The Lounge<span>motiondesign.ad</span></span></div>

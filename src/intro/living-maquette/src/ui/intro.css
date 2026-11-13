@@ -1,0 +1,836 @@
+/*
+ * Living Maquette intro. Tokens are the kit's 05_components/design-tokens-web.css
+ * values; layout metrics were read from the approved 1440 x 900 and 390 x 844
+ * screens (01_ui_package/screens). Everything is scoped under .lm-root.
+ */
+@font-face {
+  font-family: "Noto Serif Display";
+  src: url("../../assets/fonts/NotoSerifDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../../assets/fonts/NotoSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+.lm-root {
+  --lm-ivory: #f5eadd;
+  --lm-paper: #fff8ee;
+  --lm-ink: #3b2415;
+  --lm-muted: #72563f;
+  --lm-bronze: #95602d;
+  --lm-champagne: #d7ba94;
+  --lm-border: #b88c60;
+  --lm-on-bronze: #fff9ee;
+  --lm-glass: linear-gradient(135deg, rgba(255,251,243,.90), rgba(255,247,235,.79) 48%, rgba(237,213,191,.92));
+  --lm-metal: linear-gradient(175deg, #e8c991, #a4713b 16%, #94622f 26%, #94622f 78%, #af7b41 93%, #e8c991);
+  --lm-track: linear-gradient(90deg, #82501f, #bb8647 50%, #8a5124);
+  --lm-serif: "Noto Serif Display", Georgia, "Times New Roman", serif;
+  --lm-sans: "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --lm-radius-panel: 24px;
+  --lm-radius-pill: 999px;
+  --lm-target-min: 44px;
+  --lm-outline: 2px solid #3b2415;
+  --lm-shadow: 0 8px 24px rgba(106,63,27,.16);
+  --lm-duration-control: 180ms;
+  --lm-duration-surface: 320ms;
+  --lm-ease-settle: cubic-bezier(.2,.75,.25,1);
+
+  /* Fluid metrics. Values in comments are the 1440 x 900 screen measurements.
+     Vertical metrics tighten faster below 900 px of height so that the copy
+     column, both controls and the links still clear the rail at 1280 x 720. */
+  --lm-margin-left: clamp(24px, 3.61vw, 64px);   /* 52 */
+  --lm-margin-right: clamp(24px, 3.33vw, 60px);  /* 48 */
+  /* Text scale unit: one pixel at the usual 16 px default, more when the
+     visitor's default text size is larger. Every type size is a multiple. */
+  --lm-s: max(1px, 0.0625rem);
+  --lm-title-size: max(clamp(34px, min(4.72vw, 7.56vh, 11.11vh - 32px), 92px), 2.125rem); /* 68 */
+  --lm-body-size: max(clamp(14px, min(1.18vw, 1.9vh), 19px), 0.875rem);   /* 17 */
+  --lm-main-top: clamp(12px, min(9.67vh, 26.11vh - 148px), 110px); /* 87: headline starts at 155 */
+  --lm-main-bottom: clamp(10px, min(4.36vh, 12.8vh - 76px), 48px); /* 39: links end at 735 */
+  --lm-gap-l: clamp(14px, 3.6vh, 36px);          /* 33 */
+  --lm-gap-m: clamp(8px, 1.8vh, 18px);           /* 16 */
+  --lm-pill-l: clamp(44px, 5.78vh, 52px);        /* 52 */
+  --lm-rail-inset: clamp(16px, 2.22vw, 40px);    /* 32 */
+
+  position: relative;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  /* One column that never grows past the page: wide content wraps instead. */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--lm-ink);
+  font-family: var(--lm-sans);
+  font-size: calc(16 * var(--lm-s));
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Warm studio cyclorama: the kit's canvas gradient, deepened towards the
+     approved plates so the page and the 3D ground share one colour. */
+  background:
+    radial-gradient(120% 92% at 14% 8%, #fdeedd 0%, #f6dcc6 38%, #eecdb4 68%, #e2bba2 100%);
+}
+.lm-root *, .lm-root *::before, .lm-root *::after { box-sizing: border-box; }
+.lm-root [hidden] { display: none !important; }
+
+/* Daylight bands on the studio wall (decorative). */
+.lm-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    linear-gradient(116deg,
+      rgba(255,247,234,0) 3%, rgba(255,247,234,.62) 8%, rgba(255,247,234,0) 13.5%,
+      rgba(255,247,234,.36) 18%, rgba(255,247,234,0) 23%,
+      rgba(255,247,234,.22) 27.5%, rgba(255,247,234,0) 33%);
+  -webkit-mask-image: radial-gradient(95% 105% at 0% 0%, #000 0%, rgba(0,0,0,.65) 34%, transparent 62%);
+  mask-image: radial-gradient(95% 105% at 0% 0%, #000 0%, rgba(0,0,0,.65) 34%, transparent 62%);
+}
+
+/* Measures the text scale unit (100 units wide) for the layout decision. */
+.lm-scale-probe { position: absolute; left: 0; top: 0; width: calc(100 * var(--lm-s)); height: 0; visibility: hidden; pointer-events: none; }
+
+.lm-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+/* ------------------------------------------------------------ scene layers */
+.lm-canvas, .lm-poster {
+  position: absolute;
+  left: 0; top: 0;
+  /* Below the in-flow interface, above the page background. */
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--lm-duration-surface) ease;
+}
+.lm-canvas { width: 100%; height: 100%; display: block; touch-action: pan-y; }
+.lm-canvas[data-visible="true"], .lm-poster[data-visible="true"] { opacity: 1; }
+.lm-root[data-graphics="3d"][data-motion="full"] .lm-canvas { pointer-events: auto; cursor: grab; }
+.lm-root[data-dragging="true"] .lm-canvas { cursor: grabbing; }
+.lm-poster { object-fit: contain; user-select: none; -webkit-user-drag: none; }
+
+.lm-stage-slot { display: contents; }
+.lm-stage {
+  /* The model's box (2026-11 reference): larger and further left, the first
+     pane frame just after "room", tucked a few pixels behind the rail. */
+
+  position: absolute;
+  pointer-events: none;
+  left: 33%;
+  right: 1.2%;
+  /* The lifted roof stays clear of the header controls (Sound, Shape the light). */
+  top: max(60px, calc(var(--lm-header-bottom, 68px) - 8px));
+  bottom: calc(var(--lm-rail-height, 102px) + 19px);
+}
+.lm-stage > * { pointer-events: auto; }
+
+/* ------------------------------------------------------------------ header */
+.lm-header {
+  display: flex;
+  /* At very large text the settings drop under the name instead of leaving the page. */
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 24px var(--lm-margin-right) 0 var(--lm-margin-left);
+  min-height: 68px;
+}
+.lm-brand {
+  margin: 0;
+  font: 400 max(clamp(18px, 1.74vw, 28px), 1.125rem)/1.28 var(--lm-sans); /* 25 */
+  letter-spacing: 0;
+  color: var(--lm-ink);
+  text-decoration: none;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lm-toggles { display: flex; align-items: center; gap: 14px 29px; margin-left: auto; }
+/* 2026-11 revision: the light control lives in the header, right of Sound. */
+.lm-header-light { display: flex; align-items: center; gap: 19px; }
+.lm-header-light[hidden] { display: none; }
+.lm-header-light .lm-eyebrow {
+  margin: 0;
+  font-size: calc(13 * var(--lm-s));
+  letter-spacing: .24em;
+  color: #5d4a3c;
+  white-space: nowrap;
+}
+
+/* ----------------------------------------------------------------- buttons */
+.lm-button {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--lm-target-min);
+  min-width: var(--lm-target-min);
+  margin: 0;
+  padding: 10px 24px;
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-pill);
+  font: 400 calc(16 * var(--lm-s))/1.2 var(--lm-sans);
+  color: var(--lm-ink);
+  background: var(--lm-glass);
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: box-shadow var(--lm-duration-control), border-color var(--lm-duration-control), transform var(--lm-duration-control);
+}
+.lm-button:hover:not([aria-disabled="true"]):not(:disabled) { box-shadow: 0 5px 16px rgba(106,63,27,.22); border-color: var(--lm-bronze); }
+.lm-button:active:not([aria-disabled="true"]):not(:disabled) { transform: translateY(1px); box-shadow: 0 2px 8px rgba(106,63,27,.18); }
+.lm-button:focus-visible, .lm-link:focus-visible, .lm-radio:focus-visible + .lm-pill {
+  outline: var(--lm-outline);
+  outline-offset: 4px;
+}
+.lm-button--primary, .lm-button[aria-pressed="true"], .lm-radio:checked + .lm-pill {
+  color: var(--lm-on-bronze);
+  background: var(--lm-metal);
+  border-color: #e5c89b;
+  box-shadow: var(--lm-shadow);
+}
+.lm-button[aria-disabled="true"], .lm-button:disabled {
+  color: #6f5a48;
+  background: #e3d3c0;
+  border-color: var(--lm-border);
+  box-shadow: none;
+  cursor: default;
+}
+.lm-button--small { font-size: calc(13 * var(--lm-s)); padding: 8px 20px; }
+.lm-button--large { min-height: 52px; padding: 12px 34px; }
+.lm-button svg, .lm-link svg { width: 20px; height: 20px; flex: none; stroke-width: 1.5; }
+.lm-button--icon { padding: 0; width: 44px; height: 44px; }
+.lm-toggle { font-size: calc(13 * var(--lm-s)); padding: 8px 18px 8px 14px; min-width: 128px; }
+.lm-toggle .lm-toggle-label { white-space: nowrap; }
+
+.lm-link {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--lm-target-min);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: 400 calc(16 * var(--lm-s))/1.5 var(--lm-sans);
+  color: var(--lm-ink);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+  border-radius: 6px;
+}
+.lm-link--quiet { font-size: calc(14 * var(--lm-s)); color: var(--lm-muted); text-decoration: none; }
+.lm-link--quiet:hover { text-decoration: underline; }
+.lm-link[aria-disabled="true"] { color: #6f5a48; cursor: default; text-decoration: none; }
+
+.lm-glass {
+  background: var(--lm-glass);
+  border: 1px solid #fff8ea;
+  border-radius: var(--lm-radius-panel);
+  box-shadow: var(--lm-shadow);
+  -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  backdrop-filter: blur(10px) saturate(1.08);
+}
+
+/* -------------------------------------------------------------------- main */
+.lm-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: min(34.6%, 34rem + var(--lm-margin-left));
+  min-width: 300px;
+  padding: var(--lm-main-top) 0 var(--lm-main-bottom) var(--lm-margin-left);
+  pointer-events: none;
+}
+.lm-main > * { pointer-events: auto; }
+
+.lm-title {
+  margin: 0;
+  font: 400 var(--lm-title-size)/1.162 var(--lm-serif);
+  letter-spacing: 0;
+  color: var(--lm-ink);
+  /* The headline may run past the copy column towards the model, as drawn
+     ("Your first room" ends at x = 539 in D03). */
+  width: max-content;
+  max-width: min(8.2em, 100vw - 2 * var(--lm-margin-left));
+  /* The approved screens keep a three-line headline slot (D11 has two lines
+     and the copy below does not move). */
+  min-height: 3.486em;
+  text-wrap: balance;
+  outline: none;
+}
+.lm-title-line { display: block; }
+/* A drawn line that no longer fits lets the whole headline wrap freely. */
+.lm-title[data-wrap="free"] .lm-title-line { display: inline; }
+.lm-body {
+  margin: var(--lm-gap-l) 0 0 3px;
+  max-width: 24em;
+  /* A two-line slot (D09, D10): the controls below keep their place. */
+  min-height: 2.94em;
+  font: 400 var(--lm-body-size)/1.47 var(--lm-sans);
+  color: var(--lm-muted);
+}
+/* Sentences stay whole where there is room (D09, D10, M03, M07). */
+.lm-sentence { display: inline-block; max-width: 100%; }
+.lm-field { margin: 0; padding: 0; border: 0; min-width: 0; }
+.lm-field--destination { margin-top: max(6px, 0.4rem, calc(var(--lm-gap-l) - 1.47 * var(--lm-body-size))); }
+.lm-eyebrow {
+  display: block;
+  margin: 0 0 var(--lm-gap-m) 4px;
+  padding: 0;
+  font: 400 calc(11 * var(--lm-s))/1.45 var(--lm-sans);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--lm-muted);
+}
+.lm-segment { display: flex; flex-wrap: wrap; gap: 14px; }
+.lm-radio { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.lm-pill { user-select: none; }
+.lm-segment--destination .lm-pill {
+  min-height: var(--lm-pill-l);
+  min-width: clamp(132px, 12.1vw, 174px);
+  padding: 10px clamp(18px, 2.36vw, 34px);
+  font-size: calc(16 * var(--lm-s));
+}
+.lm-segment--light { flex-wrap: nowrap; gap: 13px; }
+.lm-segment--light .lm-pill { min-height: 44px; min-width: 102px; padding: 8px 32px; font-size: calc(15 * var(--lm-s)); }
+/* Without its eyebrow, the room choice keeps its place (pills at 516 in D03). */
+.lm-root[data-layout="desktop"] .lm-field--destination .lm-segment { margin-top: calc(11 * 1.45 * var(--lm-s) + var(--lm-gap-m) + 4px); }
+.lm-segment--version .lm-pill { min-height: 44px; min-width: 140px; padding: 8px 24px; font-size: calc(14 * var(--lm-s)); }
+.lm-field--version .lm-eyebrow { margin-bottom: calc(var(--lm-gap-m) - 2px); }
+.lm-field--version .lm-segment { gap: 17px; }
+.lm-segment--version .lm-pill[aria-busy="true"] { cursor: progress; }
+
+/* The light control and the hint line share one row: the hint sits beside the
+   pills, or takes the row when the light control is not shown (D04, D05, D09). */
+.lm-version-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px 22px;
+  align-self: stretch;
+  min-width: 0;
+  margin-top: calc(clamp(12px, 3.5vh, 32px) - 1px);
+}
+.lm-version-row .lm-field { flex: none; }
+.lm-note {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
+  padding-right: 8px;
+  font: 400 calc(13 * var(--lm-s))/1.5 var(--lm-sans);
+  color: var(--lm-muted);
+  text-wrap: balance;
+}
+.lm-field--version[hidden] + .lm-note { align-items: flex-start; min-height: 20px; margin: 7px 0 0 4px; }
+.lm-recovery:not([hidden]) ~ .lm-version-row { margin-top: clamp(12px, 3.4vh, 31px); }
+.lm-recovery:not([hidden]) ~ .lm-version-row .lm-note { margin-top: 0; }
+.lm-note[data-tone="error"] { color: #7a2e12; }
+.lm-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 34px;
+  /* Anchored above the rail in every state (baseline 719 in D01 to D10). */
+  margin: auto 0 0 4px;
+  padding-top: 6px;
+}
+
+.lm-recovery { display: flex; flex-wrap: wrap; gap: 14px; margin: clamp(18px, 6.8vh, 62px) 0 0; }
+.lm-recovery .lm-button { min-height: var(--lm-pill-l); min-width: 172px; }
+/* Three actions (a stall the host can retry, with a lighter route) take two
+   rows in the copy column; the block closes up so the rail keeps its place. */
+.lm-root[data-layout="desktop"] .lm-recovery:has(> .lm-button:not([hidden]) ~ .lm-button:not([hidden]) ~ .lm-button:not([hidden])) { row-gap: 10px; margin-top: clamp(12px, 3.6vh, 34px); }
+
+/* --------------------------------------------------------- rotation control */
+.lm-rotate {
+  position: absolute;
+  right: 9.8%;
+  bottom: 2.7%;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 290px;
+  max-width: 44%;
+  padding: 9px 20px 10px;
+  border-radius: 28px;
+}
+.lm-rotate-buttons { display: flex; gap: 11px; }
+.lm-rotate-caption { margin: 0; font: 400 calc(13 * var(--lm-s))/1.4 var(--lm-sans); color: var(--lm-ink); text-align: center; }
+.lm-rotate .lm-button--icon { background: var(--lm-glass); }
+
+/* ------------------------------------------------------------- status rail */
+.lm-status {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  /* The label column is 235 px in the approved rail and widens for a longer
+     host task label ("Finishing the first live reflection") before wrapping. */
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "label bar value" "label phases value";
+  align-items: center;
+  column-gap: 0;
+  margin: 0 var(--lm-rail-inset) 24px;
+  padding: 16px 34px 15px 32px;
+  min-height: 102px;
+  border-radius: 28px;
+}
+.lm-status-label {
+  grid-area: label;
+  align-self: start;
+  min-width: clamp(180px, 16.35vw, 300px);
+  max-width: 30vw;
+  margin: 13px 0 0;
+  padding-right: 28px;
+  font: 400 calc(18 * var(--lm-s))/1.35 var(--lm-sans);
+  color: var(--lm-ink);
+}
+.lm-progress { grid-area: bar; align-self: start; position: relative; padding-top: 5px; }
+.lm-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  min-height: 18px;
+  font: 400 calc(12 * var(--lm-s))/1.45 var(--lm-sans);
+  color: var(--lm-muted);
+}
+.lm-progress-track {
+  position: relative;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: rgba(184,140,96,.55);
+  overflow: hidden;
+}
+.lm-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 3px;
+  background: var(--lm-track);
+  /* No easing on the measured bar: host progress can arrive many times a
+     second and an eased width would trail the number beside it. */
+}
+.lm-progress[data-kind="idle"] .lm-progress-fill { width: 0 !important; }
+.lm-progress[data-kind="indeterminate"] .lm-progress-fill {
+  width: 15%;
+  transition: none;
+  animation: lm-indeterminate 3.4s cubic-bezier(.45,.05,.3,.95) infinite alternate;
+}
+@keyframes lm-indeterminate { from { transform: translateX(0); } to { transform: translateX(566%); } }
+.lm-status-value {
+  grid-area: value;
+  align-self: start;
+  min-width: 68px;
+  margin: 15px 0 0;
+  text-align: right;
+  font: 400 calc(18 * var(--lm-s))/1.35 var(--lm-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--lm-ink);
+}
+.lm-status-note {
+  position: absolute;
+  top: 16px;
+  right: 34px;
+  margin: 0;
+  font: 400 calc(12 * var(--lm-s))/1.45 var(--lm-sans);
+  color: var(--lm-muted);
+  white-space: nowrap;
+}
+.lm-phases {
+  grid-area: phases;
+  display: flex;
+  justify-content: center;
+  gap: clamp(28px, 5.9vw, 92px);
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  /* centred on the rail rather than on the bar */
+  transform: translateX(calc(-1 * clamp(20px, 5.2vw, 82px)));
+}
+.lm-phase {
+  position: relative;
+  padding-bottom: 7px;
+  font: 400 calc(13 * var(--lm-s))/1.4 var(--lm-sans);
+  color: var(--lm-muted);
+}
+.lm-phase[data-state="current"] { color: var(--lm-ink); font-weight: 600; }
+.lm-phase[data-state="current"]::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 24px;
+  height: 2px;
+  margin-left: -12px;
+  border-radius: 2px;
+  background: var(--lm-bronze);
+}
+
+.lm-ready {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.lm-ready-text { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; padding-left: 4px; }
+.lm-ready-text svg { width: 22px; height: 22px; color: var(--lm-bronze); }
+.lm-ready-title { margin: 0; font: 400 calc(20 * var(--lm-s))/1.3 var(--lm-sans); color: var(--lm-ink); }
+.lm-ready-supporting { grid-column: 2; margin: 2px 0 0; font: 400 calc(13 * var(--lm-s))/1.45 var(--lm-sans); color: var(--lm-muted); }
+.lm-enter { min-height: 52px; min-width: 266px; }
+.lm-enter[aria-busy="true"] { cursor: progress; }
+.lm-enter-hint { margin: 0; font: 400 calc(12 * var(--lm-s))/1.4 var(--lm-sans); color: var(--lm-muted); text-align: center; }
+.lm-status-action { grid-area: value; align-self: center; margin-left: 20px; }
+
+/* light-version landing panel (D11): a calmer, slightly inset panel */
+.lm-root[data-layout="desktop"][data-mode="light-landing"] .lm-status { margin-inline: var(--lm-margin-left); border-radius: 24px; }
+.lm-landing-panel { grid-column: 1 / -1; grid-row: 1 / -1; padding: 6px 12px; }
+.lm-landing-panel h2 { margin: 0; font: 400 calc(27 * var(--lm-s))/1.25 var(--lm-serif); color: var(--lm-ink); }
+.lm-landing-panel p { margin: 4px 0 0; font: 400 calc(13 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-landing-actions { display: grid; justify-items: start; gap: 13px; margin-top: max(4px, calc(var(--lm-gap-l) - 1.47 * var(--lm-body-size) - 4px)); }
+.lm-landing-kept { margin: 0 0 clamp(8px, 2.1vh, 19px) 4px; font: 400 calc(14 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-landing-actions .lm-button { min-height: 54px; min-width: 286px; }
+.lm-landing-actions .lm-link { margin-left: 4px; font-size: calc(14 * var(--lm-s)); }
+
+/* --------------------------------------------------------------- popovers */
+.lm-popover {
+  position: absolute;
+  z-index: 3;
+  /* 83: fifteen pixels under the header, wherever the header ends. */
+  top: max(83px, calc(var(--lm-header-bottom, 68px) + 15px));
+  right: calc(var(--lm-margin-right) + 1px);
+  width: min(404px, calc(100% - 2 * var(--lm-margin-right)));
+  padding: 18px 22px 18px 26px;
+}
+.lm-popover h2 { margin: 0; font: 400 calc(27 * var(--lm-s))/1.25 var(--lm-serif); color: var(--lm-ink); }
+.lm-popover p { margin: 9px 0 0; font: 400 calc(13 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-confirm { top: max(105px, calc(var(--lm-header-bottom, 68px) + 37px)); width: min(415px, calc(100% - 2 * var(--lm-margin-right))); padding-bottom: 36px; }
+.lm-confirm-status { display: flex; align-items: center; gap: 14px; min-height: 44px; margin-top: 18px; font: 400 calc(14 * var(--lm-s))/1.4 var(--lm-sans); color: var(--lm-ink); }
+.lm-confirm-status svg { width: 24px; height: 24px; color: var(--lm-bronze); }
+
+/* ------------------------------------------------------------ studies sheet */
+.lm-veil {
+  position: absolute; inset: 0; z-index: 0;
+  background: rgba(75,46,24,.14);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--lm-duration-surface) ease;
+}
+.lm-root[data-sheet="open"] .lm-veil { opacity: 1; }
+/* The copy column is inert under the sheet; its turn buttons step aside. */
+.lm-root[data-sheet="open"] .lm-rotate { visibility: hidden; }
+.lm-sheet {
+  position: absolute;
+  z-index: 2;
+  left: 38.9%;
+  right: var(--lm-margin-right);
+  top: 10.4%;
+  bottom: calc(var(--lm-rail-height, 102px) + 60px);
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 27px 22px 26px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.lm-sheet-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.lm-sheet-title { margin: 0; font: 400 calc(27 * var(--lm-s))/1.3 var(--lm-serif); color: var(--lm-ink); outline: none; }
+.lm-sheet[data-view="detail"] .lm-sheet-title { font-size: calc(39 * var(--lm-s)); line-height: 1.15; }
+.lm-sheet-sub { margin: 2px 0 0; font: 400 calc(13 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-sheet-head .lm-button { flex: none; min-width: 198px; font-size: calc(13 * var(--lm-s)); }
+.lm-study-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 30px 0 0; padding: 0; list-style: none; }
+.lm-study-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px 10px 10px;
+  border: 1px solid #f1d9bd;
+  border-radius: 20px;
+  background: linear-gradient(160deg, rgba(255,249,240,.92), rgba(250,234,214,.86));
+}
+.lm-study-badge { margin: 0 0 12px 7px; font: 400 calc(11 * var(--lm-s))/1.4 var(--lm-sans); color: var(--lm-bronze); }
+.lm-study-thumb { width: 100%; height: auto; aspect-ratio: 220 / 186; object-fit: cover; border-radius: 3px; background: #ecd4b9; display: block; }
+.lm-study-name { margin: auto 0 0 7px; padding-top: 30px; font: 400 calc(26 * var(--lm-s))/1.25 var(--lm-serif); color: var(--lm-ink); }
+.lm-study-desc { margin: 6px 0 14px 7px; font: 400 calc(12 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-study-card .lm-button { align-self: flex-start; margin-left: 7px; min-width: 120px; font-size: calc(13 * var(--lm-s)); }
+.lm-sheet-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: auto; padding-top: 20px; }
+.lm-sheet-foot p { margin: 0; font: 400 calc(14 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-sheet-foot .lm-button { min-width: 164px; font-size: calc(13 * var(--lm-s)); }
+/* "Loading continues in the background" is said only while it is true. The
+   line keeps its space so the action beside it does not move. */
+.lm-root[data-mode="ready"] .lm-sheet-foot [data-lm="sheet-foot-text"] { visibility: hidden; }
+.lm-sheet-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.lm-sheet-ready { display: flex; align-items: center; gap: 16px; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(184,140,96,.4); }
+.lm-sheet-ready p { margin: 0; flex: 1; font: 400 calc(14 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-ink); }
+.lm-study-detail { display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; }
+/* The still fills whatever the sheet has left (D13), never more. */
+.lm-study-figure { position: relative; flex: 1 1 0; min-height: 180px; margin: 22px 0 0; }
+.lm-study-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 18px; background: #ecd4b9; display: block; }
+.lm-sheet[data-view="detail"] .lm-sheet-foot { margin-top: 0; }
+.lm-sheet[data-view="detail"] .lm-sheet-actions { width: 100%; justify-content: space-between; }
+.lm-study-caption { margin: 22px 0 0; font: 400 calc(16 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-ink); }
+.lm-study-missing { margin: 22px 0 0; padding: 28px; border: 1px dashed var(--lm-border); border-radius: 18px; font: 400 calc(14 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+
+/* ------------------------------------------------------------- arrival view */
+.lm-arrival { position: absolute; inset: 0; z-index: 5; opacity: 0; transition: opacity 700ms var(--lm-ease-settle); }
+.lm-arrival[data-visible="true"] { opacity: 1; }
+.lm-arrival-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lm-arrival-card {
+  position: absolute;
+  left: var(--lm-margin-left);
+  bottom: clamp(24px, 8.8vh, 80px);
+  width: min(514px, calc(100% - 2 * var(--lm-margin-left)));
+  padding: 26px 27px 22px;
+}
+.lm-arrival-card h2 { margin: 0; font: 400 calc(27 * var(--lm-s))/1.3 var(--lm-serif); outline: none; }
+.lm-arrival-card p { margin: 4px 0 0; font: 400 calc(13 * var(--lm-s))/1.5 var(--lm-sans); color: var(--lm-muted); }
+.lm-arrival-card .lm-button { margin-top: 44px; min-width: 210px; min-height: 52px; }
+.lm-arrival-card .lm-arrival-foot { margin-top: 12px; font-size: calc(12 * var(--lm-s)); }
+
+/* One-time, gentle emphasis from the decorative plan (never a requirement). */
+@keyframes lm-emphasis { 0%, 100% { box-shadow: 0 0 0 0 rgba(149,96,45,0); } 45% { box-shadow: 0 0 0 7px rgba(149,96,45,.16); } }
+.lm-root[data-highlight="destination"] .lm-segment--destination .lm-pill { animation: lm-emphasis 2.4s ease-in-out 2; }
+.lm-root[data-highlight="studies"] .lm-links .lm-link:first-child { animation: lm-emphasis 2.4s ease-in-out 2; }
+.lm-rotate { animation: lm-rise var(--lm-duration-surface) var(--lm-ease-settle); }
+@keyframes lm-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* --------------------------------------------------------- motion preference */
+.lm-root[data-motion="reduced"] *, .lm-root[data-motion="reduced"] *::before, .lm-root[data-motion="reduced"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+/* D12: a still bar would read as a measurement, so the track stays empty and
+   the task label and "Working in the background" carry the status. */
+.lm-root[data-motion="reduced"] .lm-progress[data-kind="indeterminate"] .lm-progress-fill { width: 0; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .lm-root:not([data-motion="full"]) *, .lm-root:not([data-motion="full"]) *::before, .lm-root:not([data-motion="full"]) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ============================================================== stacked ===
+   Portrait and narrow viewports: header, copy, model band, choices, links,
+   then the status rail. Document order is unchanged; only the model band is
+   moved visually. The page may scroll; nothing is clipped to 100vh. */
+.lm-root[data-layout="stacked"] {
+  --lm-margin-left: clamp(20px, 6.15vw, 40px);  /* 24 at 390 */
+  --lm-margin-right: clamp(20px, 6.15vw, 40px);
+  --lm-title-size: max(clamp(32px, min(9.75vw, 6.4vh), 56px), 2rem); /* 38 */
+  --lm-body-size: calc(14 * var(--lm-s));
+  --lm-rail-inset: clamp(12px, 4.1vw, 28px);     /* 16 */
+  /* The middle row takes the slack, so the rail rests at the foot of a tall
+     screen and the page simply grows (and scrolls) on a short one. */
+  grid-template-rows: auto 1fr auto;
+  min-height: 100dvh;
+  /* clip, not hidden: a hidden axis would turn the root into a scroll
+     container and the sticky rail would stop sticking to the viewport. */
+  overflow: visible;
+  overflow-x: clip;
+}
+.lm-root[data-layout="stacked"] .lm-header { padding-top: 17px; min-height: 61px; }
+.lm-root[data-layout="stacked"] .lm-brand { font-size: calc(18 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-toggle { min-width: 44px; width: 44px; padding: 0; }
+.lm-root[data-layout="stacked"] .lm-toggle .lm-toggle-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lm-root[data-layout="stacked"] .lm-main {
+  width: 100%;
+  min-width: 0;
+  padding: 21px var(--lm-margin-right) 0 var(--lm-margin-left);
+  align-items: stretch;
+}
+.lm-root[data-layout="stacked"] .lm-title { width: auto; max-width: none; min-height: 2.42em; line-height: 1.21; text-wrap: balance; } /* M04: one line, same slot */
+.lm-root[data-layout="stacked"] .lm-body { margin: 27px 0 0 1px; min-height: 0; line-height: 1.57; max-width: 18.5em; text-wrap: balance; }
+/* Two sentences: one line each where the column allows (M03, M04, M07). */
+.lm-root[data-layout="stacked"] .lm-body[data-sentences="2"] { max-width: none; text-wrap: wrap; }
+/* M07: three drawn lines start eight pixels higher, a size down, and the
+   copy and the model close up beneath them. */
+.lm-root[data-layout="stacked"] .lm-title[data-lines="3"]:not([data-wrap]) { margin-top: -6px; font-size: calc(var(--lm-title-size) * 0.974); line-height: 1.189; }
+.lm-root[data-layout="stacked"] .lm-title[data-lines="3"]:not([data-wrap]) + .lm-body { margin-top: 5px; }
+.lm-root[data-layout="stacked"] .lm-title[data-lines="3"]:not([data-wrap]) ~ .lm-stage-slot { margin-top: -7px; }
+.lm-root[data-layout="stacked"] .lm-stage-slot {
+  display: block;
+  position: relative;
+  order: 1;
+  /* The band takes the slack above the rail: 308 at 844 with the usual copy,
+     a little less under a longer headline or a second action (M07), and
+     never under the floor below, where the page scrolls instead. */
+  flex: 1 0 auto;
+  /* The band itself is not a control: touches reach the canvas beneath it. */
+  pointer-events: none;
+  min-height: clamp(200px, 26vh, 420px);
+  margin: 5px calc(-1 * var(--lm-margin-right)) 0 calc(-1 * var(--lm-margin-left));
+}
+.lm-root[data-layout="stacked"] .lm-stage { left: 0; right: 0; top: 12px; bottom: 0; }
+/* The canvas is only the model band here; its edges dissolve into the page. */
+.lm-root[data-layout="stacked"] .lm-canvas {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 28px, #000 calc(100% - 44px), transparent 100%);
+}
+.lm-root[data-layout="stacked"] .lm-field--destination { order: 2; margin-top: 9px; }
+.lm-root[data-layout="stacked"] .lm-version-row { order: 2; display: block; margin-top: 9px; }
+.lm-root[data-layout="stacked"] .lm-note { display: block; min-height: 0; margin: 0 0 9px; padding: 0; }
+.lm-root[data-layout="stacked"] .lm-note:empty { display: none; }
+.lm-root[data-layout="stacked"] .lm-field--version:not([hidden]) + .lm-note { margin: 9px 0 0; }
+.lm-root[data-layout="stacked"] .lm-links { order: 4; justify-content: space-between; margin: 3px 0 0; padding: 0; }
+.lm-root[data-layout="stacked"] .lm-recovery { order: 3; flex-direction: column; gap: 10px; margin-top: 0; }
+/* M08: while a retry is in progress the two actions stay where they were
+   pressed; the space of the studies link beneath them is kept. */
+.lm-root[data-layout="stacked"][data-mode="retrying"] .lm-recovery { margin-bottom: 47px; }
+.lm-root[data-layout="stacked"] .lm-recovery .lm-button { width: 100%; min-height: 48px; font-size: calc(15 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-landing-actions { order: 3; justify-items: stretch; gap: 12px; margin-top: 34px; }
+.lm-root[data-layout="stacked"] .lm-landing-kept { display: none; }
+.lm-root[data-layout="stacked"] .lm-landing-actions .lm-button { min-width: 0; width: 100%; min-height: 48px; font-size: calc(15 * var(--lm-s)); }
+/* M09 draws the way back as a second full-width button. */
+.lm-root[data-layout="stacked"] .lm-landing-actions .lm-link {
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  border: 1px solid var(--lm-border);
+  border-radius: var(--lm-radius-pill);
+  background: var(--lm-glass);
+  font-size: calc(15 * var(--lm-s));
+  text-decoration: none;
+}
+.lm-root[data-layout="stacked"] .lm-eyebrow { margin: 0 0 9px; letter-spacing: .12em; }
+.lm-root[data-layout="stacked"] .lm-segment { gap: 14px; }
+.lm-root[data-layout="stacked"] .lm-segment--destination { display: grid; grid-template-columns: 1fr 1fr; }
+.lm-root[data-layout="stacked"] .lm-segment--destination .lm-pill { min-width: 0; min-height: 45px; padding: 8px 10px; }
+/* Header on a phone: name and Sound on the first row, the light control on a
+   row of its own beneath them. */
+.lm-root[data-layout="stacked"] .lm-toggles { display: contents; }
+.lm-root[data-layout="stacked"] .lm-toggle { margin-left: auto; }
+.lm-root[data-layout="stacked"] .lm-header-light { order: 3; flex: 1 0 100%; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; }
+.lm-root[data-layout="stacked"] .lm-header-light .lm-eyebrow { font-size: calc(11 * var(--lm-s)); letter-spacing: .14em; }
+.lm-root[data-layout="stacked"] .lm-segment--light { gap: 12px; }
+.lm-root[data-layout="stacked"] .lm-segment--light .lm-pill { min-width: 80px; padding: 8px 14px; font-size: calc(14 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-segment--version { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lm-root[data-layout="stacked"] .lm-segment--version .lm-pill { min-width: 0; padding: 8px 10px; font-size: calc(14 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-link { font-size: calc(13 * var(--lm-s)); text-underline-offset: 5px; }
+.lm-root[data-layout="stacked"] .lm-link--quiet { color: var(--lm-ink); font-size: calc(13 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-rotate {
+  right: var(--lm-margin-right);
+  bottom: 1px;
+  width: auto;
+  max-width: none;
+  padding: 10px 11px;
+  border-radius: 22px;
+}
+/* The rail is pinned to the viewport in this layout. A control that takes
+   focus is scrolled clear of it, never left underneath. */
+.lm-root[data-layout="stacked"] :is(.lm-main, .lm-sheet) :is(.lm-button, .lm-link) { scroll-margin-bottom: calc(var(--lm-rail-height, 82px) + 32px); }
+.lm-root[data-layout="stacked"] .lm-main .lm-radio { scroll-margin-bottom: calc(var(--lm-rail-height, 82px) + 32px + 4.5rem); }
+.lm-root[data-layout="stacked"] .lm-rotate-caption { display: none; }
+.lm-root[data-layout="stacked"] .lm-rotate-buttons { gap: 10px; }
+.lm-root[data-layout="stacked"] .lm-status {
+  position: sticky;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "label value" "bar bar" "phases phases";
+  margin: 8px var(--lm-rail-inset) max(16px, env(safe-area-inset-bottom));
+  padding: 11px 15px 11px;
+  min-height: 82px;
+  border-radius: 22px;
+}
+.lm-root[data-layout="stacked"] .lm-status-label { min-width: 0; max-width: none; margin: 0; padding: 0; font-size: calc(13 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-status-value { margin: 0; min-width: 0; font-size: calc(13 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-status-note { display: none; }
+.lm-root[data-layout="stacked"] .lm-progress { padding-top: 0; display: flex; flex-direction: column-reverse; }
+.lm-root[data-layout="stacked"] .lm-progress-track { margin: 9px 0 0; }
+.lm-root[data-layout="stacked"] .lm-progress-meta { margin-top: 11px; min-height: 17px; }
+.lm-root[data-layout="stacked"] .lm-phases { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); transform: none; }
+.lm-root[data-layout="stacked"] .lm-ready { padding: 2px; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; }
+/* With a hint line the action tightens so the rail keeps its 82 px. */
+.lm-root[data-layout="stacked"] .lm-status:has(.lm-enter-hint:not([hidden])) { padding-top: 5px; padding-bottom: 3px; }
+.lm-root[data-layout="stacked"] .lm-status:has(.lm-enter-hint:not([hidden])) .lm-ready { gap: 2px; }
+.lm-root[data-layout="stacked"] .lm-status:has(.lm-enter-hint:not([hidden])) .lm-enter { min-height: 48px; }
+.lm-root[data-layout="stacked"] .lm-ready-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.lm-root[data-layout="stacked"] .lm-enter { width: 100%; min-width: 0; min-height: 52px; }
+.lm-root[data-layout="stacked"] .lm-landing-panel { padding: 0; }
+.lm-root[data-layout="stacked"] .lm-landing-panel h2 { font: 400 calc(15 * var(--lm-s))/1.4 var(--lm-sans); }
+.lm-root[data-layout="stacked"] .lm-landing-panel p { font-size: calc(12 * var(--lm-s)); margin-top: 8px; }
+.lm-root[data-layout="stacked"] .lm-status-action { grid-area: phases; margin: 10px 0 0; justify-self: start; }
+.lm-root[data-layout="stacked"] .lm-popover { top: max(70px, calc(var(--lm-header-bottom, 61px) + 9px)); padding: 18px 20px 20px; }
+.lm-root[data-layout="stacked"] .lm-popover h2 { font-size: calc(23 * var(--lm-s)); }
+
+.lm-root[data-layout="stacked"] .lm-sheet {
+  position: relative;
+  grid-row: 2;
+  left: auto; right: auto; top: auto; bottom: auto;
+  margin: 0;
+  min-height: 0;
+  padding: 21px var(--lm-margin-right) 2px var(--lm-margin-left); /* M05 ends at the rail: 844 in all */
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  overflow: visible;
+}
+.lm-root[data-layout="stacked"][data-sheet="open"] .lm-main { display: none; }
+.lm-root[data-layout="stacked"][data-sheet="open"] .lm-canvas,
+.lm-root[data-layout="stacked"][data-sheet="open"] .lm-poster,
+.lm-root[data-layout="stacked"] .lm-veil { display: none; }
+.lm-root[data-layout="stacked"] .lm-sheet-head { display: block; }
+.lm-root[data-layout="stacked"] .lm-sheet-title { font: 400 var(--lm-title-size)/1.21 var(--lm-serif); text-wrap: balance; max-width: 6.6em; }
+.lm-root[data-layout="stacked"] .lm-sheet[data-view="detail"] .lm-sheet-title { font-size: calc(46 * var(--lm-s)); max-width: none; }
+.lm-root[data-layout="stacked"] .lm-sheet-sub { margin: 22px 0 0 1px; }
+.lm-root[data-layout="stacked"] .lm-sheet[data-view="detail"] .lm-sheet-sub { margin-top: 4px; }
+.lm-root[data-layout="stacked"] .lm-sheet-head .lm-button { display: none; }
+.lm-root[data-layout="stacked"] .lm-study-list { grid-template-columns: 1fr; gap: 12px; margin: 24px -8px 0; }
+.lm-root[data-layout="stacked"] .lm-study-card {
+  display: grid;
+  grid-template-columns: 48.5% 1fr;
+  grid-template-areas: "thumb name" "thumb badge" "thumb action";
+  column-gap: 24px;
+  align-content: center;
+  padding: 6px 18px 6px 6px;
+  border-radius: 22px;
+}
+.lm-root[data-layout="stacked"] .lm-study-thumb { grid-area: thumb; aspect-ratio: 166 / 126; border-radius: 16px 3px 3px 16px; align-self: center; }
+.lm-root[data-layout="stacked"] .lm-study-name { grid-area: name; margin: 8px 0 0; padding: 0; font-size: calc(24 * var(--lm-s)); align-self: end; }
+.lm-root[data-layout="stacked"] .lm-study-badge { grid-area: badge; margin: 6px 0 12px; color: var(--lm-muted); }
+.lm-root[data-layout="stacked"] .lm-study-desc { display: none; }
+.lm-root[data-layout="stacked"] .lm-study-card .lm-button { grid-area: action; margin: 0 0 8px; width: 100%; max-width: 128px; align-self: start; }
+.lm-root[data-layout="stacked"] .lm-sheet-foot { margin: 16px -8px 0; padding: 0; gap: 12px; }
+.lm-root[data-layout="stacked"] .lm-sheet-foot p { display: none; }
+.lm-root[data-layout="stacked"] .lm-sheet-actions { width: 100%; flex-wrap: nowrap; }
+.lm-root[data-layout="stacked"] .lm-sheet-actions .lm-button { flex: 1 1 0; min-width: 0; padding-inline: 12px; }
+.lm-root[data-layout="stacked"] .lm-sheet[data-view="detail"] .lm-sheet-actions { flex-direction: column; margin: 0 8px; width: auto; }
+.lm-root[data-layout="stacked"] .lm-sheet[data-view="detail"] .lm-sheet-actions .lm-button { width: 100%; flex: none; min-height: 46px; font-size: calc(14 * var(--lm-s)); }
+.lm-root[data-layout="stacked"] .lm-sheet[data-view="detail"] .lm-sheet-foot { margin: 22px -8px 0; flex-direction: column; align-items: stretch; }
+.lm-root[data-layout="stacked"] .lm-study-detail { display: block; flex: none; }
+.lm-root[data-layout="stacked"] .lm-study-figure { margin-top: 17px; min-height: 0; flex: none; }
+.lm-root[data-layout="stacked"] .lm-study-image { position: static; aspect-ratio: 342 / 298; height: auto; border-radius: 24px; }
+.lm-root[data-layout="stacked"] .lm-study-caption { margin-top: 18px; font-size: calc(15 * var(--lm-s)); max-width: 17.5em; }
+.lm-root[data-layout="stacked"] .lm-sheet-ready { display: none; }
+.lm-root[data-layout="stacked"] .lm-arrival-card { left: var(--lm-margin-left); right: var(--lm-margin-right); width: auto; bottom: 24px; }
+
+@media (forced-colors: active) {
+  .lm-button, .lm-glass { border: 1px solid ButtonText; }
+  .lm-radio:checked + .lm-pill, .lm-button[aria-pressed="true"] { outline: 2px solid Highlight; }
+  .lm-progress-fill { background: Highlight; }
+}
+
+/* Phone, studies sheet open: the light control steps aside so the sheet keeps
+   the whole screen above the rail (M05, M06). */
+.lm-root[data-layout="stacked"]:not([data-sheet="closed"]) .lm-header-light { display: none; }

@@ -1,0 +1,91 @@
+{
+  "built": "2026-11-13T10:55:52.860Z",
+  "three": "0.186.0",
+  "firstPaintScript": {
+    "files": [
+      "dist/living-maquette.js",
+      "dist/chunks/chunk-ODYCNW4M.js",
+      "dist/chunks/chunk-LL3PD6G5.js",
+      "dist/chunks/chunk-OKTBCUVG.js"
+    ],
+    "bytes": 83741,
+    "gzip": 28345
+  },
+  "lazySceneScript": {
+    "files": [
+      "dist/chunks/director-M4KS5Z2Q.js",
+      "dist/chunks/HDRLoader-Z4G2LKGH.js",
+      "dist/chunks/stage-LQOMXDFH.js",
+      "dist/chunks/chunk-YR3UYH3C.js"
+    ],
+    "bytes": 675481,
+    "gzip": 177724
+  },
+  "files": [
+    {
+      "file": "dist/chunks/chunk-LL3PD6G5.js",
+      "bytes": 12503,
+      "gzip": 5462
+    },
+    {
+      "file": "dist/chunks/chunk-ODYCNW4M.js",
+      "bytes": 67796,
+      "gzip": 21287
+    },
+    {
+      "file": "dist/chunks/chunk-OKTBCUVG.js",
+      "bytes": 3171,
+      "gzip": 1394
+    },
+    {
+      "file": "dist/chunks/chunk-YR3UYH3C.js",
+      "bytes": 573395,
+      "gzip": 144055
+    },
+    {
+      "file": "dist/chunks/director-M4KS5Z2Q.js",
+      "bytes": 209,
+      "gzip": 190
+    },
+    {
+      "file": "dist/chunks/HDRLoader-Z4G2LKGH.js",
+      "bytes": 3413,
+      "gzip": 1656
+    },
+    {
+      "file": "dist/chunks/stage-LQOMXDFH.js",
+      "bytes": 98464,
+      "gzip": 31823
+    },
+    {
+      "file": "dist/demo.css",
+      "bytes": 2065,
+      "gzip": 911
+    },
+    {
+      "file": "dist/demo.js",
+      "bytes": 17399,
+      "gzip": 6479
+    },
+    {
+      "file": "dist/fonts/NotoSans-Regular.woff2",
+      "bytes": 15612,
+      "gzip": 15635
+    },
+    {
+      "file": "dist/fonts/NotoSerifDisplay-Regular.woff2",
+      "bytes": 17400,
+      "gzip": 17428
+    },
+    {
+      "file": "dist/intro.css",
+      "bytes": 30672,
+      "gzip": 6978
+    },
+    {
+      "file": "dist/living-maquette.js",
+      "bytes": 271,
+      "gzip": 202
+    }
+  ]
+}

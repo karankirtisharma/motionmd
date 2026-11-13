@@ -1,0 +1,129 @@
+{
+  "fps": 15,
+  "frames": 551,
+  "evidence": "live stage and director on a virtual clock; headless Chrome software renderer; readiness and entry are simulated",
+  "marks": [
+    {
+      "frame": 0,
+      "decorativeSeconds": 11.47,
+      "label": "The glass and the light line arrive",
+      "apply": []
+    },
+    {
+      "frame": 111,
+      "decorativeSeconds": 18.87,
+      "label": "The lounge resolves",
+      "apply": []
+    },
+    {
+      "frame": 210,
+      "decorativeSeconds": 25.47,
+      "label": "Soft light, then Warm again",
+      "apply": []
+    },
+    {
+      "frame": 216,
+      "decorativeSeconds": 25.87,
+      "label": "Soft light, then Warm again",
+      "apply": [
+        "soft"
+      ]
+    },
+    {
+      "frame": 258,
+      "decorativeSeconds": 28.67,
+      "label": "Soft light, then Warm again",
+      "apply": [
+        "warm"
+      ]
+    },
+    {
+      "frame": 300,
+      "decorativeSeconds": 31.47,
+      "label": "A small rotation",
+      "apply": []
+    },
+    {
+      "frame": 305,
+      "decorativeSeconds": 31.8,
+      "label": "A small rotation",
+      "apply": [
+        "right"
+      ]
+    },
+    {
+      "frame": 314,
+      "decorativeSeconds": 32.4,
+      "label": "A small rotation",
+      "apply": [
+        "right"
+      ]
+    },
+    {
+      "frame": 335,
+      "decorativeSeconds": 33.8,
+      "label": "A small rotation",
+      "apply": [
+        "left"
+      ]
+    },
+    {
+      "frame": 344,
+      "decorativeSeconds": 34.4,
+      "label": "A small rotation",
+      "apply": [
+        "left"
+      ]
+    },
+    {
+      "frame": 366,
+      "decorativeSeconds": 35.87,
+      "label": "Motion floor, then the lounge",
+      "apply": []
+    },
+    {
+      "frame": 372,
+      "decorativeSeconds": 36.27,
+      "label": "Motion floor, then the lounge",
+      "apply": [
+        "motion-floor"
+      ]
+    },
+    {
+      "frame": 417,
+      "decorativeSeconds": 39.27,
+      "label": "Motion floor, then the lounge",
+      "apply": [
+        "lounge"
+      ]
+    },
+    {
+      "frame": 462,
+      "decorativeSeconds": 42.27,
+      "label": "The host reports the room ready",
+      "apply": []
+    },
+    {
+      "frame": 471,
+      "decorativeSeconds": 42.87,
+      "label": "The host reports the room ready",
+      "apply": [
+        "ready"
+      ]
+    },
+    {
+      "frame": 531,
+      "decorativeSeconds": 46.87,
+      "label": "Entry acknowledged",
+      "apply": []
+    },
+    {
+      "frame": 534,
+      "decorativeSeconds": 47.07,
+      "label": "Entry acknowledged",
+      "apply": [
+        "enter"
+      ]
+    }
+  ]
+}

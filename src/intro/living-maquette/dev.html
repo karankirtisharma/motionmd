@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4e3d2">
+  <link rel="icon" href="data:,">
+  <title>Living Maquette · unbundled source</title>
+  <!-- Unbundled source for development. Needs `npm install` for three.js. -->
+  <script type="importmap">
+  { "imports": {
+    "three": "./node_modules/three/build/three.module.js",
+    "three/addons/": "./node_modules/three/examples/jsm/"
+  } }
+  </script>
+  <link rel="stylesheet" href="./src/ui/intro.css">
+  <link rel="stylesheet" href="./src/demo/demo.css">
+</head>
+<body>
+  <main id="living-maquette" data-asset-base="./assets/"></main>
+  <script type="module" src="./src/demo/demo.mjs"></script>
+</body>
+</html>
