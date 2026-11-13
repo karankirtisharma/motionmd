@@ -69,7 +69,7 @@ export async function fetchAssetBuffer(url: string, options: DownloadOptions = {
     try {
       if (signal?.aborted) abort();
       pulse();
-      const response = await network(fetch(url, { signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
+      const response = await network(fetch(url, { cache: process.env.NODE_ENV === 'development' ? 'no-store' : 'default', signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
       if (!response.ok) {
         void response.body?.cancel().catch(() => {});
         const retryable = [408, 425, 429, 500, 502, 503, 504].includes(response.status);

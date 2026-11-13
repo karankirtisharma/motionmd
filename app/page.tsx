@@ -6,8 +6,8 @@ import MaquetteIntro, { MaquettePreferences } from '@/components/maquette/Maquet
 
 export default function Home() { return <MaquettePreferences><LoungeEntry><LoungeLaunch /></LoungeEntry></MaquettePreferences>; }
 
-// The chooser and the Android redirect do not need the lounge UI or its
-// diagnostics. Mounting this component means the visitor explicitly chose 3D.
+// Keep the Android redirect ahead of the lounge runtime; desktop visitors arrive
+// directly in Living Maquette, which contains the version choices.
 function LoungeLaunch() {
   const [Experience, setExperience] = useState<ComponentType | null>(null);
   const [failed, setFailed] = useState(false);
@@ -21,5 +21,6 @@ function LoungeLaunch() {
   }, [attempt]);
 
   if (Experience) return <Experience />;
-  return <MaquetteIntro state={failed ? 'error' : 'boot'} error="We couldn’t open the lounge. Check your connection and try again." onRetry={() => { setFailed(false); setAttempt(value => value + 1); }} />;
+  if (!failed) return <div role="status" style={{ position: 'fixed', inset: 0, background: '#f6efe5', color: '#352416', padding: 32 }}>Preparing your visit</div>;
+  return <MaquetteIntro state="error" error="We couldn’t open the lounge. Check your connection and try again." onRetry={() => { setFailed(false); setAttempt(value => value + 1); }} />;
 }
