@@ -1,7 +1,7 @@
 /**
  * Decorative direction for the miniature.
  *
- * The canonical pacing is the kit's adaptable_80_second_plan (see
+ * The kit's adaptable_80_second_plan is retimed to 13 seconds here (see
  * src/config/timeline-plan.mjs). The director turns decorative time and a few
  * facts from the interface (is the room ready, which room, which light, is
  * motion reduced, has the visitor taken over the model) into targets, and
@@ -17,32 +17,36 @@ import { TIMELINE_PLAN } from '../config/timeline-plan.mjs';
 const DEG = Math.PI / 180;
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const smooth = (t) => t * t * (3 - 2 * t);
+const smoother = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+export const ASSEMBLY_SECONDS = 13;
+const pace = ASSEMBLY_SECONDS / 80;
 
-/** Beat windows from the canonical plan, in seconds: [[0,4],[4,12],…]. */
-export const BEATS = Object.freeze(TIMELINE_PLAN.beats.map((beat) => Object.freeze([...beat.seconds])));
+/** Preserve the kit beat ordering, retimed for the requested 13-second assembly. */
+export const BEATS = Object.freeze(TIMELINE_PLAN.beats.map((beat) => Object.freeze(beat.seconds.map((second) => second * pace))));
 const [PROMISE, AGENCY, STRUCTURE, ARRIVAL, LIGHT, FAMILIARITY, ENTRY] = BEATS;
 
 /** Authored cue times inside the plan's windows (seconds of decorative time). */
 export const CUES = Object.freeze({
-  openingLight: PROMISE[0] + 0.5,          // one quiet light change establishes depth
+  openingLight: PROMISE[0] + 0.5 * pace,          // one quiet light change establishes depth
   rotationHint: AGENCY[0],                 // the rotation control appears once
-  passiveTurn: [AGENCY[0] + 0.8, AGENCY[1] - 2.2], // one very limited authored angle change
+  passiveTurn: [AGENCY[0] + 0.8 * pace, AGENCY[1] - 2.2 * pace], // one very limited authored angle change
   glazing: STRUCTURE[0],                   // the glass layer arrives, pane by pane
-  glazingStagger: 0.16,
-  ceilingLine: STRUCTURE[0] + 5,           // one architectural detail: the light line
-  arrivalHighlight: ARRIVAL[0] + 0.6,      // the first-stop choice is gently highlighted
+  glazingStagger: 0.16 * pace,
+  ceilingLine: STRUCTURE[0] + 5 * pace,           // one architectural detail: the light line
+  arrivalHighlight: ARRIVAL[0] + 0.6 * pace,      // the first-stop choice is gently highlighted
   lightIntroduced: LIGHT[0],               // Warm / Soft appears
   // The lower lounge resolves before the first-stop choice is highlighted, as
   // in the kit's samples for this window (KF_06 at 20 s, KF_07 at 24 s).
-  furnishing: STRUCTURE[0] + 8,            // chair, table, sculpture, plants
-  furnishingStagger: 0.8,
-  detailHold: [FAMILIARITY[0] + 1, FAMILIARITY[1] - 2], // one stable focal point
-  studiesHighlight: FAMILIARITY[0] + 7,
+  furnishing: STRUCTURE[0] + 8 * pace,            // chair, table, sculpture, plants
+  furnishingStagger: 0.8 * pace,
+  detailHold: [FAMILIARITY[0] + 1 * pace, FAMILIARITY[1] - 2 * pace], // one stable focal point
+  studiesHighlight: FAMILIARITY[0] + 7 * pace,
+  assemblyStart: ARRIVAL[0],
+  frontReveal: FAMILIARITY[0],
   settle: ENTRY[0],                        // the view settles
   end: ENTRY[1],
 });
 
-const DETAIL_HOLD_ZOOM = 1.05;
 const DETAIL_HOLD_ANCHOR = Object.freeze([0.04, 0.04]);
 const ENTRY_ANCHOR = Object.freeze([0.5, 0.56]);
 
@@ -82,28 +86,22 @@ export function targetsAt(t, facts) {
     if (t >= CUES.furnishing) revealed.add('workspace');
   }
 
-  // One limited authored turn, then a small return; none once the visitor has taken over.
-  let passiveYawDeg = 0;
-  if (!takenOver) {
-    const [turnStart, turnEnd] = CUES.passiveTurn;
-    if (t >= turnStart) passiveYawDeg = 5 * smooth(clamp((t - turnStart) / (turnEnd - turnStart), 0, 1));
-    if (t >= CUES.glazing) passiveYawDeg = 2;
-    // The detail hold turns the lounge a few degrees towards the visitor.
-    if (t >= CUES.detailHold[0] && t < CUES.detailHold[1]) passiveYawDeg = -3;
-    if (t >= CUES.settle) passiveYawDeg = 0;
-  }
-  const holding = !takenOver && t >= CUES.detailHold[0] && t < CUES.detailHold[1];
+  // A continuous, small turn with zero velocity at both ends; no camera jumps.
+  const turnIn = smoother(clamp((t - CUES.passiveTurn[0]) / (CUES.glazing - CUES.passiveTurn[0]), 0, 1));
+  const turnOut = smoother(clamp((t - CUES.glazing) / (CUES.settle - CUES.glazing), 0, 1));
+  const passiveYawDeg = takenOver ? 0 : 3 * turnIn * (1 - turnOut);
+  const assembly = smoother(clamp((t - CUES.assemblyStart) / (CUES.end - CUES.assemblyStart), 0, 1));
+  if (t >= CUES.frontReveal) revealed.add('front-centre');
 
   return {
     // Furnishing chosen early needs the open-front mask even before the glazing beat.
-    phase: structural || roomChosen ? 'exploded' : 'structure',
-    explode: t >= CUES.settle ? 0.72 : 1,
+    phase: t >= CUES.frontReveal ? 'ready' : structural || roomChosen ? 'exploded' : 'structure',
+    explode: 1 - assembly,
     revealed,
     ceilingLine: t >= CUES.ceilingLine ? 1 : 0.14,
     passiveYawDeg,
-    // The detail hold is a small push-in that keeps the model's top-left
-    // corner where it was: nothing moves towards the headline or the toggles.
-    zoom: holding ? DETAIL_HOLD_ZOOM : 1,
+    // Keep framing stable while the architecture assembles.
+    zoom: 1,
     openingLight: t < CUES.openingLight,
     settled: t >= CUES.end,
   };
@@ -115,8 +113,8 @@ export function interfaceCuesAt(t, { reduced }) {
   return {
     rotationHint: t >= CUES.rotationHint,
     lightIntroduced: t >= CUES.lightIntroduced,
-    arrivalHighlight: t >= CUES.arrivalHighlight && t < CUES.arrivalHighlight + 6,
-    studiesHighlight: t >= CUES.studiesHighlight && t < CUES.studiesHighlight + 6,
+    arrivalHighlight: t >= CUES.arrivalHighlight && t < CUES.arrivalHighlight + 6 * pace,
+    studiesHighlight: t >= CUES.studiesHighlight && t < CUES.studiesHighlight + 6 * pace,
   };
 }
 
@@ -363,7 +361,9 @@ export function createDirector({ stage, manifest, initial = {}, onInterfaceCues,
     lastStep = time;
     const t = clockSeconds();
     const targets = targetsAt(t, { ...facts, paneCount });
-    let moving = false;
+    // The finite assembly has continuously changing targets, including its
+    // zero-velocity ends. Keep ticking until 13s, then return to demand rendering.
+    let moving = !facts.ready && !facts.reduced && seekTime === null && t < CUES.end;
 
     // ---- room swap: previous furnishing out, then the adapter switch, then in
     const outgoing = swap ? new Set(roomGroups(appliedDestination)) : null;
@@ -407,7 +407,10 @@ export function createDirector({ stage, manifest, initial = {}, onInterfaceCues,
     }
 
     // ---- pose, light line, light rig
-    if (followers.explode.step(targets.explode, dt)) moving = true;
+    // The authored curve already eases position, velocity and acceleration.
+    // Following it with another spring would delay completion beyond 13 seconds.
+    if (!facts.ready && !facts.reduced) followers.explode.snap(targets.explode);
+    else if (followers.explode.step(targets.explode, dt)) moving = true;
     stage.setExplodedAmount(followers.explode.value);
 
     if (followers.ceilingLine.step(targets.ceilingLine, dt)) moving = true;
@@ -455,8 +458,8 @@ export function createDirector({ stage, manifest, initial = {}, onInterfaceCues,
     if (facts.ready || facts.reduced || targets.settled || seekTime !== null) return;
     const times = [
       CUES.openingLight, CUES.rotationHint, CUES.passiveTurn[0], CUES.glazing, CUES.ceilingLine,
-      CUES.arrivalHighlight, CUES.arrivalHighlight + 6, CUES.lightIntroduced, CUES.furnishing,
-      CUES.detailHold[0], CUES.detailHold[1], CUES.studiesHighlight, CUES.studiesHighlight + 6, CUES.settle, CUES.end,
+      CUES.arrivalHighlight, CUES.arrivalHighlight + 6 * pace, CUES.lightIntroduced, CUES.furnishing,
+      CUES.detailHold[0], CUES.detailHold[1], CUES.studiesHighlight, CUES.studiesHighlight + 6 * pace, CUES.settle, CUES.end,
       ...Array.from({ length: paneCount }, (_, i) => CUES.glazing + i * CUES.glazingStagger),
       ...FURNISHING_ORDER.map((_, i) => CUES.furnishing + i * CUES.furnishingStagger),
     ];

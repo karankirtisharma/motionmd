@@ -4,16 +4,16 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { BEATS, CUES, interfaceCuesAt, targetsAt } from '../src/scene/director.mjs';
+import { ASSEMBLY_SECONDS, BEATS, CUES, interfaceCuesAt, targetsAt } from '../src/scene/director.mjs';
 import { TIMELINE_PLAN } from '../src/config/timeline-plan.mjs';
 
 const facts = (overrides = {}) => ({ ready: false, reduced: false, takenOver: false, roomChosen: false, paneCount: 12, ...overrides });
 const within = (value, [start, end]) => value >= start && value < end;
 
-test('the beat windows are the canonical 80-second plan', () => {
-  assert.deepEqual(BEATS, TIMELINE_PLAN.beats.map((beat) => beat.seconds));
+test('the beat windows are the 13-second adaptation of the kit plan', () => {
+  assert.deepEqual(BEATS, TIMELINE_PLAN.beats.map((beat) => beat.seconds.map((t) => t * (ASSEMBLY_SECONDS / 80))));
   assert.equal(BEATS[0][0], 0);
-  assert.equal(BEATS.at(-1)[1], 80);
+  assert.equal(BEATS.at(-1)[1], 13);
 });
 
 test('every authored cue sits inside the window the plan gives it', () => {
@@ -41,13 +41,20 @@ test('first frame: the bare structure with the roof lifted, nothing revealed', (
   assert.equal(targets.zoom, 1);
 });
 
-test('decorative time never assembles the model or shows the ready mask', () => {
-  for (let t = 0; t <= 400; t += 0.5) {
-    const targets = targetsAt(t, facts());
-    assert.notEqual(targets.phase, 'ready', `t=${t}`);
-    assert.ok(targets.explode > 0.5, `t=${t}`);
-    assert.equal(targets.revealed.has('front-centre'), false, `t=${t}`);
+test('assembly completes smoothly at 13 seconds without claiming host readiness', () => {
+  let previous = 1;
+  for (let t = 0; t <= 13; t += 1 / 60) {
+    const target = targetsAt(t, facts());
+    assert.ok(target.explode >= 0 && target.explode <= previous + 1e-10);
+    assert.ok(previous - target.explode < 0.004, 'no frame-sized pose jump');
+    assert.equal('readyForEntry' in target, false);
+    previous = target.explode;
   }
+  const end = targetsAt(13, facts());
+  assert.equal(end.explode, 0);
+  assert.equal(end.settled, true);
+  assert.equal(end.revealed.has('front-centre'), true);
+  assert.ok(targetsAt(12.99, facts()).explode < 1e-7, 'zero-velocity landing');
 });
 
 test('host readiness pre-empts every beat at once', () => {
@@ -110,23 +117,23 @@ test('a chosen room is furnished at once, whatever the beat', () => {
   assert.equal(targets.revealed.has('pane:0'), false, 'the glass still follows its own beat');
 });
 
-test('interface cues follow decorative time only', () => {
-  assert.equal(interfaceCuesAt(3.9, { reduced: false }).rotationHint, false);
-  assert.equal(interfaceCuesAt(4, { reduced: false }).rotationHint, true);
-  assert.equal(interfaceCuesAt(39.9, { reduced: false }).lightIntroduced, false);
-  assert.equal(interfaceCuesAt(40, { reduced: false }).lightIntroduced, true);
-  assert.equal(interfaceCuesAt(26, { reduced: false }).arrivalHighlight, true);
-  assert.equal(interfaceCuesAt(33, { reduced: false }).arrivalHighlight, false, 'a single, short emphasis');
-  assert.equal(interfaceCuesAt(63, { reduced: false }).studiesHighlight, true);
-  assert.equal(interfaceCuesAt(90, { reduced: false }).studiesHighlight, false);
+test('interface cues follow retimed decorative cues only', () => {
+  assert.equal(interfaceCuesAt(CUES.rotationHint - .01, { reduced: false }).rotationHint, false);
+  assert.equal(interfaceCuesAt(CUES.rotationHint, { reduced: false }).rotationHint, true);
+  assert.equal(interfaceCuesAt(CUES.lightIntroduced - .01, { reduced: false }).lightIntroduced, false);
+  assert.equal(interfaceCuesAt(CUES.lightIntroduced, { reduced: false }).lightIntroduced, true);
+  assert.equal(interfaceCuesAt(CUES.arrivalHighlight, { reduced: false }).arrivalHighlight, true);
+  assert.equal(interfaceCuesAt(13, { reduced: false }).arrivalHighlight, false);
+  assert.equal(interfaceCuesAt(CUES.studiesHighlight, { reduced: false }).studiesHighlight, true);
+  assert.equal(interfaceCuesAt(13, { reduced: false }).studiesHighlight, false);
 });
 
-test('beyond 80 seconds the view holds: no loop, no countdown, no further change', () => {
+test('beyond 13 seconds the view holds: no loop, no countdown, no further change', () => {
   const at = (t) => {
     const { revealed, ...rest } = targetsAt(t, facts());
     return { ...rest, revealed: [...revealed].sort() };
   };
-  assert.equal(at(80).settled, true);
-  assert.deepEqual(at(81), at(600));
-  assert.equal(at(600).phase, 'exploded');
+  assert.equal(at(13).settled, true);
+  assert.deepEqual(at(13), at(600));
+  assert.equal(at(600).phase, 'ready');
 });
