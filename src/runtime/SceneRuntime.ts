@@ -643,18 +643,23 @@ export class SceneRuntime {
     else { this.paused = false; this.referenceCamera = ''; this.applyTourCamera(0, true); }
   }
   /** Commit the real spawn beneath the intro's own exit transition. */
-  prepareIntroArrival() {
+  prepareIntroArrival(destination: 'lounge' | 'motion-floor' = 'lounge', light: 'warm' | 'soft' = 'warm') {
     if (!this.controls || this.mode === 'loading' || this.mode === 'error' || this.disposed) return false;
     this.setCinematicPlaying(false);
     this.sceneTransition = undefined; this.referenceCamera = '';
     this.controls.exitExplore();
-    this.positionAtEntrance();
+    // The studio arrival reuses the established walkable studio inspection spawn.
+    // Both destinations are resident before the runtime grants intro readiness.
+    const spawn = destination === 'motion-floor'
+      ? { position: [16.4, .03, -30.7] as [number, number, number], yaw: -Math.PI / 2 }
+      : this.manifest.spawn;
+    this.renderer.toneMappingExposure = Math.pow(2, (this.manifest.exposure ?? 0.1) + (light === 'soft' ? -0.25 : 0));
+    this.positionAtEntrance(spawn);
     this.paused = true; this.temporal?.reset();
     this.setStudioCovered(false);
     return true;
   }
-  private positionAtEntrance() {
-    const spawn = this.manifest.spawn;
+  private positionAtEntrance(spawn = this.manifest.spawn) {
     const forward = new Vector3(-Math.sin(spawn.yaw), 0, -Math.cos(spawn.yaw));
     this.camera.position.fromArray(spawn.position).addScaledVector(forward, -2.45).add(new Vector3(0, 1.85, 0));
     this.camera.lookAt(new Vector3(...spawn.position).add(new Vector3(0, 1.35, 0)));

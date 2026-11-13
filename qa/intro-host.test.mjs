@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createWorldIntroHost } from '../src/intro/worldIntroHost.mjs';
-const prefs = { destinationId: 'lounge', lightMode: 'warm', sound: false, reducedMotion: false };
+const prefs = { destinationId: 'lounge', lightMode: 'warm', soundEnabled: false, reducedMotion: false };
 function fixture() {
   const patches = []; let entries = 0; let retries = 0;
   const host = createWorldIntroHost({ preferences() {}, retry() { retries++; }, light() {}, enter() { entries++; } });
@@ -36,10 +36,30 @@ test('aborted and wrong-room entry scopes never commit', () => {
 test('unsupported rooms and lighting are declined; Lite is available from first patch', () => {
   const f = fixture();
   assert.equal(f.patches[0].lightVersionAvailable, true);
-  assert.equal(f.host.setPreferences({ ...prefs, destinationId: 'motion-floor' }, f.scope), false);
-  assert.equal(f.host.setPreferences({ ...prefs, lightMode: 'soft' }, f.scope), false);
+  assert.equal(f.host.setPreferences({ ...prefs, destinationId: 'unknown' }, f.scope), false);
+  assert.equal(f.host.setPreferences({ ...prefs, lightMode: 'unknown' }, f.scope), false);
 });
 test('disposed runtime and subscription cannot publish', () => {
   const f = fixture(), task = f.host.beginLoad(); task.cancel();
   const count = f.patches.length; task.ready(); assert.equal(f.patches.length, count);
+});
+
+test('kit bridge accepts current destination readiness and forwards arrival preferences', async () => {
+  const { connectLivingMaquette } = await import('../src/intro/living-maquette/src/host/connect.mjs');
+  let committed;
+  const host = createWorldIntroHost({ preferences() {}, retry() {}, light() {}, enter(preferences) { committed = preferences; } });
+  const task = host.beginLoad();
+  const bridge = connectLivingMaquette(host, prefs, { destinations: ['lounge', 'motion-floor'] });
+  bridge.controller.setDestination('motion-floor');
+  bridge.controller.setDestination('lounge');
+  assert.equal(bridge.controller.getSnapshot().canEnter, false);
+  task.ready();
+  assert.equal(bridge.controller.getSnapshot().canEnter, true);
+  bridge.controller.setDestination('motion-floor');
+  bridge.controller.setLightMode('soft');
+  assert.equal(bridge.controller.getSnapshot().canEnter, true);
+  assert.ok(await bridge.requestEntry());
+  assert.equal(committed.destinationId, 'motion-floor');
+  assert.equal(committed.lightMode, 'soft');
+  bridge.dispose();
 });

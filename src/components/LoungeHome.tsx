@@ -63,10 +63,10 @@ export default function LoungeHome() {
     },
     retry: () => { setGeneration(value => value + 1); },
     light: () => { location.assign('/studio?entry=direct'); },
-    enter: (preferences: { reducedMotion: boolean }, scope: { signal: AbortSignal }) => {
+    enter: (preferences: { reducedMotion: boolean; destinationId: 'lounge' | 'motion-floor'; lightMode: 'warm' | 'soft' }, scope: { signal: AbortSignal }) => {
       if (!runtime.current || scope.signal.aborted) return false;
       runtime.current.setReducedMotion(preferences.reducedMotion);
-      return runtime.current.prepareIntroArrival();
+      return runtime.current.prepareIntroArrival(preferences.destinationId, preferences.lightMode);
     },
   }));
   const [screenActive, setScreenActive] = useState(false);

@@ -24,7 +24,7 @@ export default function LivingMaquetteLoader({ host, initialReducedMotion, onExi
       intro = mountLivingMaquette(element.current, {
         host,
         assetBase: '/living-maquette/assets/',
-        destinations: ['lounge'],
+        destinations: ['lounge', 'motion-floor'],
         expectedWaitMs: 131000,
         entryHint: matchMedia('(pointer: coarse)').matches ? 'touch' : 'keyboard',
         sound: false,
@@ -34,6 +34,16 @@ export default function LivingMaquetteLoader({ host, initialReducedMotion, onExi
           if (new URLSearchParams(location.search).has('profile')) console.info('[living-maquette]', name, detail);
         },
       });
+      // Keep the reference's Sound off control without implying unapproved audio.
+      // Clone the kit's own styling outside its controlled (hidden) sound node.
+      const sound = element.current.querySelector<HTMLButtonElement>('[data-lm="sound"]');
+      if (sound) {
+        const silent = sound.cloneNode(true) as HTMLButtonElement;
+        silent.removeAttribute('data-lm'); silent.hidden = false; silent.disabled = true;
+        silent.title = 'Sound is off. Audio is not available in this experience.';
+        silent.querySelector('.lm-toggle-label')!.textContent = 'Sound off';
+        sound.after(silent);
+      }
     }).catch(() => { if (active) setFailed(true); });
     return () => { active = false; intro?.dispose(); };
   }, [host, initialReducedMotion]);

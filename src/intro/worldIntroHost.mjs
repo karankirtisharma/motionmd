@@ -6,18 +6,25 @@ export function createWorldIntroHost(actions) {
   let entered = false;
   let state = { phase: 'boot', readyForEntry: false, lightVersionAvailable: true };
   const same = (a, b) => a && b && ['attemptId', 'destinationId', 'destinationRequestId'].every(key => a[key] === b[key]);
-  const publish = () => subscription?.onSnapshot({ ...state, ...subscription.scope });
+  // All rooms share this runtime's complete asset preparation. Route readiness is
+  // acknowledged separately for the current validated selection, never an old task.
+  const publish = () => {
+    if (!subscription) return;
+    const selected = scope?.attemptId === subscription.scope.attemptId ? scope : subscription.scope;
+    subscription.onSnapshot({ ...state, ...selected });
+  };
   const reset = () => {
     revision += 1;
     entered = false;
     state = { phase: 'boot', readyForEntry: false, lightVersionAvailable: true };
   };
   return {
-    capabilities: { sound: false, lightModes: ['warm'] },
+    capabilities: { sound: false, lightModes: ['warm', 'soft'] },
     setPreferences(preferences, nextScope) {
-      if (preferences.destinationId !== 'lounge' || preferences.lightMode !== 'warm' || preferences.soundEnabled) return false;
+      if (!['lounge', 'motion-floor'].includes(preferences.destinationId) || !['warm', 'soft'].includes(preferences.lightMode) || preferences.soundEnabled) return false;
       scope = { ...nextScope };
       actions.preferences(preferences);
+      publish();
       return true;
     },
     attachToCurrentLoad(request) {
@@ -34,7 +41,7 @@ export function createWorldIntroHost(actions) {
     },
     openLightVersion() { actions.light(); return true; },
     enterDestination(destinationId, preferences, entryScope) {
-      if (entered || !state.readyForEntry || destinationId !== 'lounge' || !same(scope, entryScope)) return false;
+      if (entered || !state.readyForEntry || destinationId !== scope?.destinationId || !['lounge', 'motion-floor'].includes(destinationId) || !same(scope, entryScope)) return false;
       // There is no async gap between this check and the actual scene commit.
       if (entryScope.signal.aborted) return false;
       if (actions.enter(preferences, entryScope) === false) return false;
