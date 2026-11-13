@@ -1,0 +1,26 @@
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #3b2415;
+  background: radial-gradient(ellipse at 22% 12%, #fff8ee 0%, transparent 60%), radial-gradient(ellipse at 85% 85%, #edd2b9 0%, transparent 60%), #f5eadd;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.brand {
+  font-size: clamp(26px, 3vw, 44px);
+  font-weight: 400;
+  letter-spacing: -.045em;
+  line-height: 1.2;
+  animation: breathe 2.4s cubic-bezier(.45, 0, .55, 1) infinite;
+}
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand { animation: none; }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ComponentType } from 'react';
 import LoungeEntry from '@/studio/components/LoungeEntry';
+import IntroPreparation from '@/intro/IntroPreparation';
 import MaquetteIntro, { MaquettePreferences } from '@/components/maquette/MaquetteIntro';
 
 export default function Home() { return <MaquettePreferences><LoungeEntry><LoungeLaunch /></LoungeEntry></MaquettePreferences>; }
@@ -21,6 +22,6 @@ function LoungeLaunch() {
   }, [attempt]);
 
   if (Experience) return <Experience />;
-  if (!failed) return <div role="status" style={{ position: 'fixed', inset: 0, background: '#f6efe5', color: '#352416', padding: 32 }}>Preparing your visit</div>;
+  if (!failed) return <IntroPreparation />;
   return <MaquetteIntro state="error" error="We couldn’t open the lounge. Check your connection and try again." onRetry={() => { setFailed(false); setAttempt(value => value + 1); }} />;
 }

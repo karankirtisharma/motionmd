@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type ReactNode } from 'react';
+import IntroPreparation from '@/intro/IntroPreparation';
 import { isAndroidPhone } from '../lib/entryDevice';
 
 /** Resolve the phone redirect before mounting the lounge's loader/runtime. */
@@ -12,8 +13,5 @@ export default function LoungeEntry({ children }: { children: ReactNode }) {
     setReady(true);
   }, []);
   if (ready) return children;
-  return <div role="status" style={{ position: 'fixed', inset: 0, background: '#f6efe5', color: '#352416', padding: 32 }}>
-    Preparing your visit
-    <noscript><p><a href="/studio?entry=direct">Open Lite Version</a></p></noscript>
-  </div>;
+  return <IntroPreparation />;
 }
