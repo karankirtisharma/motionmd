@@ -75,3 +75,18 @@ Native screen-coordinate clicks opened Clients and search; typing Aurelia return
 results, and Escape closed search without standing up. Semantic automation inside
 perspective-transformed iframes did not correctly target pointer coordinates, so
 visible screen-coordinate clicks were used to verify actual native hit alignment.
+
+## 2026-11-14 — recover a failed CRM boot
+
+Reproduced a blank Founder display by aborting its entry JavaScript request. The
+iframe completed loading but never sent md:ready, so the previous code remained
+black indefinitely. The host now retries an unready document up to three times,
+cancels recovery when ready/disposed, and warms the same single iframe when the
+camera approaches upstairs. Working documents are never remounted on camera moves.
+The supplied CRM build, panel geometry, aperture and projection remain unchanged.
+
+Validation: seven focused readiness/lifecycle/panel tests passed; Next production
+build and TypeScript passed. In the production browser, aborting the first module
+request recovered on attempt 2 with the actual Command Centre visible in the room.
+This establishes recovery for a transient boot failure; it does not prove which
+network or browser condition produced the user's original screenshot.

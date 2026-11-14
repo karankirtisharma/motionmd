@@ -4,6 +4,7 @@ import { createScreenAperture } from './screenTexture.ts';
 import { projectScreenPlane } from './projection.ts';
 import { createNativeScreenInput } from './nativeScreenInput.ts';
 import { createCrmLifecycle } from './crmLifecycle.ts';
+import { createFrameReadiness } from './frameReadiness.ts';
 import { installCrmEmbedStyles } from './crmEmbedStyles.ts';
 
 export function crmCanvasSize(width: number, height: number) {
@@ -70,17 +71,29 @@ export function createFounderCRM(options: {
     input.setEnabled(show && seated); aperture.setLive(show);
 
   }
+  const readiness = createFrameReadiness({
+    load: attempt => {
+      if (!frame || disposed) return;
+      host.dataset.crmAttempt = String(attempt);
+      host.dataset.crmLoaded = 'false';
+      frame.src = `/crm/index.html?w=${size.width}&h=${size.height}&quality=low&tour=0&attempt=${attempt}#/command`;
+    },
+    exhausted: () => { host.dataset.crmLoadFailed = 'true'; },
+  });
   function ensureFrame() {
     if (frame) return;
     frame = doc.createElement('iframe'); frame.title = "MotionDesign.ad Founder's Room CRM";
     Object.assign(frame.style,{width:size.width+'px',height:size.height+'px',border:'0',display:'block',background:'#000'});
-    frame.src = `/crm/index.html?w=${size.width}&h=${size.height}&quality=low&tour=0#/command`;
-    frame.addEventListener('load', () => { host.dataset.crmLoaded = 'true'; });
+    frame.addEventListener('load', () => { host.dataset.crmLoaded = 'true'; readiness.loaded(); });
+    // Navigate before insertion: avoid an about:blank load starting the boot deadline.
+    readiness.start();
     host.append(frame);
   }
   function receive(event: MessageEvent) {
     if (!frame || event.source !== frame.contentWindow || event.origin !== win.location.origin) return;
     if (event.data?.type !== 'md:ready' || ready) return;
+    readiness.ready();
+    host.dataset.crmLoadFailed = 'false';
     ready = true; dirty = true; input.refreshFrame();
     // Pause invisible CSS animation without changing the supplied static build,
     // user preferences, route, form state, or the persistent iframe instance.
@@ -121,7 +134,9 @@ export function createFounderCRM(options: {
       options.camera.getWorldPosition(cameraPosition);
       const projection = projectScreenPlane(corners,options.camera,w,h,size.width,size.height);
       visible = !!projection?.visible && normal.dot(cameraPosition.clone().sub(center))>.005 && cameraPosition.distanceToSquared(center)<25**2 && options.isInView(samples);
-      if (visible && enabled) ensureFrame();
+      // Warm only this nearby upstairs display, even when the visitor is facing
+      // the doorway. Keep its DOM and attract tour hidden until actually visible.
+      if (enabled && (visible || cameraPosition.y > 3 && cameraPosition.distanceToSquared(center) < 12 ** 2)) ensureFrame();
       if (projection && visible) {
         const nextTransform = `matrix3d(${projection.matrix.join(',')})`, nextClip = projection.clipPolygon ?? 'none';
         if (transform !== nextTransform) { transform = nextTransform; host.style.transform = transform; input.updateCamera(projection.matrix); }
@@ -130,7 +145,7 @@ export function createFounderCRM(options: {
       sync();return changed || aperture.takeDirty();
     },
     dispose() {
-      if(disposed)return;disposed=true;lifecycle.dispose();input.dispose();win.removeEventListener('message',receive);doc.removeEventListener('visibilitychange',visibility);
+      if(disposed)return;disposed=true;readiness.dispose();lifecycle.dispose();input.dispose();win.removeEventListener('message',receive);doc.removeEventListener('visibilitychange',visibility);
       host.remove();aperture.dispose();panel.dispose();if(viewport)viewport.style.zIndex=previousZ;
     },
   };
