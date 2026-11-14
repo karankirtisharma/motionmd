@@ -1,3 +1,4 @@
+import { prepareRenderAsync } from './prepareRenderAsync.ts';
 import type { Material, Object3D, Scene } from 'three';
 import type { WebGPURenderer } from 'three/webgpu';
 
@@ -8,6 +9,8 @@ export async function prepareRenderSlices(
   renderer: Pick<WebGPURenderer, 'getRenderObjectFunction' | 'setRenderObjectFunction' | 'renderObject'>,
   scene: Scene, draw: (submit: NonNullable<ReturnType<WebGPURenderer['getRenderObjectFunction']>>) => Promise<void>, signal?: AbortSignal) {
   signal?.throwIfAborted();
+  const forward: NonNullable<ReturnType<WebGPURenderer['getRenderObjectFunction']>> = (...args) => renderer.renderObject(...args);
+  if (await prepareRenderAsync(renderer as WebGPURenderer, () => draw(forward), signal)) return;
   const objects = new Set<Object3D>();
   scene.traverseVisible(object => { if ('isMesh' in object || 'isLine' in object || 'isPoints' in object) objects.add(object); });
   type PreparedObjects = Map<Object3D, Map<Material, Set<string | null>>>;

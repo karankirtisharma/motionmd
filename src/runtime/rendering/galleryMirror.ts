@@ -47,8 +47,8 @@ export const mirrorCamera = createMirrorCameraUpdater();
 
 type ReflectedVisitor = { root: Object3D; sun: DirectionalLight };
 
-function drawPreparedReflection(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera,
-  targets: readonly Mesh[], { root, sun }: ReflectedVisitor) {
+async function drawPreparedReflection(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera,
+  targets: readonly Mesh[], { root, sun }: ReflectedVisitor, signal?: AbortSignal) {
   const draws = new Set<Object3D>(targets);
   root.traverse(object => { if ('isSkinnedMesh' in object) draws.add(object); });
   const oldVisible = root.visible, oldFilter = renderer.getRenderObjectFunction(), oldClear = renderer.autoClear;
@@ -62,7 +62,10 @@ function drawPreparedReflection(renderer: WebGPURenderer, scene: Scene, camera: 
       if (!draws.has(args[0])) return;
       if (oldFilter) oldFilter.call(renderer, ...args); else renderer.renderObject(...args);
     });
-    renderer.render(scene, camera);
+    await prepareRenderSlices(renderer, scene, async () => {
+      sun.shadow.needsUpdate = true;
+      renderer.render(scene, camera);
+    }, signal);
   } finally {
     root.visible = oldVisible;
     renderer.setRenderObjectFunction(oldFilter);
@@ -170,7 +173,7 @@ export function createGalleryMirror(root: Object3D) {
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target);
         return await warmOpeningTourShaders(renderer, scene, camera, signal, onProgress,
-          visitor ? targets => drawPreparedReflection(renderer, scene, camera, targets, visitor) : undefined);
+          visitor ? targets => drawPreparedReflection(renderer, scene, camera, targets, visitor, signal) : undefined);
       } finally {
         renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT);
         panes.forEach((surface, i) => { surface.visible = visibility[i]; });

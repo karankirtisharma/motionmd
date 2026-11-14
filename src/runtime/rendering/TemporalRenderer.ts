@@ -50,6 +50,7 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
             try {
               scenePass.updateBeforeType = 'render'; temporal.updateBeforeType = 'render';
               await prepareRenderSlices(renderer, scene, async submit => {
+                shadow.needsUpdate = true;
                 // TRAA resets the render callback before its nested beauty pass.
                 // Bind the slice at that pass boundary, after the reset, so the
                 // real HDR/velocity programs cannot compile as one giant task.

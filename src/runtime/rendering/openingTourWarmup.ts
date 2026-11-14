@@ -126,7 +126,7 @@ export function openingTourShaderMeshes(scene: Scene): Mesh[] {
  * The actual meshes keep their real parents and precomputed world matrices. */
 export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'compileAsync'>, scene: Scene,
   camera: PerspectiveCamera, signal?: AbortSignal, onProgress?: (loaded: number, total: number) => void,
-  drawPrepared?: (targets: readonly Mesh[]) => void) {
+  drawPrepared?: (targets: readonly Mesh[]) => void | Promise<void>) {
   signal?.throwIfAborted();
   const targets = openingTourShaderMeshes(scene);
   onProgress?.(0, targets.length);
@@ -137,15 +137,19 @@ export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'com
   const culling = targets.map(mesh => mesh.frustumCulled);
   try {
     for (const mesh of targets) mesh.frustumCulled = false;
-    // compileAsync still builds its JS node graphs synchronously. Bound each
-    // submission and return to the browser between batches, with the same scene,
+    if (drawPrepared) {
+      await drawPrepared(targets);
+      signal?.throwIfAborted();
+      onProgress?.(targets.length, targets.length);
+      return targets.length;
+    }
+    // Bound the fallback selection and yield between batches, with the same scene,
     // light cache, target and camera as before.
     for (let start = 0; start < targets.length; start += 2) {
       signal?.throwIfAborted();
       selection.children = targets.slice(start, start + 2);
       await renderer.compileAsync(selection, camera, scene);
       signal?.throwIfAborted();
-      drawPrepared?.(selection.children as Mesh[]);
       onProgress?.(Math.min(start + 2, targets.length), targets.length);
       await new Promise<void>(resolve => setTimeout(resolve, 0));
     }

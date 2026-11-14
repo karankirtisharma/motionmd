@@ -152,3 +152,32 @@ test('diagnostic opt-out keeps full traversal with identical static/dynamic shad
   assert.ok(projected.includes('stone')); assert.ok(projected.includes('cutout'));
   assert.equal(f.node.stats.pruneStaticTraversal, false); assert.equal(f.node.stats.prunedStaticBranches, 0);
 });
+
+
+test('partial asynchronous discovery never validates a static shadow snapshot', async () => {
+  const { prepareRenderAsync } = await import('../src/runtime/rendering/prepareRenderAsync.ts');
+  const f = fixture(), r = f.renderer, raster = r.renderObject;
+  const records = new Map(), data = new WeakMap(), ready = new WeakSet();
+  r.setMRT = () => {};
+  r._currentRenderContext = {}; r._currentSourceMaterial = null; r._isPreCompiling = false;
+  r._objects = { get(object, material, scene, camera) {
+    const key = object.uuid + ':' + r.getRenderTarget().uuid;
+    if (!records.has(key)) records.set(key, { object, material, scene, camera });
+    return records.get(key);
+  } };
+  r._nodes = {
+    get: record => data.get(record) || {},
+    async getForRenderAsync(record) { data.set(record, {nodeBuilderState: {}}); },
+    updateBefore() { assert.fail('shadow/viewport updates cannot run outside a draw'); },
+    updateForRender() {}, updateAfter() { assert.fail('render-after requires a real draw'); },
+  };
+  r._geometries = { updateForRender() {} }; r._bindings = { updateForRender() {} };
+  r._pipelines = { isReady: record => ready.has(record), getForRender(record) { ready.add(record); } };
+  r._renderObjectDirect = (object, material, scene, camera) => raster(object, scene, camera, object.geometry, material);
+  r.renderObject = (object, scene, camera, geometry, material) => r._renderObjectDirect(object, material, scene, camera, null, null, null);
+  await prepareRenderAsync(r, async () => { f.cached(); });
+  assert.equal(f.node.stats.staticPasses, 2, 'one discovery and one COMPLETE static capture');
+  const passes = f.node.stats.staticPasses;
+  assert.deepEqual(f.cached(), f.baseline());
+  assert.equal(f.node.stats.staticPasses, passes, 'only the complete snapshot may be reused');
+});

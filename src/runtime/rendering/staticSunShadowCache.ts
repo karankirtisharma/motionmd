@@ -1,3 +1,4 @@
+import { skippedPreparationDraws } from './prepareRenderAsync.ts';
 import { DepthFormat, Matrix4, PCFShadowMap, type DirectionalLight, type Object3D, type RenderTarget } from 'three';
 import { ShadowNode, type NodeFrame, type Renderer } from 'three/webgpu';
 import { createStaticShadowPruner } from './staticShadowPruner.ts';
@@ -146,9 +147,10 @@ export class StaticSunShadowCache extends ShadowNodeWithRender {
         renderer.autoClear = true;
         renderer.setRenderObjectFunction(this.renderStatic);
         scene.name = `Static Shadow Map [ ${this.sun.name || this.sun.id} ]`;
+        const skipped = skippedPreparationDraws(renderer);
         renderer.render(scene, shadow.camera);
         this.staticPasses++;
-        this.cachedRevision = this.revision;
+        this.cachedRevision = skippedPreparationDraws(renderer) === skipped ? this.revision : -1;
         this.sceneIdentity = scene;
         this.view.copy(shadow.camera.matrixWorldInverse);
         this.projection.copy(shadow.camera.projectionMatrix);

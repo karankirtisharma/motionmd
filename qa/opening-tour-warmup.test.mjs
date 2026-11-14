@@ -213,10 +213,10 @@ test('measured reflection and visitor draws use the real mirror target and resto
       getMRT:()=>mrt, setMRT:value=>{mrt=value;},
       getRenderObjectFunction:()=>filter, setRenderObjectFunction:value=>{filter=value;},
       getDrawingBufferSize:v=>v.set(1280,720),
-      async compileAsync(selection, view) { reflectedView = view; assert.equal(visitor.visible, false); },
+      async compileAsync() { assert.fail('drawing hosts prepare actual contexts without duplicate compilation'); },
       render(root, view) {
         frames++;
-        assert.equal(root, scene); assert.equal(view, reflectedView); assert.notEqual(view, camera);
+        assert.equal(root, scene); reflectedView ??= view; assert.equal(view, reflectedView); assert.notEqual(view, camera);
         assert.equal(visitor.visible, true); assert.equal(pane.visible, false); assert.equal(shadow.needsUpdate, true);
         assert.equal(this.autoClear, true); assert.equal(target.texture.name, 'Gallery mirror reflection'); assert.equal(mrt, null);
         assert.equal(wall.frustumCulled, false);

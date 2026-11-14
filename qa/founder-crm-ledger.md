@@ -228,3 +228,58 @@ seating; seating activated one live Studio iframe. Both screens were visually
 checked in the real scene; no page errors. The screen test's first lounge-chair
 diagnostic waypoint was upstairs, so it was corrected to presentation-tv before
 seating; no application change was needed for that test correction.
+
+## 2026-11-14 - cooperative Details preparation (follow-up to 358aa9b)
+
+The four-object batches removed the multi-second freeze but still synchronously
+built whole TSL graphs, producing repeated 200-600ms tasks. The new r186 bridge
+captures the actual direct submissions (including nested temporal, coverage,
+reflection, transmission sides and shadow contexts). It runs the installed
+NodeManager.getForRenderAsync/buildAsync stages serially, yielding to the browser,
+and overlaps at most four driver pipeline compilations. Every pipeline joins
+before a complete replay, and Enter still waits for the final real GPU fence.
+There is no change to the intro assembly, scene assets, material look, DPR or
+post-entry render path. No renderer source or dependency patch was made.
+
+Important integration details: Lighting.finishRender restores a shared light
+node's previous array, so each queued build retains and restores the actual pass
+light list as well as target, MRT, context, effective material side and override
+fields. Absent node-material fields must remain absent (undefined overrides can
+change MeshBasicMaterial conversion). Viewport copies, TRAA and shadow updates
+run only inside an active real draw, never during asynchronous compilation.
+Incomplete discovery draws cannot validate a static shadow snapshot. A complete
+static redraw follows before reuse. Temporary dispatch/material/light state
+restores on cancellation, driver/build failure and success. The bridge checks
+r186 and required methods; unsupported versions retain the prior bounded public
+fallback. Revalidate this bridge before upgrading Three.
+
+Production build/TypeScript and 55 focused tests passed. Tests cover actual
+context/sides, serial graph building, bounded driver concurrency, GPU rejection,
+transient light lists, absent material fields, partial shadow snapshots, Retry,
+real readiness and native input. The publication checkout has no node_modules;
+its changed source/test files are copied from the tested dependency-installed
+working copy, and Vercel installs the locked dependencies for its build.
+
+Chrome 157 / hardware WebGPU / NVIDIA Lovelace / 1440x900 DPR1, no CPU sampling:
+previous release's recorded Details section had 189 long tasks, maximum 627ms,
+16,483ms above the 50ms threshold; final candidate had 16, maximum 88ms, and 94ms
+above that threshold. Details preparation elapsed 81.1s versus 73.8s. The final
+run deliberately failed the initial manifest, recovered through Retry, and
+reached real readiness with zero app iframes before Enter. Recorded total
+readiness was 144.2s, including 65.1s of geometry/material loading. Another
+18-worker Remotion render was running during candidate verification; transfer,
+cache and contention differ, so these are observed traces, not a controlled
+cross-device startup/FPS percentage claim. Earlier lighting/probe work still
+has a separate 764ms maximum task outside this shader-preparation section.
+
+During final Details, actual rotate/studies click handling ranged 1.4-23.6ms.
+The sampled rAF p95 was 6.3ms, max 133.4ms; this is browser callback cadence,
+not a claim of equivalent 3D FPS. Founder snapshot, Clients and native search
+(Aurelia), standing back to snapshot, and presentation snapshot-to-live were
+checked. A test helper briefly used a stale viewport after a second CDP client
+disconnected; retesting at a stable 1440x900 mapped search to the visible field
+and passed. The complete shadow-enabled candidate's fixed-pose GPU comparison
+had zero differing components between stock and cached shadow rendering.
+
+Release scope remains motionmd/codex/living-maquette and motionmd-6ipx only.
+motiondesign.ad, its repository, DNS, CRM dist and source model assets are untouched.
