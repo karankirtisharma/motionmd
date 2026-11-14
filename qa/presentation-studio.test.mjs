@@ -64,7 +64,7 @@ function fixture(t) {
 test('one visible native frame registers the same planar corners as world ray coordinates',t=>{
   const f=fixture(t);f.surface.update(false,null);assert.ok(f.frame());
   f.surface.setInteractive(true);f.surface.update(true,matrix);const frame=f.frame();
-  assert.equal(frame.src,'/studio?embed=lounge&display=tv&f=1&i=3');
+  assert.equal(frame.src,'/studio?embed=lounge&display=tv&f=1&i=3&attempt=1');
   assert.equal(f.host.style.visibility,'hidden');assert.deepEqual(f.aperture,[]);
   f.message('md-studio:ready','https://other.test');assert.equal(f.host.style.visibility,'hidden');
   f.ready();assert.equal(f.host.style.visibility,'visible');assert.equal(f.viewport.style.zIndex,'1');
@@ -147,4 +147,17 @@ test('only the actual same-origin Studio may request expansion; teardown restore
   assert.equal(f.opens(),0);f.message('md-studio:expand');assert.equal(f.opens(),1);
   f.move(300,220);f.surface.dispose();assert.equal(f.canvas.style.pointerEvents,'');assert.equal(f.viewport.style.zIndex,'');
   assert.deepEqual(f.aperture,[true,false]);assert.ok(!f.doc.body.childNodes.includes(f.host));
+});
+
+
+test('failed Studio hydration retries once and a ready page is never reloaded',t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const f=fixture(t),frame=f.frame();
+  send(frame,'load');
+  t.mock.timers.tick(7999);assert.equal(frame.assignments,1);
+  t.mock.timers.tick(1);assert.equal(frame.assignments,2);
+  assert.equal(f.host.dataset.studioAttempt,'2');
+  f.message('md-studio:ready');
+  t.mock.timers.tick(90000);assert.equal(frame.assignments,2);
+  assert.equal(f.host.dataset.studioState,'live');
 });

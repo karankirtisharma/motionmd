@@ -42,8 +42,22 @@ export function LoungeBridge({ embedded }: { embedded: boolean }) {
       }
     }
     window.addEventListener("message", onMessage);
-    window.parent.postMessage({ type: "md-studio:ready" }, window.location.origin);
+    // Decode only the opening view before revealing the physical display.
+    // Do not preload the catalogue or wait indefinitely for a failed image.
+    let cancelled = false;
+    let paintDeadline: ReturnType<typeof setTimeout>;
+    const images = Array.from(root?.querySelectorAll<HTMLImageElement>(
+      '.stage__plate, .card-row .card__media:not(.card__media--hero)'
+    ) ?? []);
+    const decoded = Promise.allSettled(images.map(image => image.decode()));
+    const deadline = new Promise<void>(resolve => { paintDeadline = setTimeout(resolve, 4000); });
+    void Promise.race([decoded, deadline]).then(() => {
+      clearTimeout(paintDeadline);
+      if (!cancelled) window.parent.postMessage({ type: "md-studio:ready" }, window.location.origin);
+    });
     return () => {
+      cancelled = true;
+      clearTimeout(paintDeadline);
       window.removeEventListener("message", onMessage);
       root?.removeAttribute("data-suspended"); root?.removeAttribute("data-tv");
     };

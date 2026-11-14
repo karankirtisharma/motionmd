@@ -3,6 +3,7 @@
 export function createFrameReadiness(options: {
   load: (attempt: number) => void;
   exhausted: () => void;
+  loadedGraceMs?: number;
   schedule?: (callback: () => void, ms: number) => ReturnType<typeof setTimeout>;
   cancel?: (timer: ReturnType<typeof setTimeout>) => void;
 }) {
@@ -28,7 +29,8 @@ export function createFrameReadiness(options: {
     start() { if (!disposed && !attempt) load(); },
     // Module requests settle before iframe load. Allow React effects to send
     // md:ready, then recover if a failed module left only an empty root behind.
-    loaded() { if (!disposed && !complete && attempt) arm(2000); },
+    loaded() { if (!disposed && !complete && attempt) arm(options.loadedGraceMs ?? 2000); },
+    retry() { if (!disposed && !complete) { clear(); attempt = 0; load(); } },
     ready() { if (disposed) return; complete = true; clear(); },
     dispose() { disposed = true; clear(); },
   };

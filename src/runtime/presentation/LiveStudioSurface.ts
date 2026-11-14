@@ -1,3 +1,4 @@
+import { createFrameReadiness } from './frameReadiness.ts';
 import { createNativeScreenInput } from './nativeScreenInput.ts';
 type Options = {
   canvas: HTMLCanvasElement;
@@ -32,7 +33,7 @@ export function createLiveStudioSurface(options: Options) {
   let frame: HTMLIFrameElement | undefined, matrix: number[] | undefined;
   let transform = '', clip = '', visible = false, ready = false, interactive = false, expanded = false, disposed = false;
   let aperture = false, suspended: boolean | undefined, animation: Animation | undefined, generation = 0;
-  let loadTimer: ReturnType<typeof setTimeout> | undefined;
+
   const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, hit: options.sampleSurface, onFocus: options.onFocus });
   const post = (type: string, detail = {}) => frame?.contentWindow?.postMessage({ type, ...detail }, win.location.origin);
   function sync() {
@@ -43,12 +44,14 @@ export function createLiveStudioSurface(options: Options) {
       aperture = live;
       options.onAperture(live);
     }
-    host.style.visibility = show ? 'visible' : 'hidden';
+    const visibility = show ? 'visible' : 'hidden';
+    if (host.style.visibility !== visibility) host.style.visibility = visibility;
     const inputEnabled = live && interactive;
     input.setEnabled(inputEnabled);
-    host.style.pointerEvents = expanded || inputEnabled ? 'auto' : 'none';
-    if (frame)
-      frame.tabIndex = expanded || inputEnabled ? 0 : -1;
+    const pointerEvents = expanded || inputEnabled ? 'auto' : 'none';
+    if (host.style.pointerEvents !== pointerEvents) host.style.pointerEvents = pointerEvents;
+    const tabIndex = expanded || inputEnabled ? 0 : -1;
+    if (frame && frame.tabIndex !== tabIndex) frame.tabIndex = tabIndex;
     const pause = doc.hidden || !(expanded || animation || inRoom);
     if (ready && pause !== suspended) {
       suspended = pause;
@@ -62,27 +65,30 @@ export function createLiveStudioSurface(options: Options) {
     host.style.transform = transform || 'none';
     host.style.clipPath = clip || 'none';
   }
-  function load() {
-    if (!frame || disposed)
-      return;
-    clearTimeout(loadTimer);
-    ready = false;
-    suspended = undefined;
-    host.dataset.studioState = 'loading';
-    status.textContent = 'Opening the studio…';
-    status.style.display = 'grid';
-    frame.src = '/studio?embed=lounge&display=tv&f=1&i=3';
-    loadTimer = setTimeout(() => {
-      if (disposed || ready)
-        return;
-      status.textContent = 'The Studio is taking longer to load. ';
+  const readiness = createFrameReadiness({
+    // Next hydration and first-paint image decoding need more time than the
+    // standalone CRM. Recovery remains bounded and never reloads a ready app.
+    loadedGraceMs: 8000,
+    load: attempt => {
+      if (!frame || disposed) return;
+      ready = false;
+      suspended = undefined;
+      host.dataset.studioState = 'loading';
+      host.dataset.studioAttempt = String(attempt);
+      status.textContent = 'Opening the studio...';
+      status.style.display = 'grid';
+      frame.src = `/studio?embed=lounge&display=tv&f=1&i=3&attempt=${attempt}`;
+      sync();
+    },
+    exhausted: () => {
+      host.dataset.studioState = 'failed';
+      status.textContent = 'The Studio could not load. ';
       const retry = doc.createElement('button');
       retry.textContent = 'Retry';
-      retry.onclick = load;
+      retry.onclick = () => readiness.retry();
       status.append(retry);
-    }, 20000);
-    sync();
-  }
+    },
+  });
   function ensureFrame() {
     if (frame)
       return;
@@ -91,15 +97,16 @@ export function createLiveStudioSurface(options: Options) {
     frame.title = 'Interactive Motion Design Studio';
     frame.allowFullscreen = true;
     Object.assign(frame.style, { width: '100%', height: '100%', display: 'block', border: '0', background: '#241b13' });
-    frame.addEventListener('load', () => { input.refreshFrame(); post('md-studio:display', { expanded }); });
+    frame.addEventListener('load', () => { readiness.loaded(); input.refreshFrame(); post('md-studio:display', { expanded }); });
+    // Set src before insertion so about:blank cannot start a false boot deadline.
+    readiness.start();
     host.prepend(frame);
-    load();
   }
   function receive(event: MessageEvent) {
     if (event.origin !== win.location.origin || event.source !== frame?.contentWindow || !frame)
       return;
     if (event.data?.type === 'md-studio:ready') {
-      clearTimeout(loadTimer);
+      readiness.ready();
       ready = true;
       suspended = undefined;
       host.dataset.studioState = 'live';
@@ -215,7 +222,7 @@ export function createLiveStudioSurface(options: Options) {
       disposed = true;
       generation++;
       animation?.cancel();
-      clearTimeout(loadTimer);
+      readiness.dispose();
       input.dispose();
       if (aperture) {
         aperture = false;

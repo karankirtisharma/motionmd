@@ -90,3 +90,17 @@ build and TypeScript passed. In the production browser, aborting the first modul
 request recovered on attempt 2 with the actual Command Centre visible in the room.
 This establishes recovery for a transient boot failure; it does not prove which
 network or browser condition produced the user's original screenshot.
+
+## 2026-11-14 - presentation boot recovery
+
+The presentation page now retries unsuccessful boots (maximum three loads),
+retains the existing one-iframe warmup and off-screen suspension, and waits for
+opening-view image decoding before reporting ready (bounded at four seconds).
+Unchanged visibility, pointer ownership and tab-index values are no longer
+rewritten on every sync. No screen geometry or projection changes.
+
+Validation: 16 focused native screen/readiness/lifecycle tests and the production
+build passed. In the actual production scene, aborting the initial Studio document
+request recovered automatically on attempt 2, with one iframe and all six opening
+images loaded. No matched FPS benchmark was performed for this patch; no numerical
+performance improvement is claimed.
