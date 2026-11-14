@@ -49,9 +49,19 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
             const passUpdates = scenePass.updateBeforeType, historyUpdates = temporal.updateBeforeType;
             try {
               scenePass.updateBeforeType = 'render'; temporal.updateBeforeType = 'render';
-              await prepareRenderSlices(renderer, scene, async () => {
-                pipeline.render();
-                await renderer.readRenderTargetPixelsAsync(output, 0, 0, 1, 1);
+              await prepareRenderSlices(renderer, scene, async submit => {
+                // TRAA resets the render callback before its nested beauty pass.
+                // Bind the slice at that pass boundary, after the reset, so the
+                // real HDR/velocity programs cannot compile as one giant task.
+                const updateScenePass = scenePass.updateBefore;
+                scenePass.updateBefore = function (frame) {
+                  const nested = renderer.getRenderObjectFunction();
+                  renderer.setRenderObjectFunction(submit);
+                  try { return updateScenePass.call(this, frame); }
+                  finally { renderer.setRenderObjectFunction(nested); }
+                };
+                try { pipeline.render(); }
+                finally { scenePass.updateBefore = updateScenePass; }
               }, signal);
             } finally {
               scenePass.updateBeforeType = passUpdates; temporal.updateBeforeType = historyUpdates;

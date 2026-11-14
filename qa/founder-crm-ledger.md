@@ -171,3 +171,60 @@ budget. The final full render, shadow cache, geometry and material values remain
 unchanged. Production build/TypeScript and 20 focused intro/rendering tests passed;
 the existing screen/readiness/input tests had already passed. No overall FPS or
 cross-device startup-time improvement is claimed.
+
+## 2026-11-14 - remove the remaining Details compilation stall
+
+A CPU sampling trace supersedes the earlier phase-timing inference: the large
+task was synchronous node-graph compilation in the temporal beauty pass. TRAA
+calls resetRendererState before rendering its resolve quad, which clears the
+outer preparation callback. The nested scene consequently bypassed the budget.
+Binding the callback at scenePass.updateBefore fixes that reset, but an isolated
+experiment showed the final frame still compiled a second unprepared context.
+The main scene runs at two nesting depths (TRAA resolve and output coverage).
+
+Preparation now accounts for the dispatched clipping-context and lighting-node
+identities as well as object, material and front/back pass. In pinned r186 each
+render context owns a distinct clipping context. This uses the public dispatch
+arguments rather than renderer-private call-depth fields. The temporary pass
+callback restores in finally, including abort/failure. No visibility, material,
+geometry, lighting, resolution, temporal quality or shadow-cache changes.
+
+The earlier entry's statement that no per-batch readbacks remained was incorrect:
+both reflection and temporal batch callbacks still awaited one. Those redundant
+readbacks are now actually removed. Final GPU readiness fences remain; Enter is
+still gated by completed world preparation. Added cost is transient preparation
+maps only, with no extra downloads, resident textures or post-entry callbacks.
+
+Chrome 157 / hardware WebGPU / NVIDIA Lovelace, 1440x900 DPR1, serial production
+runs with a 1ms CPU sampling profiler: baseline maximum main-thread task 11998ms;
+final context-aware candidate 843ms across startup. Candidate reflection and
+visitor/opening-frame maxima were 306ms and 329ms. Baseline and candidate both
+created 1157 node builds / 336 programs. Total readiness was 168.2s and 107.4s,
+but the baseline had cold asset transfer, so these totals do not establish a
+controlled download/startup speed improvement. CPU profiling itself adds cost.
+The first, incomplete candidate (callback binding only) retained an 11663ms
+final-frame stall; it was rejected before publication.
+
+Validation: production build and TypeScript passed; 45 focused tests passed.
+New regressions cover TRAA's callback reset, both context/lighting combinations,
+bounded submissions, and abort/failure restoration. Existing readiness/retry,
+native input/projection, snapshot ownership, front/back and shadow parity checks
+also passed. Full-scene hardware validation here is WebGPU, not a new mobile or
+WebGL performance qualification. Scope remains motionmd/codex/living-maquette
+and the motionmd-6ipx preview domain only.
+
+
+Without CPU sampling, an injected initial manifest failure recovered through
+Retry and Enter without changing preferences. Runtime readiness was 105.2s;
+longest startup task 814ms (lighting/probes), first-reflection maximum 276ms,
+visitor/opening-frame maximum 298ms. The earlier roughly 6.4s continuous opening
+stall was absent. This is still expensive startup work, not a claim that all
+loading tasks fit a 16ms frame budget or that cold downloading is faster.
+
+There were zero app iframes before Enter. Founder native pointer clicks opened
+Clients and search, typing Aurelia returned results; standing retained one hidden
+iframe and restored its snapshot. Presentation's snapshot was visible before
+seating; seating activated one live Studio iframe. Both screens were visually
+checked in the real scene; no page errors. The screen test's first lounge-chair
+diagnostic waypoint was upstairs, so it was corrected to presentation-tv before
+seating; no application change was needed for that test correction.

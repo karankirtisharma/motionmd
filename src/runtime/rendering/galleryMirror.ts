@@ -182,7 +182,7 @@ export function createGalleryMirror(root: Object3D) {
       await prepareRenderSlices(renderer, scene, async () => {
         frameCache.invalidate();
         this.update(renderer, scene, view);
-        await renderer.readRenderTargetPixelsAsync(target, 0, 0, 1, 1);
+        // Completion is fenced once after the complete opening frame.
       }, signal);
       frameCache.invalidate();
     },

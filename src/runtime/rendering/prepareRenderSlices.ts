@@ -6,16 +6,25 @@ import type { WebGPURenderer } from 'three/webgpu';
  * quads must always run: they dispatch the nested main pass on every batch. */
 export async function prepareRenderSlices(
   renderer: Pick<WebGPURenderer, 'getRenderObjectFunction' | 'setRenderObjectFunction' | 'renderObject'>,
-  scene: Scene, draw: () => Promise<void>, signal?: AbortSignal) {
+  scene: Scene, draw: (submit: NonNullable<ReturnType<WebGPURenderer['getRenderObjectFunction']>>) => Promise<void>, signal?: AbortSignal) {
   signal?.throwIfAborted();
   const objects = new Set<Object3D>();
   scene.traverseVisible(object => { if ('isMesh' in object || 'isLine' in object || 'isPoints' in object) objects.add(object); });
-  const prepared = new Map<Object3D, Map<Material, Set<string | null>>>();
+  type PreparedObjects = Map<Object3D, Map<Material, Set<string | null>>>;
+  const contexts = new Map<object | null, Map<object | null, PreparedObjects>>();
   const previous = renderer.getRenderObjectFunction();
   let budget = 0, pending = false;
   const submit: NonNullable<typeof previous> = (...args) => {
     const object = args[0], material = args[4], pass = args[8] ?? null;
     if (objects.has(object)) {
+      // r186 gives each nested render context its own clipping context. The
+      // same mesh in TRAA's resolve and outer coverage pass needs both keys.
+      // Use the dispatched context/lights identities, without renderer internals.
+      const clipping = args[7] ?? null, lights = args[6] ?? null;
+      let contextsForLights = contexts.get(clipping);
+      if (!contextsForLights) contexts.set(clipping, contextsForLights = new Map());
+      let prepared = contextsForLights.get(lights);
+      if (!prepared) contextsForLights.set(lights, prepared = new Map());
       let materials = prepared.get(object);
       if (materials?.get(material)?.has(pass)) return;
       if (budget === 0) { pending = true; return; }
@@ -33,7 +42,7 @@ export async function prepareRenderSlices(
   try {
     do {
       signal?.throwIfAborted(); budget = 4; pending = false;
-      await draw();
+      await draw(submit);
       await new Promise<void>(resolve => setTimeout(resolve, 0));
     } while (pending);
     signal?.throwIfAborted();

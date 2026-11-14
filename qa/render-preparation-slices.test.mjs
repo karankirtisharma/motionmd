@@ -48,3 +48,23 @@ test('both transmission passes are prepared before the final full render', async
  for(const m of meshes)assert.deepEqual(submitted.filter(([object])=>object===m).map(([,pass])=>pass),['backSide',null]);
  assert.equal(filter,null);
 });
+
+test('nested render contexts and lighting variants are all prepared before the final draw', async () => {
+ const scene = new Scene(), meshes = Array.from({length: 7}, () => new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
+ scene.add(...meshes);
+ const contexts = [{}, {}], lights = [{}, {}], prepared = new Map();
+ let filter = null, frames = 0, submitted = 0;
+ const renderer = {getRenderObjectFunction: () => filter, setRenderObjectFunction: value => {filter=value;},
+   renderObject: (object, scene, camera, geometry, material, group, light, context) => {
+     submitted++; const key = contexts.indexOf(context) + ':' + lights.indexOf(light);
+     if (!prepared.has(key)) prepared.set(key, new Set()); prepared.get(key).add(object);
+   }};
+ await prepareRenderSlices(renderer, scene, async submit => {
+   assert.equal(submit, filter); frames++; const before = submitted;
+   for(const context of contexts) for(const light of lights) for(const mesh of meshes)
+     submit(mesh,scene,null,mesh.geometry,mesh.material,null,light,context);
+   assert.ok(submitted-before<=4);
+ });
+ assert.equal(frames,7); assert.equal(submitted,28); assert.equal(prepared.size,4);
+ assert.ok([...prepared.values()].every(objects=>objects.size===7)); assert.equal(filter,null);
+});

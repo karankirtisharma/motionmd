@@ -240,3 +240,54 @@ test('measured reflection and visitor draws use the real mirror target and resto
     } finally { mirror.dispose(); }
   }
 });
+
+test('TRAA callback reset cannot bypass nested beauty-pass preparation; state restores on every exit', async t => {
+  const { PassNode } = await import('three/webgpu');
+  for (const outcome of ['complete', 'abort', 'failure']) {
+    const scene = new Scene(), camera = new PerspectiveCamera(), visitor = new Group();
+    const meshes = Array.from({ length: 13 }, () => new Mesh(new BoxGeometry(), new MeshBasicMaterial()));
+    scene.add(visitor, ...meshes); visitor.visible = false;
+    const abort = new AbortController(), originalTarget = {}, originalMRT = {};
+    let target = originalTarget, mrt = originalMRT, filter = null, scenePass, batch = 0, fences = 0;
+    const submitted = new Set();
+    const originalSetMRT = PassNode.prototype.setMRT;
+    const setMRT = t.mock.method(PassNode.prototype, 'setMRT', function (...args) {
+      scenePass = this; return originalSetMRT.apply(this, args);
+    });
+    const update = t.mock.method(PassNode.prototype, 'updateBefore', function () {
+      assert.equal(this, scenePass);
+      for (const mesh of meshes) (filter || renderer.renderObject)(mesh, scene, camera, mesh.geometry, mesh.material);
+      if (visitor.visible && outcome === 'failure') throw Error('nested pass failed');
+    });
+    const renderer = {
+      xr: { enabled: false }, toneMapping: 0, outputColorSpace: 'srgb',
+      getRenderTarget: () => target, setRenderTarget: value => { target = value; },
+      getMRT: () => mrt, setMRT: value => { mrt = value; },
+      getRenderObjectFunction: () => filter, setRenderObjectFunction: value => { filter = value; },
+      renderObject: object => submitted.add(object),
+      readRenderTargetPixelsAsync: async () => { fences++; assert.equal(target, originalTarget); },
+    };
+    const render = t.mock.method(RenderPipeline.prototype, 'render', function () {
+      const outer = filter, before = submitted.size;
+      filter = null; // RendererUtils.resetRendererState in the actual TRAA pass.
+      try { scenePass.updateBefore({ renderer }); }
+      finally { assert.equal(filter, null); filter = outer; }
+      if (visitor.visible) {
+        batch++;
+        assert.ok(submitted.size - before <= 4, 'nested draw must obey the slice');
+        if (outcome === 'abort') abort.abort();
+      }
+    });
+    const temporal = createTemporalRenderer(renderer, scene, camera);
+    const updateType = scenePass.updateBeforeType;
+    try {
+      const result = temporal.renderOpeningFrame(visitor, { needsUpdate: false }, abort.signal, true);
+      if (outcome === 'complete') {
+        await result; assert.equal(submitted.size, 13); assert.equal(batch, 4); assert.equal(fences, 1);
+      } else { await assert.rejects(result); assert.equal(fences, 0); }
+      assert.equal(filter, null); assert.equal(scenePass.updateBefore, update);
+      assert.equal(scenePass.updateBeforeType, updateType);
+      assert.equal(visitor.visible, false); assert.equal(target, originalTarget); assert.equal(mrt, originalMRT);
+    } finally { temporal.dispose(); render.mock.restore(); update.mock.restore(); setMRT.mock.restore(); }
+  }
+});
