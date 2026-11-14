@@ -283,3 +283,5 @@ had zero differing components between stock and cached shadow rendering.
 
 Release scope remains motionmd/codex/living-maquette and motionmd-6ipx only.
 motiondesign.ad, its repository, DNS, CRM dist and source model assets are untouched.
+
+Final compatibility review: r186 Pipelines.isReady checks a WebGPU pipeline handle; WebGL stores programGPU. The async bridge is explicitly WebGPU-only, and WebGL retains the prior bounded public preparation path. Added regression coverage; focused suite now has 56 passing tests.

@@ -48,7 +48,9 @@ const yieldToBrowser = () => {
  */
 export async function prepareRenderAsync(renderer: WebGPURenderer, draw: () => Promise<void>, signal?: AbortSignal) {
   const r = renderer as PreparationRenderer;
-  if (REVISION !== '186' || !r._objects?.get || !r._nodes?.getForRenderAsync ||
+  // r186 Pipelines.isReady reads the WebGPU pipeline handle. WebGL stores
+  // programGPU instead: retain its existing bounded public preparation path.
+  if (REVISION !== '186' || !r.backend || !('isWebGPUBackend' in r.backend) || !r.backend.isWebGPUBackend || !r._objects?.get || !r._nodes?.getForRenderAsync ||
       !r._pipelines?.isReady || !r._renderObjectDirect) return false;
   if (discovery.has(renderer)) throw new Error('Render preparation must run serially.');
   const state = { skipped: 0 }, pending = new Map<RecordForRender, () => Promise<void>>();

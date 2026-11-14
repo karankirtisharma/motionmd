@@ -8,6 +8,7 @@ function fixture() {
   const contexts = [{ id: 0 }, { id: 1 }, { id: 2 }], material = new MeshBasicMaterial(), mesh = new Mesh(undefined, material);
   let target = { name: 'original' }, mrt = { name: 'original' }, active = 0;
   const r = {
+    backend: { isWebGPUBackend: true },
     _currentRenderContext: contexts[0], _currentSourceMaterial: null, _isPreCompiling: false,
     toneMapping: 0, outputColorSpace: 'srgb',
     getRenderTarget: () => target, setRenderTarget: value => { target = value; },
@@ -128,4 +129,12 @@ test('asynchronous driver failure restores dispatch and rejects readiness', asyn
     r._renderObjectDirect(f.mesh, f.material, f.scene, f.camera, {}, null, {}, null);
   }), /driver failure/);
   assert.equal(r._renderObjectDirect, original); assert.equal(r._isPreCompiling, false);
+});
+
+test('WebGL fallback keeps its existing public preparation and never waits for a WebGPU handle', async () => {
+  const { r } = fixture(), original = r._renderObjectDirect;
+  r.backend = { isWebGLBackend: true };
+  assert.equal(await prepareRenderAsync(r, async () => assert.fail('must use public fallback')), false);
+  assert.equal(r._renderObjectDirect, original);
+  assert.equal(skippedPreparationDraws(r), 0);
 });
