@@ -253,15 +253,16 @@ export class SceneRuntime {
       const uploadTextures = [...activeTextures].filter(texture => !texture.userData.mdSkipUpload);
       console.info('[MD warmup] texture upload started', { count: uploadTextures.length, visibility: document.visibilityState });
       this.callbacks.onProgress?.({ phase: 'Preparing textures', detail: `Uploading 0 of ${uploadTextures.length} textures to your graphics device`, progress: 0 });
-      let uploaded = 0;
+      let uploaded = 0, uploadSliceStarted = performance.now();
       for (const texture of uploadTextures) {
         this.renderer.initTexture(texture);
         uploaded++;
-        if (uploaded % 8 === 0 || uploaded === uploadTextures.length) {
+        if (performance.now() - uploadSliceStarted >= 8 || uploaded === uploadTextures.length) {
           this.callbacks.onProgress?.({ phase: 'Preparing textures', detail: `Uploaded ${uploaded} of ${uploadTextures.length} textures`, progress: uploaded / uploadTextures.length });
           console.info('[MD warmup] uploaded textures', { uploaded, total: uploadTextures.length, seconds: ((performance.now() - warmStarted) / 1000).toFixed(1) });
           // Upload preparation must finish even when the browser throttles animation frames.
           await new Promise<void>(resolve => setTimeout(resolve, 0));
+          uploadSliceStarted = performance.now();
         }
         this.abort.signal.throwIfAborted();
       }
@@ -282,9 +283,12 @@ export class SceneRuntime {
       // that needs the sun initializes it; the other pass reuses that map.
       this.lighting.sun.shadow.autoUpdate = false;
       this.lighting.sun.shadow.needsUpdate = true;
+      await this.galleryMirror?.prepareFirstFrame(this.renderer, this.scene, this.camera,
+        this.abort.signal);
       this.galleryMirror?.update(this.renderer, this.scene, this.camera, this.reflectionRevision);
       this.profiler?.phase('visitor and opening frame');
-      await this.temporal.renderOpeningFrame(this.controls.player, this.lighting.sun.shadow, this.abort.signal);
+      await this.temporal.renderOpeningFrame(this.controls.player, this.lighting.sun.shadow, this.abort.signal,
+        true);
       this.profiler?.phase('first GPU frame completion');
       await this.temporal.finishFirstFrame();
       console.info('[MD warmup] opening render passes ready', { seconds: ((performance.now() - compileStarted) / 1000).toFixed(1) });

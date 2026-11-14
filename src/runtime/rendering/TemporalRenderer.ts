@@ -1,3 +1,4 @@
+import { prepareRenderSlices } from './prepareRenderSlices.ts';
 import { type DirectionalLightShadow, type Object3D, PerspectiveCamera, RenderTarget, Scene, Vector2 } from 'three';
 import { RenderPipeline, type WebGPURenderer } from 'three/webgpu';
 import { mrt, output, pass, velocity, vec4, uniform, uv } from 'three/tsl';
@@ -29,7 +30,7 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
     // The first real nested draw prepares the actual HDR/velocity/shadow keys.
     // Standalone compileAsync uses a different render context in pinned r186.
     render() { pipeline.render(); },
-    async renderOpeningFrame(visitor: Object3D, shadow: DirectionalLightShadow, signal?: AbortSignal) {
+    async renderOpeningFrame(visitor: Object3D, shadow: DirectionalLightShadow, signal?: AbortSignal, prepareInSlices = false) {
       signal?.throwIfAborted();
       const output = new RenderTarget(1, 1, { depthBuffer: false });
       const originalTarget = renderer.getRenderTarget(), originalMRT = renderer.getMRT();
@@ -37,7 +38,6 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
       const tone = renderer.toneMapping, colorSpace = renderer.outputColorSpace;
       const projection = camera.projectionMatrix.clone(), inverse = camera.projectionMatrixInverse.clone();
       const view = camera.view && { ...camera.view }, aspect = camera.aspect;
-      const frame = renderer.info.frame;
       try {
         try {
           // Main, velocity and shadow program keys include nested pass depth.
@@ -45,7 +45,18 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
           // to a 1x1 offscreen target. Scene resolution and rig stay intact.
           visitor.visible = true; shadow.needsUpdate = true;
           renderer.setRenderTarget(output); renderer.setMRT(null);
-          pipeline.render();
+          if (prepareInSlices) {
+            const passUpdates = scenePass.updateBeforeType, historyUpdates = temporal.updateBeforeType;
+            try {
+              scenePass.updateBeforeType = 'render'; temporal.updateBeforeType = 'render';
+              await prepareRenderSlices(renderer, scene, async () => {
+                pipeline.render();
+                await renderer.readRenderTargetPixelsAsync(output, 0, 0, 1, 1);
+              }, signal);
+            } finally {
+              scenePass.updateBeforeType = passUpdates; temporal.updateBeforeType = historyUpdates;
+            }
+          } else pipeline.render();
         } finally {
           visitor.visible = originalVisible; shadow.needsUpdate = true;
           renderer.setRenderTarget(originalTarget); renderer.setMRT(originalMRT);
@@ -61,9 +72,9 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
       } finally { output.dispose(); }
       const passUpdates = scenePass.updateBeforeType, historyUpdates = temporal.updateBeforeType;
       try {
-        if (renderer.info.frame === frame) {
-          scenePass.updateBeforeType = 'render'; temporal.updateBeforeType = 'render';
-        }
+        // The last preparation batch may share this animation frame. Force a
+        // complete redraw after visibility/shadows restore, even in a warm tab.
+        scenePass.updateBeforeType = 'render'; temporal.updateBeforeType = 'render';
         pipeline.render();
       } finally {
         scenePass.updateBeforeType = passUpdates; temporal.updateBeforeType = historyUpdates;

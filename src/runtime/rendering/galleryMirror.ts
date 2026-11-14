@@ -1,3 +1,4 @@
+import { prepareRenderSlices } from './prepareRenderSlices.ts';
 import { Box3, type DirectionalLight, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { screenUV, texture, uniform } from 'three/tsl';
@@ -174,6 +175,16 @@ export function createGalleryMirror(root: Object3D) {
         renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT);
         panes.forEach((surface, i) => { surface.visible = visibility[i]; });
       }
+    },
+    async prepareFirstFrame(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera,
+      signal?: AbortSignal) {
+      if (!prepareReflection(renderer, view)) return;
+      await prepareRenderSlices(renderer, scene, async () => {
+        frameCache.invalidate();
+        this.update(renderer, scene, view);
+        await renderer.readRenderTargetPixelsAsync(target, 0, 0, 1, 1);
+      }, signal);
+      frameCache.invalidate();
     },
     update(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, revision?: number) {
       if (!prepareReflection(renderer, view)) { frameCache.invalidate(); return; }

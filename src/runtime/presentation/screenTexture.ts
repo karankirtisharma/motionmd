@@ -1,5 +1,5 @@
 import {
-  DataTexture, NoBlending, LinearFilter, MeshBasicMaterial, SRGBColorSpace, type Camera, type Mesh,
+  DataTexture, NoBlending, LinearFilter, MeshBasicMaterial, SRGBColorSpace, type Camera, type Mesh, type Texture,
 } from 'three';
 import preview from '../../generated/presentation-wood-preview.json' with { type: 'json' };
 
@@ -27,9 +27,10 @@ function createWoodPreview() {
 /** An opaque wood surface while loading, and a depth-tested DOM aperture only
  * for the main camera after the native iframe is ready. Reflection cameras
  * cannot sample a browser window, so they retain the fitted wood surface. */
-export function createScreenAperture(mesh: Mesh, mainCamera: Camera, blackFallback = false) {
+export function createScreenAperture(mesh: Mesh, mainCamera: Camera, fallback: Texture | boolean = false) {
   const original = mesh.material, before = mesh.onBeforeRender;
-  const wood = blackFallback ? null : createWoodPreview();
+  const blackFallback = fallback === true;
+  const wood = typeof fallback === 'object' ? fallback : blackFallback ? null : createWoodPreview();
   const material = new MeshBasicMaterial({
     map: wood, color: blackFallback ? 0x000000 : 0xffffff, toneMapped: false, fog: false,
     transparent: true, blending: NoBlending, depthTest: true, depthWrite: true,
@@ -57,7 +58,7 @@ export function createScreenAperture(mesh: Mesh, mainCamera: Camera, blackFallba
       disposed = true; dirty = false;
       mesh.material = original; mesh.onBeforeRender = before; mesh.castShadow = originalCastShadow;
       if (castShadow === undefined) delete mesh.userData.castShadow; else mesh.userData.castShadow = castShadow;
-      wood?.dispose(); material.map = null; material.dispose();
+      if (typeof fallback !== 'object') wood?.dispose(); material.map = null; material.dispose();
     },
   };
 }

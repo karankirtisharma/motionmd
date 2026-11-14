@@ -32,12 +32,13 @@ export function createLiveStudioSurface(options: Options) {
   doc.body.append(host);
   let frame: HTMLIFrameElement | undefined, matrix: number[] | undefined;
   let transform = '', clip = '', visible = false, ready = false, interactive = false, expanded = false, disposed = false;
+  let engaged = false;
   let aperture = false, suspended: boolean | undefined, animation: Animation | undefined, generation = 0;
 
   const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, hit: options.sampleSurface, onFocus: options.onFocus });
   const post = (type: string, detail = {}) => frame?.contentWindow?.postMessage({ type, ...detail }, win.location.origin);
   function sync() {
-    const inRoom = !!matrix && visible && ready && !doc.hidden;
+    const inRoom = engaged && !!matrix && visible && ready && !doc.hidden;
     const show = expanded || !!animation || inRoom;
     const live = inRoom && !expanded && !animation;
     if (live !== aperture) {
@@ -172,9 +173,10 @@ export function createLiveStudioSurface(options: Options) {
     }).catch(() => { });
   }
   function openOnLoadingClick(event: MouseEvent) {
-    if (!ready && !expanded && interactive && visible && matrix && options.sampleSurface(event.clientX, event.clientY)) {
+    if (!expanded && interactive && visible && matrix && options.sampleSurface(event.clientX, event.clientY)) {
       event.preventDefault();
-      options.onExpand();
+      engaged = true; ensureFrame(); sync();
+      if (ready) options.onExpand();
     }
   }
   function visibility() { sync(); }
@@ -182,12 +184,17 @@ export function createLiveStudioSurface(options: Options) {
   win.addEventListener('message', receive);
   win.addEventListener('md-studio:layout', layout);
   doc.addEventListener('visibilitychange', visibility);
-  // Warm the one live page during scene preparation, before the visitor can
-  // see the TV. Off-camera readiness immediately suspends its animations;
-  // camera movement only reveals the already-loaded document.
-  ensureFrame();
+  // The GPU snapshot owns the idle display. Hydrate only on chair approach
+  // or explicit screen use, outside the world's expensive Details phase.
   return {
     width, height,
+    prepare() { ensureFrame(); },
+    setEngaged(value: boolean) {
+      if (engaged === value) return;
+      engaged = value;
+      if (value) ensureFrame();
+      sync();
+    },
     update(inView: boolean, next?: number[] | null, polygon?: string | null) {
       const wasVisible = visible;
       visible = inView;
@@ -201,8 +208,7 @@ export function createLiveStudioSurface(options: Options) {
           host.style.clipPath = clip;
         }
       }
-      if (visible && matrix)
-        ensureFrame();
+      if (visible && matrix && engaged) ensureFrame();
       if (wasVisible && !visible && !expanded && doc.activeElement === frame)
         input.focusRoom();
       sync();

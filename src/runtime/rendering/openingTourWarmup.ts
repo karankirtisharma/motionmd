@@ -133,16 +133,24 @@ export async function warmOpeningTourShaders(renderer: Pick<WebGPURenderer, 'com
   if (!targets.length) return 0;
   const selection = new Group();
   selection.matrixWorldAutoUpdate = false;
-  selection.children.push(...targets);
+
   const culling = targets.map(mesh => mesh.frustumCulled);
   try {
     for (const mesh of targets) mesh.frustumCulled = false;
-    await renderer.compileAsync(selection, camera, scene, event => {
+    // compileAsync still builds its JS node graphs synchronously. Bound each
+    // submission and return to the browser between batches, with the same scene,
+    // light cache, target and camera as before.
+    for (let start = 0; start < targets.length; start += 2) {
       signal?.throwIfAborted();
-      if (event.lengthComputable) onProgress?.(event.loaded, event.total);
-    });
+      selection.children = targets.slice(start, start + 2);
+      await renderer.compileAsync(selection, camera, scene);
+      signal?.throwIfAborted();
+      drawPrepared?.(selection.children as Mesh[]);
+      onProgress?.(Math.min(start + 2, targets.length), targets.length);
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+    }
     signal?.throwIfAborted();
-    drawPrepared?.(targets);
+
   } finally {
     targets.forEach((mesh, index) => { mesh.frustumCulled = culling[index]; });
     selection.children.length = 0;

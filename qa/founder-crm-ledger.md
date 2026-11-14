@@ -104,3 +104,49 @@ build passed. In the actual production scene, aborting the initial Studio docume
 request recovered automatically on attempt 2, with one iframe and all six opening
 images loaded. No matched FPS benchmark was performed for this patch; no numerical
 performance improvement is claimed.
+
+
+## 2026-11-14 - snapshot-first Founder and presentation displays
+
+Both physical displays now load small captures of their actual applications before
+world entry (Founder 1600x739, 127136 bytes; presentation 1600x558, 122956 bytes).
+The opaque mesh retains that capture during exploration, initial iframe loading,
+failed boots, and reflections. Only a ready, visible, engaged document opens the
+main camera's depth aperture. The original GLB wallpaper is never used. Textures
+use the fitted screen's existing top-origin UVs, with flipY disabled.
+
+No CRM/Studio iframe starts during Details. Chair approach prepares the app;
+seating/explicit screen use enables it. Each display retains its one iframe when
+hidden, with input and animation suspension controlled by the existing lifecycle.
+Founder waits for fonts and image decoding before revealing its document. The CRM
+dist and Studio application files are unchanged.
+
+Loading work yields between elapsed-time texture upload batches and two-object
+measured reflection compile batches. Opening/reflection draw preparation submits
+at most four new object/material combinations per turn through the real renderer
+dispatch. It preserves scene visibility, the static shadow cache, resolution,
+materials, geometry, and the final GPU completion fence. There is no per-batch GPU
+pixel-read fence. An earlier experiment that changed scene visibility and rebuilt
+shadows in every batch was rejected and is not included.
+
+Validation: production build/TypeScript passed; 23 focused readiness, native input,
+aperture, compile/cancellation and render-dispatch tests passed. Release-public
+staging dry run passed. Browser: Chrome 157/WebGPU on an NVIDIA Lovelace adapter,
+1440x900, DPR 1. Zero iframes before Enter. Both snapshots visually checked upright.
+Founder seating opened Command Centre; real screen-coordinate clicks navigated to
+Clients and opened search, and typing Aurelia produced results. Standing restored
+the preview and left one hidden iframe. Presentation: deliberately aborting the
+first document request left the preview visible, recovered on attempt 2 with one
+iframe, and real screen-coordinate search/typing worked. Standing hid the document.
+No page errors in the final startup/Founder run.
+
+Performance limit: final local run reached usable-room readiness in 127.8 s and
+still recorded an 11.6 s maximum long task. Shader preparation remains expensive;
+this is not a claim of stall-free startup or a controlled FPS improvement. Earlier
+baseline and experiments had different transfer/cache and concurrent-render-job
+conditions and cannot establish a reliable percentage improvement. The concrete
+screen optimization is removing both embedded app boots from Details and keeping
+the screen populated throughout readiness/recovery.
+
+Release scope: motionmd repo, codex/living-maquette branch, motionmd-6ipx Vercel
+project only. motiondesign.ad and its publication repository are outside this change.

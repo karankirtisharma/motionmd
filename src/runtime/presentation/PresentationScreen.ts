@@ -8,7 +8,7 @@ export { findScreenCorners as screenCorners } from './flatPanel.ts';
 export type ScreenBounds = { x: number; y: number; width: number; height: number };
 type Options = {
   scene: THREE.Object3D; camera: THREE.Camera; canvas: HTMLCanvasElement;
-  objectName: string; onOpen?: (bounds: ScreenBounds) => void; onFocus?: () => void;
+  objectName: string; preview: THREE.Texture; onOpen?: (bounds: ScreenBounds) => void; onFocus?: () => void;
   isInView?: (points: THREE.Vector3[]) => boolean;
   isUnobstructed?: (point: THREE.Vector3, ray: THREE.Raycaster) => boolean;
 };
@@ -26,13 +26,13 @@ export function createPresentationScreen(options: Options) {
   });
   if (!originals.length) throw new Error('Presentation display not found: ' + options.objectName);
   const panel = installFlatPanel(originals);
-  const aperture = createScreenAperture(panel.face, options.camera);
+  const aperture = createScreenAperture(panel.face, options.camera, options.preview);
   const { corners, normal } = panel;
   const center = panel.point(.5, .5);
   const samples = [[.5,.5],[.1,.1],[.9,.1],[.1,.9],[.9,.9],[.1,.5],[.9,.5]].map(([u,v]) => panel.point(u,v));
   const aspect = corners[0].distanceTo(corners[1]) / corners[0].distanceTo(corners[3]);
   const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2(), cameraPosition = new THREE.Vector3();
-  let width = 0, height = 0, active = false, visible = false, disposed = false, first = true;
+  let width = 0, height = 0, active = false, seated = false, visible = false, disposed = false, first = true;
   let bounds: ScreenBounds = { x: 0, y: 0, width: 0, height: 0 };
   const previousCamera = new THREE.Matrix4(), previousProjection = new THREE.Matrix4();
   function sampleSurface(x: number, y: number) {
@@ -50,6 +50,8 @@ export function createPresentationScreen(options: Options) {
   });
   return {
     meshes: [panel.face], collision: panel.collision,
+    setSeated(value: boolean) { if (seated !== value) { seated = value; surface.setEngaged(value); } },
+    prepare() { surface.prepare(); },
     setActive(value: boolean) { active = value; surface.setInteractive(value); },
     setAction(action: string) { if (action === 'studio' || action === 'open') open(); },
     update() {

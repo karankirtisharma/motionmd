@@ -7,6 +7,7 @@ import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut
 import type { CameraView } from './movement';
 import { createPresentationScreen, type ScreenBounds } from '../presentation/PresentationScreen';
 import { createWorkstation, type Workstation } from './Workstation';
+import { loadScreenPreviews } from '../presentation/screenPreviews.ts';
 import { createFounderCRM } from '../presentation/FounderCRM';
 import { createComputerScreens, type Computer } from './ComputerScreens';
 import { createStairSurfaces } from './StairSurfaces';
@@ -39,6 +40,7 @@ export async function createInteractionController(options: Options) {
   const resources = await Promise.allSettled([
     createCollisionWorld(scene, manifest.collisions?.url, undefined, manifest.collisions?.additionalUrls, manifest.explorationBounds, transfers.signal).catch(cancelSibling),
     loadAvatar(manifest.character?.url, transfers.signal).catch(cancelSibling),
+    loadScreenPreviews(transfers.signal).catch(cancelSibling),
   ]).finally(() => options.signal?.removeEventListener('abort', abortTransfers));
   if (options.signal?.aborted || resources.some((result) => result.status === 'rejected')) {
     resources.forEach((result) => { if (result.status === 'fulfilled') result.value.dispose(); });
@@ -48,12 +50,13 @@ export async function createInteractionController(options: Options) {
   }
   const physics = (resources[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createCollisionWorld>>>).value;
   const avatar = (resources[1] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadAvatar>>>).value;
+  const previews = (resources[2] as PromiseFulfilledResult<Awaited<ReturnType<typeof loadScreenPreviews>>>).value;
   const workstation = createWorkstation(scene);
   const stairContact = { sample: createStairSurfaces(scene, 'stair-candidates'), sprint: false, active: false };
   if (workstation) physics.configureWorkstation(workstation.collisionTransform.offset, workstation.collisionTransform.rotation, workstation.collisionTransform.height);
   scene.add(avatar.root); avatar.root.visible = false;
   const lift = manifest.lift ? createGlassLift(scene, physics, manifest.lift) : undefined;
-  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName,
+  const display = manifest.screen ? createPresentationScreen({ scene, camera, canvas, objectName: manifest.screen.objectName, preview: previews.presentation,
     onFocus: () => { resetInput(); if (document.pointerLockElement === canvas) releaseCursor(true); },
     isInView: points => points.some(point => physics.hasLineOfSight(camera.position, point, 0.08)),
     isUnobstructed: (point, ray) => {
@@ -76,7 +79,7 @@ export async function createInteractionController(options: Options) {
     approach = approaches[0]?.clone() ?? approach;
     return { id: item.id, label: item.label ?? `Chair ${item.id.match(/\d+/)?.[0] ?? ''}`, seat, approach, approaches, forward, floor, height: seat.y - floor };
   });
-  const crm = createFounderCRM({ scene, camera, canvas,
+  const crm = createFounderCRM({ scene, camera, canvas, preview: previews.founder,
     onFocus: () => releaseCursor(true), onRequestFocus: focusFounderScreen,
     isInView: points => camera.position.y > 3 && points.some(point => physics.hasLineOfSight(camera.position, point, .08)),
   });
@@ -256,6 +259,8 @@ export async function createInteractionController(options: Options) {
     return closest;
   }
   function beginSit(chair: Chair) {
+    if (chair.workstation) crm?.prepare();
+    else if (!chair.computer) display?.prepare();
     if (chair.computer || chair.workstation) display?.setActive(false);
     if (chair.workstation) {
       founderFocused = false; deskCameraView = cameraView; cameraView = 'thirdPerson';
@@ -742,7 +747,7 @@ export async function createInteractionController(options: Options) {
       if (value) canvas.focus({ preventScroll: true });
     },
     inspectFounderCRM(visible: boolean) { crm?.setInspectionVisible(visible); },
-    updatePresentation() { const screenChanged = display?.update() ?? false; const crmChanged = crm?.update() ?? false; return (desktop?.update() ?? false) || crmChanged || screenChanged; },
+    updatePresentation() { display?.setSeated(enabled && mode === 'seated' && !selected?.workstation && !selected?.computer); const screenChanged = display?.update() ?? false; const crmChanged = crm?.update() ?? false; return (desktop?.update() ?? false) || crmChanged || screenChanged; },
     setScreenAction(action: string) { display?.setAction(action); },
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
@@ -753,7 +758,7 @@ export async function createInteractionController(options: Options) {
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       canvas.removeEventListener('pointerdown', pointerDown); window.removeEventListener('pointerup', pointerUp); window.removeEventListener('pointermove', pointerMove);
       document.removeEventListener('pointerlockerror', pointerLockFallback);
-      avatar.root.removeFromParent(); avatar.dispose(); lift?.dispose(); physics.dispose(); crm?.dispose(); desktop?.dispose(); display?.dispose();
+      avatar.root.removeFromParent(); avatar.dispose(); lift?.dispose(); physics.dispose(); crm?.dispose(); desktop?.dispose(); display?.dispose(); previews.dispose();
     },
   };
 }
