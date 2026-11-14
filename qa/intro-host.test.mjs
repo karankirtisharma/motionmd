@@ -63,3 +63,28 @@ test('kit bridge accepts current destination readiness and forwards arrival pref
   assert.equal(committed.lightMode, 'soft');
   bridge.dispose();
 });
+test('real kit retry rebinds entry to the new attempt without changing preferences', async () => {
+  const { connectLivingMaquette } = await import('../src/intro/living-maquette/src/host/connect.mjs');
+  let committed = 0;
+  const host = createWorldIntroHost({ preferences() {}, retry() {}, light() {}, enter() { committed++; } });
+  const old = host.beginLoad();
+  const bridge = connectLivingMaquette(host, prefs, { destinations: ['lounge', 'motion-floor'] });
+  try {
+    const previous = bridge.controller.getSnapshot();
+    old.fail();
+    assert.ok(bridge.controller.requestRetry());
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const fresh = host.beginLoad();
+    old.ready();
+    assert.equal(bridge.controller.getSnapshot().canEnter, false);
+    fresh.ready();
+    assert.equal(bridge.controller.getSnapshot().attemptId, previous.attemptId + 1);
+    assert.equal(bridge.controller.getSnapshot().canEnter, true);
+    assert.equal(host.enterDestination('lounge', prefs, {
+      attemptId: previous.attemptId, destinationId: 'lounge',
+      destinationRequestId: previous.destinationRequestId, signal: new AbortController().signal,
+    }), false, 'the old attempt cannot enter the replacement runtime');
+    assert.ok(await bridge.requestEntry(), 'the acknowledged retry can actually enter');
+    assert.equal(committed, 1);
+  } finally { bridge.dispose(); }
+});

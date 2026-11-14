@@ -33,3 +33,18 @@ test('app snapshot stays opaque through loading, hidden state and reflections; o
  }
  aperture.dispose();assert.equal(disposals,0);preview.dispose();assert.equal(disposals,1);
 });
+
+test('both transmission passes are prepared before the final full render', async () => {
+ const scene=new Scene(), meshes=Array.from({length:5},()=>new Mesh(new BoxGeometry(),new MeshBasicMaterial()));
+ scene.add(...meshes);let filter=null,frames=0,submitted=[];
+ const renderer={getRenderObjectFunction:()=>filter,setRenderObjectFunction:value=>filter=value,
+   renderObject:(...args)=>submitted.push([args[0],args[8]??null])};
+ await prepareRenderSlices(renderer,scene,async()=>{
+   frames++;const start=submitted.length;
+   for(const pass of ['backSide',null])for(const m of meshes)filter(m,scene,null,m.geometry,m.material,null,null,null,pass);
+   assert.ok(submitted.length-start<=4);
+ });
+ assert.equal(frames,3);assert.equal(submitted.length,10);
+ for(const m of meshes)assert.deepEqual(submitted.filter(([object])=>object===m).map(([,pass])=>pass),['backSide',null]);
+ assert.equal(filter,null);
+});

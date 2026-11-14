@@ -150,3 +150,24 @@ the screen populated throughout readiness/recovery.
 
 Release scope: motionmd repo, codex/living-maquette branch, motionmd-6ipx Vercel
 project only. motiondesign.ad and its publication repository are outside this change.
+
+### Follow-up: retry entry scope and double-sided shader preparation
+
+Live verification of 19a87c2 reached the Founder room and successfully clicked
+Clients/search and typed Aurelia with one iframe. A texture request failed on the
+first live load; the actual image endpoint returned a valid complete WebP, and
+the site's Retry loaded the room. That exposed an existing adapter mismatch:
+readiness used the retry subscription's new attempt, but entry still validated
+against the old preference scope. Reattaching now binds both to the current
+attempt. A regression using the real kit bridge failed before the correction and
+passes afterwards, rejecting old-attempt entry and accepting the fresh attempt.
+
+Buffered long-task attribution in that live retry located the remaining 6.67 s
+task in the first reflection frame. r186 draws transmissive double-sided materials
+with separate `backSide` and default pass identifiers. Preparation now tracks
+object/material/pass, so neither side is deferred to the final unbounded draw.
+The regression verifies both actual pass identifiers under the four-variant
+budget. The final full render, shadow cache, geometry and material values remain
+unchanged. Production build/TypeScript and 20 focused intro/rendering tests passed;
+the existing screen/readiness/input tests had already passed. No overall FPS or
+cross-device startup-time improvement is claimed.

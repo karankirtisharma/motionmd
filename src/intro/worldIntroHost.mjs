@@ -30,6 +30,9 @@ export function createWorldIntroHost(actions) {
     attachToCurrentLoad(request) {
       const current = { scope: { attemptId: request.attemptId, destinationId: request.destinationId, destinationRequestId: request.destinationRequestId }, onSnapshot: request.onSnapshot };
       subscription = current;
+      // Retry reattaches with a new attempt even when preferences did not change.
+      // Entry must validate against the same scope used for readiness patches.
+      scope = { ...current.scope };
       publish();
       return () => { if (subscription === current) subscription = null; };
     },
