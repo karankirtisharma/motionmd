@@ -221,7 +221,7 @@ export class SceneRuntime {
       // its visibility bounds; every cell then shares that same final shader.
       prepareSlimMonitorHousings(this.content);
       partitionSourceGeometry(this.content);
-      this.desert = await createDesertEnvironment(this.scene, { signal: this.abort.signal, sunDirection: this.manifest.sun?.position });
+      this.desert = await createDesertEnvironment(this.scene, { renderer: this.renderer, signal: this.abort.signal, sunDirection: this.manifest.sun?.position });
       if (this.disposed || this.abort.signal.aborted) return;
       this.setQuality(this.quality);
 
@@ -663,11 +663,9 @@ export class SceneRuntime {
     this.setCinematicPlaying(false);
     this.sceneTransition = undefined; this.referenceCamera = '';
     this.controls.exitExplore();
-    // The studio arrival reuses the established walkable studio inspection spawn.
-    // Both destinations are resident before the runtime grants intro readiness.
-    const spawn = destination === 'motion-floor'
-      ? { position: [16.4, .03, -30.7] as [number, number, number], yaw: -Math.PI / 2 }
-      : this.manifest.spawn;
+    // The intro choice never teleports the visitor inside the building.
+    // Both choices begin at the authored entrance, facing the approach.
+    const spawn = this.manifest.spawn;
     this.renderer.toneMappingExposure = Math.pow(2, (this.manifest.exposure ?? 0.1) + (light === 'soft' ? -0.25 : 0));
     this.positionAtEntrance(spawn);
     this.paused = true; this.temporal?.reset();

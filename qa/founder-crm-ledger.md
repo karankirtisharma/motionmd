@@ -335,3 +335,41 @@ errors. Fixed-pose stock/cached shadow comparison reported zero differing
 components. Assets and scene quality are unchanged. Release is restricted to
 motionmd/codex/living-maquette and motionmd-6ipx.vercel.app; motiondesign.ad and
 its repository/DNS are untouched.
+
+
+## 2026-11-14 - restore the sky and always arrive at the entrance
+
+The cooperative shader discovery pass exposed a Three r186 background-cache
+interaction: CubeMapNode converts an equirectangular sky with six nested draws,
+then caches the cube. Discovery skips unprepared draws, so the cached sky was
+empty even after complete scene rendering resumed. A minimal browser case
+reproduced blue sky with normal preparation and black sky with discovery.
+
+Complete the stock CubeRenderTarget conversion before discovery starts and
+assign its finished cube as the background. Preserve the source HDR, original
+image-height face resolution (1024), rotation, intensity, filtering, exposure,
+IBL and dune haze. This moves the existing conversion; it adds no sky download
+or per-frame work. Own/dispose the cube target with the desert environment,
+retain the original HDR for haze, and restore borrowed renderer/texture state
+on success/failure. Do not solve this regression by raising ambient light or
+replacing the source sky. Any new render-to-texture producer must finish its
+real draw before a discovery pass can cache its output.
+
+The intro's Motion floor branch explicitly supplied an indoor spawn. Both
+arrival choices now use the authored entrance [-8, -0.355, -17.1], yaw -pi/2,
+beneath the existing covered handoff. Camera placement, collision grounding,
+motion settings and readiness/input fences retain their existing paths.
+
+Verification: 37 focused tests pass (sky ownership/state restoration,
+environment geometry/disposal, both arrival choices, runtime lifecycle,
+asynchronous rendering and intro readiness). Production build and TypeScript
+pass. The real production-build UI was entered after selecting Motion floor;
+the character appeared outside the front steps, facing the doorway, and walked
+toward them. The real HDR sky/dunes are visible from the exterior. The small
+rendering reproduction using the production helper is blue on both WebGPU and
+forced WebGL. Full-scene local loading reached readiness at 63.9 seconds in
+Chrome 157 at 1440x900 DPR1; this single check is not a speed comparison. The
+completed scene check reported no page errors. Temporary probe pages are not
+part of the release. No source model, texture, CRM build or visual-quality
+setting was changed. Release scope is motionmd/codex/living-maquette and
+motionmd-6ipx.vercel.app only; motiondesign.ad and its repository/DNS are untouched.

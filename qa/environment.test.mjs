@@ -14,6 +14,7 @@ let source = ts.transpileModule(fs.readFileSync(new URL('../src/runtime/renderin
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
 for (const module of ['three', 'three/webgpu', 'three/tsl']) source = source.replace(`from '${module}'`, `from ${JSON.stringify(import.meta.resolve(module))}`);
+source = source.replace("from './prepareSkyBackground.ts'", `from ${JSON.stringify(new URL('../src/runtime/rendering/prepareSkyBackground.ts', import.meta.url).href)}`);
 source = source.replace("from './assets'", `from ${JSON.stringify(loader)}`);
 source = source.replace("from './SandSurface'", `from ${JSON.stringify(dataModule(sandSource))}`);
 const { createDesertGeometry, createDesertEnvironment, SOURCE_GROUND } = await import(dataModule(source));

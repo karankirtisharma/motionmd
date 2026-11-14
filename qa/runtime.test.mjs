@@ -9,7 +9,7 @@ import { resolveAssetDependency } from '../src/runtime/rendering/assets.ts';
 // Execute the delivered runtime methods without a GPU or asset load. Only imports
 // used by init/loadSource are omitted; the frame loop and transitions stay intact.
 const source = fs.readFileSync(new URL('../src/runtime/SceneRuntime.ts', import.meta.url), 'utf8');
-const threeImport = source.split(/\r?\n/)[0].replace("'three'", JSON.stringify(import.meta.resolve('three')));
+const threeImport = source.match(/^import .+ from 'three';\r?$/m)[0].replace("'three'", JSON.stringify(import.meta.resolve('three')));
 const body = source.replace(/^import .*;\r?$/gm, '');
 const compiled = ts.transpileModule(body, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
 const cinematicImport = `import { CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from ${JSON.stringify(new URL('../src/runtime/rendering/cinematic.ts', import.meta.url).href)};`;
@@ -38,7 +38,7 @@ function fixture(mode = 'explore') {
     domElement: { style: {} },
     render() { stats.renders++; if (shadow.needsUpdate) { stats.shadowPasses++; shadow.needsUpdate = false; } },
   };
-  runtime.manifest = { cameras: [{ id: 'audit', position: [3, 2, 1], target: [0, 1, 0], fov: 45 }] };
+  runtime.manifest = { spawn: { position: [-8,-.355,-17.1], yaw: -Math.PI/2 }, cameras: [{ id: 'audit', position: [3, 2, 1], target: [0, 1, 0], fov: 45 }] };
   runtime.cinematic = { sample(progress) { stats.samples++; return { position: new Vector3(progress, 2, 3), quaternion: new Quaternion(), fov: 54 }; } };
   runtime.quality = 'high';
   const frames = count => { for (let i = 0; i < count; i++) runtime.tick(); };
@@ -340,4 +340,18 @@ test('terminal loading errors release owned resources without waiting for a retr
     assert.equal(events.filter(event => event === item).length, 1, item);
   runtime.fail('duplicate'); await runtime.dispose();
   assert.equal(events.includes('duplicate'), false);
+});
+
+
+test('both intro choices always place the visitor at the entrance before reveal', () => {
+  for (const destination of ['lounge','motion-floor']) {
+    const {runtime,controls}=fixture('tour');
+    const entrance={position:[-8,-.355,-17.1],yaw:-Math.PI/2};runtime.manifest.spawn=entrance;
+    let received;controls.enterExplore=(pose,spawn)=>{received=spawn;};
+    runtime.temporal={reset(){}};runtime.setStudioCovered=()=>{};
+    assert.equal(runtime.prepareIntroArrival(destination,'warm'),true);
+    assert.equal(received,entrance);assert.equal(runtime.mode,'explore');assert.equal(runtime.paused,true);
+    assert.equal(controls.enabled,false);assert.ok(runtime.camera.position.x<entrance.position[0]);
+    assert.equal(runtime.camera.position.z,entrance.position[2]);
+  }
 });

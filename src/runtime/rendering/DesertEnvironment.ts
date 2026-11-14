@@ -1,5 +1,6 @@
 import { Box3, BufferGeometry, Color, Float32BufferAttribute, Group, Material, Mesh, Scene, Texture, Vector3 } from 'three';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
+import { MeshStandardNodeMaterial, type WebGPURenderer } from 'three/webgpu';
+import { prepareSkyBackground } from './prepareSkyBackground.ts';
 import { backgroundIntensity, backgroundRotation, bumpMap, cameraPosition, equirectUV, float, mix, output, positionWorld, smoothstep, texture, vec2, vec3, vec4 } from 'three/tsl';
 import { loadEnvironment } from './assets';
 import { createSandSurfaceTexture } from './SandSurface';
@@ -89,9 +90,13 @@ function sandMaterial(sky: Texture, surface: Texture, vertexColors: boolean) {
 }
 
 /** Call after source lighting/shadow bounds are configured. Does not change IBL. */
-export async function createDesertEnvironment(scene: Scene, options: { signal?: AbortSignal; sunDirection?: [number, number, number] } = {}) {
+export async function createDesertEnvironment(scene: Scene, options: { renderer?: WebGPURenderer; signal?: AbortSignal; sunDirection?: [number, number, number] } = {}) {
   options.signal?.throwIfAborted();
   const sky = await loadEnvironment(SKY_URL, options.signal);
+  let skyTarget: ReturnType<typeof prepareSkyBackground> | undefined;
+  try { options.signal?.throwIfAborted(); if (options.renderer) skyTarget = prepareSkyBackground(options.renderer, sky); }
+  catch (error) { sky.dispose(); throw error; }
+  const background = skyTarget?.texture ?? sky;
   const previous = { background: scene.background, intensity: scene.backgroundIntensity, blur: scene.backgroundBlurriness, rotation: scene.backgroundRotation.clone() };
   const root = new Group(); root.name = 'MD | desert background context'; root.userData.contextOnly = true;
   const groundBounds = new Box3();
@@ -121,7 +126,7 @@ export async function createDesertEnvironment(scene: Scene, options: { signal?: 
     mesh.material = Array.isArray(mesh.material) ? replacements : replacements[0];
   });
   scene.add(root);
-  scene.background = sky; scene.backgroundIntensity = 0.65; scene.backgroundBlurriness = 0;
+  scene.background = background; scene.backgroundIntensity = 0.65; scene.backgroundBlurriness = 0;
   const sun = new Vector3(...(options.sunDirection ?? [-28.817291, 19.211535, -20.012016]));
   // Align the photographed sun's azimuth with the authored key. Its low sunset
   // elevation is retained; this background never rotates the baked scene light.
@@ -133,11 +138,11 @@ export async function createDesertEnvironment(scene: Scene, options: { signal?: 
       if (disposed) return; disposed = true;
       root.removeFromParent();
       replaced.forEach(({ mesh, material }) => { mesh.material = material; });
-      if (scene.background === sky) {
+      if (scene.background === background) {
         scene.background = previous.background; scene.backgroundIntensity = previous.intensity;
         scene.backgroundBlurriness = previous.blur; scene.backgroundRotation.copy(previous.rotation);
       }
-      geometry.dispose(); duneMaterial.dispose(); groundMaterial.dispose(); surface.dispose(); sky.dispose();
+      geometry.dispose(); duneMaterial.dispose(); groundMaterial.dispose(); surface.dispose(); skyTarget?.dispose(); sky.dispose();
     },
   };
 }
