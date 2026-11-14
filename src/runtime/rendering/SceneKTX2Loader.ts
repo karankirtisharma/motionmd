@@ -10,14 +10,16 @@ type TextureCallbacks = { onLoad?: (texture: CompressedTexture) => void; onProgr
  */
 export class SceneKTX2Loader extends KTX2Loader {
   private closed = false;
+  private readAhead?: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>;
   private downloads = new AbortController();
   private pendingLoads = new Map<string, TextureCallbacks[]>();
   private pendingParses = new Set<(error: unknown) => void>();
   private signal?: AbortSignal;
   private onAbort = () => this.dispose();
 
-  constructor(manager?: LoadingManager, signal?: AbortSignal) {
+  constructor(manager?: LoadingManager, signal?: AbortSignal, readAhead?: (url: string, signal: AbortSignal) => Promise<ArrayBuffer>) {
     super(manager);
+    this.readAhead = readAhead;
     this.signal = signal;
     if (signal?.aborted) this.dispose();
     else signal?.addEventListener('abort', this.onAbort, { once: true });
@@ -69,14 +71,26 @@ export class SceneKTX2Loader extends KTX2Loader {
     this.manager.itemStart(resolved);
     sceneSignal.addEventListener('abort', abort, { once: true }); managerSignal.addEventListener('abort', abort, { once: true });
     if (sceneSignal.aborted || managerSignal.aborted) { abort(); return; }
-    void fetchAssetBuffer(resolved, { signal: controller.signal, headers, credentials,
+    const useReadAhead = !!this.readAhead && !this.withCredentials && [...headers].length === 0;
+    const download = useReadAhead
+      ? Promise.resolve().then(() => {
+        controller.signal.throwIfAborted();
+        return this.readAhead!(new URL(resolved, typeof location === 'undefined' ? 'http://localhost/' : location.href).href, controller.signal);
+      })
+      : fetchAssetBuffer(resolved, { signal: controller.signal, headers, credentials,
       onProgress: (loaded, total) => {
         if (settled || !listeners.some(callback => callback.onProgress)) return;
         const event = new ProgressEvent('progress', { loaded, total, lengthComputable: total > 0 });
         for (const callback of listeners) callback.onProgress?.(event);
       },
-    }).then(buffer => {
+    });
+    void download.then(buffer => {
       if (settled) return;
+      // Speculative bytes have already arrived; report only their measured size.
+      if (useReadAhead && listeners.some(callback => callback.onProgress)) {
+        const event = new ProgressEvent('progress', { loaded: buffer.byteLength, total: buffer.byteLength, lengthComputable: true });
+        for (const callback of listeners) callback.onProgress?.(event);
+      }
       this.parse(buffer, texture => {
         if (settled) { texture.dispose(); return; }
         settled = true; cleanup();

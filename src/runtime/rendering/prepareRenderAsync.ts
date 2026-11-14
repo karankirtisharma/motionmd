@@ -55,10 +55,18 @@ export async function prepareRenderAsync(renderer: WebGPURenderer, draw: () => P
   if (discovery.has(renderer)) throw new Error('Render preparation must run serially.');
   const state = { skipped: 0 }, pending = new Map<RecordForRender, () => Promise<void>>();
   const original = r._renderObjectDirect;
-  const pipelineBatch: Promise<unknown>[] = [];
+  const activePipelines = new Set<Promise<void>>();
+  let pipelineError: unknown;
+  let pipelineFailed = false;
+  const assertPipelines = () => { signal?.throwIfAborted(); if (pipelineFailed) throw pipelineError; };
+  const trackPipeline = (program: Promise<unknown>) => {
+    const pending = program.then(() => { activePipelines.delete(pending); }, error => {
+      pipelineError = error; pipelineFailed = true; activePipelines.delete(pending);
+    });
+    activePipelines.add(pending);
+  };
   const finishPipelines = async () => {
-    await Promise.all(pipelineBatch); pipelineBatch.length = 0;
-    signal?.throwIfAborted();
+    await Promise.all(activePipelines); assertPipelines();
   };
   const captureState = () => ({ target: r.getRenderTarget(), mrt: r.getMRT(),
     context: r._currentRenderContext, source: r._currentSourceMaterial, lighting: r.lighting, contextNode: r.contextNode,
@@ -104,16 +112,15 @@ export async function prepareRenderAsync(renderer: WebGPURenderer, draw: () => P
           r._nodes.updateForRender(record);
           r._bindings.updateForRender(record);
         });
+        // Start at most four driver jobs; reuse whichever slot completes first.
+        while (activePipelines.size >= 4) {
+          await Promise.race(activePipelines);
+          assertPipelines();
+        }
         const programs: Promise<unknown>[] = [];
         r._pipelines.getForRender(record, programs);
-        // Graph building stays serial (TSL shares context). Driver compilation
-        // may overlap, bounded to four promises, without blocking browser work.
-        for (const program of programs) {
-          void program.catch(() => {}); // Observe rejection until the batch joins.
-          pipelineBatch.push(program);
-        }
-        if (pipelineBatch.length >= 4) await finishPipelines();
-
+        for (const program of programs) trackPipeline(program);
+        assertPipelines();
       } finally {
         if (previousLights) lightNode.setLights?.(previousLights);
         Object.assign(material, values); applyState(previous);

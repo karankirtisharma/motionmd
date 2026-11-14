@@ -138,3 +138,22 @@ test('WebGL fallback keeps its existing public preparation and never waits for a
   assert.equal(r._renderObjectDirect, original);
   assert.equal(skippedPreparationDraws(r), 0);
 });
+
+test('a slow GPU job cannot hold completed compilation slots idle', async () => {
+  const f = fixture(), r = f.r; let started = 0, active = 0, peak = 0, firstComplete = false, fifthBeforeFirst = false;
+  r._pipelines.getForRender = (record, promises) => {
+    const id = started++; active++; peak = Math.max(peak, active);
+    if (id === 4) fifthBeforeFirst = !firstComplete;
+    promises.push(new Promise(resolve => setTimeout(() => {
+      active--; if (id === 0) firstComplete = true; f.ready.add(record); resolve();
+    }, id === 0 ? 140 : 15)));
+  };
+  await prepareRenderAsync(r, async () => {
+    for (const context of f.contexts) for (const side of [0,1]) {
+      r._currentRenderContext = context; f.material.side = side;
+      r._renderObjectDirect(f.mesh, f.material, f.scene, f.camera, {}, null, {}, String(side));
+    }
+    f.material.side = 0; r._currentRenderContext = f.contexts[0];
+  });
+  assert.equal(fifthBeforeFirst, true); assert.ok(peak <= 4); assert.equal(active, 0); assert.equal(f.calls.length, 6);
+});

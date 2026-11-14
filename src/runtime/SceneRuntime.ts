@@ -19,6 +19,7 @@ import { repairFounderExteriorWinding, installExteriorLighting } from './renderi
 import { repairStudioThreshold } from './rendering/floorThreshold';
 import { repairEntranceApron } from './rendering/entranceApron';
 import lightingSizes from '../generated/lighting-transfer-sizes.json';
+import textureSizes from '../generated/texture-transfer-sizes.json';
 import { createLightingReadAhead } from './rendering/lightingReadAhead';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
@@ -318,7 +319,17 @@ export class SceneRuntime {
     const loader = new GLTFLoader(loadGuard.manager);
     const decoder = createMeshoptDecoder(this.abort.signal);
     loader.setMeshoptDecoder(decoder);
-    this.ktx2 = new SceneKTX2Loader(loadGuard.manager, this.abort.signal).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
+    // Transfer only declared textures while GLB work is in progress. Keep
+    // encoded bytes bounded; KTX decoding stays in its existing two-worker pool.
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const sizes = textureSizes as Record<string, number>;
+    const urls = this.manifest.chunks.flatMap(chunk => chunk.textureURLs ?? []);
+    const textureDownloads = !saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()
+      ? createLightingReadAhead(Object.fromEntries(urls.filter(url => sizes[url] && url !== '/assets/v2/textures/gallery-architecture-base.ktx2')
+        .map(url => [new URL(assetURL(url), window.location.href).href, sizes[url]])),
+        (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal, 24 * 1024 * 1024, 2)
+      : undefined;
+    this.ktx2 = new SceneKTX2Loader(loadGuard.manager, this.abort.signal, textureDownloads?.read).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
     const chunks = [...this.manifest.chunks].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
     const bytes = new Map<string, number>();
@@ -356,7 +367,7 @@ export class SceneRuntime {
         }
       });
       loadGuard.assertLoaded();
-    } finally { decoder.dispose(); }
+    } finally { textureDownloads?.close(); decoder.dispose(); }
   }
 
   private prepareCamera() {

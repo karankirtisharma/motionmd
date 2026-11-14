@@ -28,6 +28,9 @@ export async function immutableSceneAssetHashes(publicRoot, urls) {
 export async function writeImmutableSceneAssetHashes(root, generated, enabled) {
   const publicRoot = path.join(root, 'public');
   const hashes = enabled ? await immutableSceneAssetHashes(publicRoot, await releaseSourceAssets(publicRoot)) : {};
+  const sizes = {};
+  for (const url of Object.keys(hashes)) if (url.endsWith('.ktx2')) sizes[url] = (await fs.stat(path.join(publicRoot, url))).size;
+  await fs.writeFile(path.join(generated, 'texture-transfer-sizes.json'), JSON.stringify(sizes) + '\n');
   const output = path.join(generated, 'immutable-scene-assets.json');
   await fs.writeFile(output + '.tmp', JSON.stringify(hashes, null, 2) + '\n');
   await fs.rename(output + '.tmp', output);

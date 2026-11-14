@@ -285,3 +285,53 @@ Release scope remains motionmd/codex/living-maquette and motionmd-6ipx only.
 motiondesign.ad, its repository, DNS, CRM dist and source model assets are untouched.
 
 Final compatibility review: r186 Pipelines.isReady checks a WebGPU pipeline handle; WebGL stores programGPU. The async bridge is explicitly WebGPU-only, and WebGL retains the prior bounded public preparation path. Added regression coverage; focused suite now has 56 passing tests.
+
+
+## 2026-11-14 - reduce avoidable initial-loading waits
+
+The async shader preparation previously joined a whole four-job GPU batch.
+A slow member blocked reuse of the other completed slots. A rolling set now
+reuses the first completed slot, keeps the same maximum of four driver jobs,
+retains serial node-graph construction, and joins every job before the complete
+draw/readiness fence. Rejections remain observed and reject readiness; temporary
+renderer/material/light state still restores on every exit. WebGL retains the
+existing public fallback, and the r186 bridge remains version guarded.
+
+Declared external KTX2 textures previously waited for each GLB download/parse to
+discover them. A 24 MiB encoded-byte read-ahead pool now overlaps up to two
+required transfers with geometry work. It uses generated real file sizes,
+versioned immutable URLs, and the existing retry/cancellation path; consumption
+transfers buffer ownership once. Decode concurrency remains two workers. This
+pool is additional to the existing 32 MiB EXR pool and bounded GLB staging;
+resident scene textures are unchanged. Data Saver and external asset origins
+disable speculative KTX transfers. Custom headers/credentials bypass anonymous
+read-ahead. The already-superseded gallery albedo remains excluded, with demand
+loading available. Cancellation before claim, abort after claim, synchronous
+failure, measured progress and shared subscribers are covered by regressions.
+
+No GLB, texture, CRM dist, geometry, lighting, resolution, temporal filtering,
+intro timing or post-entry render path was changed. Production build/TypeScript
+and 78 focused tests passed. At 1440x900 DPR1 in hardware WebGPU (Chrome157,
+NVIDIA Lovelace), the combined candidate had 124 asset requests, 544.69 MiB
+encoded data, 1170 node builds, 345 GPU programs and 2077 MiB tracked scene
+resources: all equal to baseline. There were no extra texture requests.
+
+Serial local production runs with HTTP cache cleared: baseline 94.1s, rolling
+candidate 64.5s; repeating the warmed-driver baseline yielded 59.0s and rolling
+65.7s. The combined candidate yielded 65.3s. Driver/CPU cache variation is large,
+so these totals do NOT establish a controlled percentage improvement. The
+read-ahead waterfall confirms textures begin before their GLB parse (some
+studio textures at 3.8s instead of 10.5s); local transfers are too fast to infer
+a network-wide saving. In the combined shader-preparation section there were
+four tasks above 50ms, maximum 56ms and 11ms total above the threshold. The
+earlier setup/probe stage still had an 805ms maximum; this work does not claim
+every startup stage is inside a 16ms frame budget.
+
+Real-scene checks: zero app iframes before Enter; founder snapshot visible;
+seating activated exactly one CRM iframe; native Clients/search clicks and
+typing Aurelia worked; standing retained its hidden iframe and snapshot.
+Presentation snapshot and seated live Studio both displayed correctly. No page
+errors. Fixed-pose stock/cached shadow comparison reported zero differing
+components. Assets and scene quality are unchanged. Release is restricted to
+motionmd/codex/living-maquette and motionmd-6ipx.vercel.app; motiondesign.ad and
+its repository/DNS are untouched.

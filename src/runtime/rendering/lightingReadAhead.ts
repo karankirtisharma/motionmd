@@ -1,6 +1,6 @@
 export type ReadLightingBytes = (url: string, signal?: AbortSignal) => Promise<ArrayBuffer>;
 
-/** Start only known, required EXR transfers during room loading. Ready bytes
+/** Start only known, required texture transfers during room loading. Ready bytes
  * stay encoded until their original consumer needs them. The consumer owns
  * its buffer exclusively (EXR workers transfer and detach it). */
 export function createLightingReadAhead(

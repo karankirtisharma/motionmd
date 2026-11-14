@@ -34,3 +34,5 @@ src/generated/texture-delivery.json
 src/generated/chair-lightmap.json
 src/generated/lighting-transfer-sizes.json
 src/generated/immutable-scene-assets.json
+
+src/generated/texture-transfer-sizes.json

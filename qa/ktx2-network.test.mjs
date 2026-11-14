@@ -112,3 +112,48 @@ test('shared KTX2 progress reaches each subscriber without changing loaded-byte 
   assert.deepEqual(seenA, [[1, 3, true], [3, 3, true]]); assert.deepEqual(seenB, seenA);
   loader.dispose(); texture.dispose();
 });
+
+test('required read-ahead bytes are consumed once without a duplicate network request', async t => {
+  const manager = new LoadingManager(), ahead = deferred(); let reads = 0, decodes = 0;
+  const loader = new SceneKTX2Loader(manager, undefined, (url, signal) => {
+    reads++; assert.equal(url, 'http://localhost/maps/shared.ktx2?v=1'); assert.equal(signal.aborted, false); return ahead.promise;
+  }); loader.workerConfig = {};
+  t.mock.method(globalThis, 'fetch', async () => assert.fail('read-ahead already owns the transfer'));
+  const texture = new CompressedTexture(); loader._createTexture = async bytes => { decodes++; assert.deepEqual([...new Uint8Array(bytes)], [8,9]); return texture; };
+  const first = loader.loadAsync('/maps/shared.ktx2?v=1'), second = loader.loadAsync('/maps/shared.ktx2?v=1');
+  ahead.resolve(Uint8Array.of(8,9).buffer); assert.equal(await first, texture); assert.equal(await second, texture);
+  assert.equal(reads,1); assert.equal(decodes,1); loader.dispose(); texture.dispose();
+});
+
+test('custom headers bypass anonymous read-ahead, and cancellation reaches a claimed transfer', async t => {
+  const scene = new AbortController(); let claimed;
+  const loader = new SceneKTX2Loader(undefined, scene.signal, (url, signal) => { claimed=signal; return new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true})); }); loader.workerConfig = {};
+  const request = loader.loadAsync('/pending.ktx2'); await microtasks(); scene.abort(); await assert.rejects(request,{name:'AbortError'}); assert.equal(claimed.aborted,true); loader.dispose();
+  const other = new SceneKTX2Loader(undefined, undefined, () => assert.fail('custom request must not consume anonymous bytes')); other.workerConfig = {}; other.setRequestHeader({ 'X-Custom': 'one' });
+  t.mock.method(globalThis,'fetch',async (url,options)=>{assert.equal(options.headers.get('X-Custom'),'one');return new Response(Uint8Array.of(1));});
+  const texture = new CompressedTexture(); other._createTexture = async()=>texture; assert.equal(await other.loadAsync('/custom.ktx2'),texture); other.dispose();texture.dispose();
+});
+
+
+test('cancellation before read-ahead starts never claims a buffer; synchronous errors balance the manager', async () => {
+  const scene = new AbortController(), manager = new LoadingManager(); let reads = 0, starts = 0, ends = 0, errors = 0;
+  manager.itemStart = () => starts++; manager.itemEnd = () => ends++; manager.itemError = () => errors++;
+  const loader = new SceneKTX2Loader(manager, scene.signal, () => { reads++; throw Error('unexpected claim'); }); loader.workerConfig = {};
+  const cancelled = loader.loadAsync('/cancel-before-claim.ktx2'); scene.abort();
+  await assert.rejects(cancelled, { name: 'AbortError' }); await microtasks();
+  assert.equal(reads, 0); assert.deepEqual([starts, ends, errors], [1, 1, 1]); loader.dispose();
+  const next = new SceneKTX2Loader(manager, undefined, () => { throw Error('read-ahead failed'); }); next.workerConfig = {};
+  await assert.rejects(next.loadAsync('/failure.ktx2'), /read-ahead failed/);
+  assert.deepEqual([starts, ends, errors], [2, 2, 2]); next.dispose();
+});
+
+test('read-ahead progress reports completed measured bytes to every subscriber', async t => {
+  const previous = globalThis.ProgressEvent;
+  globalThis.ProgressEvent = class extends Event { constructor(type, options) { super(type); Object.assign(this, options); } };
+  t.after(() => { if (previous === undefined) delete globalThis.ProgressEvent; else globalThis.ProgressEvent = previous; });
+  const loader = new SceneKTX2Loader(undefined, undefined, async () => Uint8Array.of(1,2,3).buffer); loader.workerConfig = {};
+  const texture = new CompressedTexture(); loader._createTexture = async () => texture;
+  const seen = [], onProgress = e => seen.push([e.loaded, e.total, e.lengthComputable]);
+  await Promise.all([loader.loadAsync('/ahead.ktx2', onProgress), loader.loadAsync('/ahead.ktx2', onProgress)]);
+  assert.deepEqual(seen, [[3,3,true],[3,3,true]]); loader.dispose(); texture.dispose();
+});

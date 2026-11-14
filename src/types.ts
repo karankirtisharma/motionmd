@@ -12,7 +12,7 @@ export type SceneManifest = {
   version: string;
   source: string | { filename: string; sha256?: string; [key: string]: unknown };
   units: 'meters'; coordinateSystem: 'three-y-up';
-  chunks: Array<{ id: string; url: string; bytes: number; bounds?: Bounds; priority?: number }>;
+  chunks: Array<{ id: string; url: string; bytes: number; textureURLs?: string[]; bounds?: Bounds; priority?: number }>;
   cameras: Array<{ id: string; position: Vec3; target: Vec3; fov: number; time?: number }>;
   tour?: TourFrame[];
   sun?: { position: Vec3; positionIsDirection?: boolean; target?: Vec3; color: Vec3 | string; intensity: number };
