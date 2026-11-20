@@ -108,7 +108,8 @@ export async function stageReleasePublic(publicDir,destination,entries,{dryRun=f
   for (const [url,entry] of Object.entries(entries)) {
     if (!entry.identity) continue;
     if (!keep.has(url)) throw Error('Unexpected delivery index source: '+url);
-    await verifyIdentity(root,url,entry,reports);omittedModels.add(url);
+    await verifyIdentity(root,url,entry,reports);
+    if (!entry.retainSource) omittedModels.add(url);
   }
   if (!dryRun) await fs.mkdir(dest); // Refuse to merge into any existing directory.
   const result={files:0,bytes:0,omittedModelBytes:0,unselectedAssetBytes:0,oldHashBytes:0};

@@ -8,7 +8,7 @@ import manifest from './public/assets/scene-manifest.json';
 import { selectAssetEncoding } from './src/server/assetEncoding';
 import { assetCacheControl } from './src/server/assetRevision';
 
-type DeliveryEntry = { br: string; gzip: string; identity?: string; decodedBytes: number; brBytes: number; gzipBytes: number };
+type DeliveryEntry = { br: string; gzip: string; identity?: string; retainSource?: boolean; decodedBytes: number; brBytes: number; gzipBytes: number };
 const entries = delivery as Record<string, DeliveryEntry>;
 const textures: Record<string, { webp: string }> = textureDelivery;
 const raw: Record<string, string> = rawRevisions;
@@ -55,6 +55,7 @@ export function proxy(request: NextRequest) {
   }
   const entry = entries[request.nextUrl.pathname];
   if (!entry || !['GET', 'HEAD'].includes(request.method)) return NextResponse.next();
+  if (entry.retainSource && !request.nextUrl.searchParams.has('v')) return NextResponse.next();
   const encoding = selectAssetEncoding(request.headers.get('accept-encoding'));
   if (!encoding) return new NextResponse(null, { status: 406, headers: { Vary: 'Accept-Encoding' } });
   // Local browser bridges may strip Content-Encoding while forwarding a

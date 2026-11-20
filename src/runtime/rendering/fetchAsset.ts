@@ -1,6 +1,7 @@
 type DownloadOptions = {
   signal?: AbortSignal;
   expectedBytes?: number;
+  retryUrl?: string;
   headers?: HeadersInit;
   credentials?: RequestCredentials;
   onProgress?: (loaded: number, total: number, headers: Headers) => void;
@@ -73,7 +74,8 @@ export async function fetchAssetBuffer(url: string, options: DownloadOptions = {
       // body, so a one-off 500 or cut transfer can be stored for a year. A retry must
       // go back to the network, or every attempt (and every later visit) replays it.
       const cache = process.env.NODE_ENV === 'development' ? 'no-store' : attempt ? 'reload' : 'default';
-      const response = await network(fetch(url, { cache, signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
+      const requestUrl = attempt > 0 ? options.retryUrl ?? url : url;
+      const response = await network(fetch(requestUrl, { cache, signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
       if (!response.ok) {
         void response.body?.cancel().catch(() => {});
         const retryable = [408, 425, 429, 500, 502, 503, 504].includes(response.status);

@@ -40,7 +40,9 @@ export function resolveAssetDependency(url: string, base = process.env.NEXT_PUBL
 }
 
 export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (loaded: number, total: number, delivery?: SceneDeliverySize) => void, expectedBytes?: number): Promise<ArrayBuffer> {
-  return fetchAssetBuffer(assetURL(url), { signal, expectedBytes, onProgress: onBytes ? (loaded, total, headers) => {
+  const entries: Record<string, { identity?: string; decodedBytes: number }> = delivery;
+  const entry = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() ? undefined : entries[url];
+  return fetchAssetBuffer(assetURL(url), { signal, retryUrl: entry?.identity, expectedBytes: entry?.decodedBytes ?? expectedBytes, onProgress: onBytes ? (loaded, total, headers) => {
     onBytes(loaded, total, { encodedBytes: Number(headers.get('x-scene-encoded-length')) || 0,
       decodedBytes: Number(headers.get('x-scene-decoded-length')) || 0, encoding: headers.get('content-encoding') || 'identity' });
   } : undefined });

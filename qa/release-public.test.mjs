@@ -49,6 +49,13 @@ test('staged public retains rollback, external model images, Studio and raw comp
     assert.ok((await fs.readFile(path.join(stage,f))).equals(await fs.readFile(path.join(pub,f))));
 });
 
+test('a retained source model and its optimized representation are staged byte for byte', async t => {
+  const {pub,model,entry,stage,glb,payload} = await fixture(t);
+  await stageReleasePublic(pub,stage,{[model]:{...entry,retainSource:true}});
+  assert.deepEqual(await fs.readFile(path.join(stage,model)),glb);
+  assert.deepEqual(await fs.readFile(path.join(stage,entry.identity)),payload);
+});
+
 test('missing or invalid encoding stops staging before the output is created',async t=>{
   const {pub,model,entry,stage}=await fixture(t);
   await fs.appendFile(path.join(pub,entry.gzip),'damage');

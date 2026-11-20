@@ -109,6 +109,10 @@ for (const chunk of chunks) {
     images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
     br: (await fs.stat(path.join(root, 'public', entry.br))).size, gzip: (await fs.stat(path.join(root, 'public', entry.gzip))).size });
 }
+// Preserve the authored entrance at its canonical URL. The scene requests a
+// versioned URL and continues to receive the verified optimized representation.
+const entrance = chunks.find(chunk => chunk.id === 'entrance');
+if (entrance && index[entrance.url]?.identity) index[entrance.url].retainSource = true;
 await fs.writeFile(path.join(generated, 'asset-delivery.json.tmp'), JSON.stringify(index, null, 2) + '\n');
 await fs.rename(path.join(generated,'asset-delivery.json.tmp'),path.join(generated,'asset-delivery.json'));
 await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
