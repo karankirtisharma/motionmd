@@ -16,9 +16,14 @@ const transpile = relative => ts.transpileModule(fs.readFileSync(new URL(relativ
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 }).outputText;
 const movementURL = new URL('../src/runtime/interaction/movement.ts', import.meta.url).href;
+const flightsURL = dataModule(transpile('../src/runtime/interaction/stairFlights.ts'));
+const locomotionURL = dataModule(transpile('../src/runtime/interaction/locomotionClips.ts')
+  .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
+  .replace("from './stairFlights'", `from ${JSON.stringify(flightsURL)}`));
 const rocketboxSource = transpile('../src/runtime/interaction/RocketboxAvatar.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
-  .replace("from './movement'", `from ${JSON.stringify(movementURL)}`);
+  .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
+  .replace("from './locomotionClips'", `from ${JSON.stringify(locomotionURL)}`);
 const { createRocketboxAvatar } = await import(dataModule(rocketboxSource));
 
 async function load(url, omitImages = false) {
@@ -48,6 +53,8 @@ const controllerSource = transpile('../src/runtime/interaction/InteractionContro
   .replace("from './ComputerScreens'", `from ${JSON.stringify(new URL('../src/runtime/interaction/ComputerScreens.ts', import.meta.url).href)}`)
   .replace("from './Workstation'", `from ${JSON.stringify(new URL('../src/runtime/interaction/Workstation.ts', import.meta.url).href)}`)
   .replace("from './StairSurfaces'", `from ${JSON.stringify(new URL('../src/runtime/interaction/StairSurfaces.ts', import.meta.url).href)}`)
+  .replace("from './stairFlights'", `from ${JSON.stringify(flightsURL)}`)
+  .replace("from './locomotionClips'", `from ${JSON.stringify(locomotionURL)}`)
   .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
   .replace("from './GlassLift'", `from ${JSON.stringify(new URL('../src/runtime/interaction/GlassLift.ts', import.meta.url).href)}`)
   .replace("from './CollisionWorld'", `from ${JSON.stringify(dataModule(`export const createCollisionWorld=async()=>globalThis.${fixtureKey}.physics;`))}`)

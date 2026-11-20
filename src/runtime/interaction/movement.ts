@@ -29,6 +29,19 @@ export function locomotionHeading(current: number, target: number, speed: number
   return current + Math.max(-maxRate * dt, Math.min(maxRate * dt, step));
 }
 
+/** Turn rate (rad/s) for locomotionHeading with an eased onset. A reversal used
+ * to jump from rest to the full pivot rate in one tick. Only the build-up is
+ * bounded; the settle already eases out and must not be delayed (no overshoot).
+ */
+export function easedTurnRate(previousRate: number, current: number, target: number, speed: number, dt: number) {
+  if (dt <= 0) return 0;
+  const desired = (locomotionHeading(current, target, speed, dt) - current) / dt;
+  if (desired * previousRate >= 0 && Math.abs(desired) <= Math.abs(previousRate)) return desired;
+  // 70 rad/s²: the full walking pivot rate is reached after about 0.09 s.
+  const change = 70 * dt;
+  return previousRate + Math.max(-change, Math.min(change, desired - previousRate));
+}
+
 /** Slow sharp changes of travel direction while the body catches up. */
 export function turnSpeedFactor(bodyYaw: number, travelYaw: number) {
   const cosine = Math.cos(travelYaw - bodyYaw);

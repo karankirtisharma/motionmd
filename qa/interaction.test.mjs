@@ -63,7 +63,9 @@ test('the approved helical stair supports walking and sprinting in both directio
   try {
     const route=[];
     for(let i=0;i<=160;i++) {const a=(60+315/46)-(315+315/46)*i/160,r=a*Math.PI/180;route.push([18.76+1.55*Math.cos(r),3.67/24*((60-a)/(315/23)+.5),-(20.2+1.55*Math.sin(r))]);}
-    for(const speed of [1.38,3.35]) for(const direction of [1,-1]) {
+    // The floor speeds, and what the stair gate asks of the capsule since stairs are taken one tread per step:
+    // 0.9 and 1.2 m/s over the ground, requested at 0.8x to 1.7x of that (0.72 to 2.04 m/s).
+    for(const speed of [.72,.9,1.2,1.38,2.04,3.35]) for(const direction of [1,-1]) {
       const points=direction===1?route:[...route].reverse(),feet=new THREE.Vector3(...points[0]);feet.y=physics.groundAt(feet);physics.place(feet);let grounded=true,v=0;
       for(const target of points.slice(1)) {
         for(let i=0;i<180;i++) {const d=new THREE.Vector3(target[0]-feet.x,0,target[2]-feet.z);if(d.length()<.045)break;d.clampLength(0,speed/60);v=grounded?-.5:Math.max(-16,v-9.81/60);d.y=v/60;grounded=physics.move(d,1/60,feet);}

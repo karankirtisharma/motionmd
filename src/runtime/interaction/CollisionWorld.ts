@@ -11,6 +11,7 @@ import { exteriorCollision } from './exteriorCollision.ts';
 import { exteriorCollisionGeometry } from '../rendering/exteriorSurfaces.ts';
 import { facadeCollision } from './facadeCollision.ts';
 import { clubCollision } from './clubCollision.ts';
+import { createCameraOccluders } from './cameraOccluders.ts';
 
 // Measured shipping rig: idle hands span 0.648 m; running crown reaches 1.886 m.
 // Keep the support offset separate from the visual sole and cover the actual body.
@@ -209,6 +210,8 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
   function cast(origin: THREE.Vector3, direction: THREE.Vector3, distance: number) {
     return world.castRay(new RAPIER.Ray(origin, direction), distance, true, undefined, undefined, capsule, body);
   }
+  // Drawn walls and ceilings the collision export never covered; camera boom only.
+  const cameraOccluders = root !== scene ? createCameraOccluders(scene) : undefined;
   const cameraShape = new RAPIER.Ball(0.19);
   const cameraDirection = new THREE.Vector3();
   const identityRotation = { x: 0, y: 0, z: 0, w: 1 };
@@ -363,9 +366,14 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       // A permanent stride-length reserve creates an invisible wall after the
       // gait has already settled. Keep the physical guard and contact skin.
       if (!hit) return requestedSpeed;
+      // Only something he is heading into (faced within ~50 deg). A rail, glass guard or wall he passes at an angle
+      // is the controller's to slide along: braking for it slowed him to a crawl beside things he never touched.
+      const nx = hit.normal1.x, nz = hit.normal1.z, across = Math.hypot(nx, nz);
+      if (across < .3 || -(nx * velocity.x + nz * velocity.z) / across < .64) return requestedSpeed;
       const gap = Math.max(0, hit.time_of_impact);
-      // Quadratic braking settles long strides early; the bounded final approach
-      // avoids an asymptotic crawl while still reaching zero at physical contact.
+      // Quadratic braking settles long strides early (so a stepping foot or hand never reaches the wall; braking later
+      // let the stride carry a foot 11-19 cm into it); the bounded final approach avoids an asymptotic crawl while
+      // still reaching zero at physical contact.
       return Math.min(requestedSpeed, 3 * gap, Math.max(.12, 2.5 * gap * gap));
     },
     groundAt(position: THREE.Vector3, maximumDrop = 8) {
@@ -418,7 +426,7 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       const hit = cast(a, delta.multiplyScalar(1 / length), Math.max(0, length - tolerance));
       return !hit;
     },
-    cameraDistance(pivot: THREE.Vector3, camera: THREE.Vector3, clearance = 0.19) {
+    cameraDistance(pivot: THREE.Vector3, camera: THREE.Vector3, clearance = 0.19, drawnSurfaces = true) {
       const direction = cameraDirection.subVectors(camera, pivot), length = direction.length();
       if (length < 0.001) return 0;
       direction.multiplyScalar(1 / length);
@@ -428,10 +436,12 @@ export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?:
       // Never impose a minimum boom length: in a tight corner that would push
       // the camera through the obstacle that just stopped the sweep.
       const centerHit = cast(pivot, direction, length);
-      return Math.max(0, Math.min(length, hit ? hit.time_of_impact - 0.01 : length,
+      const distance = Math.max(0, Math.min(length, hit ? hit.time_of_impact - 0.01 : length,
         centerHit ? centerHit.timeOfImpact - clearance : length));
+      return drawnSurfaces && cameraOccluders ? cameraOccluders.distance(pivot, direction, distance, clearance) : distance;
     },
     dispose() {
+      cameraOccluders?.dispose();
       world.free();
       disposeLoaded();
     },

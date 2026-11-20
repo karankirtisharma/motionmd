@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { damping } from './movement';
+import { createLocomotion, type LocomotionData } from './locomotionClips';
 
 export type DeskPose = {
   hands: THREE.Vector3[]; feet: THREE.Vector3[]; handWeight: number; footWeight: number;
@@ -10,10 +11,10 @@ export type DeskPose = {
   stanceWeight?: number; balanceLean?: number;
   grip?: { hand: number; point: THREE.Vector3; forward: THREE.Vector3; weight: number };
 };
-export type StairContact = { sample: ((point: THREE.Vector3, supportY: number, margin?: number) => number | undefined) & { isStair?: (point: THREE.Vector3, supportY: number) => boolean }; sprint?: boolean };
+export type StairContact = { sample: ((point: THREE.Vector3, supportY: number, margin?: number) => number | undefined) & { isStair?: (point: THREE.Vector3, supportY: number) => boolean; clearance: (points: readonly THREE.Vector3[], supportY: number, margin?: number) => number; heights: (points: readonly THREE.Vector3[], count: number, minY: number, maxY: number, out: Float32Array | Float64Array | number[]) => void }; sprint?: boolean; active?: boolean };
 
-/** MIT Rocketbox source motions, with local root drift removed in the export. */
-export function createRocketboxAvatar(gltf: GLTF) {
+/** MIT Rocketbox body, idle and sit; walk, run and stairs from `locomotion` (Quaternius UAL, CC0) when supplied. */
+export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionData) {
   const root = new THREE.Group(); root.name = 'MD visitor';
   const model = gltf.scene; root.add(model);
   const ownedTextures = new Set<THREE.Texture>();
@@ -91,12 +92,26 @@ export function createRocketboxAvatar(gltf: GLTF) {
   model.traverse(object => { if ((object as THREE.Bone).isBone) animatedPose.push({ bone: object as THREE.Bone, quaternion: object.quaternion.clone(), position: object.position.clone(), scale: object.scale.clone() }); });
   let speedSmoothed = 0, gaitPhase = 0, previousYaw = root.rotation.y;
   let forwardLean = 0, sideLean = 0;
-  const walkDuration = actions.walk.getClip().duration, runDuration = actions.run.getClip().duration;
+  // The source loops are keyed from frame 1 (t = 1/30 s) and their last key
+  // repeats the first. Sampling 0..duration therefore held one pose for a
+  // source frame on every cycle: a visible hitch, and in the run a planted
+  // shoe dragged forward. Loop the keyed interval only; no key is changed.
+  const keyedLoop = (clip: THREE.AnimationClip) => {
+    const start = Math.min(...clip.tracks.map(track => track.times[0]));
+    return { start, cycle: clip.duration - start };
+  };
+  const walkLoop = keyedLoop(actions.walk.getClip()), runLoop = keyedLoop(actions.run.getClip());
+  // Ground speed at which each source loop's supporting shoe stays still at
+  // 1x playback, measured from ball-of-foot contact at the calibrated 1.86 m
+  // scale. The earlier 1.35 / 3.35 came from ankle travel and made the walk
+  // step too often for its ground speed (shoes slipping back on each step).
+  const WALK_GROUND_SPEED = 1.53, RUN_GROUND_SPEED = 3.29;
   // Source left-foot forward peaks are at .242 (walk) and .292 (run).
   // Drive both loops from one distance-based phase so sprint blends keep the same supporting leg.
   actions.walk.paused = true; actions.run.paused = true;
   const parentRotation = new THREE.Quaternion(), localRotation = new THREE.Quaternion();
   const worldRotation = new THREE.Quaternion(), leanRotation = new THREE.Quaternion();
+  const spineWorld = new THREE.Quaternion(), keepLegs = new THREE.Quaternion();
   const rightAxis = new THREE.Vector3(), forwardAxis = new THREE.Vector3();
 
   const setterParentRotation = new THREE.Quaternion();
@@ -280,24 +295,22 @@ export function createRocketboxAvatar(gltf: GLTF) {
     const indices: number[] = [];
     for (let v = 0; v < weights.count; v++) {
       let footWeight = 0;
-      for (let slot = 0; slot < 4; slot++) {
-        if (/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(v, slot)].name)) footWeight += weights.getComponent(v, slot);
-      }
+      for (let slot = 0; slot < 4; slot++) if (/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(v, slot)].name)) footWeight += weights.getComponent(v, slot);
       if (footWeight > .95) indices.push(v);
     }
     if (indices.length) soleSamples.push({ mesh, indices });
   });
 
-  // Locomotion is the original authored walk/run/idle. Terrain moves the
-  // collision-supported root; it does not rewrite knees, feet or pelvis.
-  // Chair contact IK remains isolated in plantFeet/deskPose above.
+  // Walk, run and stairs: baked clips (locomotionClips.ts). Chair contact IK stays in plantFeet/deskPose.
+  const loco = locomotionData ? createLocomotion(mixer, locomotionData, actions.idle.getClip()) : undefined;
+  const baseYaw = model.rotation.y;
   return {
     root,
     animations: gltf.animations.map((clip) => clip.name),
     view: { eyeHeight, seatedEyeOffset },
     get locomotion() {
       return { phase: gaitPhase, speed: speedSmoothed, forwardLean, sideLean,
-        stairClearance: [0,0], soleLift,
+        stairClearance: [0,0], stair: loco?.state.stair ?? 0, soleLift, stairU: loco?.state.u,
         weights: Object.fromEntries(Object.entries(actions).map(([name, value]) => [name, value.getEffectiveWeight()])) };
     },
     resetMotion() {
@@ -305,33 +318,47 @@ export function createRocketboxAvatar(gltf: GLTF) {
       // previous visit. The controller resamples once before revealing us.
       speedSmoothed = 0; gaitPhase = 0; forwardLean = 0; sideLean = 0;
       previousYaw = root.rotation.y;
+      loco?.reset(); model.rotation.y = baseYaw;
       actions.idle.time = 0; actions.walk.time = 0; actions.run.time = 0; actions.sit.time = 0;
     },
+    /** On a flight with no input: how far to go to finish the step under way (the controller moves there). */
+    get stairSettle() { return loco?.state.settle; },
     setBodyView(active: boolean) {
       // The source GLB has separate head/hair primitives. Hide only these locally;
       // torso, arms, legs, source rig and the immutable asset stay intact.
       headMeshes.forEach(({ mesh, visible }) => { mesh.visible = active ? false : visible; });
     },
-    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, _stairs?: StairContact) {
+    update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, stairs?: StairContact) {
       dt = THREE.MathUtils.clamp(dt, 0, 0.1);
       seated = THREE.MathUtils.clamp(seated, 0, 1);
       const oldSpeed = speedSmoothed;
       speedSmoothed = THREE.MathUtils.lerp(speedSmoothed, Math.max(0, speed), damping(speed < speedSmoothed ? 14 : 9, dt));
-      const running = THREE.MathUtils.smoothstep(speedSmoothed, 1.8, 3.4);
+      // Braking from a sprint, the body slows faster than the smoothed value:
+      // the run pose must not outlast the speed that justified it.
+      const running = THREE.MathUtils.smoothstep(Math.min(speedSmoothed, Math.max(0, speed)), 1.8, 3.4);
       const walking = THREE.MathUtils.smoothstep(speedSmoothed, 0.02, 0.6);
-      actions.idle.setEffectiveWeight((1 - walking) * (1 - seated));
-      actions.walk.setEffectiveWeight(walking * (1 - running) * (1 - seated));
-      actions.run.setEffectiveWeight(walking * running * (1 - seated));
+      let onStairs = 0;
+      if (loco) {
+        actions.idle.setEffectiveWeight(0); actions.walk.setEffectiveWeight(0); actions.run.setEffectiveWeight(0);
+        onStairs = loco.update(dt, Math.max(0, speed) * (1 - seated), walking, 1 - seated, root.position, root.rotation.y, !!stairs?.sprint, !!stairs && !contacts && seated === 0).stair;
+      } else {
+        actions.idle.setEffectiveWeight((1 - walking) * (1 - seated));
+        actions.walk.setEffectiveWeight(walking * (1 - running) * (1 - seated));
+        actions.run.setEffectiveWeight(walking * running * (1 - seated));
+      }
       actions.sit.setEffectiveWeight(seated);
       // The supplied Sit is a looping seated gesture, not a stand-to-sit clip.
       // At a desk use its neutral pose; IK and the contact trajectory own the
       // transition. Otherwise different arrival times produce different bodies.
       actions.sit.paused = !!contacts;
       if (contacts) actions.sit.time = 0;
-      const stride = THREE.MathUtils.lerp(1.35 * walkDuration, 3.35 * runDuration, running);
-      gaitPhase = (gaitPhase + speedSmoothed * (1 - seated) * dt / stride) % 1;
-      actions.walk.time = gaitPhase * walkDuration;
-      actions.run.time = ((gaitPhase + 0.05) % 1) * runDuration;
+      const stride = THREE.MathUtils.lerp(WALK_GROUND_SPEED * walkLoop.cycle, RUN_GROUND_SPEED * runLoop.cycle, running);
+      // Steps follow the distance the body actually covers this frame. The
+      // smoothed speed only shapes blend weights and lean; advancing the cycle
+      // with it made the legs start late and keep stepping after a stop.
+      gaitPhase = loco ? loco.state.phase : (gaitPhase + Math.max(0, speed) * (1 - seated) * dt / stride) % 1;
+      actions.walk.time = walkLoop.start + gaitPhase * walkLoop.cycle;
+      actions.run.time = runLoop.start + ((gaitPhase + 0.05) % 1) * runLoop.cycle;
       // PropertyMixer skips unchanged tracks. Restore the previous animated pose
       // before sampling, otherwise procedural corrections accumulate on static keys.
       for (const pose of animatedPose) { pose.bone.quaternion.copy(pose.quaternion); pose.bone.position.copy(pose.position); pose.bone.scale.copy(pose.scale); }
@@ -354,8 +381,13 @@ export function createRocketboxAvatar(gltf: GLTF) {
       localRotation.setFromAxisAngle(forwardAxis, sideLean * (1 - seated));
       leanRotation.multiply(localRotation);
       spine.parent!.getWorldQuaternion(parentRotation);
+      spineWorld.copy(parentRotation).multiply(spine.quaternion);
       localRotation.copy(parentRotation).invert().multiply(leanRotation).multiply(parentRotation);
       spine.quaternion.premultiply(localRotation);
+      // The thighs hang from this spine bone: turn them back, so the legs and planted feet stay where the clips put
+      // them. (Leaning them too slid a planted shoe 2-3 cm whenever the visitor sped up or slowed down on a flight.)
+      keepLegs.copy(leanRotation).invert().multiply(spineWorld).premultiply(worldRotation.copy(spineWorld).invert());
+      for (const leg of legs) leg.upper.quaternion.premultiply(keepLegs);
       // The bone pivot sits inside the pelvis, above the actual cushion contact.
       model.position.y = baseline + (seatHeight + (contacts?.hipOffset ?? 0.075) - seatedHipHeight) * seated;
       model.updateWorldMatrix(true, true);
@@ -367,23 +399,43 @@ export function createRocketboxAvatar(gltf: GLTF) {
         model.updateWorldMatrix(true, true);
       }
       soleLift = 0;
-      if (!contacts && seated === 0) {
+      if (!contacts && seated === 0 && onStairs < 1) {
         root.updateMatrixWorld(true);
         let lowest = Infinity;
-        for (const { mesh, indices } of soleSamples) for (const index of indices) {
-          mesh.getVertexPosition(index, solePoint).applyMatrix4(mesh.matrixWorld);
-          lowest = Math.min(lowest, solePoint.y);
-        }
+        for (const { mesh, indices } of soleSamples) for (let k = 0; k < indices.length; k++) lowest = Math.min(lowest, mesh.getVertexPosition(indices[k], solePoint).applyMatrix4(mesh.matrixWorld).y);
         // Rapier support can settle 9 mm below the rendered floor. Include that
         // existing contact tolerance, with a strict 4 cm bound on source bob.
-        soleLift = THREE.MathUtils.clamp(root.position.y + .01 - lowest, 0, .04);
+        soleLift = THREE.MathUtils.clamp(root.position.y + .01 - lowest, 0, .04) * (1 - onStairs);
         model.position.y += soleLift;
-        root.updateMatrixWorld(true);
       }
+      if (loco && onStairs > 0) {
+        // On a flight the clips are fitted to its treads: the body follows the flight's own line (not the capsule)
+        // and walks along it.
+        model.position.y += onStairs * (loco.state.lineHeight - root.position.y);
+      }
+      if (loco?.state.flight && !contacts && seated === 0 && onStairs > 0 && onStairs < 1) {
+        // Joining or leaving a flight no shoe goes into a step: blending a floor stride with a stair step (two very
+        // different leg poses) carries a planted foot 2-4 cm below the floor or tread it stands on. Mid-blend the
+        // shoes keep up to 1 cm clear, as the floor walk's do (its contact allowance above), none at either end.
+        // (updateMatrixWorld, not updateWorldMatrix: only the former refreshes the skinned meshes' bind inverse.)
+        root.updateMatrixWorld(true);
+        const clear = .04 * onStairs * (1 - onStairs);
+        let need = 0;
+        for (const { mesh, indices } of soleSamples) for (let k = 0; k < indices.length; k++) {
+          mesh.getVertexPosition(indices[k], solePoint).applyMatrix4(mesh.matrixWorld);
+          const top = loco.surface(solePoint.x, solePoint.y, solePoint.z);
+          if (top !== undefined) need = Math.max(need, top + clear - solePoint.y);
+        }
+        const lift = Math.min(.04, need);
+        model.position.y += lift; soleLift += lift;
+      }
+      model.rotation.y = baseYaw + (loco ? loco.yawOffset(root.rotation.y) : 0);
+      model.updateWorldMatrix(true, true);
       plantFeet(seated);
       if (contacts) deskPose(contacts);
     },
     dispose() {
+      loco?.dispose();
       mixer.stopAllAction(); mixer.uncacheRoot(model);
       const geometries = new Set<THREE.BufferGeometry>(), materials = new Set<THREE.Material>(), skeletons = new Set<THREE.Skeleton>();
       model.traverse((object) => {

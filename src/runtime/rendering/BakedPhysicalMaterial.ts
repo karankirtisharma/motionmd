@@ -1,6 +1,6 @@
 import { MeshPhysicalMaterial, MeshStandardMaterial } from 'three';
 import { EnvironmentNode, IrradianceNode, MeshPhysicalNodeMaterial } from 'three/webgpu';
-import { materialReference, vec3 } from 'three/tsl';
+import { materialLightMap, materialReference, vec3 } from 'three/tsl';
 import type NodeBuilder from 'three/src/nodes/core/NodeBuilder.js';
 import type Node from 'three/src/nodes/core/Node.js';
 
@@ -18,15 +18,18 @@ class ReflectionOnlyEnvironmentNode extends EnvironmentNode {
 
 export class BakedPhysicalMaterial extends MeshPhysicalNodeMaterial {
   packedLightNode?:Node<'vec3'>;
+  /** Optional smooth gain on the baked light (see floorLightBalance.ts). */
+  lightBalanceNode?:Node<'float'>;
   copy(source:this) {
     super.copy(source);
     this.packedLightNode=source.packedLightNode;
+    this.lightBalanceNode=source.lightBalanceNode;
     return this;
   }
   setupLightMap(builder:NodeBuilder) {
-    return this.lightMap && this.packedLightNode
-      ? new IrradianceNode(this.packedLightNode.mul(materialReference('lightMapIntensity','float') as unknown as Node<'float'>))
-      : super.setupLightMap(builder);
+    if (this.lightMap && this.packedLightNode) return new IrradianceNode(this.packedLightNode.mul(materialReference('lightMapIntensity','float') as unknown as Node<'float'>));
+    if (this.lightMap && this.lightBalanceNode) return new IrradianceNode((materialLightMap as unknown as Node<'vec3'>).mul(this.lightBalanceNode));
+    return super.setupLightMap(builder);
   }
   setupEnvironment(builder: NodeBuilder) {
     const environment = super.setupEnvironment(builder);

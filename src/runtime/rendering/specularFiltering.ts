@@ -21,6 +21,9 @@ const filterGPU = wgslFn(`fn mdFilteredRoughness(r:f32,n:vec3<f32>)->f32 {
   return sqrt(sqrt(min(1.0,r*r*r*r+min(variance,.0064))));
 }`);
 
+// One filter node per (roughness, normal) pair, so materials sharing both also share a shader build.
+const sharedFilters = new WeakMap<object, Map<object, Node<'float'>>>();
+
 export function filterSourceSpecular(root: Object3D) {
   const seen = new Set<MeshPhysicalNodeMaterial>();
   root.traverse(object => {
@@ -31,7 +34,11 @@ export function filterSourceSpecular(root: Object3D) {
       const roughness = (material.roughnessNode ?? materialRoughness) as Node<'float'>;
       originalRoughness.set(material, material.roughnessNode as Node<'float'> | null);
       const normal = material.normalNode;
-      material.roughnessNode = Fn(builder => ('isWebGLBackend' in builder.renderer.backend ? filterGL : filterGPU)(roughness, normal))();
+      let filters = sharedFilters.get(normal);
+      if (!filters) sharedFilters.set(normal, filters = new Map());
+      let filtered = filters.get(roughness);
+      if (!filtered) filters.set(roughness, filtered = Fn(builder => ('isWebGLBackend' in builder.renderer.backend ? filterGL : filterGPU)(roughness, normal))() as unknown as Node<'float'>);
+      material.roughnessNode = filtered;
       material.userData.mdSpecularFiltered = true;
       material.needsUpdate = true;
     }

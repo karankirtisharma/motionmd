@@ -12,11 +12,16 @@ const transpile = (relativePath) => ts.transpileModule(fs.readFileSync(new URL(r
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
 }).outputText;
 const movementURL = dataModule(transpile('../src/runtime/interaction/movement.ts'));
+const flightsURL = dataModule(transpile('../src/runtime/interaction/stairFlights.ts'));
+const locomotionURL = dataModule(transpile('../src/runtime/interaction/locomotionClips.ts')
+  .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
+  .replace("from './stairFlights'", `from ${JSON.stringify(flightsURL)}`));
 const avatarSource = transpile('../src/runtime/interaction/RocketboxAvatar.ts')
   .replace("from 'three'", `from ${JSON.stringify(import.meta.resolve('three'))}`)
-  .replace("from './movement'", `from ${JSON.stringify(movementURL)}`);
+  .replace("from './movement'", `from ${JSON.stringify(movementURL)}`)
+  .replace("from './locomotionClips'", `from ${JSON.stringify(locomotionURL)}`);
 const { createRocketboxAvatar } = await import(dataModule(avatarSource));
-const { locomotionHeading, turnSpeedFactor } = await import(movementURL);
+const { locomotionHeading, easedTurnRate, turnSpeedFactor } = await import(movementURL);
 
 // Geometry, skinning and all animation buffers remain intact. Texture decoding
 // needs browser APIs and is unrelated to this numerical pose check.
@@ -71,6 +76,23 @@ test('a reversal has bounded body turning and minor contact corrections preserve
     }
     assert.ok(Math.abs(angle - Math.PI) < .03, 'reversal remains responsive');
   }
+  // The pivot builds up instead of starting at full rate, still settles on the
+  // new heading within a second, and never swings past it.
+  for (const hz of [60, 144]) {
+    let angle = 0, rate = 0, firstTick = 0, peak = 0;
+    for (let i = 0; i < hz; i++) {
+      rate = easedTurnRate(rate, angle, Math.PI, 1.38, 1/hz);
+      if (i === 0) firstTick = rate;
+      assert.ok(rate >= -1e-9 && rate <= 6.2 + 1e-9, 'bounded, one direction only');
+      angle += rate / hz; peak = Math.max(peak, rate);
+      assert.ok(angle <= Math.PI + 1e-9, 'no overshoot');
+    }
+    assert.ok(firstTick < 6.2 * .35, 'reversal onset is eased');
+    assert.ok(peak > 6.1, 'full pivot rate is still reached');
+    assert.ok(Math.abs(angle - Math.PI) < .03, 'eased reversal remains responsive');
+  }
+  // A gentle change of direction is passed through unchanged.
+  assert.ok(Math.abs(easedTurnRate(0, 0, .02, 1.38, 1/60) - (locomotionHeading(0, .02, 1.38, 1/60)) * 60) < 1e-9);
   assert.equal(turnSpeedFactor(0, 0.1), 1);
   assert.ok(turnSpeedFactor(0, Math.PI) < .4);
 });
@@ -200,38 +222,133 @@ test('desk hands retain palm support and settle without wrist flips at 60 and 14
   }
 });
 
-for (const [name, speed, seated] of [['Idle', 0, 0], ['Walk', 1.38, 0], ['Run', 3.35, 0], ['Sit', 0, 1]]) {
-  test(`${name}: complete clip loop stays finite, human scale and above the floor`, async (context) => {
-    const gltf = await load();
-    const avatar = createRocketboxAvatar(gltf);
-    const box = new THREE.Box3(), point = new THREE.Vector3();
-    let minimum = Infinity, maximum = -Infinity, footMinimum = Infinity, footMaximum = -Infinity;
-    const frames = Math.ceil(Math.max(3, (gltf.animations.find((clip) => clip.name === name)?.duration ?? 0) + 0.2) * 60);
-    try {
-      for (let frame = 0; frame < frames; frame++) {
-        avatar.update(1 / 60, speed, seated, seatHeightAboveFloor);
-        updateSkeletons(avatar.root);
-        if (frame % 15) continue;
-        box.makeEmpty();
-        avatar.root.traverse((object) => {
-          if (object.isMesh) for (let i = 0; i < object.geometry.attributes.position.count; i++) {
-            object.getVertexPosition(i, point); point.applyMatrix4(object.matrixWorld);
-            assert.ok(Number.isFinite(point.x + point.y + point.z)); box.expandByPoint(point);
-          }
-          if (object.isBone && /bip01[lr]foot/i.test(object.name.replace(/[^a-z0-9]/gi, ''))) {
-            const y = object.getWorldPosition(point).y;
-            footMinimum = Math.min(footMinimum, y); footMaximum = Math.max(footMaximum, y);
-          }
-        });
-        minimum = Math.min(minimum, box.min.y); maximum = Math.max(maximum, box.max.y);
+test('walk and run steps match the ground covered, without a held pose at the loop seam', async context => {
+  const avatar = createRocketboxAvatar(await load());
+  try {
+    const bone = name => { let found; avatar.root.traverse(o => { if (o.isBone && o.name.toLowerCase().replace(/[^a-z0-9]/g, '') === name) found = o; }); return found; };
+    const toes = [bone('bip01ltoe0'), bone('bip01rtoe0')], ankles = [bone('bip01lfoot'), bone('bip01rfoot')];
+    const read = (object, target) => object.getWorldPosition(target);
+    for (const speed of [1.38, 3.35]) {
+      avatar.resetMotion(); avatar.root.position.set(0, 0, 0); avatar.root.rotation.y = 0;
+      const frames = [];
+      for (let frame = 0; frame < 540; frame++) {
+        avatar.root.position.z += speed / 60; avatar.update(1 / 60, speed, 0); avatar.root.updateMatrixWorld(true);
+        if (frame >= 180) frames.push({ root: avatar.root.position.z, toes: toes.map(b => read(b, new THREE.Vector3())), ankles: ankles.map(b => read(b, new THREE.Vector3())) });
       }
-      assert.ok(maximum < 2 && maximum > 1, 'human scale maintained');
-      assert.ok(minimum > -0.06, 'feet do not materially penetrate the floor');
-      if (seated) assert.ok(footMaximum - footMinimum < 0.015, 'seated feet remain planted during breathing');
-      context.diagnostic(JSON.stringify({ frames, minimumVertexY: minimum, maximumVertexY: maximum, minimumAnkleY: footMinimum, maximumAnkleY: footMaximum }));
-    } finally { avatar.dispose(); }
+      // A held source frame leaves both legs motionless relative to the moving body.
+      let held = 0;
+      for (let i = 1; i < frames.length; i++) {
+        const moved = Math.max(...[0, 1].map(foot => Math.abs((frames[i].ankles[foot].z - frames[i].root) - (frames[i - 1].ankles[foot].z - frames[i - 1].root))));
+        if (moved < .0005) held++;
+      }
+      assert.equal(held, 0, `${speed} m/s: the cycle must not freeze at its loop seam`);
+      // While the ball of a shoe rests on the floor it must stay where it landed.
+      const slides = [];
+      for (const foot of [0, 1]) {
+        const floor = Math.min(...frames.map(f => f.toes[foot].y));
+        let start;
+        frames.forEach((f, i) => {
+          const contact = f.toes[foot].y < floor + .006;
+          if (contact && start === undefined) start = i;
+          if (!contact && start !== undefined) { if (start > 0 && i - 1 > start) slides.push(frames[i - 1].toes[foot].z - frames[start].toes[foot].z); start = undefined; }
+        });
+      }
+      const worst = Math.max(...slides.map(Math.abs));
+      assert.ok(slides.length >= 6, 'both shoes complete several contacts');
+      assert.ok(worst < .03, `${speed} m/s: a supporting shoe slid ${(worst * 1000).toFixed(1)} mm`);
+      context.diagnostic(JSON.stringify({ speed, contacts: slides.length, worstSlideMm: +(worst * 1000).toFixed(1) }));
+    }
+  } finally { avatar.dispose(); }
+});
+
+// A straight test flight along +z: floor, eight treads, landing. The root rides
+// the mid-line ramp through the treads (as on the helical stair collider) or
+// stands on the tread under it (as on the stone stairs).
+const flight = { riser: .16, going: .30, start: 1, treads: 8 };
+const treadAt = z => flight.riser * THREE.MathUtils.clamp(Math.ceil((z - flight.start) / flight.going), 0, flight.treads);
+// How far a point has gone in through the riser of the tread it is over: a shoe is no deeper inside a tread than that.
+const pastRiser = z => z < flight.start || z >= flight.start + flight.treads * flight.going ? Infinity : (z - flight.start) % flight.going;
+const rampAt = z => THREE.MathUtils.clamp(flight.riser * ((z - flight.start) / flight.going + .5), 0, flight.riser * flight.treads);
+function stairQuery(batched = true, spans = false) {
+  const state = { queries: 0 };
+  const sample = Object.assign((point, supportY) => { state.queries++; const y = treadAt(point.z); return y > supportY + .45 || y < supportY - .6 ? undefined : y; }, {
+    isStair: () => true,
+    clearance: () => { throw new Error('leg IK does not use the whole-model lift query'); },
   });
+  if (batched) sample.heights = (points, count, minY, maxY, out) => { state.queries++; for (let k = 0; k < count; k++) { const y = treadAt(points[k].z); out[k] = y < minY || y > maxY ? NaN : y; } };
+  // The tread under a point and how far it runs along a level direction: what stride scaling reads the going from.
+  // Without it (spans = false) the stride stays the clip's own and the gait keeps time with an untouched avatar.
+  if (spans) sample.span = (point, dirX, dirZ, minY, maxY, reach, out) => {
+    const y = treadAt(point.z), tread = Math.round(y / flight.riser);
+    if (y < minY || y > maxY) return false;
+    const from = tread === 0 ? -Infinity : flight.start + (tread - 1) * flight.going, to = tread === flight.treads ? Infinity : flight.start + tread * flight.going;
+    const a = Math.abs(dirZ) < 1e-6 ? -Infinity : (from - point.z) / dirZ, b = Math.abs(dirZ) < 1e-6 ? Infinity : (to - point.z) / dirZ;
+    out[0] = y; out[1] = Math.max(-reach, Math.min(a, b)); out[2] = Math.min(reach, Math.max(a, b));
+    return true;
+  };
+  return { sample, state };
 }
+function rigOf(avatar) {
+  const bones = []; avatar.root.traverse(o => { if (o.isBone) bones.push(o); });
+  const named = name => bones.find(b => b.name.toLowerCase().replace(/[^a-z0-9]/g, '') === name);
+  const legs = ['l', 'r'].map(side => ({ hip: named(`bip01${side}thigh`), knee: named(`bip01${side}calf`), ankle: named(`bip01${side}foot`) }));
+  const shoes = [[], []];
+  avatar.root.traverse(mesh => {
+    if (!mesh.isSkinnedMesh) return;
+    const w = mesh.geometry.attributes.skinWeight, j = mesh.geometry.attributes.skinIndex;
+    for (let v = 0; v < w.count; v++) {
+      let foot = 0, left = 0;
+      for (let s = 0; s < 4; s++) { const name = mesh.skeleton.bones[j.getComponent(v, s)].name; if (/foot|toe/i.test(name)) { foot += w.getComponent(v, s); if (/_L_/i.test(name)) left += w.getComponent(v, s); } }
+      if (foot > .95) shoes[left > foot / 2 ? 0 : 1].push([mesh, v]);
+    }
+  });
+  return { bones, legs, shoes, pelvis: named('bip01pelvis'), world: o => new THREE.Vector3().setFromMatrixPosition(o.matrixWorld) };
+}
+const sameLocal = (a, b) => a.position.distanceTo(b.position) < 1e-9
+  && Math.max(Math.abs(a.quaternion.x - b.quaternion.x), Math.abs(a.quaternion.y - b.quaternion.y), Math.abs(a.quaternion.z - b.quaternion.z), Math.abs(a.quaternion.w - b.quaternion.w)) < 1e-12;
+
+test('stairs: baked clips keep every shoe on the gallery treads, without pops; nothing changes away from flights', async () => {
+  const locomotion = JSON.parse(fs.readFileSync(new URL('../public/assets/character/locomotion-v9.json', import.meta.url)));
+  const { locateFlight } = await import(flightsURL);
+  const { stairSpeed } = await import(locomotionURL);
+  const avatar = createRocketboxAvatar(await load(), locomotion), plain = createRocketboxAvatar(await load(), locomotion);
+  try {
+    // Away from any flight the stair gate changes nothing.
+    const bones = x => { const list = []; x.root.traverse(o => { if (o.isBone) list.push(o); }); return list; };
+    const a = bones(avatar), b = bones(plain);
+    for (let frame = 0; frame < 60; frame++) {
+      for (const x of [avatar, plain]) x.root.position.set(0, 0, -8 + frame * 1.2 / 60);
+      avatar.update(1 / 60, 1.2, 0, .55, undefined, { sprint: false, active: true }); plain.update(1 / 60, 1.2, 0);
+    }
+    for (let i = 0; i < a.length; i++) assert.ok(sameLocal(a[i], b[i]), a[i].name + ': untouched away from flights');
+    // Up the gallery steps (17.5 cm risers, 29 cm treads) along a radius of their arcs, at the stair cadence.
+    const centre = new THREE.Vector2(-6.489, -19.622), dir = new THREE.Vector2(7.5 - centre.x, -23 - centre.y).normalize().negate();
+    const surface = (x, y, z) => { const hit = locateFlight(x, y, z, 4); return hit && hit.line(-.5) + hit.riser * THREE.MathUtils.clamp(Math.floor(hit.u) + 1, 0, hit.treads + 1); };
+    const depth = (x, y, z) => { const hit = locateFlight(x, y, z, 4); if (!hit) return 0; const top = k => hit.line(-.5) + hit.riser * THREE.MathUtils.clamp(k, 0, hit.treads + 1); let best = Infinity;
+      for (let j = Math.floor(hit.u) - 1; j <= Math.floor(hit.u) + 1; j++) best = Math.min(best, Math.hypot(Math.max(0, j * hit.going - hit.u * hit.going, hit.u * hit.going - (j + 1) * hit.going), Math.max(0, top(j + 1) - y)));
+      return best; };
+    const shoes = rigOf(avatar).shoes.flat(), v = new THREE.Vector3(), legs = ['L_Thigh', 'R_Thigh', 'L_Calf', 'R_Calf', 'L_Foot', 'R_Foot'].map(n => avatar.root.getObjectByName('Bip01_' + n));
+    const previous = legs.map(o => o.getWorldQuaternion(new THREE.Quaternion())), q = new THREE.Quaternion();
+    avatar.resetMotion();
+    let s = 0, y = 3.675, deepest = 0, pop = 0, onStairs = 0;
+    for (let frame = 0; frame < 600 && s < 6; frame++) {
+      const x = centre.x - dir.x * (17.4 - s), z = centre.y - dir.y * (17.4 - s), hit = locateFlight(x, y, z);
+      const speed = hit ? stairSpeed(hit, false) : 1.2;
+      s += speed / 60; y = Math.max(surface(x, y + .3, z) ?? y, y - .02);
+      avatar.root.position.set(x, y, z); avatar.root.rotation.y = Math.atan2(dir.x, dir.y);
+      avatar.update(1 / 60, speed, 0, .55, undefined, { sprint: false, active: true }); avatar.root.updateMatrixWorld(true);
+      onStairs = Math.max(onStairs, avatar.locomotion.stair);
+      for (const [mesh, i] of shoes) { mesh.getVertexPosition(i, v).applyMatrix4(mesh.matrixWorld); deepest = Math.max(deepest, depth(v.x, v.y, v.z)); }
+      if (frame > 30) legs.forEach((o, i) => { o.getWorldQuaternion(q); pop = Math.max(pop, 2 * Math.acos(Math.min(1, Math.abs(q.dot(previous[i])))) * 180 / Math.PI); previous[i].copy(q); });
+      else legs.forEach((o, i) => o.getWorldQuaternion(previous[i]));
+    }
+    assert.equal(onStairs, 1, 'the stair clips take over on the flight');
+    // Measured 2.2-2.9 cm: the rounded heel meeting the tread at heel strike (was 10-17 cm before the fixes).
+    assert.ok(deepest < .04, `no shoe goes more than 4 cm into a tread (${(deepest * 100).toFixed(1)} cm)`);
+    assert.ok(pop < 15, `no leg joint turns more than 15 deg in a 60 Hz frame (${pop.toFixed(1)})`);
+    assert.equal(avatar.locomotion.stair, 0, 'released on the landing');
+  } finally { avatar.dispose(); plain.dispose(); }
+});
 
 test('sit and stand blending plants the feet while the body turns toward a source chair', async (context) => {
   const avatar = createRocketboxAvatar(await load());

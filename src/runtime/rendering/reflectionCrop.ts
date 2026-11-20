@@ -25,6 +25,19 @@ export function reflectionCrop(bounds: Box3, world: Matrix4, view: PerspectiveCa
   return result.set(Math.max(0, Math.min(1 - width, (minU + maxU - width) / 2)),
     Math.max(0, Math.min(1 - height, (minV + maxV - height) / 2)), width, height);
 }
+/** Narrowest on-screen side, in pixels, of the pane's projected bounds (Infinity when it crosses the near plane). */
+export function reflectionSpan(bounds: Box3, world: Matrix4, view: PerspectiveCamera, full: Vector2) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < 8; i++) {
+    point.set(i & 1 ? bounds.max.x : bounds.min.x, i & 2 ? bounds.max.y : bounds.min.y, i & 4 ? bounds.max.z : bounds.min.z)
+      .applyMatrix4(world).applyMatrix4(view.matrixWorldInverse);
+    if (-point.z <= view.near) return Infinity;
+    point.applyMatrix4(view.projectionMatrix);
+    minX = Math.min(minX, point.x); maxX = Math.max(maxX, point.x); minY = Math.min(minY, point.y); maxY = Math.max(maxY, point.y);
+  }
+  const width = (Math.min(1, maxX) - Math.max(-1, minX)) / 2 * full.x, height = (Math.min(1, maxY) - Math.max(-1, minY)) / 2 * full.y;
+  return Math.max(0, Math.min(width, height));
+}
 /** Change only projection X/Y; the physical oblique clipping plane and depth stay intact. */
 export function cropReflectionCamera(camera: PerspectiveCamera, crop: Vector4) {
   const p = camera.projectionMatrix.elements;

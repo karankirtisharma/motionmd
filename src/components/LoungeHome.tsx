@@ -79,6 +79,17 @@ export default function LoungeHome() {
   const [referenceCamera, setReferenceCamera] = useState('');
   const [diagnosticMode, setDiagnosticMode] = useState<DiagnosticMode>('full');
   const [transitioning, setTransitioning] = useState(false);
+  // Cloud descent: the controls stay out of the way while the camera comes down and
+  // fade in once it has landed. (Keeping them composited but invisible during the
+  // descent was measured: it halved the frame rate of the descent itself.)
+  const [arrival, setArrival] = useState<'idle' | 'arriving' | 'revealing'>('idle');
+  const hud = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (arrival !== 'revealing') return;
+    const fade = hud.current?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 700, easing: 'ease-out' });
+    const timer = window.setTimeout(() => setArrival('idle'), 720);
+    return () => { window.clearTimeout(timer); fade?.cancel(); };
+  }, [arrival]);
   const [welcome, setWelcome] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(58);
@@ -128,6 +139,7 @@ export default function LoungeHome() {
           if (document.pointerLockElement) document.exitPointerLock();
         },
         onTransition: value => { if (!cancelled) { transitionRef.current = value; setTransitioning(value); } },
+        onArrival: value => { if (!cancelled) setArrival(value ? 'arriving' : 'revealing'); },
         onPlaybackChange: value => { if (!cancelled) setPlaying(value); },
         onCameraViewChange: value => { if (!cancelled) setCameraView(value); },
       });
@@ -207,7 +219,7 @@ export default function LoungeHome() {
       setIntroOpen(false); dismissWelcome();
       runtime.current?.setStudioCovered(false); resume();
     }} /> : null)}
-    <div hidden={introOpen || transitioning || studioOpen}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
+    <div ref={hud} hidden={introOpen || transitioning || studioOpen || arrival === 'arriving'} style={arrival === 'revealing' ? { position: 'relative', zIndex: 2 } : undefined}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}

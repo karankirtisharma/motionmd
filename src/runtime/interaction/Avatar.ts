@@ -2,14 +2,28 @@ import * as THREE from 'three';
 import { loadInteractionGLB } from './interactionGLB.ts';
 import { damping } from './movement';
 import { createRocketboxAvatar, type DeskPose, type StairContact } from './RocketboxAvatar';
+import type { LocomotionData } from './locomotionClips';
+import { assetURL } from '../rendering/assets.ts';
+import { fetchAssetBuffer } from '../rendering/fetchAsset.ts';
+
+/** Walk, run and stair clips for the visitor rig (scripts/locomotion/bake.mjs). A new bake gets a new name. */
+export const LOCOMOTION_URL = '/assets/character/locomotion-v9.json';
 
 /** Licensed rigged character. Architecture is always loaded separately from the user's export. */
 export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb', signal?: AbortSignal) {
   // The rejected candidate query no longer selects a different rig or gait.
-  const gltf = await loadInteractionGLB(url, signal);
+  const [gltf, locomotion] = await Promise.all([
+    loadInteractionGLB(url, signal),
+    // Without the clips the visitor keeps the rig's own walk and run (never blocks the visit).
+    fetchAssetBuffer(assetURL(LOCOMOTION_URL), { signal }).then(bytes => JSON.parse(new TextDecoder().decode(bytes)) as LocomotionData).catch(error => {
+      if (signal?.aborted) throw error;
+      console.warn('Visitor locomotion clips unavailable; using the rig walk.', error);
+      return undefined;
+    }),
+  ]);
   let rocketbox = false;
   gltf.scene.traverse((object) => { if (object.name.toLowerCase().replace(/[^a-z0-9]/g, '') === 'bip01pelvis') rocketbox = true; });
-  if (rocketbox) return createRocketboxAvatar(gltf);
+  if (rocketbox) return createRocketboxAvatar(gltf, locomotion);
   const root = new THREE.Group(); root.name = 'MD visitor';
   const model = gltf.scene; root.add(model);
   const ownedTextures = new Set<THREE.Texture>();

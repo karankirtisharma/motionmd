@@ -33,6 +33,8 @@ export function createFrameMeter(renderer: WebGPURenderer, onGPU?: (ms: number, 
       }).catch(() => { supported = false; latestGPU = undefined; }).finally(() => { pending = false; });
     },
     frame(ms: number) { rendered++; cpu += ms; },
+    /** Latest sampled GPU time of a rendered frame, when timestamp queries are available. */
+    latestGPU() { return supported ? latestGPU : undefined; },
     snapshot(seconds: number) {
       const value = {
         renderedFps: Math.round(rendered / seconds),

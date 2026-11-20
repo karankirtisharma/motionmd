@@ -1,20 +1,33 @@
 import { prepareRenderSlices } from './prepareRenderSlices.ts';
-import { type DirectionalLightShadow, type Object3D, PerspectiveCamera, RenderTarget, Scene, Vector2 } from 'three';
+import { type DirectionalLightShadow, type Object3D, PerspectiveCamera, RenderTarget, Scene, Vector2, Vector3 } from 'three';
 import { RenderPipeline, type WebGPURenderer } from 'three/webgpu';
-import { mrt, output, pass, velocity, vec4, uniform, uv } from 'three/tsl';
-import { traa } from 'three/addons/tsl/display/TRAANode.js';
+import { Fn, If, mix, mrt, mx_fractal_noise_float_2d, output, pass, renderOutput, smoothstep, velocity, vec2, vec3, vec4, uniform, uv } from 'three/tsl';
+import { sharpTraa as traa } from './SharpTRAANode.js';
+import { rcas, upscaleTaau } from './UpscaleTAAUNode.js';
 import { nativeScreenSampleOffset } from './nativeScreenSampleOffset.ts';
 
 /** Reproject live 3D samples, including the animated visitor's velocity.
  * HDR history is resolved before the existing source OCIO display transform.
  */
 export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, camera: PerspectiveCamera) {
+  // ?upscale=quality|balanced: draw the scene at 67% / 58% of the drawing buffer per
+  // axis and let the temporal pass reconstruct the full-resolution image (the web's
+  // equivalent of DLSS/FSR quality modes). Anything else is the native TRAA path.
+  const upscale = ({ quality: 2 / 3, balanced: .58 } as Record<string, number | undefined>)[new URLSearchParams(globalThis.location?.search).get('upscale') ?? ''];
   const scenePass = pass(scene, camera, { samples: 0 });
   const sceneMRT=mrt({ output, velocity });
   scenePass.setMRT(sceneMRT);
-  const temporal = traa(scenePass.getTextureNode('output'), scenePass.getTextureNode('depth'), scenePass.getTextureNode('velocity'), camera);
-  // Prefer stable subpixel lines over the optional sharper square-pattern correction.
-  temporal.useSubpixelCorrection = false;
+  let upscaled: ReturnType<typeof upscaleTaau> | undefined;
+  let temporal: ReturnType<typeof traa> | ReturnType<typeof upscaleTaau>;
+  if (upscale) {
+    scenePass.setResolutionScale(upscale);
+    temporal = upscaled = upscaleTaau(scenePass.getTextureNode('output'), scenePass.getTextureNode('depth'), scenePass.getTextureNode('velocity'), camera);
+  } else {
+    const native = traa(scenePass.getTextureNode('output'), scenePass.getTextureNode('depth'), scenePass.getTextureNode('velocity'), camera);
+    // Prefer stable subpixel lines over the optional sharper square-pattern correction.
+    native.useSubpixelCorrection = false;
+    temporal = native;
+  }
   const pipeline = new RenderPipeline(renderer);
   // The browser projects native displays with the stable camera. TRAA jitters
   // the beauty/depth draw by a subpixel each frame, so using its raw alpha makes
@@ -24,7 +37,25 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
   const sampleOffset = new Vector2();
   const offset = uniform(sampleOffset).onRenderUpdate(() => nativeScreenSampleOffset(camera, sampleOffset));
   const coverage = scenePass.getTextureNode('output').sample(uv().add(offset)).a;
-  pipeline.outputNode = vec4(temporal.rgb, coverage);
+  // Arrival cloud. It lives in this final draw, after the display transform, so
+  // it costs no extra pass, mesh or texture and compiles with the first frame.
+  // x: cover (0 = none, skipped by the branch; 1 = solid), y: noise scale, z: drift.
+  const cloudState = new Vector3(0, 2.2, 0), cloud = uniform(cloudState);
+  // Same transform the pipeline would apply itself; done here so the cloud can be
+  // an exact display colour (the intro's own #f6efe5 at full cover).
+  pipeline.outputColorTransform = false;
+  // Upscaled: a light contrast-limited sharpen of the reconstructed image, here in
+  // the final draw (no extra pass or target), before the display transform.
+  const graded = renderOutput(vec4(upscaled ? rcas(upscaled.getTextureNode(), .5) : temporal.rgb, coverage));
+  pipeline.outputNode = Fn(() => {
+    const color = vec4(graded).toVar();
+    If(cloud.x.greaterThan(0), () => {
+      const billow = mx_fractal_noise_float_2d(uv().sub(.5).mul(vec2(1.78, 1)).mul(cloud.y).add(vec2(0, cloud.z)), 3, 2, .5).mul(.5).add(.5).saturate();
+      const density = smoothstep(0, .4, cloud.x.mul(1.4).sub(billow));
+      color.assign(mix(color, vec4(mix(vec3(.93, .80, .66), vec3(.965, .937, .898), density), 1), density));
+    });
+    return color;
+  })();
   const resetHistory = () => (temporal as typeof temporal & { setSize(width: number, height: number): void }).setSize(1, 1);
   return {
     // The first real nested draw prepares the actual HDR/velocity/shadow keys.
@@ -99,6 +130,8 @@ export function createTemporalRenderer(renderer: WebGPURenderer, scene: Scene, c
       // Keep the loading screen until prior GPU work completes; never read per frame.
       await renderer.readRenderTargetPixelsAsync(scenePass.renderTarget, 0, 0, 1, 1);
     },
+    /** Arrival cloud: cover 0 (off) to 1 (solid), noise scale, vertical drift. */
+    cloud(cover: number, scale: number, drift: number) { cloudState.set(cover, scale, drift); },
     reset() {
       // TRAANode.setSize is a public implementation method in pinned r186.
       // A size mismatch reseeds history from the current frame on the next resolve.

@@ -79,6 +79,10 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
     const region = new Box3(new Vector3().fromArray(probe.bounds.min), new Vector3().fromArray(probe.bounds.max));
     probes.push({ id: probe.id, region, position: probe.position ? new Vector3().fromArray(probe.position) : region.getCenter(new Vector3()), texture: capture.texture, intensity: probe.intensity ?? 1 });
   }
+  // three r186 keys a shader build by node INSTANCE. One environment graph per
+  // probe set lets every material with that set reuse the same build instead
+  // of regenerating identical shader code for each mesh.
+  const environmentNodes = new Map<string, ReturnType<typeof roomEnvironment>>();
   function refreshProbeLighting(root: Object3D, moving = false) {
     root.traverse(object => {
       if (!(object instanceof Mesh)) return;
@@ -95,7 +99,9 @@ export async function configureLighting(scene: Scene, renderer: WebGPURenderer, 
         // Explicit envMap makes materialEnvIntensity independent of the scene's diffuse fill.
         node.envMap = filtered.texture;
         node.envMapIntensity = 1;
-        node.envNode = roomEnvironment(filtered.texture, scene.environmentIntensity, candidates);
+        let environmentNode = environmentNodes.get(key);
+        if (!environmentNode) environmentNodes.set(key, environmentNode = roomEnvironment(filtered.texture, scene.environmentIntensity, candidates));
+        node.envNode = environmentNode;
         node.userData.mdProbeKey = key;
         node.needsUpdate = true;
         return node;

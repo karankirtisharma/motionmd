@@ -69,7 +69,11 @@ export async function fetchAssetBuffer(url: string, options: DownloadOptions = {
     try {
       if (signal?.aborted) abort();
       pulse();
-      const response = await network(fetch(url, { cache: process.env.NODE_ENV === 'development' ? 'no-store' : 'default', signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
+      // Immutable asset URLs are marked cacheable before the server has produced the
+      // body, so a one-off 500 or cut transfer can be stored for a year. A retry must
+      // go back to the network, or every attempt (and every later visit) replays it.
+      const cache = process.env.NODE_ENV === 'development' ? 'no-store' : attempt ? 'reload' : 'default';
+      const response = await network(fetch(url, { cache, signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
       if (!response.ok) {
         void response.body?.cancel().catch(() => {});
         const retryable = [408, 425, 429, 500, 502, 503, 504].includes(response.status);

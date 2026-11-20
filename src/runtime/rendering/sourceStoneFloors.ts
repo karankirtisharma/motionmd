@@ -66,7 +66,14 @@ export async function restoreSourceStoneFloors(root:Object3D, signal?:AbortSigna
    if(!ramp||!(source instanceof MeshStandardMaterial||source instanceof MeshPhysicalNodeMaterial))return source;
    const material=source instanceof MeshPhysicalNodeMaterial?source:asPhysicalNodeMaterial(source);
    material.map=null;material.color.setRGB(1,1,1);
-   material.colorNode=mix(vec3(ramp[0][0],ramp[0][1],ramp[0][2]),vec3(ramp[1][0],ramp[1][1],ramp[1][2]),fac);
+   // The founder room's ivory stone and the gallery's grey marble are the same
+   // image with different ramps, and they meet in the open floor with no wall or
+   // threshold between them, which read as mismatched patches. Finish the upper
+   // floor as one stone: the founder floor takes the gallery ramp and finish.
+   const even=/FR82 \| polished ivory large format stone$/.test(source.name);
+   const tone=even?SOURCE_RAMPS['EH54 | polished warm-grey cloud marble']:ramp;
+   if(even&&'clearcoat' in material)(material as MeshPhysicalNodeMaterial).clearcoat=0;
+   material.colorNode=mix(vec3(tone[0][0],tone[0][1],tone[0][2]),vec3(tone[1][0],tone[1][1],tone[1][2]),fac);
    (material as unknown as Record<string,unknown>).mdMarbleAlbedo=map;
    material.userData.sourceFloorRestored=true;material.needsUpdate=true;materials++;return material;
   });mesh.material=Array.isArray(mesh.material)?updated:updated[0];}

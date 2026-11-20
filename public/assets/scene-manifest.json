@@ -37,7 +37,7 @@
     {
       "id": "entrance",
       "url": "/assets/architecture-v19/entrance.glb",
-      "bytes": 15790368,
+      "bytes": 15462488,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/entrance-architecture-normal.ktx2",
@@ -48,7 +48,7 @@
         "/assets/v2/textures/entrance-detail-orm.ktx2"
       ],
       "textureBytes": 35192281,
-      "sha256": "2e40225a229a8f9da678857250f55d25b44ad5e361ddb5d9229a02fdab54756e"
+      "sha256": "2e7723ca12e3b0c1a34d4622d37ee62913236aad60f6da28fc24e266c9a7d0d2"
     },
     {
       "id": "shell",

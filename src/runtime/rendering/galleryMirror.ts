@@ -1,9 +1,9 @@
 import { prepareRenderSlices } from './prepareRenderSlices.ts';
 import { Box3, type DirectionalLight, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
-import { screenUV, texture, uniform } from 'three/tsl';
+import { mrt, output, screenUV, texture, uniform, vec4 } from 'three/tsl';
 
-import { reflectionCrop, cropReflectionCamera } from './reflectionCrop.ts';
+import { reflectionCrop, reflectionSpan, cropReflectionCamera } from './reflectionCrop.ts';
 import { ReflectionFrameCache } from './reflectionFrameCache.ts';
 import { warmOpeningTourShaders } from './openingTourWarmup.ts';
 
@@ -74,6 +74,53 @@ async function drawPreparedReflection(renderer: WebGPURenderer, scene: Scene, ca
   }
 }
 
+const MINIMUM_PANE_PIXELS = 12;
+// A reflection is a second drawing of the building. Up close to the pane that was 215
+// draws and 5.6 million triangles, most of them leaves, keycaps and stitching in rooms
+// 15-30 m behind the viewer. Like a game mirror, the reflection keeps everything near
+// the pane and every broad surface (walls, floors, glass, furniture bodies) at any
+// distance, and leaves out only finely tessellated detail that starts further than
+// this from the pane, where it is a few pixels inside an already distant image.
+const DETAIL_REACH = 12, DETAIL_TRIANGLE = 0.002, DETAIL_SAMPLES = 400;
+// The reflection is drawn whole in the frame that shows it (spread over three frames it lagged the
+// view and swam), at most this share of the screen's resolution and this many pixels across; it
+// covers only the pane's part of the screen, and nothing is drawn while the view stands still.
+const RESOLUTION = .6, MAX_SIDE = 1280;
+
+/** Meshes of fine detail lying wholly beyond DETAIL_REACH in front of a mirror plane. */
+function distantDetail(scene: Object3D, point: Vector3, normal: Vector3) {
+  const set = new WeakSet<Object3D>(), corner = new Vector3(), a = new Vector3(), b = new Vector3(), c = new Vector3();
+  let meshes = 0, triangles = 0;
+  scene.traverse(object => {
+    const mesh = object as Mesh;
+    if (!mesh.isMesh || 'isSkinnedMesh' in mesh || mesh.userData.mdPlanarMirror) return;
+    const position = mesh.geometry?.getAttribute('position');
+    if (!position) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const box = mesh.geometry.boundingBox!;
+    let nearest = Infinity;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).applyMatrix4(mesh.matrixWorld);
+      nearest = Math.min(nearest, corner.sub(point).dot(normal));
+    }
+    if (nearest < DETAIL_REACH) return;
+    const index = mesh.geometry.index, count = Math.floor((index?.count ?? position.count) / 3);
+    if (count < 64) return;
+    const stride = Math.max(1, Math.floor(count / DETAIL_SAMPLES));
+    let area = 0, samples = 0;
+    for (let triangle = 0; triangle < count; triangle += stride, samples++) {
+      const at = (vertex: number) => index ? index.getX(triangle * 3 + vertex) : triangle * 3 + vertex;
+      a.fromBufferAttribute(position, at(0)).applyMatrix4(mesh.matrixWorld);
+      b.fromBufferAttribute(position, at(1)).applyMatrix4(mesh.matrixWorld);
+      c.fromBufferAttribute(position, at(2)).applyMatrix4(mesh.matrixWorld);
+      area += b.sub(a).cross(c.sub(a)).length() / 2;
+    }
+    if (area / samples >= DETAIL_TRIANGLE) return;
+    set.add(mesh); meshes++; triangles += count;
+  });
+  console.info('[MD mirror] distant detail left out of the reflection', { meshes, triangles });
+  return set;
+}
 export function createGalleryMirror(root: Object3D) {
   const panes: Mesh[] = [];
   root.traverse(object => { if (object instanceof Mesh && object.userData.mdPlanarMirror === true) panes.push(object); });
@@ -111,11 +158,17 @@ export function createGalleryMirror(root: Object3D) {
       point: surface.geometry.boundingBox!.getCenter(new Vector3()),
       normal: new Vector3().fromBufferAttribute(surface.geometry.getAttribute('normal'), 0).normalize() };
   });
-  const target = new RenderTarget(1, 1, { type: HalfFloatType, samples: 4 });
+  // One target (half-float, 2x multisampled), sized to the pane's part of the screen.
+  const target = new RenderTarget(1, 1, { type: HalfFloatType, samples: 2 });
   target.texture.name = 'Gallery mirror reflection';
   const material = new MeshBasicNodeMaterial({ name: 'V21 | live silver mirror' });
   const crop = new Vector4(0, 0, 1, 1), cropNode = uniform(crop);
   material.colorNode = texture(target.texture, screenUV.flipX().sub(cropNode.xy).div(cropNode.zw)).rgb.mul(0.94);
+  // The reflection is an image on the pane: the pane's own motion vectors point
+  // temporal history at the wrong place whenever the camera moves, which smeared
+  // and flickered the reflection. Report a motion that lands outside the history
+  // buffer so the resolve uses the current, already multisampled, reflection.
+  material.mrtNode = mrt({ output, velocity: vec4(4, 4, 0, 1) });
   for (const surface of panes) {
     surface.material = material;
     surface.castShadow = false; surface.receiveShadow = false; surface.userData.castShadow = false;
@@ -126,6 +179,23 @@ export function createGalleryMirror(root: Object3D) {
   const frameCache = new ReflectionFrameCache();
   const updateCamera = createMirrorCameraUpdater();
   const visibility = panes.map(() => true);
+  // Skip the second scene pass while the pane is completely hidden behind opaque
+  // architecture (most ground-floor and exterior views). The GPU occlusion query
+  // of the pane's own draw decides; it never hides a visible mirror, and the
+  // pass resumes on the first frame that reports any visible sample.
+  const hiddenFrames = panes.map(() => 0);
+  let mainView: PerspectiveCamera | undefined, activeSurface = 0;
+  const distant: Array<WeakSet<Object3D> | undefined> = panes.map(() => undefined);
+  panes.forEach((surface, index) => {
+    (surface as Mesh & { occlusionTest: boolean }).occlusionTest = true;
+    const before = surface.onBeforeRender;
+    surface.onBeforeRender = function (renderer, scene, viewCamera, geometry, renderedMaterial, group) {
+      before.call(this, renderer, scene, viewCamera, geometry, renderedMaterial, group);
+      if (viewCamera !== mainView) return;
+      const occluded = (renderer as unknown as WebGPURenderer).isOccluded(surface) === true;
+      hiddenFrames[index] = occluded ? hiddenFrames[index] + 1 : 0;
+    };
+  });
   function prepareReflection(renderer: WebGPURenderer, view: PerspectiveCamera) {
     if (!material.visible) return false;
     // Only mirror ancestry is needed before deciding whether to render a reflection.
@@ -144,10 +214,19 @@ export function createGalleryMirror(root: Object3D) {
         frustum.intersectsBox(paneBounds.copy(surface.pane.geometry.boundingBox!).applyMatrix4(surface.pane.matrixWorld));
     });
     if (!active) return false;
+    mainView = view; activeSurface = surfaces.indexOf(active);
+    if (hiddenFrames[surfaces.indexOf(active)] > 20) return false;
     renderer.getDrawingBufferSize(size);
-    const scale = Math.min(0.85, 1536 / Math.max(size.x, size.y));
+    const scale = Math.min(RESOLUTION, MAX_SIDE / Math.max(size.x, size.y));
     fullSize.set(Math.max(1, Math.round(size.x * scale)), Math.max(1, Math.round(size.y * scale)));
+    // Seen edge-on (from the bridge the pane is a 4 px sliver 18 m away) the whole
+    // hall was still drawn a second time for it, a third of that frame. Below a
+    // few pixels no reflection can be read; keep the last image and its crop.
+    if (reflectionSpan(active.pane.geometry.boundingBox!, active.pane.matrixWorld, view, fullSize) < MINIMUM_PANE_PIXELS) return false;
     reflectionCrop(active.pane.geometry.boundingBox!, active.pane.matrixWorld, view, fullSize, targetSize.set(target.width, target.height), crop);
+    // The crop extent is a whole number of reflection texels; its origin was not,
+    // so reflected texels slid under the screen pixels as the camera moved.
+    crop.x = Math.round(crop.x * fullSize.x) / fullSize.x; crop.y = Math.round(crop.y * fullSize.y) / fullSize.y;
     const width = Math.round(fullSize.x * crop.z), height = Math.round(fullSize.y * crop.w);
     if (target.width !== width || target.height !== height) target.setSize(width, height);
     updateCamera(view, camera, point, normal);
@@ -195,11 +274,20 @@ export function createGalleryMirror(root: Object3D) {
       const oldTarget = renderer.getRenderTarget(), oldMRT = renderer.getMRT(), oldClear = renderer.autoClear;
       // No recursive reflection, and no velocity writes into the reflection pass.
       panes.forEach((surface, i) => { visibility[i] = surface.visible; surface.visible = false; });
+      // Built once per face, on its first reflection, when the scene is complete and partitioned.
+      const skip = distant[activeSurface] ??= distantDetail(scene, point, normal);
+      const oldFilter = renderer.getRenderObjectFunction();
       try {
         renderer.setMRT(null); renderer.setRenderTarget(target); renderer.autoClear = true;
+        // Only the reflection's own camera: a nested shadow pass keeps every caster.
+        renderer.setRenderObjectFunction((...args) => {
+          if (args[2] === camera && skip.has(args[0])) return;
+          if (oldFilter) oldFilter.call(renderer, ...args); else renderer.renderObject(...args);
+        });
         renderer.render(scene, camera);
         frameCache.record(scene, revision, camera.matrixWorld, camera.projectionMatrix, crop, target.width, target.height);
       } finally {
+        renderer.setRenderObjectFunction(oldFilter);
         renderer.setRenderTarget(oldTarget); renderer.setMRT(oldMRT); renderer.autoClear = oldClear;
         panes.forEach((surface, i) => { surface.visible = visibility[i]; });
       }

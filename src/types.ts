@@ -55,6 +55,8 @@ export type RuntimeCallbacks = {
   onStats?: (stats: RuntimeStats) => void;
   onScreenMode?: (active: boolean) => void;
   onTransition?: (active: boolean) => void;
+  /** The cloud descent after Enter: true while the camera is still coming down. */
+  onArrival?: (active: boolean) => void;
   onPlaybackChange?: (playing: boolean) => void;
   onCameraViewChange?: (view: 'thirdPerson' | 'bodyCam') => void;
 };

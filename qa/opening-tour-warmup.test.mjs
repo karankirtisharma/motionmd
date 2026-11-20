@@ -180,7 +180,7 @@ test('mirror warmup uses the actual reflection camera, MSAA target and no MRT; r
         calls++; assert.equal(contextScene, scene); assert.ok(selection.children.length <= 2);
     assert.ok(selection.children.every(mesh => targets.includes(mesh)));
         assert.ok(targets.every(mesh => mesh.parent === parent)); assert.equal(pane.visible, false);
-        assert.equal(mrt, null); assert.equal(target.samples, 4); assert.equal(target.texture.type, HalfFloatType);
+        assert.equal(mrt, null); assert.equal(target.samples, 2); assert.equal(target.texture.type, HalfFloatType);
         assert.equal(target.texture.name, 'Gallery mirror reflection'); assert.notEqual(camera, view);
         if (mirrorTarget) { assert.equal(target, mirrorTarget); assert.equal(camera, mirrorCamera); }
         mirrorTarget = target; mirrorCamera = camera;

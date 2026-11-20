@@ -348,10 +348,11 @@ test('both intro choices always place the visitor at the entrance before reveal'
     const {runtime,controls}=fixture('tour');
     const entrance={position:[-8,-.355,-17.1],yaw:-Math.PI/2};runtime.manifest.spawn=entrance;
     let received;controls.enterExplore=(pose,spawn)=>{received=spawn;};
-    runtime.temporal={reset(){}};runtime.setStudioCovered=()=>{};
+    runtime.temporal={reset(){},cloud(){}};runtime.setStudioCovered=()=>{};
     assert.equal(runtime.prepareIntroArrival(destination,'warm'),true);
     assert.equal(received,entrance);assert.equal(runtime.mode,'explore');assert.equal(runtime.paused,true);
     assert.equal(controls.enabled,false);assert.ok(runtime.camera.position.x<entrance.position[0]);
-    assert.equal(runtime.camera.position.z,entrance.position[2]);
+    // The arrival poses the camera through a rotation, so equal to the last floating-point bit is too strict.
+    assert.ok(Math.abs(runtime.camera.position.z-entrance.position[2])<1e-9);
   }
 });

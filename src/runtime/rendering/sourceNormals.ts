@@ -48,9 +48,25 @@ fn mdSourceNormal(localPosition: vec3<f32>, localNormal: vec3<f32>, modelMatrix:
 }
 `);
 
-/** Use the matching source UV and normal frame for static architectural materials. */
+const sharedNormals = new WeakMap<Texture, Map<string, unknown>>();
+
+/** Use the matching source UV and normal frame for static architectural materials.
+ * The same map, UV channel and strength always return the same node: r186 keys
+ * shader builds by node instance, so a fresh node per material forces a full
+ * rebuild of identical code. Side and flat shading stay per material (below). */
 export function sourceUVNormal(map: Texture, channel: number, scale: [number, number]) {
   if (map.matrixAutoUpdate) map.updateMatrix();
+  let variants = sharedNormals.get(map);
+  if (!variants) sharedNormals.set(map, variants = new Map());
+  const key = `${channel}:${scale[0]}:${scale[1]}`;
+  const existing = variants.get(key) as ReturnType<typeof createSourceUVNormal> | undefined;
+  if (existing) return existing;
+  const created = createSourceUVNormal(map, channel, scale);
+  variants.set(key, created);
+  return created;
+}
+
+function createSourceUVNormal(map: Texture, channel: number, scale: [number, number]) {
   return Fn(builder => {
     const implementation = 'isWebGLBackend' in builder.renderer.backend ? glslSourceNormal : wgslSourceNormal;
     const sampler = texture(map, uv(channel)); sampler.updateMatrix = true;

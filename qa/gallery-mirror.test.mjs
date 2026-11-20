@@ -26,7 +26,7 @@ test('exported mirror has one correctly oriented face and restores renderer stat
  assert.ok(normal.distanceTo(new T.Vector3(0,0,-1))<1e-6);assert.ok(Math.abs(bounds.min.z+9.45)<1e-5);
  const mirror=createGalleryMirror(root),view=new T.PerspectiveCamera(50,1.6,.1,100);view.position.set(5,5.8,-14);view.lookAt(bounds.getCenter(new T.Vector3()));view.updateMatrixWorld();
  const initialTarget={},initialMRT={};let target=initialTarget,mrt=initialMRT;
- const renderer={autoClear:false,getRenderTarget:()=>target,getMRT:()=>mrt,setRenderTarget:v=>target=v,setMRT:v=>mrt=v,getDrawingBufferSize:v=>v.set(1600,1000),render:()=>{assert.equal(pane.visible,false);throw Error('simulated render failure')}};
+ const renderer={autoClear:false,getRenderTarget:()=>target,getMRT:()=>mrt,setRenderTarget:v=>target=v,setMRT:v=>mrt=v,getDrawingBufferSize:v=>v.set(1600,1000),getRenderObjectFunction:()=>null,setRenderObjectFunction(){},render:()=>{assert.equal(pane.visible,false);throw Error('simulated render failure')}};
  assert.throws(()=>mirror.update(renderer,scene,view),/simulated/);assert.equal(pane.visible,true);assert.equal(target,initialTarget);assert.equal(mrt,initialMRT);assert.equal(renderer.autoClear,false);mirror.dispose();
 });
 test('removed panel and head are absent in the shipped geometry; mirror is solid and opening is traversable',async()=>{
@@ -59,7 +59,7 @@ test('upper gallery does not submit the hidden mirror when only its bounding sph
   assert.equal(frustum.intersectsBox(bounds), false);
   let draws = 0;
   const renderer = { autoClear: true, getRenderTarget:()=>null, getMRT:()=>null,
-    setRenderTarget(){}, setMRT(){}, getDrawingBufferSize:v=>v.set(1280,720), render(){draws++;} };
+    setRenderTarget(){}, setMRT(){}, getDrawingBufferSize:v=>v.set(1280,720), getRenderObjectFunction:()=>null, setRenderObjectFunction(){}, render(){draws++;} };
   try {
     mirror.update(renderer, scene, view, 1);
     assert.equal(draws, 0);
@@ -82,11 +82,22 @@ test('founder side covers the dark backing with a correctly facing live mirror a
   assert.equal(ray.intersectObject(root)[0]?.object,rear,`bronze backing exposed at ${x},${y}`);
  }
  let calls=0,reflectionTarget,reflectedPosition;
- const renderer={autoClear:false,getRenderTarget:()=>null,getMRT:()=>null,setRenderTarget:v=>{if(v){if(reflectionTarget)assert.equal(v,reflectionTarget);reflectionTarget=v;}},setMRT:()=>{},getDrawingBufferSize:v=>v.set(1600,1000),render:(_,camera)=>{calls++;assert.ok(panes.every(p=>!p.visible));reflectedPosition=camera.position.clone();}};
+ const renderer={autoClear:false,getRenderTarget:()=>null,getMRT:()=>null,setRenderTarget:v=>{if(v){if(reflectionTarget)assert.equal(v,reflectionTarget);reflectionTarget=v;}},setMRT:()=>{},getRenderObjectFunction:()=>null,setRenderObjectFunction(){},getDrawingBufferSize:v=>v.set(1600,1000),render:(_,camera)=>{calls++;assert.ok(panes.every(p=>!p.visible));reflectedPosition=camera.position.clone();}};
  for(const z of [-5.3,-13.5]){
   const view=new T.PerspectiveCamera(48,1.6,.1,100);view.position.set(5,5.8,z);view.lookAt(5,5.75,-9.35);view.updateMatrixWorld();
   const before=calls;mirror.update(renderer,scene,view);assert.equal(calls,before+1);assert.ok(panes.every(p=>p.visible));
   assert.ok(Math.abs(reflectedPosition.z-(2*(z>-9.35?-9.25:-9.45)-z))<1e-5);
  }
  mirror.dispose();assert.equal(root.children.length,originalCount);
+});
+test('the mirror shows only this frame\'s reflection: temporal history is refused and the target stays small',async()=>{
+ const root=await load('/assets/architecture-v21/mirror.glb'),scene=new T.Scene();scene.add(root);
+ const mirror=createGalleryMirror(root);scene.updateMatrixWorld(true);
+ const panes=[];root.traverse(o=>{if(o.userData.mdPlanarMirror)panes.push(o)});
+ // Its motion vector lands outside the history buffer: the TAA resolve keeps no smeared old reflection.
+ for(const pane of panes)assert.ok(pane.material.mrtNode,'mirror writes its own motion vector');
+ let target;const camera=new T.PerspectiveCamera(60,16/9,.1,100);camera.position.set(6,5.6,-4);camera.lookAt(6,5.6,-9.3);camera.updateMatrixWorld();
+ const renderer={autoClear:false,getRenderTarget:()=>null,getMRT:()=>null,setRenderTarget:v=>{if(v)target=v;},setMRT(){},getRenderObjectFunction:()=>null,setRenderObjectFunction(){},getDrawingBufferSize:v=>v.set(3840,2160),render(){},isOccluded:()=>false};
+ try{mirror.update(renderer,scene,camera,0);assert.ok(target,'a visible mirror is drawn');assert.ok(target.width<=1280&&target.height<=1280,`reflection ${target.width}x${target.height} at 4K`);assert.equal(target.samples,2);}
+ finally{mirror.dispose();}
 });

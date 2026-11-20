@@ -9,7 +9,11 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
         c: THREE.Vector3;
         y: number; stair: boolean; authoredStair: boolean; stairCandidate: boolean;
         minX: number; maxX: number; minZ: number; maxZ: number; visited: number;
+        /** The underside of a glass tread: never what a shoe stands on (heights() only). */
+        covered: boolean;
     };
+    type Layer = { y: number; minX: number; maxX: number; minZ: number; maxZ: number; area: number; triangles: Triangle[] };
+    const layers = new Map<string, Layer>();
     const cells = new Map<string, Triangle[]>(), broad: Triangle[] = [];
     // The speed gate looks 45 cm around the player; only sole contact needs the finer grid.
     const cellSize = scope === 'stair-candidates' ? .45 : .15;
@@ -35,12 +39,16 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
             const authoredStair = /v13__V(?:16|17)/.test(material);
             const stair = authoredStair || /(?:v13|v19)__EH54/.test(material);
             const stairMarble = /(?:v13|v19|entrance|shell)__EH54 \| polished warm-grey cloud marble/.test(material);
-            if (scope === 'stair-candidates' && !authoredStair && !stairMarble && !entryStone) continue;
+            // The two floors a flight lands on (12 triangles each): a shoe reaching
+            // past the last tread needs the floor below it. Never a stair by itself.
+            const landingFloor = /shell__(?:PL86 \| ground wing polished existing marble|Neutral architectural ground)/.test(material);
+            if (scope === 'stair-candidates' && !authoredStair && !stairMarble && !entryStone && !landingFloor) continue;
             for (let i = group.start; i < group.start + group.count; i += 3) {
                 const points = [0, 1, 2].map(k => new THREE.Vector3().fromBufferAttribute(positions, index ? index.getX(i + k) : i + k).applyMatrix4(mesh.matrixWorld));
                 const [a, b, c] = points;
                 const normal = b.clone().sub(a).cross(c.clone().sub(a));
                 if (normal.lengthSq() < 1e-12) continue;
+                const area = normal.length() / 2;
                 normal.normalize();
                 if (Math.abs(normal.y) < .999) continue;
                 if (Math.max(a.y,b.y,c.y)-Math.min(a.y,b.y,c.y) > .002) continue;
@@ -48,11 +56,19 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
                 // horizontal windings and select the highest support, never a side face.
                 if (entryStone && Math.max(a.y,b.y,c.y) > .05) continue;
                 const stairCandidate = authoredStair || stairMarble || (entryStone && a.y < .05 && a.y > -.36);
-                if (scope === 'stair-candidates' && !stairCandidate) continue;
-                const triangle = { a, b, c, stair, authoredStair, stairCandidate, y: (a.y + b.y + c.y) / 3, minX: Math.min(a.x,b.x,c.x), maxX: Math.max(a.x,b.x,c.x), minZ: Math.min(a.z,b.z,c.z), maxZ: Math.max(a.z,b.z,c.z), visited: 0 };
+                if (scope === 'stair-candidates' && !stairCandidate && !landingFloor) continue;
+                const triangle = { a, b, c, stair, authoredStair, stairCandidate, y: (a.y + b.y + c.y) / 3, minX: Math.min(a.x,b.x,c.x), maxX: Math.max(a.x,b.x,c.x), minZ: Math.min(a.z,b.z,c.z), maxZ: Math.max(a.z,b.z,c.z), visited: 0, covered: false };
+                if (authoredStair) {
+                    const id = `${mesh.id}|${Math.round(triangle.y * 1000)}`;
+                    let layer = layers.get(id);
+                    if (!layer) layers.set(id, layer = { y: triangle.y, minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity, area: 0, triangles: [] });
+                    layer.minX = Math.min(layer.minX, triangle.minX); layer.maxX = Math.max(layer.maxX, triangle.maxX);
+                    layer.minZ = Math.min(layer.minZ, triangle.minZ); layer.maxZ = Math.max(layer.maxZ, triangle.maxZ);
+                    layer.area += area; layer.triangles.push(triangle);
+                }
                 // Large context-ground triangles must not allocate millions of grid cells.
                 if ((triangle.maxX-triangle.minX)*(triangle.maxZ-triangle.minZ) > 4096 * .15 ** 2) {
-                    if (scope === 'all-walkable') broad.push(triangle);
+                    if (scope === 'all-walkable' || landingFloor) broad.push(triangle);
                     continue;
                 }
                 for (let x = Math.floor(Math.min(a.x, b.x, c.x) / cellSize); x <= Math.floor(Math.max(a.x, b.x, c.x) / cellSize); x++) {
@@ -65,6 +81,16 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
             }
         }
     });
+    // Every glass tread is indexed twice: its top and, with the same outline a
+    // few centimetres lower, its underside. Only heights() skips the latter;
+    // sample() and the stair gate still see both.
+    for (const layer of layers.values()) for (const above of layers.values()) {
+        if (above.y <= layer.y + .0005 || above.y > layer.y + .12 || Math.abs(above.area - layer.area) > .1 * layer.area) continue;
+        if (Math.abs(above.minX - layer.minX) > .015 || Math.abs(above.maxX - layer.maxX) > .015 || Math.abs(above.minZ - layer.minZ) > .015 || Math.abs(above.maxZ - layer.maxZ) > .015) continue;
+        for (const triangle of layer.triangles) triangle.covered = true;
+        break;
+    }
+    layers.clear();
     let query = 0;
     const sample = (point: THREE.Vector3, supportY: number, margin = 0): number | undefined => {
         let height = -Infinity;
@@ -125,7 +151,11 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
                 for(const triangle of cells.get(key(x,z))??[])include(triangle);
         for(const triangle of broad)include(triangle);
         let required=0;
+        // Highest first: no point can need more than (surface - lowest point),
+        // so once that bound is met every remaining, lower surface is skipped.
+        candidates.sort((a,b)=>b.y-a.y);
         for(const triangle of candidates){
+            if(triangle.y-minY+.003<=required)break;
             const {a,b,c,y,stair}=triangle;
             const reach=margin>0&&stair?THREE.MathUtils.smoothstep(supportY+.35-y,0,.08):1;
             const abx=b.x-a.x,abz=b.z-a.z,bcx=c.x-b.x,bcz=c.z-b.z,cax=a.x-c.x,caz=a.z-c.z;
@@ -144,6 +174,109 @@ export function createStairSurfaces(scene: THREE.Object3D, scope: 'all-walkable'
             }
         }
         return required;
+    };
+    /** Tread top under each of the first `count` points, between two absolute
+     * heights; NaN where there is none. The highest surface wins, as in sample().
+     * One shared candidate set per call and no allocation once a cell has been
+     * visited: leg IK asks this for the outline of a shoe every frame. */
+    const under: Triangle[] = [], tops = new Map<number, Triangle[]>();
+    // The uncovered triangles of a cell, sorted out the first time a shoe comes near it. Numeric keys: no string per lookup.
+    const topsAt = (x: number, z: number) => {
+        const id = x * 131072 + z;
+        let list = tops.get(id);
+        if (!list) { list = (cells.get(key(x, z)) ?? []).filter(triangle => !triangle.covered); tops.set(id, list); }
+        return list;
+    };
+    sample.heights = (points: readonly THREE.Vector3[], count: number, minY: number, maxY: number, out: Float32Array | Float64Array | number[]): void => {
+        let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
+        for(let k=0;k<count;k++){const p=points[k];if(p.x<minX)minX=p.x;if(p.x>maxX)maxX=p.x;if(p.z<minZ)minZ=p.z;if(p.z>maxZ)maxZ=p.z;out[k]=NaN;}
+        if(!count)return;
+        // The list only ever grows: emptying an array hands its storage back.
+        let found=0;query++;
+        for(let x=Math.floor(minX/cellSize);x<=Math.floor(maxX/cellSize);x++)
+            for(let z=Math.floor(minZ/cellSize);z<=Math.floor(maxZ/cellSize);z++){
+                const local=topsAt(x,z);
+                for(let i=0;i<local.length;i++){
+                    const triangle=local[i];
+                    if(triangle.visited===query)continue;triangle.visited=query;
+                    if(triangle.y<minY||triangle.y>maxY||triangle.maxX<minX||triangle.minX>maxX||triangle.maxZ<minZ||triangle.minZ>maxZ)continue;
+                    under[found++]=triangle;
+                }
+            }
+        for(let i=0;i<broad.length;i++){
+            const triangle=broad[i];
+            if(triangle.y<minY||triangle.y>maxY||triangle.maxX<minX||triangle.minX>maxX||triangle.maxZ<minZ||triangle.minZ>maxZ)continue;
+            under[found++]=triangle;
+        }
+        for(let i=0;i<found;i++){
+            const triangle=under[i],{a,b,c,y}=triangle;
+            const abx=b.x-a.x,abz=b.z-a.z,bcx=c.x-b.x,bcz=c.z-b.z,cax=a.x-c.x,caz=a.z-c.z;
+            for(let k=0;k<count;k++){
+                const p=points[k];
+                if(y<=out[k]||p.x<triangle.minX||p.x>triangle.maxX||p.z<triangle.minZ||p.z>triangle.maxZ)continue;
+                const ab=abx*(p.z-a.z)-abz*(p.x-a.x),bc=bcx*(p.z-b.z)-bcz*(p.x-b.x),ca=cax*(p.z-c.z)-caz*(p.x-c.x);
+                if((ab>=-1e-7&&bc>=-1e-7&&ca>=-1e-7)||(ab<=1e-7&&bc<=1e-7&&ca<=1e-7))out[k]=y;
+            }
+        }
+    };
+    /** The tread under a point and how far it runs along a level direction
+     * (dirX, dirZ: unit): out = [its height, distance back to its edge (<= 0),
+     * distance ahead to its edge (>= 0)], both cut off at `reach`. False when
+     * nothing is under the point. Faces of one height that touch count as one
+     * tread, and it ends where a higher one covers it: a floor runs on under
+     * the first riser of a flight. Stride scaling reads the going of a flight
+     * from this, a few times a second; no allocation once a cell has been visited. */
+    const spanPoint = [new THREE.Vector3()], spanHeight = new Float64Array(1), spans = new Float64Array(1024);
+    let spanX = 0, spanZ = 0, spanDirX = 0, spanDirZ = 0, spanY = 0, spanTop = 0, spanReach = 0, spanMinX = 0, spanMaxX = 0, spanMinZ = 0, spanMaxZ = 0, spanCount = 0, spanCoverBack = 0, spanCoverAhead = 0;
+    // Where the line point + t * direction is inside one triangle of that height, or of a higher one: three half-planes.
+    const spanClip = (triangle: Triangle) => {
+        if (triangle.visited === query) return;
+        triangle.visited = query;
+        if (triangle.y < spanY - .002 || triangle.y > spanTop || triangle.maxX < spanMinX || triangle.minX > spanMaxX || triangle.maxZ < spanMinZ || triangle.minZ > spanMaxZ || spanCount >= spans.length) return;
+        const { a, b, c } = triangle;
+        const turn = (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x) < 0 ? -1 : 1;
+        let from = -spanReach, to = spanReach;
+        for (let edge = 0; edge < 3; edge++) {
+            const u = edge === 0 ? a : edge === 1 ? b : c, v = edge === 0 ? b : edge === 1 ? c : a;
+            const ex = v.x - u.x, ez = v.z - u.z;
+            const here = turn * (ex * (spanZ - u.z) - ez * (spanX - u.x)), slope = turn * (ex * spanDirZ - ez * spanDirX);
+            if (Math.abs(slope) < 1e-12) { if (here < -1e-7) return; continue; }
+            const t = -here / slope;
+            if (slope > 0) { if (t > from) from = t; } else if (t < to) to = t;
+            if (from > to) return;
+        }
+        if (triangle.y <= spanY + .002) { spans[spanCount++] = from; spans[spanCount++] = to; }
+        // A step up: the tread ends where it begins.
+        else if (triangle.y > spanY + .04) { if (from > .001 && from < spanCoverAhead) spanCoverAhead = from; if (to < -.001 && to > spanCoverBack) spanCoverBack = to; }
+    };
+    sample.span = (point: THREE.Vector3, dirX: number, dirZ: number, minY: number, maxY: number, reach: number, out: Float32Array | Float64Array | number[]): boolean => {
+        spanPoint[0].copy(point);
+        sample.heights(spanPoint, 1, minY, maxY, spanHeight);
+        if (spanHeight[0] !== spanHeight[0]) return false;
+        spanX = point.x; spanZ = point.z; spanDirX = dirX; spanDirZ = dirZ; spanY = spanHeight[0]; spanTop = maxY; spanReach = reach; spanCount = 0; spanCoverBack = -reach; spanCoverAhead = reach;
+        const minX = spanMinX = Math.min(point.x - dirX * reach, point.x + dirX * reach), maxX = spanMaxX = Math.max(point.x - dirX * reach, point.x + dirX * reach);
+        const minZ = spanMinZ = Math.min(point.z - dirZ * reach, point.z + dirZ * reach), maxZ = spanMaxZ = Math.max(point.z - dirZ * reach, point.z + dirZ * reach);
+        query++;
+        for (let x = Math.floor(minX / cellSize); x <= Math.floor(maxX / cellSize); x++)
+            for (let z = Math.floor(minZ / cellSize); z <= Math.floor(maxZ / cellSize); z++) {
+                const local = topsAt(x, z);
+                for (let i = 0; i < local.length; i++) spanClip(local[i]);
+            }
+        for (let i = 0; i < broad.length; i++) spanClip(broad[i]);
+        // Grow from the point over every stretch that touches what is already covered.
+        let back = 0, ahead = 0;
+        for (let grown = true; grown;) {
+            grown = false;
+            for (let i = 0; i < spanCount; i += 2) {
+                const from = spans[i], to = spans[i + 1];
+                if (from > to || from > ahead + .002 || to < back - .002) continue;
+                if (from < back) back = from;
+                if (to > ahead) ahead = to;
+                spans[i] = 1; spans[i + 1] = 0; grown = true;
+            }
+        }
+        out[0] = spanY; out[1] = Math.max(back, spanCoverBack); out[2] = Math.min(ahead, spanCoverAhead);
+        return true;
     };
     /** Authoring-aware stair gate. Shared marble alone is not evidence of stairs:
      * require a second reachable horizontal level nearby. This keeps the broad

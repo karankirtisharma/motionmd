@@ -17,7 +17,7 @@ async function fixture(t) {
   const base=await fs.realpath(os.tmpdir()),tmp=await fs.mkdtemp(path.join(base,'md-release-test-')),pub=path.join(tmp,'public');
   assert.equal(path.dirname(tmp),base);
   t.after(()=>fs.rm(tmp,{recursive:true,force:true}));
-  for (const f of ['basis/basis_transcoder.js','basis/basis_transcoder.wasm','environment/qwantani-sunset-2k.hdr',
+  for (const f of ['character/locomotion-v9.json','character/Locomotion-PROVENANCE.md','basis/basis_transcoder.js','basis/basis_transcoder.wasm','environment/qwantani-sunset-2k.hdr',
      'source-walls/greige-marble-original.png','source-walls/stone-height-original.jpg','source-walls/stone-roughness-original.jpg',
      'surface-v5/bronze-source-grain.png','character/Rocketbox-MIT-LICENSE.txt']) await put(pub,'assets/'+f,'fixture');
   const model='/assets/room/model.glb';
@@ -45,7 +45,7 @@ test('staged public retains rollback, external model images, Studio and raw comp
   await assert.rejects(fs.access(path.join(stage,'assets/retired/old.glb')),{code:'ENOENT'});
   assert.ok((await fs.readFile(path.join(pub,model))).equals(glb));
   assert.ok((await fs.readFile(path.join(stage,entry.identity))).equals(payload));
-  for(const f of [prior,entry.br,entry.gzip,'assets/tiles/wood.ktx2','assets/table','assets/character/Rocketbox-MIT-LICENSE.txt','studio/card.webp'])
+  for(const f of ['assets/character/locomotion-v9.json','assets/character/Locomotion-PROVENANCE.md',prior,entry.br,entry.gzip,'assets/tiles/wood.ktx2','assets/table','assets/character/Rocketbox-MIT-LICENSE.txt','studio/card.webp'])
     assert.ok((await fs.readFile(path.join(stage,f))).equals(await fs.readFile(path.join(pub,f))));
 });
 

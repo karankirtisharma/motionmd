@@ -22,6 +22,15 @@ test('transient HTTP responses recover without altering bytes, permanent failure
   }
 });
 
+test('a retry bypasses the browser cache so a stored error or cut transfer cannot replay', async t => {
+  // Immutable asset URLs get a one-year Cache-Control before the server has produced the
+  // body; a one-off 500 was cached and failed every attempt and every later visit.
+  const modes = [];
+  t.mock.method(globalThis, 'fetch', async (url, init) => { modes.push(init.cache); return modes.length === 1 ? new Response('proxy reset', { status: 500 }) : new Response(new Uint8Array([4, 2])); });
+  assert.deepEqual(bytes(await fetchAssetBuffer('/assets/solid-collision.glb?v=abc', { retryDelayMs: 0 })), [4, 2]);
+  assert.deepEqual(modes, ['default', 'reload']);
+});
+
 test('connection failures have a bounded attempt count and useful final error', async t => {
   let requests = 0;
   t.mock.method(globalThis, 'fetch', async () => { requests++; throw new TypeError('Failed to fetch'); });
