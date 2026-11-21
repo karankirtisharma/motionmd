@@ -10,7 +10,7 @@ import { createMeshoptDecoder } from './rendering/meshoptDecode';
 import { loadProgressively } from './rendering/progressiveLoad';
 import { architectureProgress } from './rendering/loadingProgress';
 import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/types';
-import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
+import { assetURL, fetchBuffer, resolveAssetDependency, sceneBufferBytes } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
 import { repairArchitecturalJoins } from './rendering/architecturalJoins';
 import { relocateDoorwayPlanter } from './rendering/doorwayPlanter';
@@ -20,6 +20,7 @@ import { repairStudioThreshold } from './rendering/floorThreshold';
 import { repairEntranceApron } from './rendering/entranceApron';
 import lightingSizes from '../generated/lighting-transfer-sizes.json';
 import textureSizes from '../generated/texture-transfer-sizes.json';
+import { createInteractionReadAhead } from './interaction/interactionGLB';
 import { createLightingReadAhead } from './rendering/lightingReadAhead';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
@@ -131,6 +132,7 @@ export class SceneRuntime {
 
   private async initialize(): Promise<void> {
     let lightingDownloads: ReturnType<typeof createLightingReadAhead> | undefined;
+    let interactionDownloads: ReturnType<typeof createInteractionReadAhead> | undefined;
     try {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
@@ -194,18 +196,31 @@ export class SceneRuntime {
       const interactions = import('./interaction/InteractionController');
       void interactions.catch(() => {}); // Observed below after independent loading work.
       const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-      if (!connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
+      const allowReadAhead = !connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim();
+      if (allowReadAhead) {
         lightingDownloads = createLightingReadAhead(lightingSizes, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
       }
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
-      const colorLUT = await configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal);
-      if (colorLUT) this.textures.add(colorLUT);
       this.abort.signal.throwIfAborted();
       this.prepareCamera();
       this.applyTourCamera(1 / 60, true);
       this.profiler?.phase('geometry and embedded textures');
-      await this.loadSource();
+      // The 1.94 MB display LUT took 949 ms to transfer on the measured WAN run.
+      // Geometry imports do not draw; only the later material/lighting passes need the installed transform.
+      const color = configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal).then(texture => {
+        if (texture) this.textures.add(texture);
+      });
+      const source = this.loadSource();
+      try {
+        await Promise.all([color, source]);
+      } catch (error) {
+        this.abort.abort(error);
+        // A GLTF parser already in flight may finish after cancellation. Wait for its cleanup before GPU teardown.
+        await Promise.allSettled([color, source]);
+        throw error;
+      }
       if (this.disposed) return;
+      if (allowReadAhead) interactionDownloads = createInteractionReadAhead(this.manifest, this.abort.signal);
       repairExteriorWinding(this.content);
       repairExteriorOverlap(this.content);
       repairExteriorGroove(this.content);
@@ -250,7 +265,7 @@ export class SceneRuntime {
       this.abort.signal.throwIfAborted();
       this.controls = await createControls({
         scene: this.scene, camera: this.camera, renderer: this.renderer,
-        canvas, manifest: this.manifest, signal: this.abort.signal,
+        canvas, manifest: this.manifest, signal: this.abort.signal, readBytes: interactionDownloads?.read,
         onStateChange: (mode: 'explore' | 'seated') => this.setMode(mode),
         onPrompt: (hint: {text: string; target?: string} | null) => this.callbacks.onHint?.(hint),
         onScreenMode: (active: boolean) => this.callbacks.onScreenMode?.(active),
@@ -329,7 +344,7 @@ export class SceneRuntime {
       if (this.disposed || (error instanceof DOMException && error.name === 'AbortError')) return;
       console.error('[MD scene]', error);
       this.fail(error instanceof Error ? error.message : 'The scene could not be loaded.');
-    } finally { lightingDownloads?.close(); }
+    } finally { lightingDownloads?.close(); interactionDownloads?.close(); }
   }
 
   private validateManifest() {
@@ -355,7 +370,12 @@ export class SceneRuntime {
       : undefined;
     this.ktx2 = new SceneKTX2Loader(loadGuard.manager, this.abort.signal, textureDownloads?.read).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
-    const chunks = [...this.manifest.chunks].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+    const chunks = this.manifest.chunks.map(chunk => ({ ...chunk, bytes: sceneBufferBytes(chunk.url, chunk.bytes) }))
+      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+    // The delivered founder and studio buffers together fit in 256 MiB (267,759,532 bytes).
+    // Keep the 128 MiB budget on low-memory, unclassified and data-saver devices.
+    const memoryGiB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0;
+    const bufferBudget = !saveData && memoryGiB >= 8 ? 256 * 1024 * 1024 : 128 * 1024 * 1024;
     const bytes = new Map<string, number>();
     const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0);
     let lastProgressAt = 0;
@@ -389,7 +409,7 @@ export class SceneRuntime {
           for (const clip of gltf.animations) { mixer.clipAction(clip).play(); duration = Math.max(duration, clip.duration); }
           this.mixers.push({ mixer, duration });
         }
-      });
+      }, bufferBudget);
       loadGuard.assertLoaded();
     } finally { textureDownloads?.close(); decoder.dispose(); }
   }

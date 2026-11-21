@@ -2,6 +2,8 @@ type DownloadOptions = {
   signal?: AbortSignal;
   expectedBytes?: number;
   retryUrl?: string;
+  /** Hash of the full decoded content served by the static retry URL. */
+  resumeSHA256?: string;
   headers?: HeadersInit;
   credentials?: RequestCredentials;
   onProgress?: (loaded: number, total: number, headers: Headers) => void;
@@ -40,13 +42,17 @@ function wait(ms: number, signal?: AbortSignal) {
 }
 
 /** Retries only transport failures; decoding stays outside this function. A failed
- * attempt releases its reader, timeout and partial buffer before a replacement.
+ * attempt releases its reader and timeout. A verified identity fallback can
+ * finish an interrupted GLB in the buffer already allocated for its first request.
  * The caller's abort cancels both the active request and a pending retry delay. */
 export async function fetchAssetBuffer(url: string, options: DownloadOptions = {}): Promise<ArrayBuffer> {
   const { signal, expectedBytes, onProgress } = options;
   const attempts = Math.max(1, Math.min(3, options.maxAttempts ?? 3));
   const stallMs = Math.max(1, options.stallMs ?? 45000);
   const label = decodeURIComponent(url.split(/[?#]/)[0].split('/').pop() || 'asset');
+  const exactBytes = options.resumeSHA256 && options.retryUrl && globalThis.crypto?.subtle ? expectedBytes : undefined;
+  let retained: Uint8Array<ArrayBuffer> | undefined;
+  let received = 0;
   for (let attempt = 0; attempt < attempts; attempt++) {
     signal?.throwIfAborted();
     const controller = new AbortController();
@@ -75,41 +81,68 @@ export async function fetchAssetBuffer(url: string, options: DownloadOptions = {
       // go back to the network, or every attempt (and every later visit) replays it.
       const cache = process.env.NODE_ENV === 'development' ? 'no-store' : attempt ? 'reload' : 'default';
       const requestUrl = attempt > 0 ? options.retryUrl ?? url : url;
-      const response = await network(fetch(requestUrl, { cache, signal: controller.signal, headers: options.headers, credentials: options.credentials ?? 'same-origin' }));
+      // A studio cold-load lost the connection after 118.6 MB on the wire.
+      // Fetch only its missing decoded bytes from the static identity file,
+      // reserving the final attempt for an ordinary full retry on older hosts.
+      const rangeStart = attempt === 1 && attempt + 1 < attempts && retained && received < retained.length ? received : 0;
+      const headers = new Headers(options.headers);
+      if (rangeStart) headers.set('Range', `bytes=${rangeStart}-`);
+      const response = await network(fetch(requestUrl, { cache, signal: controller.signal, headers, credentials: options.credentials ?? 'same-origin' }));
       if (!response.ok) {
         void response.body?.cancel().catch(() => {});
-        const retryable = [408, 425, 429, 500, 502, 503, 504].includes(response.status);
+        const retryable = rangeStart > 0 || [408, 425, 429, 500, 502, 503, 504].includes(response.status);
         const retryAfter = response.headers.get('retry-after');
         const retryAfterMs = retryAfter ? (Number.isFinite(Number(retryAfter)) ? Number(retryAfter) * 1000 : Date.parse(retryAfter) - Date.now()) : 0;
         throw new TransferFailure(`HTTP ${response.status}`, retryable, Math.max(0, Math.min(10000, retryAfterMs || 0)));
       }
       pulse();
       const encoding = response.headers.get('content-encoding');
-      const total = Number(response.headers.get('x-asset-decoded-length')) || expectedBytes ||
+      const partial = exactBytes && response.status === 206;
+      if (partial && (!rangeStart || (encoding && encoding !== 'identity') ||
+          response.headers.get('content-range') !== `bytes ${rangeStart}-${exactBytes - 1}/${exactBytes}`)) {
+        void response.body?.cancel().catch(() => {});
+        throw new TransferFailure('Invalid identity byte range', true);
+      }
+      const total = exactBytes || Number(response.headers.get('x-asset-decoded-length')) || expectedBytes ||
         ((!encoding || encoding === 'identity') ? Number(response.headers.get('content-length')) : 0) || 0;
-      if (!response.body) return await network(response.arrayBuffer());
+      if (!response.body) {
+        if (exactBytes) throw new TransferFailure('Missing model body', true);
+        return await network(response.arrayBuffer());
+      }
       reader = response.body.getReader();
-      // Only explicit decoded length is authoritative; Content-Length may describe
-      // compressed bytes and expectedBytes is a source-asset allocation hint.
-      const declared = Number(response.headers.get('x-asset-decoded-length')) || 0;
-      let direct = total > 0 && total <= 512 * 1024 * 1024 ? new Uint8Array(total) : undefined;
+      // Raw source sizes are allocation hints; only a decoded-length header or
+      // the content-addressed delivery manifest is authoritative.
+      const declared = exactBytes || Number(response.headers.get('x-asset-decoded-length')) || 0;
+      let direct = retained ?? (total > 0 && total <= 512 * 1024 * 1024 ? new Uint8Array(total) : undefined);
+      if (exactBytes && direct && !response.redirected) retained = direct;
       const parts: Uint8Array[] = [];
-      let loaded = 0;
+      // An origin that ignores Range returns 200; overwrite the prefix from byte zero.
+      let loaded = partial ? rangeStart : 0;
+      received = loaded;
       for (;;) {
         const { done, value } = await network(reader.read());
         controller.signal.throwIfAborted();
         if (done) break;
         if (!value.byteLength) continue;
         pulse();
+        if (exactBytes && loaded + value.byteLength > exactBytes) throw new TransferFailure('Unexpected model length', true);
         if (direct && loaded + value.byteLength <= direct.length) direct.set(value, loaded);
         else {
           if (direct) { parts.push(direct.subarray(0, loaded)); direct = undefined; }
           parts.push(value);
         }
         loaded += value.byteLength;
+        received = loaded;
         onProgress?.(loaded, total, response.headers);
       }
       if (declared && loaded !== declared) throw new TransferFailure(`Incomplete download (${loaded} of ${declared} bytes)`, true);
+      if (partial && direct) {
+        // Check the joined bytes once, off the hot path. A stale or corrupted prefix
+        // must never reach the GLB parser even if both responses had the right length.
+        const digest = await abortable(crypto.subtle.digest('SHA-256', direct.buffer), controller.signal);
+        const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+        if (hash !== options.resumeSHA256) throw new TransferFailure('Model digest mismatch after byte range', true);
+      }
       if (direct) return loaded === direct.length ? direct.buffer : direct.buffer.slice(0, loaded);
       const bytes = new Uint8Array(loaded);
       let offset = 0;

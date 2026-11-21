@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { disposeInteractionGLB, loadCollisionGLBs, loadInteractionGLB } from '../src/runtime/interaction/interactionGLB.ts';
+import { createInteractionReadAhead, disposeInteractionGLB, loadCollisionGLBs, loadInteractionGLB } from '../src/runtime/interaction/interactionGLB.ts';
 
 const positions = new Float32Array([0,0,0, 1,0,0, 0,1,0]);
 function fixture(name, uri) {
@@ -105,4 +106,46 @@ test('a dependency failure still rejects a resolved GLTF and disposes all its pr
   });
   await assert.rejects(loadInteractionGLB('/models/test'),/texture could not be loaded/);
   assert.equal(disposed.mock.callCount(),2);
+});
+
+test('the visitor and collision loaders claim their exact prefetched GLBs without duplicate requests', async t => {
+  const { character, collisions } = JSON.parse(readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url)));
+  const wanted = [character.url, collisions.url, collisions.additionalUrls[0]];
+  const release = Promise.withResolvers(), calls = [];
+  t.mock.method(globalThis, 'fetch', async input => {
+    calls.push(new URL(pathOf(input), 'http://test').pathname);
+    await release.promise;
+    return new Response(fixture('shared-bytes'));
+  });
+  const scene = new AbortController();
+  const pool = createInteractionReadAhead({ character, collisions: { url: wanted[1], additionalUrls: wanted.slice(2) } }, scene.signal);
+  t.after(() => { release.resolve(); pool.close(); });
+  await delay(0);
+  assert.deepEqual(calls, wanted.slice(0, 2), 'bounded early lanes fetch the rig and first collider');
+  const avatar = loadInteractionGLB(wanted[0], scene.signal, pool.read);
+  const world = loadCollisionGLBs(wanted.slice(1), scene.signal, pool.read);
+  release.resolve();
+  const [rig, surfaces] = await Promise.all([avatar, world]);
+  assert.deepEqual(calls.toSorted(), wanted.toSorted());
+  for (const gltf of [rig, ...surfaces]) {
+    assert.equal(gltf.scene.name, 'shared-bytes');
+    disposeInteractionGLB(gltf);
+  }
+});
+
+test('cancelling the scene aborts speculative and claimed interaction requests', async t => {
+  const { character, collisions } = JSON.parse(readFileSync(new URL('../public/assets/scene-manifest.json', import.meta.url)));
+  const active = [];
+  t.mock.method(globalThis, 'fetch', async (_url, { signal }) => {
+    active.push(signal);
+    return new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
+  });
+  const scene = new AbortController(), pool = createInteractionReadAhead({character, collisions}, scene.signal);
+  await delay(0);
+  const avatar = loadInteractionGLB(character.url, scene.signal, pool.read);
+  assert.equal(active.length, 2);
+  scene.abort();
+  await assert.rejects(avatar, { name: 'AbortError' });
+  assert.ok(active.every(signal => signal.aborted));
+  await delay(0); assert.equal(active.length, 2, 'remaining collider requests were never scheduled');
 });

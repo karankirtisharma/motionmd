@@ -1,5 +1,5 @@
-/** One chunk is prepared at a time; one small successor may download alongside it.
- * Oversized rooms run alone so two complete GLBs are never staged together. */
+/** Keep source preparation ordered. Transfer slots can refill during a parse, but
+ * resident buffers (including the item being parsed) count against the same budget. */
 export async function loadProgressively<T extends { bytes: number }, V>(
   items: T[], signal: AbortSignal,
   download: (item: T, signal: AbortSignal) => Promise<V>,
@@ -8,31 +8,38 @@ export async function loadProgressively<T extends { bytes: number }, V>(
 ) {
   const local = new AbortController();
   const abort = () => local.abort(signal.reason);
+  const pending = new Map<number, Promise<V>>();
+  let next = 0, active = 0, reserved = 0, downloadFailed = false;
+  function fill() {
+    while (!local.signal.aborted && !downloadFailed && active < 2 && next < items.length) {
+      const item = items[next];
+      // An oversized room can start on its own. Never admit a neighbour until it is released.
+      if (pending.size && reserved + item.bytes > budget) break;
+      reserved += item.bytes;
+      active++;
+      const transfer = (async () => download(item, local.signal))();
+      pending.set(next++, transfer);
+      void transfer.then(() => { active--; fill(); }, () => { active--; downloadFailed = true; });
+    }
+  }
+
   signal.addEventListener('abort', abort, { once: true });
-  const start = (item: T) => {
-    local.signal.throwIfAborted();
-    const pending = download(item, local.signal);
-    void pending.catch(() => {});
-    return pending;
-  };
-  let next: Promise<V> | undefined;
   try {
     signal.throwIfAborted();
+    fill();
     for (let i = 0; i < items.length; i++) {
-      // The first two GLBs total 41.4 MB. Overlap their WAN transfers within the existing 128 MiB cap.
-      const item = items[i], current = next ?? start(item);
+      const value = await pending.get(i)!;
       local.signal.throwIfAborted();
-      next = i + 1 < items.length && item.bytes + items[i + 1].bytes <= budget ? start(items[i + 1]) : undefined;
-      const value = await current;
+      await prepare(items[i], value);
       local.signal.throwIfAborted();
-      await prepare(item, value);
-      local.signal.throwIfAborted();
-      // Let progress, input and cancellation paint between room preparation tasks.
+      pending.delete(i);
+      reserved -= items[i].bytes;
+      fill();
       await new Promise<void>(resolve => setTimeout(resolve, 0));
     }
   } finally {
-    local.abort(); signal.removeEventListener('abort', abort);
-    // Observe the in-flight prefetch after failure/cancellation.
-    await next?.catch(() => {});
+    local.abort();
+    signal.removeEventListener('abort', abort);
+    await Promise.allSettled(pending.values());
   }
 }

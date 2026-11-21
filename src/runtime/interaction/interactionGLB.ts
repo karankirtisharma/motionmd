@@ -2,7 +2,26 @@ import { BufferGeometry, LoaderUtils, Material, Mesh, Skeleton, SkinnedMesh, Tex
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { assetURL, resolveAssetDependency } from '../rendering/assets.ts';
 import { fetchAssetBuffer } from '../rendering/fetchAsset.ts';
+import type { SceneManifest } from '../../types';
+import delivery from '../../generated/asset-delivery.json' with { type: 'json' };
+import { createLightingReadAhead } from '../rendering/lightingReadAhead.ts';
 import { createAssetLoadGuard } from '../rendering/loadingGuard.ts';
+
+export type ReadInteractionBytes = (path: string, signal?: AbortSignal) => Promise<ArrayBuffer>;
+
+const fetchInteractionBytes: ReadInteractionBytes = (path, signal) => fetchAssetBuffer(assetURL(path), { signal });
+
+/** The visitor and ten collision files total 17.84 MiB after HTTP decompression.
+ * Start their transfers during material setup; the original consumers still own decoding. */
+export function createInteractionReadAhead(manifest: Pick<SceneManifest, 'character' | 'collisions'>, signal: AbortSignal) {
+  const urls = [manifest.character?.url, manifest.collisions?.url, ...(manifest.collisions?.additionalUrls ?? [])];
+  const entries: Readonly<Record<string, { decodedBytes: number }>> = delivery;
+  const sizes: Record<string, number> = {};
+  for (const url of urls) {
+    if (url && entries[url]) sizes[url] = entries[url].decodedBytes;
+  }
+  return createLightingReadAhead(sizes, fetchInteractionBytes, signal, 20 * 1024 * 1024, 2);
+}
 
 /** Every resource in these imports belongs to the private, unattached GLTF. */
 export function disposeInteractionGLB(gltf: GLTF) {
@@ -22,9 +41,9 @@ export function disposeInteractionGLB(gltf: GLTF) {
   textures.forEach(item => item.dispose()); skeletons.forEach(item => item.dispose());
 }
 
-export async function loadInteractionGLB(path: string, signal?: AbortSignal) {
+export async function loadInteractionGLB(path: string, signal?: AbortSignal, readBytes: ReadInteractionBytes = fetchInteractionBytes) {
   const url = assetURL(path);
-  const bytes = await fetchAssetBuffer(url, { signal });
+  const bytes = await readBytes(path, signal);
   signal?.throwIfAborted();
   const guard = createAssetLoadGuard(resolveAssetDependency);
   const abortDependencies = () => guard.manager.abort();
@@ -48,7 +67,7 @@ export async function loadInteractionGLB(path: string, signal?: AbortSignal) {
 
 /** Two collision imports at a time, alongside the independently loaded visitor.
  * Preserve source order because collider assignment and snapshots depend on it. */
-export async function loadCollisionGLBs(urls: string[], signal?: AbortSignal) {
+export async function loadCollisionGLBs(urls: string[], signal?: AbortSignal, readBytes?: ReadInteractionBytes) {
   signal?.throwIfAborted();
   const batch = new AbortController();
   const abort = () => batch.abort(signal?.reason);
@@ -60,7 +79,7 @@ export async function loadCollisionGLBs(urls: string[], signal?: AbortSignal) {
       while (next < urls.length) {
         batch.signal.throwIfAborted();
         const i = next++;
-        loaded[i] = await loadInteractionGLB(urls[i], batch.signal);
+        loaded[i] = await loadInteractionGLB(urls[i], batch.signal, readBytes);
       }
     } catch (error) { batch.abort(error); }
   }

@@ -4,7 +4,7 @@ import { repairArchitecturalJoins } from '../rendering/architecturalJoins.ts';
 import { relocateDoorwayPlanter } from '../rendering/doorwayPlanter.ts';
 import { repairStudioThreshold } from '../rendering/floorThreshold.ts';
 import { repairEntranceApron } from '../rendering/entranceApron.ts';
-import { loadCollisionGLBs, disposeInteractionGLB } from './interactionGLB.ts';
+import { loadCollisionGLBs, disposeInteractionGLB, type ReadInteractionBytes } from './interactionGLB.ts';
 import { chairCollision } from './chairCollision.ts';
 import { exactBox } from './exactBox.ts';
 import { exteriorCollision } from './exteriorCollision.ts';
@@ -20,12 +20,12 @@ export const PLAYER_HALF_SEGMENT = 0.70;
 export const PLAYER_HALF_HEIGHT = PLAYER_HALF_SEGMENT + PLAYER_RADIUS;
 export type ExplorationBounds = { minX: number; maxX: number; minZ: number; maxZ: number; height?: number };
 
-export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?: string, preparedCollisionRoot?: THREE.Object3D, additionalUrls: string[] = [], bounds?: ExplorationBounds, signal?: AbortSignal) {
+export async function createCollisionWorld(scene: THREE.Object3D, collisionUrl?: string, preparedCollisionRoot?: THREE.Object3D, additionalUrls: string[] = [], bounds?: ExplorationBounds, signal?: AbortSignal, readBytes?: ReadInteractionBytes) {
   signal?.throwIfAborted();
   await RAPIER.init();
   signal?.throwIfAborted();
   const urls = [collisionUrl, ...additionalUrls].filter((url): url is string => !!url);
-  const loaded = preparedCollisionRoot ? [] : await loadCollisionGLBs(urls, signal);
+  const loaded = preparedCollisionRoot ? [] : await loadCollisionGLBs(urls, signal, readBytes);
   const disposeLoaded = () => loaded.forEach(disposeInteractionGLB);
   if (signal?.aborted) { disposeLoaded(); signal.throwIfAborted(); }
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });

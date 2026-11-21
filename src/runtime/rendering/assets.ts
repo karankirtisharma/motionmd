@@ -42,7 +42,12 @@ export function resolveAssetDependency(url: string, base = process.env.NEXT_PUBL
 export async function fetchBuffer(url: string, signal: AbortSignal, onBytes?: (loaded: number, total: number, delivery?: SceneDeliverySize) => void, expectedBytes?: number): Promise<ArrayBuffer> {
   const entries: Record<string, { identity?: string; decodedBytes: number }> = delivery;
   const entry = process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() ? undefined : entries[url];
-  return fetchAssetBuffer(assetURL(url), { signal, retryUrl: entry?.identity, expectedBytes: entry?.decodedBytes ?? expectedBytes, onProgress: onBytes ? (loaded, total, headers) => {
+  // Only founder (82 MB) and studio (186 MB) qualify. The fallback is the same
+  // decoded GLB, addressed by SHA-256, on an origin that supports byte ranges.
+  const resumeSHA256 = entry && entry.decodedBytes >= 64 * 1024 * 1024
+    ? entry.identity?.match(/^\/asset-delivery\/([a-f0-9]{64})\.glb$/)?.[1] : undefined;
+  return fetchAssetBuffer(assetURL(url), { signal, retryUrl: entry?.identity, resumeSHA256,
+    expectedBytes: entry?.decodedBytes ?? expectedBytes, onProgress: onBytes ? (loaded, total, headers) => {
     onBytes(loaded, total, { encodedBytes: Number(headers.get('x-scene-encoded-length')) || 0,
       decodedBytes: Number(headers.get('x-scene-decoded-length')) || 0, encoding: headers.get('content-encoding') || 'identity' });
   } : undefined });
@@ -98,4 +103,11 @@ export async function loadEnvironment(url: string, signal?: AbortSignal, readByt
   const texture = await loadTexture(url, /\.(exr|hdr)(\?|$)/i.test(url) ? 'linear' : 'color', signal, readBytes);
   texture.mapping = EquirectangularReflectionMapping;
   return texture;
+}
+
+/** Peak staging depends on decoded delivery bytes, not the authoring file or wire encoding. */
+export function sceneBufferBytes(url: string, sourceBytes: number) {
+  if (process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) return sourceBytes;
+  const entries: Record<string, { decodedBytes: number }> = delivery;
+  return entries[url]?.decodedBytes || sourceBytes;
 }
