@@ -42,6 +42,7 @@ import type { RuntimeProfiler } from './rendering/RuntimeProfiler';
 import { createFrameMeter } from './rendering/frameMeter';
 import { isolateFramebufferTextureSizes } from './rendering/framebufferTextureSize';
 import { separateTerraceBand } from './rendering/terraceBand';
+import { closeEntryStairJoint } from './rendering/entryStairJoint';
 import { stabiliseThinRods } from './rendering/thinRods';
 import { balanceFloorLight } from './rendering/floorLightBalance';
 import { enableStaticRefreshSkip } from './rendering/staticRefresh';
@@ -162,6 +163,10 @@ export class SceneRuntime {
         console.error('[MD device lost]', { api: info.api, reason: info.reason, message: info.message, textureMemoryBytes: this.renderer.info.memory.texturesSize, geometryMemoryBytes: this.renderer.info.memory.attributesSize });
         this.fail('The graphics device was interrupted. Reload the experience to continue.');
       };
+      // The 235 kB manifest is independent of GPU initialization. Start its one request
+      // now so a cold visit can overlap the network round trip with device setup.
+      const manifestDownload = fetchBuffer('/assets/scene-manifest.json', this.abort.signal);
+      void manifestDownload.catch(() => {}); // Awaited below; disposal can abort during renderer.init().
       await this.renderer.init();
       console.info('[MD depth]', { reversed: this.renderer.reversedDepthBuffer, near: this.camera.near, far: this.camera.far });
       this.rendererReady = true;
@@ -181,7 +186,7 @@ export class SceneRuntime {
       this.resize();
       document.addEventListener('visibilitychange', this.onVisibility);
 
-      const manifestBytes = await fetchBuffer('/assets/scene-manifest.json', this.abort.signal);
+      const manifestBytes = await manifestDownload;
       this.manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as SceneManifest;
       this.validateManifest();
       // Fetch the physics/visitor chunk alongside geometry rather than parsing
@@ -221,6 +226,7 @@ export class SceneRuntime {
       const exteriorTextures = await installExteriorLighting(this.content, this.abort.signal, lightingDownloads?.read);
       exteriorTextures.forEach(t => this.textures.add(t));
       separateTerraceBand(this.content);
+      closeEntryStairJoint(this.content);
       this.abort.signal.throwIfAborted();
       prepareSourceMaterials(this.content, this.renderer).forEach(t => this.textures.add(t));
       const bounds = new Box3().setFromObject(this.content);

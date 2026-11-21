@@ -1,6 +1,6 @@
 // Locomotion pipeline, step 2: bake the visitor's walk, run and stair clips.
 //
-//   node scripts/locomotion/bake.mjs   -> public/assets/character/locomotion-v9.json
+//   node scripts/locomotion/bake.mjs   -> public/assets/character/locomotion-v16.json
 //
 // Source: Quaternius Universal Animation Library (CC0), retargeted by ual.mjs.
 // Flat clips: Walk_Loop (walk) and Jog_Fwd_Loop stride-warped to ~4.2 m/s (run); travel removed, the ground
@@ -32,11 +32,17 @@ import { PROFILES, prepareTarget, poseAt } from './sources.mjs';
 const SOURCE = process.env.LOCO_SOURCE ?? 'mixamo', PROFILE = PROFILES[SOURCE], BONES = PROFILE.bones;
 
 // A new bake gets a new name (the asset is cached by name). LOCO_OUT=<path> writes elsewhere, for comparisons.
-const OUT = process.env.LOCO_OUT ? new URL('file:///' + process.env.LOCO_OUT.split('\\').join('/')) : new URL('../../public/assets/character/locomotion-v9.json', import.meta.url);
+const OUT = process.env.LOCO_OUT ? new URL('file:///' + process.env.LOCO_OUT.split('\\').join('/')) : new URL('../../public/assets/character/locomotion-v16.json', import.meta.url);
 const SHORT_WARP = .38;      // the short-step walk: stride length against the walk's (about 0.63 m/s)
 const FRAMES = 64;            // per cycle (two steps), uniform in phase
 const STAND_DELTAS = [-.06, 0, .06, .12];   // stand poses: the root this far (cycle phase) either side of the footfall
 const wrapHalfPhase = x => mod1(x + .5) - .5;
+const FOOT_PITCH = 8 * Math.PI / 180;    // stairs: how far from flat a swinging foot may point (soft limit; at 18 deg the
+                                         // shoe tip still pointed at the step: a "peak")
+// Pitch of a foot: its own forward axis (level when it stands flat) against the horizontal. (The heel-to-toe joint line
+// already points ~45 deg down on this rig when the foot is flat, and passed straight down when the capture pointed the
+// toe: the turn built on it flipped the foot 40-60 deg in one frame.)
+const footPitch = (q, forward) => Math.asin(THREE.MathUtils.clamp(forward.clone().applyQuaternion(q).y, -1, 1));
 const JOG_WARP = +(process.env.JOG_WARP ?? (SOURCE === 'ual' ? .7 : 1));   // the UAL jog is authored at ~6 m/s; 0.7 -> ~4.2 m/s
 const SAMPLE_HZ = 240;        // analysis rate
 const CLEARANCE = .03;        // m: least gap between a swinging sole and any step under it
@@ -253,10 +259,26 @@ const pack = arr => Buffer.from(new Float32Array(arr.flat(2)).buffer).toString('
 // Rotations as 16-bit integers (unit quaternion components; 3e-5 resolution, about 0.004 deg).
 const packQ = arr => Buffer.from(new Int16Array(arr.flat(2).map(v => Math.round(Math.max(-1, Math.min(1, v)) * 32767))).buffer).toString('base64');
 
+// ---------- arms: a smaller swing
+// Each arm joint (upper arm, forearm, hand) turned part-way back to its mean over the stride, in its parent's space:
+// the same rhythm, `keep` of the swing. (The capture's hands travel 44-54 cm front to back: cartoon-like for a man
+// walking in a suit.)
+const ARM_SWING = .55;
+function armMeans(a, times) {
+  const bones = ['L', 'R'].flatMap(s => ['UpperArm', 'Forearm', 'Hand'].map(b => a.prep.bones.get(`Bip01_${s}_${b}`)));
+  const sums = bones.map(() => new THREE.Vector4());
+  for (const time of times) {
+    poseAt(a.source, a.mixer, a.action, a.prep, time, a.travel);
+    bones.forEach((bone, i) => { const q = bone.quaternion, m = sums[i], sign = m.x * q.x + m.y * q.y + m.z * q.z + m.w * q.w < 0 ? -1 : 1; m.x += sign * q.x; m.y += sign * q.y; m.z += sign * q.z; m.w += sign * q.w; });
+  }
+  return bones.map((bone, i) => ({ bone, mean: new THREE.Quaternion(sums[i].x, sums[i].y, sums[i].z, sums[i].w).normalize() }));
+}
+const calmArms = (means, keep) => { for (const { bone, mean } of means) bone.quaternion.copy(mean.clone().slerp(bone.quaternion, keep)); };
+
 // ---------- flat clip
 // warp < 1: stride warping (as in Unreal's Animation Warping): same rhythm, every foot's distance ahead of or
 // behind the hips scaled by `warp`, legs re-solved in their own knee plane, feet keep their orientation.
-// shape (the run): `widen` m moved out under each foot (the capture runs with its feet 5 cm apart, one in front of
+// shape (the run, the walks): `widen` m moved out under each foot (the capture runs with its feet 5 cm apart, one in front of
 // the other: a catwalk line, read as a woman's run), `calm` the share of the hips' twist taken out (17 deg each
 // stride, twice the walk's). The torso keeps its own motion; the legs are re-solved to the moved feet.
 async function bakeFlat(name, file, model, reset, warp = 1, shape) {
@@ -282,23 +304,81 @@ async function bakeFlat(name, file, model, reset, warp = 1, shape) {
     }
     const smooth = raise.map((_, k) => { let sum = 0, w = 0; for (let j = -6; j <= 6; j++) { const g = Math.exp(-(j * j) / 18); sum += Math.min(raise[(k + j + FRAMES) % FRAMES], limit[(k + j + FRAMES) % FRAMES]) * g; w += g; } return sum / w; });
     raise.splice(0, FRAMES, ...smooth.map((r, k) => Math.min(r, limit[k])));
+    // Levelled (shape.level): one even raise, not a second bounce of its own (capped where a leg cannot reach).
+    if (shape?.level !== undefined) { const even = raise.reduce((t, r) => t + r, 0) / FRAMES; raise.forEach((_, k) => { raise[k] = Math.min(even, limit[k]); }); }
     console.log(`${name}: hips raised ${(Math.min(...raise) * 100).toFixed(1)}..${(Math.max(...raise) * 100).toFixed(1)} cm`);
   }
-  const hipsBone = legs[0][0].parent, twistAt = () => { const l = wp(legs[0][0]), r = wp(legs[1][0]); return Math.atan2(l.z - r.z, l.x - r.x); };
-  let meanTwist = 0;
-  if (shape) for (let k = 0; k < FRAMES; k++) { poseAt(a.source, a.mixer, a.action, a.prep, timeAt(k), a.travel); model.updateMatrixWorld(true); meanTwist += twistAt() / FRAMES; }
+  // Hip line angles (twist about the vertical, tilt about the forward axis) and the shoulder line's twist.
+  const hipsBone = legs[0][0].parent, line = (l, r) => ({ twist: Math.atan2(l.z - r.z, l.x - r.x), tilt: Math.atan2(l.y - r.y, l.x - r.x) });
+  const hipLine = () => line(wp(legs[0][0]), wp(legs[1][0]));
+  const arms = ['L', 'R'].map(s => a.prep.bones.get(`Bip01_${s}_UpperArm`)), chest = a.prep.bones.get('Bip01_Spine2'), headBone = a.prep.bones.get('Bip01_Head');
+  const mean = { twist: 0, tilt: 0, shoulders: 0, shoulderTilt: 0, x: 0, y: 0, neckX: 0 };
+  const neckBone = a.prep.bones.get('Bip01_Neck'), spine1 = a.prep.bones.get('Bip01_Spine1');
+  if (shape) for (let k = 0; k < FRAMES; k++) {
+    poseAt(a.source, a.mixer, a.action, a.prep, timeAt(k), a.travel); model.updateMatrixWorld(true);
+    const h = hipLine(), p = wp(pelvisBone);
+    mean.twist += h.twist / FRAMES; mean.tilt += h.tilt / FRAMES; { const sl = line(wp(arms[0]), wp(arms[1])); mean.shoulders += sl.twist / FRAMES; mean.shoulderTilt += sl.tilt / FRAMES; } mean.x += p.x / FRAMES; mean.y += p.y / FRAMES; mean.neckX += wp(neckBone).x / FRAMES;
+  }
+  const armRest = shape?.arms ? armMeans(a, Array.from({ length: FRAMES }, (_, j) => timeAt(j))) : undefined;
+  // `level`: the share of the body's up-and-down bounce kept. The peaks come down freely; the low points (both feet
+  // down, legs spread) rise only as far as both legs reach (98.5% of their length), so no planted foot leaves the
+  // floor. Smoothed around the cycle, so it adds no jerk of its own.
+  const lift = new Array(FRAMES).fill(0);
+  if (shape?.level !== undefined) {
+    const room = new Array(FRAMES).fill(Infinity);
+    for (let k = 0; k < FRAMES; k++) {
+      poseAt(a.source, a.mixer, a.action, a.prep, timeAt(k), a.travel); model.updateMatrixWorld(true);
+      const p = wp(pelvisBone), dx = -(shape.sway ?? 0) * (p.x - mean.x);
+      lift[k] = (mean.y - (shape.lower ?? 0) + shape.level * (p.y - mean.y)) - p.y;   // `lower`: hips carried that much lower
+      legs.forEach(([thigh, calf, foot], i) => {
+        const H = wp(thigh).add(new THREE.Vector3(dx, 0, 0)), A = wp(foot).add(new THREE.Vector3((i === 0 ? 1 : -1) * (shape.widen ?? 0), 0, 0));
+        const length = wp(thigh).distanceTo(wp(calf)) + wp(calf).distanceTo(wp(foot)), horiz = Math.hypot(H.x - A.x, H.z - A.z);
+        room[k] = Math.min(room[k], Math.sqrt(Math.max(0, (length * .985) ** 2 - horiz * horiz)) - (H.y - A.y));
+      });
+    }
+    const capped = lift.map((d, k) => Math.min(d, room[k]));
+    const smooth = capped.map((_, k) => { let sum = 0, w = 0; for (let j = -5; j <= 5; j++) { const g = Math.exp(-(j * j) / 8); sum += capped[(k + j + FRAMES) % FRAMES] * g; w += g; } return sum / w; });
+    smooth.forEach((d, k) => { lift[k] = Math.min(d, room[k]); });
+  }
   for (let k = 0; k < FRAMES; k++) {
     poseAt(a.source, a.mixer, a.action, a.prep, timeAt(k), a.travel); model.updateMatrixWorld(true);
     if (shape) {
       const feet = legs.map(([, , foot]) => ({ q: wq(foot), p: wp(foot) }));
+      // The body's sideways sway (`sway` share taken out) and the top of its bounce (`bob` share of the rise over
+      // the mean taken off): the whole body moves, the feet stay.
+      if (shape.sway || shape.bob || shape.level !== undefined) {
+        const p = wp(pelvisBone);
+        p.x -= (shape.sway ?? 0) * (p.x - mean.x); p.y -= (shape.bob ?? 0) * Math.max(0, p.y - mean.y); p.y += lift[k];
+        pelvisBone.parent.updateWorldMatrix(true, false); pelvisBone.position.copy(pelvisBone.parent.worldToLocal(p.clone())); model.updateMatrixWorld(true);
+      }
       const upper = hipsBone.children.filter(c => c.isBone && !legs.some(([thigh]) => thigh === c)).map(c => [c, wq(c)]);
-      // Twist about the vertical, positive turns the left hip forward: the angle of the hip line is minus the turn.
-      setWorldQ(hipsBone, new THREE.Quaternion().setFromAxisAngle(Y, shape.calm * (twistAt() - meanTwist)).multiply(wq(hipsBone)));
+      // The hips alone (the torso keeps its own motion): a turn about the vertical changes the hip line's twist by
+      // minus the turn; a turn about the forward axis changes its tilt by the turn.
+      const h = hipLine();
+      setWorldQ(hipsBone, new THREE.Quaternion().setFromAxisAngle(Y, (shape.calm ?? 0) * (h.twist - mean.twist))
+        .multiply(new THREE.Quaternion().setFromAxisAngle(FORWARD, -(shape.tilt ?? 0) * (h.tilt - mean.tilt))).multiply(wq(hipsBone)));
       for (const [c, q] of upper) setWorldQ(c, q);
       model.updateMatrixWorld(true);
-      legs.forEach(([thigh, calf, foot], i) => { const { q, p } = feet[i]; p.x += (i === 0 ? 1 : -1) * shape.widen; solveLeg(thigh, calf, foot, p, q, stats); });
+      // The spine's own side lean above the hips (`lean` share taken out): the neck brought back over the mean line by
+      // bending from the middle of the back; the head keeps its own orientation.
+      if (shape.lean) {
+        const head = wq(headBone), base = wp(spine1), top = wp(neckBone), d = top.x - mean.neckX, length = top.distanceTo(base);
+        const angle = Math.asin(THREE.MathUtils.clamp(shape.lean * d / length, -.3, .3));
+        setWorldQ(spine1, new THREE.Quaternion().setFromAxisAngle(FORWARD, angle).multiply(wq(spine1)));
+        setWorldQ(headBone, head); model.updateMatrixWorld(true);
+      }
+      // The chest's own turn (`shoulders`: negative calms it) and roll (`roll` share taken out); the head keeps its own.
+      if (shape.shoulders || shape.roll) {
+        // (On this rig the collarbones hang from the neck: the head alone is held, the arms go with the chest.)
+        const head = wq(headBone), sl = line(wp(arms[0]), wp(arms[1]));
+        setWorldQ(chest, new THREE.Quaternion().setFromAxisAngle(Y, -(shape.shoulders ?? 0) * (sl.twist - mean.shoulders))
+          .multiply(new THREE.Quaternion().setFromAxisAngle(FORWARD, -(shape.roll ?? 0) * (sl.tilt - mean.shoulderTilt))).multiply(wq(chest)));
+        setWorldQ(headBone, head); model.updateMatrixWorld(true);
+      }
+      legs.forEach(([thigh, calf, foot], i) => { const { q, p } = feet[i]; p.x += (i === 0 ? 1 : -1) * (shape.widen ?? 0); solveLeg(thigh, calf, foot, p, q, stats); });
       model.updateMatrixWorld(true);
     }
+    if (shape?.arms) { calmArms(armRest, shape.arms); model.updateMatrixWorld(true); }
     if (warp !== 1) {
       // Feet first (they stay where the clip puts them), then the hips go up.
       const feetBefore = legs.map(([, , foot]) => ({ q: wq(foot), p: wp(foot) }));
@@ -310,12 +390,20 @@ async function bakeFlat(name, file, model, reset, warp = 1, shape) {
       legs.forEach(([thigh, calf, foot], i) => { const { q, p } = feetBefore[i]; solveLeg(thigh, calf, foot, p.setZ(hipZ + (p.z - hipZ) * warp), q, stats); });
       model.updateMatrixWorld(true);
     }
+    // No shoe below the floor (y = 0 here, where the idle shoes stand): a dipping shoe is set onto it by its own leg.
+    // (The run's landing shoe went ~3 cm under; the runtime then lifted the whole body to clear it, a 4 cm hop on
+    // every footfall.)
+    if (shape) for (let side = 0; side < 2; side++) for (let i = 0; i < 3; i++) {
+      const below = -shoeBottom(model, side); if (below <= .0005) break;
+      const [thigh, calf, foot] = legs[side], q = wq(foot), target = wp(foot); target.y += below;
+      solveLeg(thigh, calf, foot, target, q, stats); model.updateMatrixWorld(true);
+    }
     // Where the left foot lands (centre of heel and toe joints), ahead of the root, at the strike.
     if (k === 0) strikeAhead = (wp(a.prep.bones.get('Bip01_L_Foot')).z + wp(a.prep.bones.get('Bip01_L_Toe0')).z) / 2;
     frames.push(record(a.prep));
   }
   reset();
-  if (shape) console.log(`${name}: feet ${shape.widen * 200} cm wider apart, hip twist ${(shape.calm * 100).toFixed(0)}% calmer, knee ${stats.minBend.toFixed(0)}..${stats.maxBend.toFixed(0)} deg, reach ${stats.reach.toFixed(3)}, IK error ${(stats.ikError * 1000).toFixed(1)} mm`);
+  if (shape) console.log(`${name}: shape ${JSON.stringify(shape)}, knee ${stats.minBend.toFixed(0)}..${stats.maxBend.toFixed(0)} deg, reach ${stats.reach.toFixed(3)}, IK error ${(stats.ikError * 1000).toFixed(1)} mm`);
   if (warp !== 1) console.log(`${name}: stride warp ${warp}, knee ${stats.minBend.toFixed(0)}..${stats.maxBend.toFixed(0)} deg, reach ${stats.reach.toFixed(3)}, IK error ${(stats.ikError * 1000).toFixed(1)} mm`);
   const distance = a.total.z * a.scale * warp;
   return { meta: { name, kind: 'flat', frames: FRAMES, cycleDistance: +distance.toFixed(4), naturalSpeed: +(distance / a.T).toFixed(3), strikeAhead: +strikeAhead.toFixed(4), contacts: a.contacts }, data: frames,
@@ -376,7 +464,10 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
         // Up: rise early, the foot has to get over the next step. Down: the foot first travels out over the step
         // (see the descent pass below), then lowers onto its tread in the second half of the swing.
         const level = from + (to - from) * (dir > 0 ? smoother((t.progress - .05) / .6) : smoother((t.progress - .5) / .45));
-        height = dir * R * (level + .5 - uRoot) + Math.max(0, sole(f));
+        // The capture's own lift fades out by 85% of the swing: the foot is over its new tread by 75% (descent pass) and
+        // now comes down onto it there, heel first, instead of hanging 4-5 cm above it until the footfall (with the other
+        // foot already gone from its tread, both feet were up 42% of the time: a float).
+        height = dir * R * (level + .5 - uRoot) + Math.max(0, sole(f)) * (1 - THREE.MathUtils.smoothstep(t.progress, .55, .85));
       }
       // Toe-out: the foot's yaw from the way of travel, capped (left foot turns out to +x, right to -x).
       // A steep foot (toe-off, swing) has no meaningful heading: its heel-to-toe line is nearly vertical and
@@ -466,7 +557,10 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
       const t = tread(side, p.phase), own = [t.base, t.base + 2];
       return Math.max(0, ...points.map(([z, sole]) => { const u = ft.u + (z - ft.c.z) / G; return top(u, p.uRoot) + (own.includes(Math.floor(u)) ? 0 : CLEARANCE) - (ft.height + sole - low); }));
     });
-    const lift = deficit.map((_, k) => { let m = 0; for (let j = -6; j <= 6; j++) { const d = deficit[(k + j + FRAMES) % FRAMES]; if (d > 0) m = Math.max(m, d * Math.cos(j / 7 * Math.PI / 2) ** 2); } return m; });
+    // Spread 6 frames ahead of a need (the shoe rises before the edge) but only 1 after it: held longer, a shoe over
+    // its new tread hung 4-6 cm above it until the footfall while the other had already left (both feet up 43% of
+    // the time on a flight).
+    const lift = deficit.map((_, k) => { let m = 0; for (let j = -1; j <= 6; j++) { const d = deficit[(k + j + FRAMES) % FRAMES]; if (d > 0) m = Math.max(m, d * Math.cos(j / 7 * Math.PI / 2) ** 2); } return m; });
     plan.forEach((p, k) => { const ft = p.feet[side]; if (!ft.planted) ft.height += lift[k] * (1 - (ft.lockWeight ?? 0)); });
   }
   // The target flight in its own coordinates (tread coordinate, distance from the path, height) and its tread tops.
@@ -484,13 +578,54 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
     let need = 0;
     for (const [mesh, index] of shoeVertices.get(model)[side]) {
       const q = geo.where(mesh.getVertexPosition(index, v).applyMatrix4(mesh.matrixWorld), p.uRoot), j = Math.floor(q.u);
-      need = Math.max(need, geo.top(j, p.uRoot) + (own.includes(j) ? 0 : CLEARANCE) - q.h);
+      // The tread it leaves gets the clearance too once the swing is under way: a level shoe leaving its step going
+      // down otherwise dragged its heel along it (3.8 cm, on the tightest spiral line).
+      const leaving = j === t.base && !t.planted ? CLEARANCE * smoother((t.progress - .08) / .2) : 0;
+      need = Math.max(need, geo.top(j, p.uRoot) + (j === t.base + 2 ? 0 : j === t.base ? leaving : CLEARANCE) - q.h);
     }
     return need;
   };
   // Pass 3: pose, hips, leg solve.
   const legs = ['L', 'R'].map(s => ['Thigh', 'Calf', 'Foot'].map(b => a.prep.bones.get(`Bip01_${s}_${b}`)));
   const pelvis = a.prep.bones.get('Bip01_Pelvis');
+  // Off the ground a foot stays near level (within about FOOT_PITCH of how it stands flat, toe up or down). The floor
+  // walk's foot points its toe 40-55 deg down after push-off and swings it steeply up before the heel strike: on
+  // flat ground that is hidden, on a staircase the shoe's tip pointed at the step it swung over and landed on.
+  // Pitch: the heel-to-toe joint line against the horizontal; the limit is soft (exponential), fading out as the foot
+  // locks onto its tread.
+  const flatFoot = [0, 1].map(side => {
+    const r = lockRuns.find(r => r.side === side);
+    poseAt(a.source, a.mixer, a.action, a.prep, plan[r.flatK].s.time, a.travel); model.updateMatrixWorld(true);
+    const q = wq(legs[side][2]), inverse = q.clone().invert(), toe = wp(a.prep.bones.get(`Bip01_${'LR'[side]}_Toe0`)).sub(wp(legs[side][2])).setY(0).normalize();
+    // The foot's own axes, as it stands flat: forward (level, along the shoe) and across.
+    return { local: toe.clone().applyQuaternion(inverse), across: new THREE.Vector3().crossVectors(Y, toe).normalize().applyQuaternion(inverse), pitch: 0 };
+  });
+  // The capture's foot also flicks 10-15 deg for a single frame (frames 30 and 42 of the cycle): the pitch is smoothed
+  // over neighbouring frames before the limit, so the shoe tip never twitches.
+  const target = [0, 1].map(side => {
+    const raw = plan.map(p => { poseAt(a.source, a.mixer, a.action, a.prep, p.s.time, a.travel); model.updateMatrixWorld(true); return footPitch(wq(legs[side][2]), flatFoot[side].local) - flatFoot[side].pitch; });
+    return raw.map((_, k) => {
+      let sum = 0, weight = 0;
+      for (let j = -3; j <= 3; j++) { const g = Math.exp(-(j * j) / 4); sum += raw[(k + j + FRAMES) % FRAMES] * g; weight += g; }
+      const rel = sum / weight;
+      return rel < 0 ? -FOOT_PITCH * (1 - Math.exp(rel / FOOT_PITCH)) : FOOT_PITCH * (1 - Math.exp(-rel / FOOT_PITCH));
+    });
+  });
+  const levelFoot = (q, side, free, k) => {
+    const { local, pitch } = flatFoot[side], rel = footPitch(q, local) - pitch;
+    const goal = rel + (target[side][k] - rel) * free;
+    // Turned across the foot, both ways tried, the closer kept, repeated until on target (one turn fell 12 deg short
+    // where the capture's foot points steepest).
+    for (let i = 0; i < 4; i++) {
+      const miss = goal - (footPitch(q, local) - pitch);
+      if (Math.abs(miss) < 1e-4) break;
+      const axis = flatFoot[side].across.clone().applyQuaternion(q);   // the foot's own across axis
+      const turned = [miss, -miss].map(angle => new THREE.Quaternion().setFromAxisAngle(axis, angle).multiply(q));
+      q = turned.reduce((best, c) => Math.abs(goal - (footPitch(c, local) - pitch)) < Math.abs(goal - (footPitch(best, local) - pitch)) ? c : best);
+    }
+    return q;
+  };
+  const stairArms = armMeans(a, plan.map(p => p.s.time));
   const solve = () => {
     const stats = { reach: 0, minBend: 180, maxBend: 0, ikError: 0, sink: 0, hover: 0, clearance: Infinity, drift: 0, track: {} }, frames = [], need = [[], []];
     for (const p of plan) {
@@ -503,9 +638,12 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
       pelvis.parent.updateWorldMatrix(true, false); pelvis.position.copy(pelvis.parent.worldToLocal(hips.clone())); model.updateMatrixWorld(true);
       // Lean into the climb (and a little over the descent), from the lower spine: the legs are solved after.
       if (gait.lean) { const spine = a.prep.bones.get('Bip01_Spine'); setWorldQ(spine, new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), gait.lean * Math.PI / 180).multiply(wq(spine))); model.updateMatrixWorld(true); }
+      // The arms swing as the floor walk's do (a smaller swing than the capture's).
+      calmArms(stairArms, ARM_SWING); model.updateMatrixWorld(true);
       p.feet.forEach((ft, side) => {
         const yaw = new THREE.Quaternion().setFromAxisAngle(Y, yawAt(ft.u, p.uRoot)), fix = new THREE.Quaternion().setFromAxisAngle(Y, ft.toeFix);
-        const footQ = yaw.clone().multiply(fix).multiply(clipFootQ[side]);
+        const footQ = levelFoot(yaw.clone().multiply(fix).multiply(clipFootQ[side]), side, (1 - (ft.lockWeight ?? 0)) ** 3, plan.indexOf(p));   // gone before the foot touches: turning a touching shoe slid it   // gone before the foot touches: turning a touching shoe slid it
+        if (process.env.FOOTDBG && `${gait.name}:${variant.flight}` === process.env.FOOTDBG && side === 0) { const k = plan.indexOf(p), raw = yaw.clone().multiply(fix).multiply(clipFootQ[side]); globalThis.__dbg ??= {}; const prev = globalThis.__dbg[k - 1]; if (prev) console.log('FOOT', k, 'raw step', (2 * Math.acos(Math.min(1, Math.abs(raw.dot(prev.raw)))) * 180 / Math.PI).toFixed(1), 'fixed step', (2 * Math.acos(Math.min(1, Math.abs(footQ.dot(prev.got)))) * 180 / Math.PI).toFixed(1), 'pitch', ((footPitch(footQ, flatFoot[0].local) - flatFoot[0].pitch) * 180 / Math.PI).toFixed(1)); globalThis.__dbg[k] = { raw, got: footQ.clone() }; }
         const centreTarget = place(ft.u, p.uRoot, ft.lockX ?? ft.c.x, ft.height);
         // Free foot: ankle at the centre plus its own (toe-corrected) heel offset.
         const free = ft.f.heel.clone().sub(ft.c).setY(0).applyAxisAngle(Y, ft.toeFix).applyQuaternion(yaw);
@@ -523,6 +661,29 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
         }
         const ankle = ankleXZ; ankle.y = ft.height + ft.ankleAboveSole;
         solveLeg(legs[side][0], legs[side][1], legs[side][2], ankle, footQ, stats, FORWARD.clone().applyQuaternion(yaw));
+        // In the air the toe joint relaxes to his idle pose (the capture curls it down after push-off: with the foot
+        // levelled that still pointed the shoe tip), coming back to the capture's as the foot locks onto its tread.
+        { const free = 1 - (ft.lockWeight ?? 0), toe = a.prep.bones.get(`Bip01_${'LR'[side]}_Toe0`);
+          if (free > 0) { toe.quaternion.slerp(a.prep.idleLocal.get(toe.name), free); toe.updateMatrixWorld(true); } }
+        // Landing: as it comes over its new tread (fully by `arrive`, 75%), the shoe settles onto it (only the part already
+        // over it is measured: nothing can be pushed into a step), its gap shrinking to nothing by 80% of the
+        // swing, and waits there for the footfall. (It hung 2-4 cm above it until then while the other foot had already
+        // started to roll off its tread: both feet up for a fifth of every step, a float up the stairs.)
+        { const t = tread(side, p.phase);
+          if (!t.planted && t.progress > .55) {
+            const keep = 1 - THREE.MathUtils.smoothstep(t.progress, .55, .8), landing = t.base + 2, v = new THREE.Vector3();
+            let goal;
+            for (let i = 0; i < 3; i++) {
+              model.updateMatrixWorld(true);
+              let low = Infinity;
+              for (const [mesh, index] of shoeVertices.get(model)[side]) { const q = geo.where(mesh.getVertexPosition(index, v).applyMatrix4(mesh.matrixWorld), p.uRoot); if (Math.floor(q.u) === landing) low = Math.min(low, q.h - geo.top(landing, p.uRoot)); }
+              if (!Number.isFinite(low)) break;
+              goal ??= Math.max(0, low) * keep;   // the gap it is allowed now
+              if (low - goal < .001) break;
+              ankle.y -= low - goal;
+              solveLeg(legs[side][0], legs[side][1], legs[side][2], ankle, footQ, stats, FORWARD.clone().applyQuaternion(yaw));
+            }
+          } }
       });
       model.updateMatrixWorld(true);
       // Verify against the target flight in its own coordinates: tread coordinate, distance from the path, height.
@@ -568,7 +729,10 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
   // frames as in pass 2) and solve the legs again, until every swinging shoe clears.
   let { stats, frames, need } = solve();
   for (let round = 0; round < 6; round++) {
-    const lift = need.map(list => list.map((_, k) => { let m = 0; for (let j = -6; j <= 6; j++) { const d = list[(k + j + FRAMES) % FRAMES]; if (d > 0) m = Math.max(m, d * Math.cos(j / 7 * Math.PI / 2) ** 2); } return m; }));
+    // Spread 6 frames ahead of a need (the shoe rises before the edge) but only 1 after it: held longer, a shoe over
+    // its new tread hung 4-6 cm above it until the footfall while the other had already left (both feet up 43% of
+    // the time on a flight).
+    const lift = need.map(list => list.map((_, k) => { let m = 0; for (let j = -1; j <= 6; j++) { const d = list[(k + j + FRAMES) % FRAMES]; if (d > 0) m = Math.max(m, d * Math.cos(j / 7 * Math.PI / 2) ** 2); } return m; }));
     if (process.env.TRUTH && `${gait.name}:${variant.flight}:${variant.radius}` === process.env.TRUTH) console.log('round', round, 'need', need.map(l => (Math.max(...l) * 100).toFixed(2)).join(' '));
     if (Math.max(...need.flat()) < .001) break;
     plan.forEach((p, k) => p.feet.forEach((ft, side) => { if (!ft.planted) ft.height += lift[side][k] * (1 - (ft.lockWeight ?? 0)); }));
@@ -629,7 +793,7 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
       const q = geo.where(mesh.getVertexPosition(index, new THREE.Vector3()).applyMatrix4(mesh.matrixWorld), p.uRoot), t = Math.floor(q.u);
       if (q.h - geo.top(t, p.uRoot) < low.gap) low = { gap: q.h - geo.top(t, p.uRoot), t };
     }
-    const keep = low.t === trailTread && low.gap < .08, clipAnkle = geo.where(wp(legs[trailing][2]), p.uRoot);
+    const keep = low.t === trailTread && low.gap < .12, clipAnkle = geo.where(wp(legs[trailing][2]), p.uRoot);
     // Where that ankle goes with the root at uRoot (heights relative to the root's line; on the spiral, polar).
     const keptAnkle = () => place(clipAnkle.u, uRoot, curved ? sigma * (radius - clipAnkle.across) : clipAnkle.across, clipAnkle.h - dir * R * (uRoot - p.uRoot) - low.gap);
     let drop = 0, st;
@@ -698,16 +862,25 @@ function bakeStairs(gait, variant, model, reset, a, flatHip, hipDrop = 0) {
 
 // ---------- main
 const { model, reset, idleLocal } = await visitorModel();
-const walk = await bakeFlat('walk', PROFILE.clips.walk, model, reset), run = await bakeFlat('jog', PROFILE.clips.run, model, reset, JOG_WARP, SOURCE === 'mixamo' ? { widen: .03, calm: .4 } : undefined);
+// The capture's walk leads with its hips (they twist 8.6 deg a stride, the shoulders 4.2; they sway 3.8 cm and tilt
+// 3.8 deg each step, and bob 7.3 cm): read as a woman's walk ('thumak thumak'). Made simple: the body barely shifts
+// its weight side to side, the hips stay level and the shoulders quiet (a fuller shoulder swing read as odd); the
+// bounce is trimmed (the body rose 7 cm each step) and the arms swing less.
+// The run likewise: no hop (30% of its 10 cm bounce kept), no side-to-side weight shift or head sway.
+const RUN_SHAPE = { widen: .03, calm: .4, sway: .7, lean: .7, roll: .5, level: .3 };
+const WALK_SHAPE = SOURCE === 'mixamo' ? { widen: .005, calm: .6, tilt: .7, sway: .8, level: .3, lower: .015, shoulders: -.5, roll: .6, lean: .7, arms: ARM_SWING } : undefined;
+const walk = await bakeFlat('walk', PROFILE.clips.walk, model, reset, 1, WALK_SHAPE), run = await bakeFlat('jog', PROFILE.clips.run, model, reset, JOG_WARP, SOURCE === 'mixamo' ? RUN_SHAPE : undefined);
 // Short steps at the walk's own cadence (stride-warped to SHORT_WARP): what the walk becomes below walking speed, slowing
 // for a staircase or a stop. Played by distance, the full-length walk at the stair pace (0.6 m/s) took 0.7 steps a
 // second (slow motion), then the stairs took 2.1.
-const short = await bakeFlat('walk-short', PROFILE.clips.walk, model, reset, SHORT_WARP);
+const short = await bakeFlat('walk-short', PROFILE.clips.walk, model, reset, SHORT_WARP, WALK_SHAPE);
 const sources = new Map(); for (const file of new Set(GAITS.map(g => g.file))) sources.set(file, await analyse(file, model, reset));
 const stairs = [];
 // Hip height per flight: start from the mapped clip's and lower it in 1 cm steps until no leg is stretched past
 // 99.3% of its length (knee bent at least 13 deg; a fully straight knee locks and pops), at most 12 cm.
 for (const gait of GAITS) for (const variant of VARIANTS) {
+  // LOCO_ONLY=<gait>:<flight> (with LOCO_OUT): bake just that staircase, for quick checks.
+  if (process.env.LOCO_ONLY && process.env.LOCO_OUT && `${gait.name}:${variant.flight}` !== process.env.LOCO_ONLY) continue;
   // ...and raise it in 1 cm steps while the support leg never gets near straight (under 97.5%, knee bent over ~25 deg
   // the whole stride reads as a crouch), at most 8 cm.
   let drop = 0, baked = bakeStairs(gait, variant, model, reset, sources.get(gait.file), walk.meanHip, 0);

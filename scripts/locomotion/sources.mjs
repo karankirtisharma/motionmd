@@ -130,7 +130,8 @@ export function poseAt(source, mixer, action, prep, time, travel) {
   pelvis.position.copy(pelvis.parent.worldToLocal(prep.pelvisRestWorld.clone().add(hips)));
   for (const [m, r] of prep.profile.bones) {
     const bone = t.get(r);
-    if (prep.collarbones.has(r)) { bone.quaternion.copy(prep.idleLocal.get(r)); bone.updateMatrixWorld(true); continue; }
+    // The thumb too keeps his idle pose: the capture's thumb, on this hand, stuck out stiffly while walking and running.
+    if (prep.collarbones.has(r) || /^Bip01_[LR]_Finger0\d?$/.test(r)) { bone.quaternion.copy(prep.idleLocal.get(r)); bone.updateMatrixWorld(true); continue; }
     const delta = worldQ(s.get(m), tmpQ).multiply(prep.sourceRest.get(m).clone().invert());
     if (r === 'Bip01_Head') {
       // The gaze stays level (people steady the head; the run's capture looks 17 deg up): only its turn is kept.

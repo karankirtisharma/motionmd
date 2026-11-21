@@ -1,3 +1,7 @@
+/** Drawn for reflections only, not for the visitor's own camera: his head in the first-person view, which the mirror
+ *  must still show. The mirror's camera enables this layer. */
+export const REFLECTION_ONLY_LAYER = 9;
+
 /** Frame-rate independent response, also used by camera and animation weights. */
 export function damping(rate: number, dt: number) {
   return 1 - Math.exp(-Math.max(0, rate) * Math.max(0, dt));

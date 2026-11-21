@@ -308,7 +308,7 @@ const sameLocal = (a, b) => a.position.distanceTo(b.position) < 1e-9
   && Math.max(Math.abs(a.quaternion.x - b.quaternion.x), Math.abs(a.quaternion.y - b.quaternion.y), Math.abs(a.quaternion.z - b.quaternion.z), Math.abs(a.quaternion.w - b.quaternion.w)) < 1e-12;
 
 test('stairs: baked clips keep every shoe on the gallery treads, without pops; nothing changes away from flights', async () => {
-  const locomotion = JSON.parse(fs.readFileSync(new URL('../public/assets/character/locomotion-v9.json', import.meta.url)));
+  const locomotion = JSON.parse(fs.readFileSync(new URL('../public/assets/character/locomotion-v16.json', import.meta.url)));
   const { locateFlight } = await import(flightsURL);
   const { stairSpeed } = await import(locomotionURL);
   const avatar = createRocketboxAvatar(await load(), locomotion), plain = createRocketboxAvatar(await load(), locomotion);
@@ -375,7 +375,7 @@ test('sit and stand blending plants the feet while the body turns toward a sourc
   } finally { avatar.dispose(); }
 });
 
-test('body camera uses source eye calibration and hides only head/hair primitives', async (context) => {
+test('body camera uses source eye calibration and hides only head/hair primitives, from its own camera only', async (context) => {
   const avatar = createRocketboxAvatar(await load());
   const meshes = [];
   avatar.root.traverse((object) => { if (object.isMesh) meshes.push(object); });
@@ -386,11 +386,13 @@ test('body camera uses source eye calibration and hides only head/hair primitive
     assert.ok(avatar.view.eyeHeight > 1.55 && avatar.view.eyeHeight < 1.83);
     assert.ok(avatar.view.seatedEyeOffset > 0.70 && avatar.view.seatedEyeOffset < 1);
     avatar.setBodyView(true);
-    assert.ok(head.every((mesh) => !mesh.visible)); assert.ok(body.every((mesh) => mesh.visible));
+    // Hidden from the visitor's camera (layer 0), still drawn by the mirror (reflection-only layer 9).
+    const hidden = (mesh) => mesh.visible && !mesh.layers.isEnabled(0) && mesh.layers.isEnabled(9);
+    assert.ok(head.every(hidden)); assert.ok(body.every((mesh) => mesh.visible && mesh.layers.isEnabled(0)));
     avatar.update(1 / 60, 1.38, 0, seatHeightAboveFloor);
-    assert.ok(head.every((mesh) => !mesh.visible), 'animation must not restore the occluding head');
+    assert.ok(head.every(hidden), 'animation must not restore the occluding head');
     avatar.setBodyView(false);
-    assert.ok(meshes.every((mesh) => mesh.visible), 'third person restores the complete original character');
+    assert.ok(meshes.every((mesh) => mesh.visible && mesh.layers.isEnabled(0)), 'third person restores the complete original character');
     context.diagnostic(JSON.stringify(avatar.view));
   } finally { avatar.dispose(); }
 });

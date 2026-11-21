@@ -1,4 +1,5 @@
 import { prepareRenderSlices } from './prepareRenderSlices.ts';
+import { REFLECTION_ONLY_LAYER } from '../interaction/movement.ts';
 import { Box3, type DirectionalLight, Frustum, HalfFloatType, Matrix4, Mesh, Object3D, PerspectiveCamera, Plane, RenderTarget, Scene, Vector2, Vector3, Vector4, WebGLCoordinateSystem } from 'three';
 import { MeshBasicNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { mrt, output, screenUV, texture, uniform, vec4 } from 'three/tsl';
@@ -19,6 +20,7 @@ export function createMirrorCameraUpdater() {
   return (source: PerspectiveCamera, camera: PerspectiveCamera, point: Vector3, normal: Vector3) => {
     source.updateMatrixWorld();
     camera.copy(source, false);
+    camera.layers.enable(REFLECTION_ONLY_LAYER);   // the visitor's head, hidden from his own first-person camera
     source.getWorldPosition(position); source.getWorldDirection(direction);
     camera.position.copy(position).addScaledVector(normal, -2 * relative.copy(position).sub(point).dot(normal));
     camera.up.copy(source.up).transformDirection(source.matrixWorld).reflect(normal);
@@ -84,8 +86,10 @@ const MINIMUM_PANE_PIXELS = 12;
 const DETAIL_REACH = 12, DETAIL_TRIANGLE = 0.002, DETAIL_SAMPLES = 400;
 // The reflection is drawn whole in the frame that shows it (spread over three frames it lagged the
 // view and swam), at most this share of the screen's resolution and this many pixels across; it
-// covers only the pane's part of the screen, and nothing is drawn while the view stands still.
-const RESOLUTION = .6, MAX_SIDE = 1280;
+// covers only the pane's part of the screen, and nothing is drawn while the view stands still. At 0.6 of the
+// screen (1280 px at most) each reflected texel covered almost two screen pixels: a visibly blocky, stepped mirror.
+// Now one texel per screen pixel up to a 1920-px-wide view (a 4K view still draws half-size).
+const RESOLUTION = 1, MAX_SIDE = 1920;
 
 /** Meshes of fine detail lying wholly beyond DETAIL_REACH in front of a mirror plane. */
 function distantDetail(scene: Object3D, point: Vector3, normal: Vector3) {

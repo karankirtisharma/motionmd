@@ -7,7 +7,7 @@ import { assetURL } from '../rendering/assets.ts';
 import { fetchAssetBuffer } from '../rendering/fetchAsset.ts';
 
 /** Walk, run and stair clips for the visitor rig (scripts/locomotion/bake.mjs). A new bake gets a new name. */
-export const LOCOMOTION_URL = '/assets/character/locomotion-v9.json';
+export const LOCOMOTION_URL = '/assets/character/locomotion-v16.json';
 
 /** Licensed rigged character. Architecture is always loaded separately from the user's export. */
 export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb', signal?: AbortSignal) {

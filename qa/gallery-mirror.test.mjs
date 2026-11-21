@@ -98,6 +98,12 @@ test('the mirror shows only this frame\'s reflection: temporal history is refuse
  for(const pane of panes)assert.ok(pane.material.mrtNode,'mirror writes its own motion vector');
  let target;const camera=new T.PerspectiveCamera(60,16/9,.1,100);camera.position.set(6,5.6,-4);camera.lookAt(6,5.6,-9.3);camera.updateMatrixWorld();
  const renderer={autoClear:false,getRenderTarget:()=>null,getMRT:()=>null,setRenderTarget:v=>{if(v)target=v;},setMRT(){},getRenderObjectFunction:()=>null,setRenderObjectFunction(){},getDrawingBufferSize:v=>v.set(3840,2160),render(){},isOccluded:()=>false};
- try{mirror.update(renderer,scene,camera,0);assert.ok(target,'a visible mirror is drawn');assert.ok(target.width<=1280&&target.height<=1280,`reflection ${target.width}x${target.height} at 4K`);assert.equal(target.samples,2);}
+ try{mirror.update(renderer,scene,camera,0);assert.ok(target,'a visible mirror is drawn');assert.ok(target.width<=1920&&target.height<=1920,`reflection ${target.width}x${target.height} at 4K`);assert.equal(target.samples,2);}
  finally{mirror.dispose();}
+});
+test('the mirror sees the visitor\'s head that his first-person camera hides',()=>{
+ const source=new T.PerspectiveCamera(50,1.6,.1,100);source.position.set(2,1,5);source.lookAt(0,0,0);source.updateMatrixWorld();
+ const camera=mirrorCamera(source,new T.PerspectiveCamera(),new T.Vector3(0,0,0),new T.Vector3(0,0,1));
+ assert.ok(camera.layers.isEnabled(0)&&camera.layers.isEnabled(9),'reflection draws the default and the reflection-only layer');
+ assert.ok(!source.layers.isEnabled(9),'the visitor camera does not draw the hidden head');
 });

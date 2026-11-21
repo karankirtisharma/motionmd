@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { locateFlight, type FlightHit } from './stairFlights';
 
-// Baked locomotion (scripts/locomotion/bake.mjs -> locomotion-v9.json): Mixamo motion-capture walk and run on the
+// Baked locomotion (scripts/locomotion/bake.mjs -> locomotion-v16.json): Mixamo motion-capture walk and run on the
 // visitor rig (his own torso posture kept), and stair clips fitted from that walk to each of the building's flights.
 // Every clip is one cycle (two steps) from the left heel strike, 64 frames, played by phase (time = phase).
 //   Floor:  walk and run blended by speed in one sync group; the phase advances with distance, so feet never slide.
@@ -24,7 +24,9 @@ export type LocomotionData = { version: number; bones: string[]; frames: number;
 export const GAIT = { walk: 1.5, run: 3.0 };
 /** Steps per second on stairs: the controller's speed there is this times the tread depth. */
 // (Running on stairs is a brisker walk, not a sprint: 2.8 steps/s read as frantic, cartoon-fast legs.)
-export const STAIR_CADENCE = { walk: 2.1, run: 2.35 };
+// Walking 2.1 steps a second (0.73 m/s on the spiral) read as dawdling; 2.4 is a brisk, purposeful climb.
+// Sprinting on a flight is a quarter faster (it was a barely noticeable 8%).
+export const STAIR_CADENCE = { walk: 2.4, run: 3.0 };
 
 // The legs hang from the first spine bone on this rig (Bip01 Spine): it belongs to the legs' layer, or standing on a
 // step with the arms at rest (idle upper body) swung the legs and a planted shoe 7 cm into its tread.
@@ -106,8 +108,12 @@ export function createLocomotion(mixer: THREE.AnimationMixer, data: LocomotionDa
   const ENTRY = { up: [[u0 - 1.055, u0 - .785], [u0 - .945, u0 - .705]], down: [u0 - 1 + .03, u0 - 1 + .03 + .75 * stance] };
   const EXIT = { up: [u0 + .03, u0 + .03 + .75 * stance], down: [u0 + .03 + .4 * stance, u0 + .03 + .95 * stance] };
   const state = { phase: 0, stair: 0, up: 1, direction: 1, lead: [0, 0] as number[], flight: undefined as FlightHit | undefined,
-    u: 0, lineHeight: 0, travelYaw: 0, rate: 1, target: undefined as number | undefined, settle: undefined as StairSettle | undefined };
+    u: 0, lineHeight: 0, travelYaw: 0, rate: 1, target: undefined as number | undefined, settle: undefined as StairSettle | undefined,
+    /** Near a flight: the floor its floor walk stands on (the nearer end's), and how much the body stands on that
+     *  rather than on the collision capsule (which climbs a riser 0.3 m early, lifting the floor walk off the floor). */
+    floor: 0, near: 0 };
   let facingWeight = 0, windowWeight = 0, visit: FlightHit['id'] | undefined, sprinting = 0, resting = 0, nearFlight = 0;
+  let lastYaw: number | undefined, turning = 0;   // turning on the spot (0..1)
   const chosen = [false, false];   // lead foot picked for this approach, per direction
   const variants = (gait: 'up-walk' | 'down-walk', flight: FlightHit) => {
     const list = stairs.filter(s => s.clip.name === gait && s.clip.flight === flight.id);
@@ -125,7 +131,7 @@ export function createLocomotion(mixer: THREE.AnimationMixer, data: LocomotionDa
   return {
     state,
     reset() {
-      state.phase = 0; state.stair = 0; state.flight = undefined; state.settle = undefined; facingWeight = 0; windowWeight = 0; visit = undefined; sprinting = 0; resting = 0; nearFlight = 0; chosen[0] = chosen[1] = false;
+      state.phase = 0; state.stair = 0; state.flight = undefined; state.settle = undefined; facingWeight = 0; lastYaw = undefined; turning = 0; windowWeight = 0; visit = undefined; sprinting = 0; resting = 0; nearFlight = 0; chosen[0] = chosen[1] = false;
       for (const a of actions) a.setEffectiveWeight(0);
     },
     /**
@@ -146,13 +152,18 @@ export function createLocomotion(mixer: THREE.AnimationMixer, data: LocomotionDa
         THREE.MathUtils.lerp(THREE.MathUtils.lerp(value(flat.walk), value(flat.short ?? flat.walk), shortening), value(flat.run), running);
       const cycle = mixFlat(c => c.cycleDistance!);
       sprinting += THREE.MathUtils.clamp((sprint ? 1 : 0) - sprinting, -dt * 4, dt * 4);
+      const spin = lastYaw === undefined || dt <= 0 ? 0 : Math.abs(wrapPi(yaw - lastYaw)) / dt;
+      lastYaw = yaw;
+      turning += THREE.MathUtils.clamp((spin > .8 && speed < .15 ? 1 : 0) - turning, -dt * 6, dt * 6);
       state.flight = flight; state.rate = 1; state.settle = undefined; state.target = undefined;
       let target = 0;
       if (flight) {
         if (visit !== flight.id) { visit = flight.id; windowWeight = 0; chosen[0] = chosen[1] = false; }
         const along = Math.sin(yaw) * flight.uphillX + Math.cos(yaw) * flight.uphillZ;
         const direction = Math.abs(along) > .3 ? Math.sign(along) : state.direction;
-        if (direction !== state.direction && state.stair > 0) {
+        // (Also with the stair walk faded out on the treads, as it is while he turns on the spot: missed there, the walk
+        // set off a tread out of step, a shoe 15 cm into a tread.)
+        if (direction !== state.direction && (state.stair > 0 || (flight.u > -.1 && flight.u < flight.treads + .1))) {
           // Turning round on the flight: the feet stay on the same treads, seen from the other end.
           state.lead[direction > 0 ? 0 : 1] = (((1 - state.lead[state.direction > 0 ? 0 : 1] - flight.treads) % 2) + 2) % 2;
         }
@@ -194,10 +205,16 @@ export function createLocomotion(mixer: THREE.AnimationMixer, data: LocomotionDa
         const join = direction > 0 ? THREE.MathUtils.clamp((U - ENTRY.up[state.lead[d]][0]) / (ENTRY.up[state.lead[d]][1] - ENTRY.up[state.lead[d]][0]), 0, 1)
           : THREE.MathUtils.smoothstep(U, ENTRY.down[0], ENTRY.down[1]);
         windowWeight = join * (1 - THREE.MathUtils.smoothstep(U, n + exit[0], n + exit[1]));
-        target = Math.abs(along) > .3 ? 1 : 0;
+        // Facing across the flight, off its treads, is walking past it. On the treads the legs stay on their steps
+        // whichever way he faces, except while he turns on the spot: then they stand together on the tread under him
+        // (state.floor). Swung round in the stair stand, one foot a tread higher, a shoe went through the steps.
+        target = (Math.abs(along) > .3 || (flight.u > -.1 && flight.u < n + .1)) && turning < .5 ? 1 : 0;
+        // The floor, landing or tread under him: what the floor walk and stand use near and on the flight.
+        state.floor = flight.line(-.5) + flight.riser * THREE.MathUtils.clamp(Math.floor(flight.u) + 1, 0, n + 1);
+        state.near = 1 - THREE.MathUtils.smoothstep(Math.max(-1 - flight.u, flight.u - n - 1), 0, 1);
         state.u = U; state.lineHeight = flight.line(flight.u);
         state.travelYaw = Math.atan2(flight.uphillX * direction, flight.uphillZ * direction);
-      } else { visit = undefined; chosen[0] = chosen[1] = false; windowWeight = Math.max(0, windowWeight - dt * 5); }
+      } else { visit = undefined; chosen[0] = chosen[1] = false; windowWeight = Math.max(0, windowWeight - dt * 5); state.near = 0; }
       facingWeight += THREE.MathUtils.clamp(target - facingWeight, -dt * 5, dt * 5);
       state.up += THREE.MathUtils.clamp((state.direction > 0 ? 1 : 0) - state.up, -dt * 4, dt * 4);
       // However fast the windows are crossed (a sprint onto a flight), the blend takes at least 1/6 s: never a snap.
@@ -261,8 +278,13 @@ export function createLocomotion(mixer: THREE.AnimationMixer, data: LocomotionDa
       }
       return { running, stair: sw };
     },
-    /** Body yaw correction on a flight: the clips walk along the flight's own line. */
-    yawOffset(yaw: number) { return state.stair * wrapPi(state.travelYaw - yaw); },
+    /** Body yaw correction on a flight: the clips walk along the flight's own line. It fades out as he turns across
+     *  the flight (none at 72 deg or more from it), so turning round does not flip the body: the way of travel
+     *  flips by 180 deg there, and the full correction spun him 100 deg in one frame. */
+    yawOffset(yaw: number) {
+      const align = THREE.MathUtils.smoothstep(Math.cos(state.travelYaw - yaw), .3, .7);
+      return state.stair * align * wrapPi(state.travelYaw - yaw);
+    },
     /** Top of the step (or of the floor or landing it continues into) under a point near a flight, if any. */
     surface(x: number, y: number, z: number) {
       const hit = locateFlight(x, y, z, 4);

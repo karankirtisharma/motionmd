@@ -1,6 +1,6 @@
-# Visitor walk, run and stairs (`locomotion-v9.json`): provenance
+# Visitor walk, run and stairs (`locomotion-v16.json`): provenance
 
-`locomotion-v9.json` holds the visitor's walk, run and stair clips. It is loaded next to `RocketboxVisitor.glb`, whose mesh, skin, textures, Idle and Sit stay the Microsoft Rocketbox MIT asset documented in this folder.
+`locomotion-v16.json` holds the visitor's walk, run and stair clips. It is loaded next to `RocketboxVisitor.glb`, whose mesh, skin, textures, Idle and Sit stay the Microsoft Rocketbox MIT asset documented in this folder.
 
 | Clip | Source (Adobe Mixamo motion capture, X Bot) | Source FBX SHA-256 |
 | --- | --- | --- |

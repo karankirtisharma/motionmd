@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { damping } from './movement';
+import { damping, REFLECTION_ONLY_LAYER } from './movement';
 import { createLocomotion, type LocomotionData } from './locomotionClips';
 
 export type DeskPose = {
@@ -18,7 +18,7 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
   const root = new THREE.Group(); root.name = 'MD visitor';
   const model = gltf.scene; root.add(model);
   const ownedTextures = new Set<THREE.Texture>();
-  const headMeshes: Array<{ mesh: THREE.Mesh; visible: boolean }> = [];
+  const headMeshes: THREE.Mesh[] = [];
   model.traverse((object) => {
     const mesh = object as THREE.Mesh;
     if (mesh.isMesh) {
@@ -28,7 +28,7 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
         Object.values(material).forEach((value) => { if (value instanceof THREE.Texture) ownedTextures.add(value); });
       });
       if ((Array.isArray(mesh.material) ? mesh.material : [mesh.material]).every((material) => /m005_(head|opacity)/i.test(material.name))) {
-        headMeshes.push({ mesh, visible: mesh.visible });
+        headMeshes.push(mesh);
       }
     }
   });
@@ -57,6 +57,10 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
   const spine = bone('Bip01 Spine');
   const eyes = [bone('Bip01 LEye'), bone('Bip01 REye')];
   const eyeHeight = eyes.reduce((sum, eye) => sum + eye.getWorldPosition(new THREE.Vector3()).y, 0) / eyes.length;
+  // How far the eyes are ahead of the body's centre standing (the rig faces +z here); eyeLean below is the extra.
+  const restEyeForward = eyes.reduce((sum, eye) => sum + eye.getWorldPosition(new THREE.Vector3()).z, 0) / eyes.length;
+  const eyeAt = new THREE.Vector3();
+  let eyeLean = 0;
   const standingHipHeight = pelvis.getWorldPosition(new THREE.Vector3()).y;
   const legs = ['L', 'R'].map((side) => {
     const upper = bone(`Bip01 ${side} Thigh`), lower = bone(`Bip01 ${side} Calf`), foot = bone(`Bip01 ${side} Foot`);
@@ -284,21 +288,26 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
   const standingFootRotations = legs.map(l => l.foot.getWorldQuaternion(new THREE.Quaternion()));
   // Cache shoe vertices once. Only translate the model to clear the capsule's
   // support plane; never change the authored leg joints for terrain.
-  const soleSamples: Array<{ mesh: THREE.SkinnedMesh; indices: number[] }> = [];
+  const soleSamples: Array<{ mesh: THREE.SkinnedMesh; indices: number[]; side: number }> = [];
   const solePoint = new THREE.Vector3();
-  let soleLift = 0;
+  let soleLift = 0, floorLift = 0, joinLift = 0;
+  // Each foot's ground velocity (m/s), for checking where its shoe is about to be: a planted foot stays put.
+  const footAt = legs.map(() => new THREE.Vector3()), footVelocity = legs.map(() => new THREE.Vector3()), footNow = new THREE.Vector3();
   model.traverse(object => {
     const mesh = object as THREE.SkinnedMesh;
     if (!mesh.isSkinnedMesh) return;
     const weights = mesh.geometry.getAttribute('skinWeight');
     const joints = mesh.geometry.getAttribute('skinIndex');
-    const indices: number[] = [];
+    const indices: number[][] = [[], []];
     for (let v = 0; v < weights.count; v++) {
-      let footWeight = 0;
-      for (let slot = 0; slot < 4; slot++) if (/foot|toe/i.test(mesh.skeleton.bones[joints.getComponent(v, slot)].name)) footWeight += weights.getComponent(v, slot);
-      if (footWeight > .95) indices.push(v);
+      let footWeight = 0, left = 0;
+      for (let slot = 0; slot < 4; slot++) {
+        const name = mesh.skeleton.bones[joints.getComponent(v, slot)].name;
+        if (/foot|toe/i.test(name)) { footWeight += weights.getComponent(v, slot); if (/_L_/.test(name)) left += weights.getComponent(v, slot); }
+      }
+      if (footWeight > .95) indices[left > footWeight / 2 ? 0 : 1].push(v);
     }
-    if (indices.length) soleSamples.push({ mesh, indices });
+    indices.forEach((list, side) => { if (list.length) soleSamples.push({ mesh, indices: list, side }); });
   });
 
   // Walk, run and stairs: baked clips (locomotionClips.ts). Chair contact IK stays in plantFeet/deskPose.
@@ -316,17 +325,20 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
     resetMotion() {
       // Spawn/re-entry must not inherit a running phase or turn lean from the
       // previous visit. The controller resamples once before revealing us.
-      speedSmoothed = 0; gaitPhase = 0; forwardLean = 0; sideLean = 0;
+      speedSmoothed = 0; gaitPhase = 0; forwardLean = 0; sideLean = 0; floorLift = 0; joinLift = 0; eyeLean = 0;
       previousYaw = root.rotation.y;
       loco?.reset(); model.rotation.y = baseYaw;
       actions.idle.time = 0; actions.walk.time = 0; actions.run.time = 0; actions.sit.time = 0;
     },
     /** On a flight with no input: how far to go to finish the step under way (the controller moves there). */
     get stairSettle() { return loco?.state.settle; },
+    /** How far the head leans forward of where it stands (m), smoothed over the stride: about 3 cm walking, 21 cm
+     *  sprinting. The first-person eye goes with it (sprinting it stayed back in the collar). */
+    get eyeLean() { return eyeLean; },
     setBodyView(active: boolean) {
-      // The source GLB has separate head/hair primitives. Hide only these locally;
-      // torso, arms, legs, source rig and the immutable asset stay intact.
-      headMeshes.forEach(({ mesh, visible }) => { mesh.visible = active ? false : visible; });
+      // The source GLB has separate head/hair primitives. Hide only these, and only from the visitor's own camera
+      // (a layer it does not draw): the mirror still shows his face. Hiding the meshes left a headless reflection.
+      headMeshes.forEach(mesh => mesh.layers.set(active ? REFLECTION_ONLY_LAYER : 0));
     },
     update(dt: number, speed: number, seated: number, seatHeight = 0.55, contacts?: DeskPose, stairs?: StairContact) {
       dt = THREE.MathUtils.clamp(dt, 0, 0.1);
@@ -398,6 +410,12 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
         model.position.y += root.position.y + height - pelvis.getWorldPosition(new THREE.Vector3()).y;
         model.updateWorldMatrix(true, true);
       }
+      // Near a flight the body stands on that flight's own floor, not on the collision capsule: the capsule climbs a
+      // riser while still 0.3 m short of it, which lifted the floor walk (both shoes) up to 17 cm off the floor a
+      // moment before the stair walk took over - a hitch at every first step.
+      const near = loco && !contacts && seated === 0 ? loco.state.near : 0;
+      const ground = root.position.y + near * ((loco?.state.floor ?? 0) - root.position.y);
+      model.position.y += ground - root.position.y;
       soleLift = 0;
       if (!contacts && seated === 0 && onStairs < 1) {
         root.updateMatrixWorld(true);
@@ -405,33 +423,59 @@ export function createRocketboxAvatar(gltf: GLTF, locomotionData?: LocomotionDat
         for (const { mesh, indices } of soleSamples) for (let k = 0; k < indices.length; k++) lowest = Math.min(lowest, mesh.getVertexPosition(indices[k], solePoint).applyMatrix4(mesh.matrixWorld).y);
         // Rapier support can settle 9 mm below the rendered floor. Include that
         // existing contact tolerance, with a strict 4 cm bound on source bob.
-        soleLift = THREE.MathUtils.clamp(root.position.y + .01 - lowest, 0, .04) * (1 - onStairs);
+        // Rises at once (no shoe shows through the floor) but settles back over ~0.4 s: following each footfall up and
+        // down pumped the whole body 2 cm a step walking and 4 cm sprinting (a hop on every step).
+        const need = THREE.MathUtils.clamp(ground + .01 - lowest, 0, .04) * (1 - onStairs);
+        floorLift = Math.max(need, floorLift + (need - floorLift) * damping(2.5, dt));
+        soleLift = floorLift;
         model.position.y += soleLift;
-      }
+      } else floorLift = 0;
       if (loco && onStairs > 0) {
         // On a flight the clips are fitted to its treads: the body follows the flight's own line (not the capsule)
         // and walks along it.
-        model.position.y += onStairs * (loco.state.lineHeight - root.position.y);
+        model.position.y += onStairs * (loco.state.lineHeight - ground);
       }
-      if (loco?.state.flight && !contacts && seated === 0 && onStairs > 0 && onStairs < 1) {
+      root.updateMatrixWorld(true);
+      legs.forEach((leg, i) => {
+        leg.foot.getWorldPosition(footNow);
+        footVelocity[i].subVectors(footNow, footAt[i]).setY(0).multiplyScalar(dt > 0 ? 1 / dt : 0);
+        if (footVelocity[i].lengthSq() > 25) footVelocity[i].set(0, 0, 0);   // a teleport, not a step
+        footAt[i].copy(footNow);
+      });
+      let joinNeed = 0;
+      if (loco?.state.flight && !contacts && seated === 0 && onStairs < 1 && (onStairs > 0 || loco.state.near > .5)) {
         // Joining or leaving a flight no shoe goes into a step: blending a floor stride with a stair step (two very
         // different leg poses) carries a planted foot 2-4 cm below the floor or tread it stands on. Mid-blend the
         // shoes keep up to 1 cm clear, as the floor walk's do (its contact allowance above), none at either end.
-        // (updateMatrixWorld, not updateWorldMatrix: only the former refreshes the skinned meshes' bind inverse.)
-        root.updateMatrixWorld(true);
+        // Each shoe is also checked where its foot will be 0.1 s on, so a toe about to pass a riser's edge is lifted
+        // for in good time (a planted foot stays where it is). Also just before a flight with the stair walk not yet
+        // blended in: a stride that came in at an angle could put a toe into the first riser. (updateMatrixWorld, not
+        // updateWorldMatrix: only the former refreshes the skinned meshes' bind inverse.)
         const clear = .04 * onStairs * (1 - onStairs);
-        let need = 0;
-        for (const { mesh, indices } of soleSamples) for (let k = 0; k < indices.length; k++) {
+        for (const { mesh, indices, side } of soleSamples) for (let k = 0; k < indices.length; k++) {
           mesh.getVertexPosition(indices[k], solePoint).applyMatrix4(mesh.matrixWorld);
-          const top = loco.surface(solePoint.x, solePoint.y, solePoint.z);
-          if (top !== undefined) need = Math.max(need, top + clear - solePoint.y);
+          const aheadX = footVelocity[side].x * .1, aheadZ = footVelocity[side].z * .1;
+          const top = loco.surface(solePoint.x, solePoint.y, solePoint.z), next = loco.surface(solePoint.x + aheadX, solePoint.y, solePoint.z + aheadZ);
+          if (top !== undefined) joinNeed = Math.max(joinNeed, top + clear - solePoint.y);
+          if (next !== undefined) joinNeed = Math.max(joinNeed, next + clear - solePoint.y);
         }
-        const lift = Math.min(.04, need);
-        model.position.y += lift; soleLift += lift;
       }
+      // Eased: up at 0.6 m/s (4 cm in 0.07 s, begun before the toe arrives), down at 0.3 m/s. Taken as it came, frame
+      // by frame, it lifted the whole body 4 cm for a single frame as a toe passed a riser's edge: a hitch on the
+      // first step of every flight.
+      // It hands over to the stair walk as that takes over (its own feet clear the treads): left up after the join it
+      // floated him 4-5 cm over the first tread.
+      joinLift += THREE.MathUtils.clamp(Math.min(.04, joinNeed) - joinLift, -.3 * dt, .6 * dt);
+      const joinShare = joinLift * THREE.MathUtils.clamp((1 - onStairs) * 3, 0, 1);
+      model.position.y += joinShare; soleLift += joinShare;
       model.rotation.y = baseYaw + (loco ? loco.yawOffset(root.rotation.y) : 0);
       model.updateWorldMatrix(true, true);
       plantFeet(seated);
+      eyeAt.set(0, 0, 0);
+      for (const eye of eyes) eyeAt.add(eye.getWorldPosition(solePoint));
+      eyeAt.multiplyScalar(1 / eyes.length).sub(root.position);
+      const lean = THREE.MathUtils.clamp(eyeAt.x * Math.sin(root.rotation.y) + eyeAt.z * Math.cos(root.rotation.y) - restEyeForward, 0, .35) * (1 - seated);
+      eyeLean += (lean - eyeLean) * damping(3, dt);
       if (contacts) deskPose(contacts);
     },
     dispose() {

@@ -11,7 +11,7 @@ import { loadScreenPreviews } from '../presentation/screenPreviews.ts';
 import { createFounderCRM } from '../presentation/FounderCRM';
 import { createComputerScreens, type Computer } from './ComputerScreens';
 import { createStairSurfaces } from './StairSurfaces';
-import { locateFlight } from './stairFlights';
+import { flightTrail, locateFlight } from './stairFlights';
 import { GAIT, stairSpeed } from './locomotionClips';
 
 type ExtendedChair = ChairDefinition & { seatPosition?: [number, number, number]; forward?: [number, number, number] };
@@ -104,8 +104,10 @@ export async function createInteractionController(options: Options) {
   let supportHeight = feet.y, previousSupportHeight = feet.y;
   const velocity = new THREE.Vector3();
   const displacement = new THREE.Vector3();
-  const stairAhead = new THREE.Vector3();
+  const stairAhead = new THREE.Vector3(), stairStep = new THREE.Vector3();
   let stairWalkHold = 0, stairPace = 0;
+  /** On or stepping onto a flight with a direction pressed: the way (body yaw) he walks along it. */
+  let stairFacing: number | undefined;
   // On a flight the steps are shortened to about one tread each, so the pace drops too:
   // 0.9 m/s is roughly 2.6 steps a second, Shift 1.2 m/s roughly 3.4. Flat-ground speed
   // on those short steps would be a scramble.
@@ -362,6 +364,7 @@ export async function createInteractionController(options: Options) {
       velocity.set(0, 0, 0); actualSpeed = 0; verticalVelocity = 0; grounded = true; physics.place(feet); return;
     }
     let moveX = 0, moveY = 0, speed = 0;
+    stairFacing = undefined;
     if (mode === 'explore') {
       moveX = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) + virtual.x;
       moveY = Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) + virtual.y;
@@ -379,7 +382,8 @@ export async function createInteractionController(options: Options) {
       const flightAt = (p: THREE.Vector3) => {
         const hit = locateFlight(p.x, p.y, p.z);
         const along = hit ? relative.x * hit.uphillX + relative.z * hit.uphillZ : 0;
-        if (!hit || Math.abs(along) < .5) return undefined;
+        // Diagonally onto it counts (he is turned straight up or down it below); only walking past it does not.
+        if (!hit || Math.abs(along) < .2) return undefined;
         const U = along > 0 ? hit.u : hit.treads - hit.u;   // tread coordinate along the way of travel
         return U > -.4 && U < hit.treads + 1 ? hit : undefined;
       };
@@ -387,6 +391,20 @@ export async function createInteractionController(options: Options) {
       // entrance flights, so the run sped back up just before their first riser.
       let flight = flightAt(feet);
       for (let k = 1; k <= 4 && !flight; k++) flight = flightAt(stairAhead.set(feet.x + relative.x * lookAhead * k / 4, feet.y, feet.z + relative.z * lookAhead * k / 4));
+      // At the gallery wall the capsule slides along z = -24.53. The requested diagonal
+      // points through the wall and misses every look-ahead sample (2.9 m/s at the riser).
+      // Project the remaining run-up onto the stair normal when already against that edge.
+      if (!flight) {
+        const nearby = locateFlight(feet.x, feet.y, feet.z, 7);
+        if (nearby?.id === 'gallery') {
+          const trail = flightTrail(nearby, feet.x, feet.z);
+          const along = relative.x * nearby.uphillX + relative.z * nearby.uphillZ;
+          if (Math.abs(trail.offset) > .18 && trail.offset * relative.z > 0 && Math.abs(along) > .2) {
+            const distance = (along > 0 ? -nearby.u : nearby.u - nearby.treads) * nearby.going;
+            if (distance >= 0 && distance < lookAhead * Math.abs(along)) flight = nearby;
+          }
+        }
+      }
       // Held 0.05 s, over a missed frame of the flight test only: held 0.3 s, the walk crossed the landing after
       // every flight at stair pace (0.6 m/s on full-length steps, 0.7 steps a second: slow motion).
       stairWalkHold = flight ? .05 : Math.max(0, stairWalkHold - STEP);
@@ -400,6 +418,39 @@ export async function createInteractionController(options: Options) {
         speed = THREE.MathUtils.lerp(speed, onStairs, stairPace * stairPace * (3 - 2 * stairPace));
       }
       displacement.set(relative.x * speed, 0, relative.z * speed);
+      // On a flight, or stepping onto one, only up or down it. Off its treads the path eases from the pressed direction
+      // to straight up (or down) it over the last 0.6 tread before the first riser: walking in diagonally put a floor
+      // stride onto the steps (a shoe 12-15 cm into a riser) and jolted the body as the stair walk took over. On the
+      // treads, pressed straight left or right, he stays where he is. On the spiral he is eased back onto its middle
+      // trail; the gallery and entrance steps are the same all the way across and only keep him off their ends.
+      const onSteps = moveX || moveY ? flight ?? locateFlight(feet.x, feet.y, feet.z, 1.2) : undefined;
+      if (onSteps) {
+        const along = relative.x * onSteps.uphillX + relative.z * onSteps.uphillZ;
+        const sign = along < 0 ? -1 : 1, U = sign > 0 ? onSteps.u : onSteps.treads - onSteps.u;
+        const onTreads = onSteps.u > -.1 && onSteps.u < onSteps.treads + .1;
+        if (onTreads && Math.abs(along) < .2) displacement.set(0, 0, 0);
+        else if (Math.abs(along) >= .2 && U > -1.2 && U < onSteps.treads + .6) {
+          const trail = flightTrail(onSteps, feet.x, feet.z);
+          // Back onto the trail at up to 0.5 m/s across (about 1.2 s from the edge of the spiral's treads).
+          const pull = THREE.MathUtils.clamp(-trail.offset * 3, -.5, .5);
+          stairStep.set(onSteps.uphillX * sign * speed + trail.x * pull, 0, onSteps.uphillZ * sign * speed + trail.z * pull);
+          displacement.lerp(stairStep, onTreads ? 1 : THREE.MathUtils.smoothstep(U, -1.2, -.6));
+          stairFacing = Math.atan2(onSteps.uphillX * sign, onSteps.uphillZ * sign);
+          // Pressed the other way on a flight: he turns round where he stands, and sets off once he faces within
+          // about 80 deg of the new way. (He slid backwards down the steps while turning, with the stair walk playing in
+          // reverse, then swung round: a rushed stumble.)
+          if (cameraView === 'thirdPerson') {
+            const facing = Math.cos(stairFacing - bodyYaw);
+            displacement.multiplyScalar(THREE.MathUtils.clamp((facing - .2) / .6, 0, 1));
+            // Turning round on a tread his shoes stand together on it, so he eases back from the step above as he turns
+            // (at most 12 cm/s, usually a few cm): standing further forward, the toe that still pointed up the flight
+            // (25 cm ahead of him) reached up to 12 cm into the riser above. Heels and toes may overhang the edge below.
+            const room = Math.floor(onSteps.u) + Math.max(.05, 1 - .25 / onSteps.going) - onSteps.u;
+            if (onTreads && facing < .9 && room < 0)
+              displacement.addScaledVector(stairStep.set(-onSteps.uphillX, 0, -onSteps.uphillZ), Math.min(.12, -room * onSteps.going / .2));
+          }
+        }
+      }
       // Letting go on a flight finishes the step under way, so both feet end on treads (not one in mid-air).
       const settle = moveX === 0 && moveY === 0 && 'stairSettle' in avatar ? avatar.stairSettle : undefined;
       if (settle && settle.distance > .005) displacement.set(settle.x, 0, settle.z).multiplyScalar(Math.min(settle.speed, settle.distance / .12));
@@ -446,7 +497,14 @@ export async function createInteractionController(options: Options) {
     // Millimetre contact corrections at a blocked wall are not a walking gait.
     actualSpeed = THREE.MathUtils.lerp(actualSpeed, achievedSpeed < 0.06 ? 0 : achievedSpeed, damping(16, STEP));
     if (cameraView === 'bodyCam' && mode === 'explore') { bodyYaw = smoothAngle(bodyYaw, yaw + Math.PI, damping(14, STEP)); turnRate = 0; }
-    else if (achievedSpeed > 0.06) {
+    else if (stairFacing !== undefined) {
+      // On a flight he faces along it, turning round on the spot when he reverses: unhurried and eased (a quarter
+      // second to full rate, slowing over the last 50 deg), about a second for a half-turn. The walking turn
+      // (6 rad/s) spun him round on a step in under half a second.
+      const difference = Math.atan2(Math.sin(stairFacing - bodyYaw), Math.cos(stairFacing - bodyYaw));
+      turnRate += THREE.MathUtils.clamp(THREE.MathUtils.clamp(difference * 4, -3.6, 3.6) - turnRate, -14 * STEP, 14 * STEP);
+      bodyYaw += turnRate * STEP;
+    } else if (achievedSpeed > 0.06) {
       turnRate = easedTurnRate(turnRate, bodyYaw, Math.atan2(feet.x - oldX, feet.z - oldZ), achievedSpeed, STEP);
       bodyYaw += turnRate * STEP;
     } else turnRate = 0;
@@ -470,7 +528,13 @@ export async function createInteractionController(options: Options) {
       const direction = cameraLookDirection(yaw, pitch);
       // The camera sits at calibrated eye height, inside the capsule. It does not
       // inherit the animated head's bob/roll, so looking still stays still.
-      desiredCamera.copy(eyePosition).add(new THREE.Vector3(-Math.sin(yaw) * 0.075, 0, -Math.cos(yaw) * 0.075));
+      // Looking down, the eyes go forward and a little down with the head as it tips about the neck: from 7.5 cm in
+      // front of the body's centre the view looked straight down into the empty collar (the head is hidden here).
+      // At 63 deg down and below they are 22.5 cm forward, ahead of the collar, over the tie and shirt front.
+      // Plus the head's own forward lean (21 cm sprinting), smoothed over the stride so the view does not bob.
+      const lean = !seatedView && 'eyeLean' in avatar ? avatar.eyeLean : 0;
+      const tip = seatedView ? 0 : THREE.MathUtils.smoothstep(pitch, .2, 1.1), ahead = .075 + lean + .15 * tip;
+      desiredCamera.copy(eyePosition).add(new THREE.Vector3(-Math.sin(yaw) * ahead, -.05 * tip, -Math.cos(yaw) * ahead));
       lookTarget.copy(desiredCamera).add(new THREE.Vector3(direction.x, direction.y, direction.z));
       if (seatedView && selected && !(selected.workstation && !founderFocused)) lookTarget.copy(selected.computer?.center ?? selected.workstation?.screen ?? display?.getWorldCenter() ?? desiredCamera.clone().addScaledVector(selected.forward, 5));
     } else if (seatedView && selected && !selected.workstation) {
