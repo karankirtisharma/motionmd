@@ -29,6 +29,7 @@ const textureIndex = await prepareTextureDelivery(root, !process.env.NEXT_PUBLIC
 await prepareChairLightmap(root, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() && process.env.MD_GEOMETRY_STORAGE !== '0');
 if (process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
   await fs.writeFile(path.join(generated,'asset-delivery.json'),'{}\n');
+  await fs.writeFile(path.join(generated,'room-stream.json'),'{}\n');
   console.log('External asset origin: configure Brotli/Content-Encoding at the CDN; local rewrites are disabled.');
   process.exit(0);
 }
@@ -124,5 +125,7 @@ if (process.env.MD_PRUNE_DELIVERY === '1') for (const name of await fs.readdir(o
   if (path.dirname(target) !== output) throw Error('Invalid output path');
   if (/^[a-f0-9]{64}(?:(?:\.q9)?\.glb(?:\.br|\.gz)?|\.webp)(?:\.tmp)?$/.test(name) && !retained.has(name)) await fs.unlink(target);
 }
+const { buildRoomPackets } = await import('./room-packets.mjs');
+await buildRoomPackets(root,index,manifest);
 const sum = key => report.reduce((value, entry) => value + entry[key], 0);
 console.log('Lossless delivery verified: ' + (sum('sourceBytes') / 1e6).toFixed(1) + ' MB source → ' + (sum('bytes') / 1e6).toFixed(1) + ' MB pixel/geometry-exact payload → Brotli ' + (sum('br') / 1e6).toFixed(1) + ' MB / gzip ' + (sum('gzip') / 1e6).toFixed(1) + ' MB.');

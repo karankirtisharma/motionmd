@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   images: { qualities: [75, 90] },
   async headers() {
     return [
+      { source: '/room-stream/:file*.glb.br', headers: [{ key: 'Content-Encoding', value: 'br' }, { key: 'Content-Type', value: 'model/gltf-binary' }, { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }] },
       { source: '/assets/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }] },
       { source: '/asset-delivery/:file*.br', headers: [{ key: 'Content-Encoding', value: 'br' }, { key: 'Content-Type', value: 'model/gltf-binary' }] },
       { source: '/asset-delivery/:file*.gz', headers: [{ key: 'Content-Encoding', value: 'gzip' }, { key: 'Content-Type', value: 'model/gltf-binary' }] },
