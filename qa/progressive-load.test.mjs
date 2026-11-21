@@ -20,6 +20,18 @@ test('progressive staging overlaps small fetches but keeps oversized rooms exclu
   assert.ok(events.findIndex(x=>x[0]==='fetch'&&x[1]===2)>events.findIndex(x=>x[0]==='prepared'&&x[1]===1));
   assert.ok(events.findIndex(x=>x[0]==='fetch'&&x[1]===3)>events.findIndex(x=>x[0]==='prepared'&&x[1]===2));
 });
+test('the next small transfer starts while the first is still pending', async () => {
+  const seen = [];
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  const run = loadProgressively([{bytes:10,id:0},{bytes:20,id:1}],new AbortController().signal,async item => {
+    seen.push(item.id);
+    if (item.id === 0) await held;
+    return item.id;
+  }, async () => {}, 64);
+  try { assert.deepEqual(seen, [0,1]); } finally { release(); await run; }
+});
+
 test('failed preparation aborts its outstanding prefetch and never prepares subsequent rooms',async()=>{
   let cancelled=false,prepared=0;
   await assert.rejects(loadProgressively([{bytes:1,id:0},{bytes:1,id:1}],new AbortController().signal,

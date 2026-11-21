@@ -19,9 +19,12 @@ export async function loadProgressively<T extends { bytes: number }, V>(
   try {
     signal.throwIfAborted();
     for (let i = 0; i < items.length; i++) {
-      const item = items[i], value = await (next ?? start(item));
+      // The first two GLBs total 41.4 MB. Overlap their WAN transfers within the existing 128 MiB cap.
+      const item = items[i], current = next ?? start(item);
       local.signal.throwIfAborted();
       next = i + 1 < items.length && item.bytes + items[i + 1].bytes <= budget ? start(items[i + 1]) : undefined;
+      const value = await current;
+      local.signal.throwIfAborted();
       await prepare(item, value);
       local.signal.throwIfAborted();
       // Let progress, input and cancellation paint between room preparation tasks.

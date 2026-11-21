@@ -8,7 +8,7 @@ import { Writable } from 'node:stream';
 
 // The remaining runtime dependencies are loaded from code, not the manifest.
 const runtimeAssets = [
-  'character/locomotion-v9.json', 'character/locomotion-v16.json',
+  'character/locomotion-v16.json',
   'basis/basis_transcoder.js', 'basis/basis_transcoder.wasm', 'environment/qwantani-sunset-2k.hdr',
   'source-walls/greige-marble-original.png', 'source-walls/stone-height-original.jpg',
   'source-walls/stone-roughness-original.jpg', 'surface-v5/bronze-source-grain.png',
