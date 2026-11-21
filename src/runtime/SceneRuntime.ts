@@ -28,7 +28,7 @@ import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import type { RenderDiagnostics, DiagnosticMode } from './rendering/diagnostics';
 import { CinematicPath, CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from './rendering/cinematic';
-import { createDesertEnvironment } from './rendering/DesertEnvironment';
+import { createDesertEnvironment, SKY_URL } from './rendering/DesertEnvironment';
 import { guardShaderCompilation } from './rendering/shaderValidation';
 import { createAssetLoadGuard } from './rendering/loadingGuard';
 import { createTemporalRenderer } from './rendering/TemporalRenderer';
@@ -201,7 +201,8 @@ export class SceneRuntime {
       const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
       const allowReadAhead = !connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim();
       if (allowReadAhead) {
-        lightingDownloads = createLightingReadAhead(lightingSizes, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
+        // The 4.17 MB sky took 37 s when requested after geometry on a cold Vercel visit.
+        lightingDownloads = createLightingReadAhead({ [SKY_URL]: 4_171_959, ...lightingSizes }, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
       }
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
       this.abort.signal.throwIfAborted();
@@ -250,7 +251,6 @@ export class SceneRuntime {
       const bounds = new Box3().setFromObject(this.content);
       this.profiler?.phase('lighting and reflection probes');
       this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal, lightingDownloads?.read);
-      lightingDownloads?.close();
       if (this.disposed || this.abort.signal.aborted) return;
       this.profiler?.phase('spatial preparation and desert');
       this.galleryMirror = createGalleryMirror(this.content);
@@ -258,7 +258,8 @@ export class SceneRuntime {
       // its visibility bounds; every cell then shares that same final shader.
       prepareSlimMonitorHousings(this.content);
       partitionSourceGeometry(this.content);
-      this.desert = await createDesertEnvironment(this.scene, { renderer: this.renderer, signal: this.abort.signal, sunDirection: this.manifest.sun?.position });
+      this.desert = await createDesertEnvironment(this.scene, { renderer: this.renderer, signal: this.abort.signal, readBytes: lightingDownloads?.read, sunDirection: this.manifest.sun?.position });
+      lightingDownloads?.close();
       if (this.disposed || this.abort.signal.aborted) return;
       this.setQuality(this.quality);
 

@@ -3,11 +3,12 @@ import { MeshStandardNodeMaterial, type WebGPURenderer } from 'three/webgpu';
 import { prepareSkyBackground } from './prepareSkyBackground.ts';
 import { backgroundIntensity, backgroundRotation, cameraPosition, cameraViewMatrix, equirectUV, float, mix, normalView, output, positionWorld, smoothstep, texture, vec2, vec3, vec4 } from 'three/tsl';
 import { loadEnvironment } from './assets';
+import type { ReadLightingBytes } from './lightingReadAhead';
 import { createSandSurfaceTexture } from './SandSurface';
 
 // Measured original 'Neutral presentation ground'; all values are Three Y-up.
 export const SOURCE_GROUND = { minX: -28.77499962, maxX: 49.97499847, minZ: -62.95000076, maxZ: 24.54999924, y: -0.35499999 };
-const SKY_URL = '/assets/environment/qwantani-sunset-2k.hdr';
+export const SKY_URL = '/assets/environment/qwantani-sunset-2k.hdr';
 const SOURCE_SKY_SUN_AZIMUTH = 0.6258641614573416;
 const SOURCE_SUN: [number, number, number] = [-28.817291, 19.211535, -20.012016];
 // Sky light relative to direct sun (R, G, B) on flat sand, measured from the building's own shadow on the ground slab.
@@ -186,9 +187,9 @@ function sandMaterial(sky: Texture, surface: Texture, vertexColors: boolean) {
 }
 
 /** Call after source lighting/shadow bounds are configured. Does not change IBL. */
-export async function createDesertEnvironment(scene: Scene, options: { renderer?: WebGPURenderer; signal?: AbortSignal; sunDirection?: [number, number, number] } = {}) {
+export async function createDesertEnvironment(scene: Scene, options: { renderer?: WebGPURenderer; signal?: AbortSignal; readBytes?: ReadLightingBytes; sunDirection?: [number, number, number] } = {}) {
   options.signal?.throwIfAborted();
-  const sky = await loadEnvironment(SKY_URL, options.signal);
+  const sky = await loadEnvironment(SKY_URL, options.signal, options.readBytes);
   let skyTarget: ReturnType<typeof prepareSkyBackground> | undefined;
   try { options.signal?.throwIfAborted(); if (options.renderer) skyTarget = prepareSkyBackground(options.renderer, sky); }
   catch (error) { sky.dispose(); throw error; }

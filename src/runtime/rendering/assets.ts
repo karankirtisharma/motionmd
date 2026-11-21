@@ -63,8 +63,11 @@ export async function loadTexture(url: string, usage: 'color' | 'linear' | 'data
     texture = typeof Worker === 'undefined'
       ? new EXRLoader().createDataTexture(source ?? await fetchAssetBuffer(resolved, { signal }))
       : await loadEXRInWorker(resolved, signal, source);
-  } else if (extension.endsWith('.hdr')) texture = new RGBELoader().createDataTexture(await fetchAssetBuffer(resolved, { signal }));
-  else {
+  } else if (extension.endsWith('.hdr')) {
+    const bytes = readBytes ? await readBytes(url, signal) : await fetchAssetBuffer(resolved, { signal });
+    signal?.throwIfAborted();
+    texture = new RGBELoader().createDataTexture(bytes);
+  } else {
     const bytes = await fetchAssetBuffer(resolved, { signal });
     signal?.throwIfAborted();
     const blob = new Blob([bytes]);
