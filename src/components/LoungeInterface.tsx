@@ -140,7 +140,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
   if (mode === 'loading' || mode === 'welcome' || mode === 'error') return null;
   return <div className={`${styles.theme} lounge-interface mode-${mode}${reducedMotion ? ' reduced-motion' : ''}`}>
     <header className="lounge-header" aria-hidden={modal ? true : undefined}>
-      <div className="lounge-brand"><span className="brand-mark">md.</span><span className="brand-rule" /><span className="brand-name">The Lounge<span>motiondesign.ad</span></span></div>
+      <div className="lounge-brand"><span className="brand-mark">mg.</span><span className="brand-rule" /><span className="brand-name">The Lounge<span>motiongraphics.agency</span></span></div>
       <div className="header-actions">
         <span className="live-badge"><span />Live 3D</span>
         {!modal && onToggleFullscreen && <button type="button" className="icon-button fullscreen-button" aria-label="Toggle fullscreen" title="Fullscreen" onClick={onToggleFullscreen}><Icon name="fullscreen" /></button>}
@@ -176,7 +176,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
       <div className="panel-actions">{onResume && <button type="button" className="button button-primary" onClick={onResume}>Continue<Icon name="arrow" /></button>}{onExploreDirect && <button type="button" className="button button-quiet" onClick={onExploreDirect}>Explore directly</button>}<button type="button" className="button button-quiet" onClick={onCinematic || onRestart || onGoBack}>Replay cinematic</button></div>
     </FocusPanel></div>}
 
-    {!modal && <footer className="lounge-footer"><span>MD / PRESENTATION LOUNGE</span>{qualityLabel && <span className="quality-status">{qualityLabel}</span>}</footer>}
+    {!modal && <footer className="lounge-footer"><span>MG / PRESENTATION LOUNGE</span>{qualityLabel && <span className="quality-status">{qualityLabel}</span>}</footer>}
   </div>;
 }
 

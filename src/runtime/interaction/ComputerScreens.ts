@@ -32,13 +32,13 @@ export function createComputerScreens(scene: THREE.Object3D, camera: THREE.Camer
   const geometry = new THREE.PlaneGeometry(1, 1);
   const material = new THREE.MeshBasicMaterial({ map: texture, toneMapped: false, fog: false });
   const staticScreens = new THREE.InstancedMesh(geometry, material, computers.length);
-  staticScreens.name = 'md. desktop | idle monitors';
+  staticScreens.name = 'mg. desktop | idle monitors';
   computers.forEach((c, i) => staticScreens.setMatrixAt(i, c.matrix));
   staticScreens.computeBoundingSphere(); scene.add(staticScreens);
   const liveMaterial = new THREE.MeshBasicMaterial({ map: texture, toneMapped: false, fog: false, transparent: true, blending: THREE.NoBlending, depthWrite: true });
   const live = new THREE.Mesh(geometry, liveMaterial);
   staticScreens.userData.castShadow = false; live.userData.castShadow = false;
-  live.name = 'md. desktop | active monitor'; live.matrixAutoUpdate = false; live.visible = false; scene.add(live);
+  live.name = 'mg. desktop | active monitor'; live.matrixAutoUpdate = false; live.visible = false; scene.add(live);
   let active: Computer | undefined, frame: HTMLIFrameElement | undefined, host: HTMLDivElement | undefined;
   let loaded = false, presented = false, disposed = false, dirty = true, enabled = true;
   let previousWidth = 0, previousHeight = 0;
@@ -72,7 +72,7 @@ export function createComputerScreens(scene: THREE.Object3D, camera: THREE.Camer
     staticScreens.setMatrixAt(computers.indexOf(computer), new THREE.Matrix4().makeScale(0, 0, 0)); staticScreens.instanceMatrix.needsUpdate = true;
     host = document.createElement('div'); host.dataset.mdDesktop = computer.id;
     Object.assign(host.style, { position: 'fixed', left: '0', top: '0', width: '1280px', height: '720px', transformOrigin: '0 0', overflow: 'hidden', background: '#211406', zIndex: '0', visibility: 'hidden', pointerEvents: 'none' });
-    frame = document.createElement('iframe'); frame.title = 'md. desktop'; frame.src = '/md-desktop/index.html?embed=monitor';
+    frame = document.createElement('iframe'); frame.title = 'mg. desktop'; frame.src = '/md-desktop/index.html?embed=monitor';
     Object.assign(frame.style, { width: '1280px', height: '720px', border: '0', display: 'block' });
     const thisFrame = frame;
     frame.addEventListener('load', () => {

@@ -175,13 +175,13 @@ export function createDesktop(apps) {
       mb.append(b);
     };
     add('md<i>.</i>', 'logo', () => [
-      { label: 'About md. desktop', action: () => import('./ui.js').then(m => m.toast('md. desktop · amber glass edition')) },
+      { label: 'About mg. desktop', action: () => import('./ui.js').then(m => m.toast('mg. desktop · amber glass edition')) },
       'sep',
       { label: 'Show Desktop', kbd: 'F11', action: () => [...wins.keys()].forEach(minimize) },
       { label: 'Close All Apps', action: () => [...wins.keys()].forEach(close) },
     ]);
     add(name, 'appname', () => s ? [
-      { label: `About ${s.app.name}`, action: () => import('./ui.js').then(m => m.toast(`${s.app.name} · md. edition`)) },
+      { label: `About ${s.app.name}`, action: () => import('./ui.js').then(m => m.toast(`${s.app.name} · mg. edition`)) },
       'sep',
       { label: `Hide ${s.app.name}`, kbd: '⌘H', action: () => minimize(focused) },
       { label: `Quit ${s.app.name}`, kbd: '⌘Q', action: () => close(focused) },

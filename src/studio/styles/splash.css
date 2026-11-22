@@ -14,7 +14,7 @@
   place-items: center;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(196 * var(--u));
+  font-size: calc(140 * var(--u));
   line-height: 1;
   letter-spacing: -0.01em;
   white-space: nowrap;
@@ -173,7 +173,7 @@
 #md-studio-root .chrome:not([data-splash]) :is(.wordmark, .rail-toggle) { transition: opacity 400ms ease; }
 
 @media (orientation: portrait) {
-  #md-studio-root .splash__word { font-size: calc(92 * var(--u)); }
+  #md-studio-root .splash__word { font-size: calc(66 * var(--u)); }
   #md-studio-root .splash__meta { font-size: calc(17 * var(--u)); letter-spacing: 0.24em; gap: calc(14 * var(--u)); }
   #md-studio-root .splash__card { left: calc(var(--d) * 64 * var(--u) - 31 * var(--u)); width: calc(62 * var(--u)); height: calc(150 * var(--u)); }
   #md-studio-root .splash__label { display: none; }

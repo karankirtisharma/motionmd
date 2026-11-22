@@ -748,7 +748,7 @@ export async function createInteractionController(options: Options) {
       if (transition === 1) {
         mode = 'seated'; display?.setActive(!selected.computer); options.onStateChange?.('seated'); options.onScreenMode?.(!selected.computer);
         if (selected.computer) desktop?.open(selected.computer);
-        prompt({ text: selected.computer ? 'md. desktop · Use Stand up to leave' : 'Use the screen or Enter to expand · E to stand', target: selected.id });
+        prompt({ text: selected.computer ? 'mg. desktop · Use Stand up to leave' : 'Use the screen or Enter to expand · E to stand', target: selected.id });
       }
     } else if (mode === 'standing' && selected) {
       transition = Math.min(1, transition + delta / 1.05); seatWeight = 1 - smootherStep(transition);
