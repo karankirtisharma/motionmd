@@ -29,7 +29,6 @@ const textureIndex = await prepareTextureDelivery(root, !process.env.NEXT_PUBLIC
 await prepareChairLightmap(root, !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim() && process.env.MD_GEOMETRY_STORAGE !== '0');
 if (process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
   await fs.writeFile(path.join(generated,'asset-delivery.json'),'{}\n');
-  await fs.writeFile(path.join(generated,'room-stream.json'),'{}\n');
   console.log('External asset origin: configure Brotli/Content-Encoding at the CDN; local rewrites are disabled.');
   process.exit(0);
 }
@@ -110,10 +109,6 @@ for (const chunk of chunks) {
     images:imageResult.images, meshoptStreams:meshopt.streams, sourceSHA256, sha256, sourceBytes: original.length, bytes: bytes.length, verifiedRanges: compact.verifiedRanges,
     br: (await fs.stat(path.join(root, 'public', entry.br))).size, gzip: (await fs.stat(path.join(root, 'public', entry.gzip))).size });
 }
-// Preserve the authored entrance at its canonical URL. The scene requests a
-// versioned URL and continues to receive the verified optimized representation.
-const entrance = chunks.find(chunk => chunk.id === 'entrance');
-if (entrance && index[entrance.url]?.identity) index[entrance.url].retainSource = true;
 await fs.writeFile(path.join(generated, 'asset-delivery.json.tmp'), JSON.stringify(index, null, 2) + '\n');
 await fs.rename(path.join(generated,'asset-delivery.json.tmp'),path.join(generated,'asset-delivery.json'));
 await fs.writeFile(path.join(output, 'report.json'), JSON.stringify(report, null, 2) + '\n');
@@ -125,7 +120,5 @@ if (process.env.MD_PRUNE_DELIVERY === '1') for (const name of await fs.readdir(o
   if (path.dirname(target) !== output) throw Error('Invalid output path');
   if (/^[a-f0-9]{64}(?:(?:\.q9)?\.glb(?:\.br|\.gz)?|\.webp)(?:\.tmp)?$/.test(name) && !retained.has(name)) await fs.unlink(target);
 }
-const { buildRoomPackets } = await import('./room-packets.mjs');
-await buildRoomPackets(root,index,manifest);
 const sum = key => report.reduce((value, entry) => value + entry[key], 0);
 console.log('Lossless delivery verified: ' + (sum('sourceBytes') / 1e6).toFixed(1) + ' MB source → ' + (sum('bytes') / 1e6).toFixed(1) + ' MB pixel/geometry-exact payload → Brotli ' + (sum('br') / 1e6).toFixed(1) + ' MB / gzip ' + (sum('gzip') / 1e6).toFixed(1) + ' MB.');

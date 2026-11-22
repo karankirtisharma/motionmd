@@ -29,8 +29,6 @@ next-env.d.ts
 
 # Reproducible HTTP delivery variants, generated before dev/build.
 public/asset-delivery/
-public/room-stream/
-src/generated/room-stream.json
 src/generated/asset-delivery.json
 src/generated/texture-delivery.json
 src/generated/chair-lightmap.json

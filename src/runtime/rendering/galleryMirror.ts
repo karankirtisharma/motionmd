@@ -238,7 +238,6 @@ export function createGalleryMirror(root: Object3D) {
     return true;
   }
   return {
-    invalidateGeometry() { distant.fill(undefined); frameCache.invalidate(); },
     async warmup(renderer: WebGPURenderer, scene: Scene, view: PerspectiveCamera, signal?: AbortSignal,
       onProgress?: (loaded: number, total: number) => void, visitor?: ReflectedVisitor) {
       signal?.throwIfAborted();

@@ -6,7 +6,7 @@ import fs from 'node:fs';
 import * as THREE from 'three';
 import { geometryFixture } from './helpers/geometry-fixture.mjs';
 
-const file = process.argv[2] ?? new URL('../public/assets/character/locomotion-v9.json', import.meta.url);
+const file = process.argv[2] ?? new URL('../public/assets/character/locomotion-v16.json', import.meta.url);
 const data = JSON.parse(fs.readFileSync(file));
 const gltf = (await geometryFixture('/assets/character/RocketboxVisitor.glb')).gltf, model = gltf.scene;
 const rest = new Map(); model.traverse(o => { if (o.isBone) rest.set(o, [o.position.clone(), o.quaternion.clone(), o.scale.clone()]); });
@@ -29,7 +29,8 @@ for (const clip of data.clips.filter(c => c.kind === 'flat')) {
     const shL = w('Bip01_L_UpperArm'), shR = w('Bip01_R_UpperArm');
     const row = { k, mid,
       hipDrop: deg(Math.atan2(hipL.y - hipR.y, hipL.x - hipR.x)), hipTwist: deg(Math.atan2(hipL.z - hipR.z, hipL.x - hipR.x)),
-      shoulderTwist: deg(Math.atan2(shL.z - shR.z, shL.x - shR.x)) };
+      shoulderTwist: deg(Math.atan2(shL.z - shR.z, shL.x - shR.x)), shoulderRoll: deg(Math.atan2(shL.y - shR.y, shL.x - shR.x)),
+      chestX: w('Bip01_Spine2').x - mid.x, headX: w('Bip01_Head').x, kneeGap: Math.abs(w('Bip01_L_Calf').x - w('Bip01_R_Calf').x), ankleGap: Math.abs(w('Bip01_L_Foot').x - w('Bip01_R_Foot').x) };
     for (const s of ['L', 'R']) {
       const ankle = w(`Bip01_${s}_Foot`), toe = w(`Bip01_${s}_Toe0`), hand = w(`Bip01_${s}_Hand`), elbow = w(`Bip01_${s}_Forearm`), shoulder = w(`Bip01_${s}_UpperArm`), knee = w(`Bip01_${s}_Calf`), hip = s === 'L' ? hipL : hipR;
       row[s] = { footX: ankle.x - mid.x, footY: Math.min(ankle.y, toe.y), toeOut: deg(Math.atan2(toe.x - ankle.x, toe.z - ankle.z)) * (s === 'L' ? 1 : -1),
@@ -51,6 +52,8 @@ for (const clip of data.clips.filter(c => c.kind === 'flat')) {
   console.log(`  hands across the body: L reaches ${cm(Math.min(...rows.map(r => r.L.handX)))} cm, R ${cm(-Math.max(...rows.map(r => r.R.handX)))} cm from the midline (negative = past it)`);
   console.log(`  hand swing fore-aft: L ${cm(range(r => r.L.handZ))} cm, R ${cm(range(r => r.R.handZ))} cm;  elbow bend mean L ${mean(r => r.L.elbow).toFixed(0)} R ${mean(r => r.R.elbow).toFixed(0)} deg;  elbow out from shoulder L ${cm(mean(r => r.L.elbowOut))} R ${cm(mean(r => r.R.elbowOut))} cm`);
   console.log(`  hip drop range ${range(r => r.hipDrop).toFixed(1)} deg, hip twist range ${range(r => r.hipTwist).toFixed(1)} deg, shoulder twist range ${range(r => r.shoulderTwist).toFixed(1)} deg, hip sway ${cm(range(r => r.mid.x))} cm`);
+  console.log(`  shoulder roll range ${range(r => r.shoulderRoll).toFixed(1)} deg, chest sway over the hips ${cm(range(r => r.chestX))} cm, head sway ${cm(range(r => r.headX))} cm`);
+  console.log(`  knee gap min ${cm(Math.min(...rows.map(r => r.kneeGap)))} cm mean ${cm(mean(r => r.kneeGap))} cm; ankle gap min ${cm(Math.min(...rows.map(r => r.ankleGap)))} cm (swing foot passing the other)`);
   console.log(`  hip bob ${cm(range(r => r.mid.y))} cm, mean hip height ${cm(mean(r => r.mid.y))} cm`);
   console.log(`  thigh lift max L ${Math.max(...rows.map(r => r.L.thighLift)).toFixed(0)} R ${Math.max(...rows.map(r => r.R.thighLift)).toFixed(0)} deg`);
 }

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import type { ChairDefinition, SceneManifest, RuntimeHint } from '../../types';
 import { createCollisionWorld } from './CollisionWorld';
 import { createGlassLift } from './GlassLift';
-import type { ReadInteractionBytes } from './interactionGLB';
 import { loadAvatar } from './Avatar';
 import { applyLookInput, cameraLookDirection, cameraRelativeMove, cameraShortcut, damping, smoothEyeHeight, smoothSupportHeight, smootherStep, smoothAngle, easedTurnRate, turnSpeedFactor } from './movement';
 import type { CameraView } from './movement';
@@ -20,7 +19,6 @@ type Options = {
   scene: THREE.Object3D; camera: THREE.PerspectiveCamera;
   renderer?: unknown; canvas: HTMLCanvasElement; manifest: SceneManifest;
   signal?: AbortSignal;
-  readBytes?: ReadInteractionBytes;
   onStateChange?: (mode: 'explore' | 'seated') => void;
   onPrompt?: (prompt: RuntimeHint | null) => void;
   onScreenMode?: (active: boolean) => void;
@@ -42,8 +40,8 @@ export async function createInteractionController(options: Options) {
   const cancelSibling = (reason: unknown): never => { transfers.abort(reason); throw reason; };
   options.signal?.addEventListener('abort', abortTransfers, { once: true });
   const resources = await Promise.allSettled([
-    createCollisionWorld(scene, manifest.collisions?.url, undefined, manifest.collisions?.additionalUrls, manifest.explorationBounds, transfers.signal, options.readBytes).catch(cancelSibling),
-    loadAvatar(manifest.character?.url, transfers.signal, options.readBytes).catch(cancelSibling),
+    createCollisionWorld(scene, manifest.collisions?.url, undefined, manifest.collisions?.additionalUrls, manifest.explorationBounds, transfers.signal).catch(cancelSibling),
+    loadAvatar(manifest.character?.url, transfers.signal).catch(cancelSibling),
     loadScreenPreviews(transfers.signal).catch(cancelSibling),
   ]).finally(() => options.signal?.removeEventListener('abort', abortTransfers));
   if (options.signal?.aborted || resources.some((result) => result.status === 'rejected')) {

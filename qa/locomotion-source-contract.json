@@ -1,0 +1,9 @@
+{
+  "sourceBinaryBytes": 20849728,
+  "sourceBinarySha256": "25bdd218254f97b88d46ef064b2b4b2e1841e6b8fcf8e368155d073fdcedc0c1",
+  "definitionSha256": "d45b9aafb0106dfbb3e896c1abe85669fcfd1965cfc7cdbd727089ad6ca2bd00",
+  "preservedClips": {
+    "Idle": "990a5c3b26b271d81ddd83e3570ad78608bcf566dadf2b56aefb6ed7993f45a0",
+    "Sit": "e047eb3d44d494d719001dc124fde9d1fe313b651425e0971bea2d5b9e602680"
+  }
+}

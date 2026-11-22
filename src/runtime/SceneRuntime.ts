@@ -7,12 +7,10 @@ import { SceneKTX2Loader } from './rendering/SceneKTX2Loader';
 import { identifySharedImages } from './rendering/sharedImages';
 import { createReplacedGalleryAlbedoPlugin } from './rendering/replacedGalleryAlbedo';
 import { createMeshoptDecoder } from './rendering/meshoptDecode';
-import { roomStreams, streamRoomDetails } from './rendering/roomStream';
-import { fetchAssetBuffer } from './rendering/fetchAsset';
 import { loadProgressively } from './rendering/progressiveLoad';
 import { architectureProgress } from './rendering/loadingProgress';
 import type { Quality, RuntimeCallbacks, RuntimeMode, SceneManifest } from '@/types';
-import { assetURL, fetchBuffer, resolveAssetDependency, sceneBufferBytes } from './rendering/assets';
+import { assetURL, fetchBuffer, resolveAssetDependency } from './rendering/assets';
 import { applyMaterialManifest, prepareSourceMaterials } from './rendering/materials';
 import { repairArchitecturalJoins } from './rendering/architecturalJoins';
 import { relocateDoorwayPlanter } from './rendering/doorwayPlanter';
@@ -22,13 +20,12 @@ import { repairStudioThreshold } from './rendering/floorThreshold';
 import { repairEntranceApron } from './rendering/entranceApron';
 import lightingSizes from '../generated/lighting-transfer-sizes.json';
 import textureSizes from '../generated/texture-transfer-sizes.json';
-import { createInteractionReadAhead } from './interaction/interactionGLB';
 import { createLightingReadAhead } from './rendering/lightingReadAhead';
 import { configureLighting } from './rendering/lighting';
 import { configureSourceColor } from './rendering/color';
 import type { RenderDiagnostics, DiagnosticMode } from './rendering/diagnostics';
 import { CinematicPath, CINEMATIC_SECONDS, CINEMATIC_HANDOFF } from './rendering/cinematic';
-import { createDesertEnvironment, SKY_URL } from './rendering/DesertEnvironment';
+import { createDesertEnvironment } from './rendering/DesertEnvironment';
 import { guardShaderCompilation } from './rendering/shaderValidation';
 import { createAssetLoadGuard } from './rendering/loadingGuard';
 import { createTemporalRenderer } from './rendering/TemporalRenderer';
@@ -64,7 +61,6 @@ export class SceneRuntime {
   readonly content = new Group();
   renderer!: WebGPURenderer;
   private rendererReady = false;
-  private roomDelivery?: Promise<void>;
   private initialization?: Promise<void>;
   private disposal?: Promise<void>;
   manifest!: SceneManifest;
@@ -135,7 +131,6 @@ export class SceneRuntime {
 
   private async initialize(): Promise<void> {
     let lightingDownloads: ReturnType<typeof createLightingReadAhead> | undefined;
-    let interactionDownloads: ReturnType<typeof createInteractionReadAhead> | undefined;
     try {
       this.callbacks.onProgress?.({ phase: 'Preparing your visit', detail: 'Checking the graphics device' });
       const query = new URLSearchParams(window.location.search);
@@ -199,32 +194,18 @@ export class SceneRuntime {
       const interactions = import('./interaction/InteractionController');
       void interactions.catch(() => {}); // Observed below after independent loading work.
       const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-      const allowReadAhead = !connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim();
-      if (allowReadAhead) {
-        // The 4.17 MB sky took 37 s when requested after geometry on a cold Vercel visit.
-        lightingDownloads = createLightingReadAhead({ [SKY_URL]: 4_171_959, ...lightingSizes }, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
+      if (!connection?.saveData && !process.env.NEXT_PUBLIC_ASSET_BASE_URL?.trim()) {
+        lightingDownloads = createLightingReadAhead(lightingSizes, (url, signal) => fetchBuffer(url, signal ?? this.abort.signal), this.abort.signal);
       }
       this.renderer.toneMappingExposure = Math.pow(2, this.manifest.exposure ?? 0.1);
+      const colorLUT = await configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal);
+      if (colorLUT) this.textures.add(colorLUT);
       this.abort.signal.throwIfAborted();
       this.prepareCamera();
       this.applyTourCamera(1 / 60, true);
       this.profiler?.phase('geometry and embedded textures');
-      // The 1.94 MB display LUT took 949 ms to transfer on the measured WAN run.
-      // Geometry imports do not draw; only the later material/lighting passes need the installed transform.
-      const color = configureSourceColor(this.renderer, this.manifest.colorPipeline, this.abort.signal).then(texture => {
-        if (texture) this.textures.add(texture);
-      });
-      const source = this.loadSource();
-      try {
-        await Promise.all([color, source]);
-      } catch (error) {
-        this.abort.abort(error);
-        // A GLTF parser already in flight may finish after cancellation. Wait for its cleanup before GPU teardown.
-        await Promise.allSettled([color, source]);
-        throw error;
-      }
+      await this.loadSource();
       if (this.disposed) return;
-      if (allowReadAhead) interactionDownloads = createInteractionReadAhead(this.manifest, this.abort.signal);
       repairExteriorWinding(this.content);
       repairExteriorOverlap(this.content);
       repairExteriorGroove(this.content);
@@ -251,6 +232,7 @@ export class SceneRuntime {
       const bounds = new Box3().setFromObject(this.content);
       this.profiler?.phase('lighting and reflection probes');
       this.lighting = await configureLighting(this.scene, this.renderer, this.manifest, bounds, this.abort.signal, lightingDownloads?.read);
+      lightingDownloads?.close();
       if (this.disposed || this.abort.signal.aborted) return;
       this.profiler?.phase('spatial preparation and desert');
       this.galleryMirror = createGalleryMirror(this.content);
@@ -258,8 +240,7 @@ export class SceneRuntime {
       // its visibility bounds; every cell then shares that same final shader.
       prepareSlimMonitorHousings(this.content);
       partitionSourceGeometry(this.content);
-      this.desert = await createDesertEnvironment(this.scene, { renderer: this.renderer, signal: this.abort.signal, readBytes: lightingDownloads?.read, sunDirection: this.manifest.sun?.position });
-      lightingDownloads?.close();
+      this.desert = await createDesertEnvironment(this.scene, { renderer: this.renderer, signal: this.abort.signal, sunDirection: this.manifest.sun?.position });
       if (this.disposed || this.abort.signal.aborted) return;
       this.setQuality(this.quality);
 
@@ -269,7 +250,7 @@ export class SceneRuntime {
       this.abort.signal.throwIfAborted();
       this.controls = await createControls({
         scene: this.scene, camera: this.camera, renderer: this.renderer,
-        canvas, manifest: this.manifest, signal: this.abort.signal, readBytes: interactionDownloads?.read,
+        canvas, manifest: this.manifest, signal: this.abort.signal,
         onStateChange: (mode: 'explore' | 'seated') => this.setMode(mode),
         onPrompt: (hint: {text: string; target?: string} | null) => this.callbacks.onHint?.(hint),
         onScreenMode: (active: boolean) => this.callbacks.onScreenMode?.(active),
@@ -308,9 +289,6 @@ export class SceneRuntime {
         }
         this.abort.signal.throwIfAborted();
       }
-      this.content.traverse(node => {
-        if (node instanceof Mesh && node.geometry.userData.mdRoomSlot !== undefined) node.visible = false;
-      });
       const compileStarted = performance.now();
       this.temporal = createTemporalRenderer(this.renderer, this.scene, this.camera);
       this.abort.signal.throwIfAborted();
@@ -344,17 +322,6 @@ export class SceneRuntime {
       this.setMode('tour');
       this.callbacks.onProgress?.({ phase: 'Ready', progress: 1 });
       this.callbacks.onReady?.();
-      this.roomDelivery = streamRoomDetails(this.content, this.abort.signal,
-        () => {
-          // Studio workstations are on the ground floor; the founder desk is upstairs.
-          const p = this.mode === 'explore' || this.mode === 'seated' ? this.controls!.player.position : this.camera.position;
-          const studio = (p.x-17)**2 + (p.z+30)**2 + (p.y*4)**2;
-          const founder = (p.x-15)**2 + (p.z+6)**2 + ((p.y-4.2)*4)**2;
-          return studio <= founder ? 'studio' : 'founder';
-        },
-        root => this.staticTransforms?.include(root),
-        () => { this.galleryMirror?.invalidateGeometry(); this.staticSunShadowCache?.invalidate('streamed room'); this.lighting!.sun.shadow.needsUpdate=true; this.invalidateStatic(); }
-      ).catch(error=>{ if(!this.disposed && !this.abort.signal.aborted) this.fail('Room download interrupted: '+String(error)); });
       this.profiler?.ready();
       this.clock.start();
       this.renderer.setAnimationLoop(document.hidden || this.studioCovered ? null : this.tick);
@@ -362,7 +329,7 @@ export class SceneRuntime {
       if (this.disposed || (error instanceof DOMException && error.name === 'AbortError')) return;
       console.error('[MD scene]', error);
       this.fail(error instanceof Error ? error.message : 'The scene could not be loaded.');
-    } finally { lightingDownloads?.close(); interactionDownloads?.close(); }
+    } finally { lightingDownloads?.close(); }
   }
 
   private validateManifest() {
@@ -388,29 +355,18 @@ export class SceneRuntime {
       : undefined;
     this.ktx2 = new SceneKTX2Loader(loadGuard.manager, this.abort.signal, textureDownloads?.read).setTranscoderPath(assetURL('/assets/basis/')).setWorkerLimit(2).detectSupport(this.renderer);
     loader.setKTX2Loader(this.ktx2);
-    const chunks = this.manifest.chunks.map(chunk => ({ ...chunk, bytes: roomStreams[chunk.id]?.base.bytes ?? sceneBufferBytes(chunk.url, chunk.bytes) }))
-      .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
-    // The delivered founder and studio buffers together fit in 256 MiB (267,759,532 bytes).
-    // Keep the 128 MiB budget on low-memory, unclassified and data-saver devices.
-    const memoryGiB = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 0;
-    const bufferBudget = !saveData && memoryGiB >= 8 ? 256 * 1024 * 1024 : 128 * 1024 * 1024;
+    const chunks = [...this.manifest.chunks].sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
     const bytes = new Map<string, number>();
     const total = chunks.reduce((sum, chunk) => sum + chunk.bytes, 0);
     let lastProgressAt = 0;
-    try { await loadProgressively(chunks, this.abort.signal, (chunk, signal) => {
-        const base = roomStreams[chunk.id]?.base;
-        const onProgress = (loaded: number) => {
+    try { await loadProgressively(chunks, this.abort.signal, (chunk, signal) => fetchBuffer(chunk.url, signal, (loaded, _decodedTotal, delivery) => {
           bytes.set(chunk.id, loaded);
           const now = performance.now();
           if (now - lastProgressAt < 80) return;
           lastProgressAt = now;
           const received = [...bytes.values()].reduce((sum, value) => sum + value, 0);
-          this.callbacks.onProgress?.(architectureProgress(received, total));
-        };
-        return base
-          ? fetchAssetBuffer(base.url, { signal, expectedBytes: base.bytes, onProgress })
-          : fetchBuffer(chunk.url, signal, onProgress, chunk.bytes);
-      }, async (chunk, buffer) => {
+          this.callbacks.onProgress?.(architectureProgress(received, total, delivery));
+        }, chunk.bytes), async (chunk, buffer) => {
         if (this.disposed) return;
         const absolute = new URL(assetURL(chunk.url), window.location.href).href;
         const omitSuperseded = createReplacedGalleryAlbedoPlugin(chunk.url);
@@ -433,7 +389,7 @@ export class SceneRuntime {
           for (const clip of gltf.animations) { mixer.clipAction(clip).play(); duration = Math.max(duration, clip.duration); }
           this.mixers.push({ mixer, duration });
         }
-      }, bufferBudget);
+      });
       loadGuard.assertLoaded();
     } finally { textureDownloads?.close(); decoder.dispose(); }
   }
@@ -889,7 +845,7 @@ export class SceneRuntime {
     // Aborting fetch/decode does not synchronously cancel a GLTF parse or GPU
     // compile. Releasing their resources early lets late continuations use a
     // disposed renderer. A replacement visit awaits this same promise.
-    this.disposal = Promise.allSettled([this.initialization, this.roomDelivery]).catch(() => {}).then(async () => {
+    this.disposal = (this.initialization ?? Promise.resolve()).catch(() => {}).then(async () => {
       const release = (action: () => void) => {
         try { action(); } catch (error) { console.warn('[MD cleanup]', error); }
       };

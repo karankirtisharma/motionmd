@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { loadInteractionGLB, type ReadInteractionBytes } from './interactionGLB.ts';
+import { loadInteractionGLB } from './interactionGLB.ts';
 import { damping } from './movement';
 import { createRocketboxAvatar, type DeskPose, type StairContact } from './RocketboxAvatar';
 import type { LocomotionData } from './locomotionClips';
@@ -10,10 +10,10 @@ import { fetchAssetBuffer } from '../rendering/fetchAsset.ts';
 export const LOCOMOTION_URL = '/assets/character/locomotion-v16.json';
 
 /** Licensed rigged character. Architecture is always loaded separately from the user's export. */
-export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb', signal?: AbortSignal, readBytes?: ReadInteractionBytes) {
+export async function loadAvatar(url = '/assets/character/RocketboxVisitor.glb', signal?: AbortSignal) {
   // The rejected candidate query no longer selects a different rig or gait.
   const [gltf, locomotion] = await Promise.all([
-    loadInteractionGLB(url, signal, readBytes),
+    loadInteractionGLB(url, signal),
     // Without the clips the visitor keeps the rig's own walk and run (never blocks the visit).
     fetchAssetBuffer(assetURL(LOCOMOTION_URL), { signal }).then(bytes => JSON.parse(new TextDecoder().decode(bytes)) as LocomotionData).catch(error => {
       if (signal?.aborted) throw error;

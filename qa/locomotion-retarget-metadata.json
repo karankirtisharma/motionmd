@@ -1,0 +1,119 @@
+{
+  "sourceSha256": "b96d4cb29605b18b13df690c7a261637df8e3deeeb7c0732862c64bc785ff997",
+  "unchanged": [
+    "nodes",
+    "meshes",
+    "skins",
+    "materials",
+    "textures",
+    "images",
+    "Idle",
+    "Sit"
+  ],
+  "rejected": [
+    "Descending Stairs.fbx",
+    "Descending Stairs (1).fbx: hips descend ~50cm while ankles are clamped to original floor, producing a deep crouch."
+  ],
+  "clips": [
+    {
+      "name": "Walk",
+      "file": "Walking.fbx",
+      "sha256": "efd3c17807a2037afeda5affbb792b5616bfa7a9c1242bc4afceefb0784e60c0",
+      "duration": 1.0333333015441895,
+      "cycleStride": 1.6516351012309713,
+      "sourceRise": -2.275543797272191e-8,
+      "gazeCorrectionDegrees": 0,
+      "sourceTouchdown": [
+        0.333333,
+        0.833333
+      ],
+      "phaseTouchdown": [
+        0,
+        0.5
+      ],
+      "scale": 0.008950863912616113,
+      "legLength": 0.7957246411404422,
+      "sourceLeg": 88.89919999999998
+    },
+    {
+      "name": "Run",
+      "file": "Running.fbx",
+      "sha256": "540f795cf7b9b056f4f6af32e58058814a4fa902a6af3a35adc5f5c197e3e417",
+      "duration": 0.8333333134651184,
+      "cycleStride": 1.9183779886988939,
+      "sourceRise": 0.000006285311706776437,
+      "gazeCorrectionDegrees": 16.656495179020933,
+      "sourceTouchdown": [
+        0.266667,
+        0.666667
+      ],
+      "phaseTouchdown": [
+        0,
+        0.5
+      ],
+      "scale": 0.008950863912616113,
+      "legLength": 0.7957246411404422,
+      "sourceLeg": 88.89919999999998
+    },
+    {
+      "name": "StairUp",
+      "file": "Ascending Stairs.fbx",
+      "sha256": "5280ec3962161cf37280833d592886d29927031edff27425461abbb5f8e0aeb6",
+      "duration": 1.3666666746139526,
+      "cycleStride": 0.4681798697160866,
+      "sourceRise": 0.43812298205759526,
+      "gazeCorrectionDegrees": 20.55871776271382,
+      "sourceTouchdown": [
+        0.233333,
+        0.966667
+      ],
+      "phaseTouchdown": [
+        0,
+        0.5
+      ],
+      "scale": 0.008950863912616113,
+      "legLength": 0.7957246411404422,
+      "sourceLeg": 88.89919999999998
+    },
+    {
+      "name": "StairDown",
+      "file": "Walking.fbx",
+      "sha256": "efd3c17807a2037afeda5affbb792b5616bfa7a9c1242bc4afceefb0784e60c0",
+      "duration": 1.0333333015441895,
+      "cycleStride": 1.6516351012309713,
+      "sourceRise": -2.275543797272191e-8,
+      "gazeCorrectionDegrees": 0,
+      "sourceTouchdown": [
+        0.333333,
+        0.833333
+      ],
+      "phaseTouchdown": [
+        0,
+        0.5
+      ],
+      "scale": 0.008950863912616113,
+      "legLength": 0.7957246411404422,
+      "sourceLeg": 88.89919999999998
+    },
+    {
+      "name": "StairRunUp",
+      "file": "Running Up Stairs.fbx",
+      "sha256": "d88bdad5d0f030d995dca0895bbfb6e765f21c20d0ae4796c98a7bef75b88a1e",
+      "duration": 0.6000000238418579,
+      "cycleStride": 0.4709778053424091,
+      "sourceRise": 0.428907387484541,
+      "gazeCorrectionDegrees": -10.02844763869733,
+      "sourceTouchdown": [
+        0.166667,
+        0.466667
+      ],
+      "phaseTouchdown": [
+        0,
+        0.5
+      ],
+      "scale": 0.008950863912616113,
+      "legLength": 0.7957246411404422,
+      "sourceLeg": 88.89919999999998
+    }
+  ]
+}

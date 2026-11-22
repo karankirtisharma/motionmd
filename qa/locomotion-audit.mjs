@@ -33,7 +33,7 @@ const header = Buffer.alloc(20); header.writeUInt32LE(0x46546c67, 0); header.wri
 header.writeUInt32LE(20 + encoded.length + bytes.length - 20 - oldLength, 8); header.writeUInt32LE(encoded.length, 12); header.writeUInt32LE(0x4e4f534a, 16);
 const blob = Buffer.concat([header, encoded, bytes.subarray(20 + oldLength)]);
 const load = () => new GLTFLoader().parseAsync(blob.buffer.slice(blob.byteOffset, blob.byteOffset + blob.length), '');
-const locomotion = JSON.parse(fs.readFileSync(new URL('../public/assets/character/locomotion-v9.json', import.meta.url)));
+const locomotion = JSON.parse(fs.readFileSync(process.env.LOCO_FILE ?? new URL('../public/assets/character/locomotion-v16.json', import.meta.url)));
 
 // Surface under a point: the flight's tread there, else the floor/landing level it continues into.
 function surface(x, y, z) {
@@ -93,7 +93,7 @@ async function run(name, hz, { sprint = false, stopAt, turnAt } = {}) {
     return out; });
   const bones = ['Bip01_Pelvis', 'Bip01_L_Thigh', 'Bip01_R_Thigh', 'Bip01_L_Calf', 'Bip01_R_Calf', 'Bip01_L_Foot', 'Bip01_R_Foot'].map(n => avatar.root.getObjectByName(n));
   const prevQ = bones.map(b => b.getWorldQuaternion(new THREE.Quaternion())), pelvisY = [];
-  const stats = { sink: 0, sinkAt: '', hover: 0, slide: 0, pop: 0, popAt: '', hipAcc: 0, frames: 0, stand: undefined, cadence: Infinity, lastPhase: undefined };
+  const stats = { sink: 0, sinkAt: '', hover: 0, slide: 0, pop: 0, popAt: '', hipAcc: 0, frames: 0, stand: undefined, cadence: Infinity, lastPhase: undefined, float: 0, floatFrames: 0, flightFrames: 0 };
   const contact = [undefined, undefined];
   const v = new THREE.Vector3(), q = new THREE.Quaternion();
   let direction = 1;
@@ -157,6 +157,8 @@ async function run(name, hz, { sprint = false, stopAt, turnAt } = {}) {
     }
     // Steps per second of the floor walk/run while moving at over 0.4 m/s off the flight (slow motion reads below ~1.5).
     { const ph = avatar.locomotion.phase; if (stats.lastPhase !== undefined && speed > .4 && avatar.locomotion.stair < .05 && t > .5) stats.cadence = Math.min(stats.cadence, 2 * (((ph - stats.lastPhase) % 1) + 1) % 1 / dt); stats.lastPhase = ph; }
+    // Floating on a flight: the lower shoe's gap over its surface while walking on it (both feet up = floating).
+    if (avatar.locomotion.stair > .9 && speed > .2 && t > .5) { const low = Math.min(lowest[0].gap, lowest[1].gap); if (process.env.DEBUG_FLOAT) console.log('FLOAT', t.toFixed(3), 'u', avatar.locomotion.stairU?.toFixed(3), 'L', (lowest[0].gap*100).toFixed(1), 'R', (lowest[1].gap*100).toFixed(1), 'lift', avatar.locomotion.soleLift.toFixed(3)); stats.flightFrames++; if (low > .01) stats.floatFrames++; stats.float = Math.max(stats.float, low); }
     // Standing still on a flight (stopped for over 0.8 s): the worse shoe's lowest point from its tread.
     if (stoppedFor > .8 && stoppedFor < 1.5) stats.stand = Math.max(stats.stand ?? 0, Math.abs(lowest[0].gap), Math.abs(lowest[1].gap));
     // Pops: joint rotation per frame, and hip acceleration.
@@ -178,5 +180,5 @@ console.log('scenario'.padEnd(26), 'Hz ', 'sink cm', 'hover cm', 'slide cm', 'po
 for (const [name, options] of SCENARIOS) for (const hz of [60, 164]) {
   if (!name.includes(filter)) continue;
   const r = await run(name, hz, options);
-  console.log(name.padEnd(26), String(hz).padEnd(3), (r.sink * 100).toFixed(1).padStart(7), (r.hover * 100).toFixed(1).padStart(8), (r.slide * 100).toFixed(1).padStart(8), r.pop.toFixed(1).padStart(13), r.hipAcc.toFixed(1).padStart(8), ' ', r.sink > .01 ? 'sink@' + r.sinkAt : '', r.pop > 6 ? 'pop@' + r.popAt : '', 'floor steps/s min ' + (r.cadence === Infinity ? '-' : r.cadence.toFixed(2)), r.stand === undefined ? '' : 'standing: worse shoe ' + (r.stand * 100).toFixed(1) + ' cm off its tread');
+  console.log(name.padEnd(26), String(hz).padEnd(3), (r.sink * 100).toFixed(1).padStart(7), (r.hover * 100).toFixed(1).padStart(8), (r.slide * 100).toFixed(1).padStart(8), r.pop.toFixed(1).padStart(13), r.hipAcc.toFixed(1).padStart(8), ' ', r.sink > .01 ? 'sink@' + r.sinkAt : '', r.pop > 6 ? 'pop@' + r.popAt : '', 'floor steps/s min ' + (r.cadence === Infinity ? '-' : r.cadence.toFixed(2)), r.flightFrames ? 'floating: both feet up to ' + (r.float * 100).toFixed(1) + ' cm, ' + (100 * r.floatFrames / r.flightFrames).toFixed(0) + '% of the time' : '', r.stand === undefined ? '' : 'standing: worse shoe ' + (r.stand * 100).toFixed(1) + ' cm off its tread');
 }

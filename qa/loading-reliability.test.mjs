@@ -55,15 +55,12 @@ test('interrupted and truncated bodies restart from byte zero with no retained p
 
 test('idle watchdog aborts a stalled body, cancels its reader, and retries', async t => {
   let requests = 0, cancelled = 0, firstSignal;
-  const paths = [];
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
-    paths.push(url);
+  t.mock.method(globalThis, 'fetch', async (_, options) => {
     if (++requests > 1) return new Response(new Uint8Array([4, 2]));
     firstSignal = options.signal;
     return new Response(new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array([8])); }, cancel() { cancelled++; } }));
   });
-  assert.deepEqual(bytes(await fetchAssetBuffer('/stalled.glb', { retryUrl: '/static.glb', stallMs: 20, retryDelayMs: 0 })), [4, 2]);
-  assert.deepEqual(paths, ['/stalled.glb', '/static.glb']);
+  assert.deepEqual(bytes(await fetchAssetBuffer('/stalled.glb', { stallMs: 20, retryDelayMs: 0 })), [4, 2]);
   assert.equal(requests, 2); assert.equal(cancelled, 1); assert.equal(firstSignal.aborted, true);
 });
 
