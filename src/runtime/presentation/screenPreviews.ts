@@ -1,11 +1,13 @@
 import { TextureLoader, SRGBColorSpace } from 'three';
+import { tvShowsStudio } from './projectionCabinet.ts';
 
 /** Small, real app captures; loaded before entry so idle/failed boots never show
  * an empty display. These textures are also valid in reflection cameras. */
 export async function loadScreenPreviews(signal?: AbortSignal) {
   signal?.throwIfAborted();
   const loader = new TextureLoader();
-  const results = await Promise.allSettled(['founder', 'presentation'].map(async name => {
+  const presentation = tvShowsStudio() ? 'presentation' : 'presentation-cabinet';
+  const results = await Promise.allSettled(['founder', presentation].map(async name => {
     const texture = await loader.loadAsync(`/screen-previews/${name}-v1.webp`);
     texture.colorSpace = SRGBColorSpace; texture.anisotropy = 4; texture.flipY = false;
     return texture;

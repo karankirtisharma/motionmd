@@ -1,5 +1,6 @@
 import { createFrameReadiness } from './frameReadiness.ts';
 import { createNativeScreenInput } from './nativeScreenInput.ts';
+import type { ScreenSource } from './projectionCabinet.ts';
 type Options = {
   canvas: HTMLCanvasElement;
   aspect: number;
@@ -10,13 +11,16 @@ type Options = {
   onExpand: () => void;
   onFocus: () => void;
   onAperture: (live: boolean) => void;
+  /** Static app shown instead of the React Studio; it has no controls of its own to leave the expanded view. */
+  source?: ScreenSource;
 };
 /** One visible browser document for the physical TV and the expanded Studio.
  * The transparent depth-writing LED aperture reveals this sibling underneath the
  * renderer. Both browser hit testing and the visual use the same plane matrix. */
 export function createLiveStudioSurface(options: Options) {
   const doc = options.canvas.ownerDocument, win = doc.defaultView!;
-  const width = 1600, height = Math.round(width / options.aspect);
+  const source = options.source;
+  const width = source?.width ?? 1600, height = source?.height ?? Math.round(width / options.aspect);
   const host = doc.createElement('div');
   host.dataset.liveStudio = '';
   Object.assign(host.style, { position: 'fixed', left: '0', top: '0', width: width + 'px', height: height + 'px',
@@ -34,11 +38,35 @@ export function createLiveStudioSurface(options: Options) {
   let transform = '', clip = '', visible = false, ready = false, interactive = false, expanded = false, disposed = false;
   let engaged = false;
   let aperture = false, suspended: boolean | undefined, animation: Animation | undefined, generation = 0;
+  // A static source expands into a second, full-window page (its responsive
+  // edition) that fades in over the room once the camera has glided onto the TV.
+  let overlay: 'closed' | 'opening' | 'open' | 'closing' = 'closed';
+  let page: HTMLIFrameElement | undefined, pageReady = false, pageSuspended: boolean | undefined, fade: Animation | undefined;
+  let pageWaiters: (() => void)[] = [], preloadTimer: ReturnType<typeof setTimeout> | undefined;
+  const pageHost = source?.expandedUrl ? doc.createElement('div') : undefined;
+  const close = pageHost ? doc.createElement('button') : undefined;
+  if (pageHost && close && source) {
+    pageHost.dataset.liveStudioPage = '';
+    pageHost.setAttribute('role', 'dialog');
+    pageHost.setAttribute('aria-modal', 'true');
+    pageHost.setAttribute('aria-label', source.title);
+    Object.assign(pageHost.style, { position: 'fixed', inset: '0', width: '100vw', height: '100dvh', zIndex: '1000', background: '#140f0d',
+      opacity: '0', visibility: 'hidden', pointerEvents: 'none' });
+    close.type = 'button';
+    close.textContent = 'Back to TV';
+    close.hidden = true;
+    Object.assign(close.style, { position: 'absolute', bottom: '20px', left: '20px', zIndex: '1', padding: '9px 16px',
+      border: '1px solid #d7bc928c', borderRadius: '999px', background: '#140f0dd9', color: '#f6efdf', font: '13px sans-serif', cursor: 'pointer' });
+    close.onclick = () => page?.contentWindow?.postMessage({ type: 'md-studio:request-exit' }, win.location.origin);
+    pageHost.append(close);
+    doc.body.append(pageHost);
+  }
 
   const input = createNativeScreenInput({ canvas: options.canvas, frame: () => frame, hit: options.sampleSurface, onFocus: options.onFocus });
   const post = (type: string, detail = {}) => frame?.contentWindow?.postMessage({ type, ...detail }, win.location.origin);
   function sync() {
-    const inRoom = engaged && !!matrix && visible && ready && !doc.hidden;
+    // While the full-window page covers the room, the TV itself rests.
+    const inRoom = engaged && !!matrix && visible && ready && !doc.hidden && overlay !== 'open';
     const show = expanded || !!animation || inRoom;
     const live = inRoom && !expanded && !animation;
     if (live !== aperture) {
@@ -58,6 +86,78 @@ export function createLiveStudioSurface(options: Options) {
       suspended = pause;
       post(pause ? 'md-studio:suspend' : 'md-studio:resume');
     }
+    const pagePause = doc.hidden || overlay === 'closed';
+    if (page && pageReady && pagePause !== pageSuspended) {
+      pageSuspended = pagePause;
+      page.contentWindow?.postMessage({ type: pagePause ? 'md-studio:suspend' : 'md-studio:resume' }, win.location.origin);
+    }
+  }
+  const hashOf = (target?: HTMLIFrameElement) => { try { return target?.contentWindow?.location.hash ?? ''; } catch { return ''; } };
+  function ensurePage() {
+    if (page || !pageHost || !source?.expandedUrl) return;
+    const created = page = doc.createElement('iframe');
+    created.dataset.liveStudioFrame = '';
+    created.title = source.title;
+    created.allowFullscreen = true;
+    Object.assign(created.style, { width: '100%', height: '100%', display: 'block', border: '0', background: '#140f0d' });
+    created.addEventListener('load', () => source.onLoad(created));
+    created.src = source.expandedUrl(hashOf(frame));
+    pageHost.prepend(created);
+  }
+  // Load the full page quietly once the visitor is seated and the TV is live, so the
+  // first expand neither waits for it nor shares the camera glide with its boot.
+  function schedulePreload() {
+    if (page || preloadTimer || !pageHost || !engaged || !ready) return;
+    preloadTimer = setTimeout(() => { preloadTimer = undefined; if (!disposed && engaged) ensurePage(); }, 1500);
+  }
+  // Ready, or after a bounded wait so a slow picture never strands the visitor.
+  const whenPageReady = () => new Promise<void>(resolve => {
+    if (pageReady) return resolve();
+    const timer = setTimeout(done, 6000);
+    function done() { clearTimeout(timer); pageWaiters = pageWaiters.filter(waiter => waiter !== done); resolve(); }
+    pageWaiters.push(done);
+  });
+  async function layoutPage(open: boolean, reducedMotion: boolean) {
+    if (!pageHost || !close) return;
+    const version = ++generation;
+    fade?.cancel();
+    const complete = () => win.dispatchEvent(new CustomEvent('md-studio:layout-complete', { detail: { open } }));
+    if (open) {
+      overlay = 'opening';
+      ensurePage();
+      await whenPageReady();
+      if (disposed || version !== generation) return;
+      // Carry the TV's page into the full view.
+      const hash = hashOf(frame);
+      if (hash && hashOf(page) !== hash && page?.contentWindow) page.contentWindow.location.hash = hash;
+      Object.assign(pageHost.style, { visibility: 'visible', pointerEvents: 'auto' });
+      sync();
+      fade = pageHost.animate([{ opacity: 0 }, { opacity: 1 }], { duration: reducedMotion ? 0 : 220, easing: 'ease-out', fill: 'forwards' });
+      try { await fade.finished; } catch { return; }
+      if (disposed || version !== generation) return;
+      pageHost.style.opacity = '1';
+      overlay = 'open';
+      close.hidden = false;
+      page?.focus({ preventScroll: true });
+      sync();
+      complete();
+    }
+    else {
+      overlay = 'closing';
+      close.hidden = true;
+      // Bring the visitor's page back to the TV before the room shows again.
+      const hash = hashOf(page);
+      if (hash && hashOf(frame) !== hash && frame?.contentWindow) frame.contentWindow.location.hash = hash;
+      sync();
+      fade = pageHost.animate([{ opacity: 1 }, { opacity: 0 }], { duration: reducedMotion ? 0 : 200, easing: 'ease-in', fill: 'forwards' });
+      try { await fade.finished; } catch { return; }
+      if (disposed || version !== generation) return;
+      Object.assign(pageHost.style, { opacity: '0', visibility: 'hidden', pointerEvents: 'none' });
+      overlay = 'closed';
+      sync();
+      input.focusRoom();
+      complete();
+    }
   }
   function worldLayout() {
     host.style.width = width + 'px';
@@ -76,9 +176,9 @@ export function createLiveStudioSurface(options: Options) {
       suspended = undefined;
       host.dataset.studioState = 'loading';
       host.dataset.studioAttempt = String(attempt);
-      status.textContent = 'Opening the studio...';
+      status.textContent = source?.loading ?? 'Opening the studio...';
       status.style.display = 'grid';
-      frame.src = `/studio?embed=lounge&display=tv&f=1&i=3&attempt=${attempt}`;
+      frame.src = source ? source.url(attempt) : `/studio?embed=lounge&display=tv&f=1&i=3&attempt=${attempt}`;
       sync();
     },
     exhausted: () => {
@@ -95,15 +195,24 @@ export function createLiveStudioSurface(options: Options) {
       return;
     frame = doc.createElement('iframe');
     frame.dataset.liveStudioFrame = '';
-    frame.title = 'Interactive Motion Design Studio';
+    frame.title = source?.title ?? 'Interactive Motion Design Studio';
     frame.allowFullscreen = true;
     Object.assign(frame.style, { width: '100%', height: '100%', display: 'block', border: '0', background: '#241b13' });
-    frame.addEventListener('load', () => { readiness.loaded(); input.refreshFrame(); post('md-studio:display', { expanded }); });
+    frame.addEventListener('load', () => { if (source && frame) source.onLoad(frame); readiness.loaded(); input.refreshFrame(); post('md-studio:display', { expanded }); });
     // Set src before insertion so about:blank cannot start a false boot deadline.
     readiness.start();
     host.prepend(frame);
   }
   function receive(event: MessageEvent) {
+    if (event.origin === win.location.origin && page && event.source === page.contentWindow) {
+      if (event.data?.type === 'md-studio:ready' && !pageReady) {
+        pageReady = true;
+        pageSuspended = undefined;
+        pageWaiters.slice().forEach(done => done());
+        sync();
+      }
+      return;
+    }
     if (event.origin !== win.location.origin || event.source !== frame?.contentWindow || !frame)
       return;
     if (event.data?.type === 'md-studio:ready') {
@@ -115,6 +224,7 @@ export function createLiveStudioSurface(options: Options) {
       input.refreshFrame();
       post('md-studio:display', { expanded });
       sync();
+      schedulePreload();
     }
     else if (event.data?.type === 'md-studio:expand' && !expanded && visible && interactive)
       options.onExpand();
@@ -126,7 +236,13 @@ export function createLiveStudioSurface(options: Options) {
       open: boolean;
       reducedMotion: boolean;
     }>).detail;
-    if (!detail || disposed || expanded === detail.open)
+    if (!detail || disposed)
+      return;
+    if (pageHost) {
+      if ((overlay === 'open' || overlay === 'opening') !== detail.open) void layoutPage(detail.open, detail.reducedMotion);
+      return;
+    }
+    if (expanded === detail.open)
       return;
     const version = ++generation;
     const full = 'matrix3d(' + [win.innerWidth / width, 0, 0, 0, 0, win.innerHeight / height, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1].join(',') + ')';
@@ -189,11 +305,13 @@ export function createLiveStudioSurface(options: Options) {
   return {
     width, height,
     prepare() { ensureFrame(); },
+    prepareExpanded() { ensurePage(); },
     setEngaged(value: boolean) {
       if (engaged === value) return;
       engaged = value;
       if (value) ensureFrame();
       sync();
+      if (value) schedulePreload();
     },
     update(inView: boolean, next?: number[] | null, polygon?: string | null) {
       const wasVisible = visible;
@@ -228,6 +346,9 @@ export function createLiveStudioSurface(options: Options) {
       disposed = true;
       generation++;
       animation?.cancel();
+      fade?.cancel();
+      clearTimeout(preloadTimer);
+      pageHost?.remove();
       readiness.dispose();
       input.dispose();
       if (aperture) {

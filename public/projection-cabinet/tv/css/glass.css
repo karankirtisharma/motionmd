@@ -1,0 +1,85 @@
+/* Liquid glass, DOM side. The stage canvas (js/fx/stage.js) draws the glass; these rules make room for it.
+   Scoped to html.fx-gl, the class set while the canvas is drawing. Without it the cabinet's own styles apply.
+   Never glass, always exactly as designed: the metal calls to action (.act), every brass rim, the gold outline
+   on the featured dock card, and the cream marble and paper surfaces (shortlist tray, brief card, study card,
+   Control Center). */
+
+/* The dark fill steps aside so the glass shows through. */
+html.fx-gl .fx-glass {
+  background:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important
+}
+
+/* ---------- Framed glass: the frame stays ----------
+   A brass rim is painted as a border-box background under the dark fill. With the fill gone, the rim is
+   redrawn on its own from the same --brass gradient, at the element's border width (set by stage.js). */
+html.fx-gl :is(.glassrim,.siblingrail).fx-glass::after {
+  content:"";
+  position:absolute;
+  inset:calc(-1 * var(--fx-bw,3px));
+  padding:var(--fx-bw,3px);
+  border-radius:inherit;
+  background:var(--brass);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+  pointer-events:none;
+  z-index:0
+}
+html.fx-gl .siblingrail.fx-glass {
+  position:relative
+}
+/* The collection and process panels carry a brass rim on wider screens only, as in edition.css. */
+@media (min-width:761px) {
+  html.fx-gl :is(.ui[data-kind="format"] .collection,.ui[data-kind="industry"] .collection,.ui[data-kind="work"] .collection,.ui[data-kind="studio"] .collection,.processboard).fx-glass {
+    position:relative
+  }
+  html.fx-gl :is(.ui[data-kind="format"] .collection,.ui[data-kind="industry"] .collection,.ui[data-kind="work"] .collection,.ui[data-kind="studio"] .collection,.processboard).fx-glass::after {
+    content:"";
+    position:absolute;
+    inset:calc(-1 * var(--fx-bw,2px));
+    padding:var(--fx-bw,2px);
+    border-radius:inherit;
+    background:var(--brass);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+    pointer-events:none;
+    z-index:0
+  }
+}
+
+/* ---------- Free glass: the glass edge is the outline ----------
+   Tiles, dark buttons, chips, the active step, the search field and caption pills are whole slabs of glass.
+   Their gold hairlines and bevel shadows step aside; the border keeps its width, so nothing moves. */
+html.fx-gl .fx-glass.fx-free {
+  border-color:transparent!important;
+  box-shadow:none!important;
+  text-shadow:0 1px 2px #0b0705a6
+}
+html.fx-gl .fx-glass.fx-free:not(:focus-visible) {
+  outline-color:transparent!important
+}
+/* A tile holds its picture inside the glass, with a margin of glass around it. */
+html.fx-gl .tile.fx-free {
+  padding:.38cqw
+}
+html.fx-gl .tile.fx-free:after {
+  display:none
+}
+html.fx-gl .tile.fx-free .tilepic {
+  border-radius:.42cqw
+}
+html.fx-gl .tile.fx-free .tileinfo {
+  background:none;
+  border-top:0
+}
+@media (max-width:760px) {
+  html.fx-gl .tile.fx-free {
+    padding:5px
+  }
+  html.fx-gl .tile.fx-free .tilepic {
+    border-radius:7px
+  }
+}

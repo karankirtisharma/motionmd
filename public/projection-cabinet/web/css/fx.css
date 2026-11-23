@@ -1,0 +1,290 @@
+/* Motion layer. Every rule is scoped to a class that js/fx/main.js sets on <html>:
+   .fx     motion is on (not Lite, not a proof capture)
+   .fx-gl  the stage canvas is drawing the ground, the artwork and the glass
+   Without those classes the cabinet renders exactly as screen.css and edition.css describe it. */
+
+html.fx {
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-in-out:cubic-bezier(.77,0,.175,1);
+  --ease-drawer:cubic-bezier(.32,.72,0,1)
+}
+
+/* Hold the first paint until the motion layer takes over, so the page does not appear twice. */
+html.fx-boot #app {
+  opacity:0
+}
+
+/* ---------- Stage canvas ---------- */
+.fx-canvas {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  pointer-events:none
+}
+/* The canvas paints these surfaces, so the DOM versions step aside. */
+html.fx-gl .ui,
+html.fx-gl .ui.light,
+html.fx-gl .ui[data-kind="brief"],
+html.fx-gl .bar,
+html.fx-gl .player,
+html.fx-gl .filmtext,
+html.fx-gl .watchbanner {
+  background:none
+}
+html.fx-gl .player:before,
+html.fx-gl .launchimage:after {
+  display:none
+}
+html.fx-gl img.fx-plate {
+  opacity:0!important
+}
+/* Glass is drawn in css/glass.css. Metal and marble surfaces are never glass and keep their own styles. */
+
+/* The featured dock card is marked by one gold ring that slides from card to card (js/fx/motion.js),
+   drawn exactly like the outline it replaces. */
+.fx-docklens {
+  display:none
+}
+html.fx .fx-docklens {
+  display:block;
+  position:absolute;
+  left:0;
+  top:0;
+  box-sizing:border-box;
+  border:2px solid #fdbe66;
+  border-radius:.2cqw;
+  pointer-events:none;
+  z-index:2
+}
+html.fx .launchdock .dockframe.on {
+  outline-color:transparent
+}
+
+/* ---------- Press and hover ---------- */
+html.fx .act,
+html.fx .glassbtn,
+html.fx .chip,
+html.fx .sq,
+html.fx .tool,
+html.fx .choice,
+html.fx .step,
+html.fx .dockframe,
+html.fx .underlink {
+  transition:transform .16s var(--ease-out),background-color .2s ease,border-color .2s ease,color .2s ease,outline-color .2s ease
+}
+html.fx .tile {
+  transition:border-color .24s ease
+}
+html.fx .tilepic img {
+  transition:transform .7s var(--ease-out)
+}
+html.fx .mcell {
+  transition:outline-color .16s ease
+}
+html.fx .act:hover,
+html.fx .chip:hover,
+html.fx .glassbtn:hover,
+html.fx .sq:hover,
+html.fx .tile:hover {
+  transform:none
+}
+@media (hover:hover) and (pointer:fine) {
+  /* Every button lifts a pixel under the pointer; glass drawn inside it lifts with it. */
+  html.fx .act:hover,
+  html.fx .chip:hover,
+  html.fx .glassbtn:hover,
+  html.fx .sq:hover,
+  html.fx .tool:hover,
+  html.fx .choice:hover {
+    transform:translateY(-1px)
+  }
+  html.fx .step:not(.active):hover {
+    background-color:#ffffff0d
+  }
+  /* Dock cards: the frame edge and label light up; the stage brings the picture closer.
+     Without the canvas the picture itself scales inside its frame. */
+  html.fx .dockframe:hover {
+    border-color:#ffe6b8
+  }
+  html.fx .dockframe:hover span {
+    background:#160f0ce6;
+    color:#fff
+  }
+  html.fx:not(.fx-gl) .dockframe:hover img {
+    transform:scale(1.06)
+  }
+}
+html.fx .dockframe span {
+  transition:background-color .2s ease,color .2s ease
+}
+html.fx:not(.fx-gl) .dockframe img {
+  transition:transform .5s var(--ease-out)
+}
+html.fx .act:active,
+html.fx .glassbtn:active,
+html.fx .chip:active,
+html.fx .sq:active,
+html.fx .tool:active,
+html.fx .choice:active,
+html.fx .step:active,
+html.fx .dockframe:active {
+  transform:scale(.97)
+}
+/* While a page is arriving GSAP writes these properties every frame. */
+html.fx .fx-entering,
+html.fx .fx-entering * {
+  transition:none!important
+}
+
+/* ---------- Navigation underline ---------- */
+html.fx .bar .navitem.active {
+  box-shadow:none
+}
+.fx-navline {
+  position:absolute;
+  left:0;
+  top:0;
+  width:1px;
+  height:1px;
+  background:#ecc994;
+  transform-origin:0 0;
+  pointer-events:none;
+  transition:transform .32s var(--ease-out),opacity .2s ease
+}
+
+/* ---------- Control Center switches ---------- */
+html.fx .selector {
+  position:relative
+}
+html.fx .selector>i.chosen {
+  background:none;
+  color:#eadbc5
+}
+.fx-seg {
+  position:absolute;
+  inset:0;
+  display:flex;
+  background:var(--metal);
+  border-radius:25px;
+  clip-path:inset(0 var(--r,50%) 0 var(--l,0px) round 25px);
+  transition:clip-path .28s var(--ease-out);
+  pointer-events:none
+}
+html.fx .selector .fx-seg i {
+  color:#24180f;
+  background:none
+}
+
+/* ---------- Notice ---------- */
+html.fx #notice {
+  transform:translate(-50%,14px);
+  transition:opacity .18s ease,transform .18s ease
+}
+html.fx #notice.on {
+  transform:translate(-50%,0);
+  transition:opacity .3s ease,transform .4s var(--ease-out)
+}
+
+/* ---------- Brief ---------- */
+html.fx .lineprogress i {
+  transition:background-color .3s ease
+}
+html.fx .choice .circlemark {
+  transition:background-color .2s ease,box-shadow .2s ease
+}
+
+/* On a phone the nav row is in the flow. It is positioned here only so the underline can be placed inside
+   it, so the left:50% it carries for the desktop layout must not take effect. */
+@media (max-width:760px) {
+  html.fx .navgroup {
+    position:relative;
+    left:auto
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .fx-navline,
+  .fx-seg {
+    transition:none
+  }
+}
+html.fx-reduced .fx-navline,
+html.fx-reduced .fx-seg,
+html.fx-reduced #notice {
+  transition:opacity .2s ease
+}
+
+/* ---------- One answer per kind of control ----------
+   Every link and button responds to the pointer. Glass swells on the canvas (js/fx/stage.js). The two kinds
+   that are not glass are handled here, each the same way wherever it appears. */
+
+/* Text links: the words brighten and a line draws in under them from the left. */
+html.fx .navitem,
+html.fx .bare,
+html.fx .signature,
+html.fx .crumb a,
+html.fx .facts a,
+html.fx .matrix th a {
+  background-image:linear-gradient(currentColor,currentColor);
+  background-repeat:no-repeat;
+  background-position:0 100%;
+  background-size:0 1px;
+  transition:background-size .32s var(--ease-out),color .2s ease
+}
+html.fx .underlink {
+  transition:color .2s ease,border-color .2s ease
+}
+html.fx .underlink .icon,
+html.fx .act .icon,
+html.fx .glassbtn .icon {
+  transition:transform .3s var(--ease-out)
+}
+@media (hover:hover) and (pointer:fine) {
+  html.fx .navitem:hover,
+  html.fx .bare:hover,
+  html.fx .signature:hover,
+  html.fx .crumb a:hover,
+  html.fx .facts a:hover,
+  html.fx .matrix th a:hover {
+    color:#fff5e3;
+    background-size:100% 1px;
+    text-decoration:none
+  }
+  html.fx .navitem.active:hover {
+    background-size:0 1px
+  }
+  html.fx .underlink:hover {
+    color:#fff;
+    border-color:#fff1d6
+  }
+  html.fx .underlink:hover .icon,
+  html.fx .act:hover .icon,
+  html.fx .glassbtn:hover .icon {
+    transform:translateX(3px)
+  }
+  html.fx .glassbtn:hover .icon:first-child {
+    transform:translateX(-3px)
+  }
+}
+
+/* Pictures you can open: the picture comes a little closer and brighter inside its frame. */
+html.fx .siblingrail a img,
+html.fx .mcell img,
+html.fx .resultstrip img,
+html.fx .shotstrip .chip img {
+  transition:transform .5s var(--ease-out),filter .3s ease
+}
+html.fx .resultstrip>a {
+  overflow:hidden
+}
+@media (hover:hover) and (pointer:fine) {
+  html.fx .siblingrail a:hover img,
+  html.fx .mcell:hover img,
+  html.fx .resultstrip>a:hover img,
+  html.fx .shotstrip .chip:hover img {
+    transform:scale(1.07);
+    filter:brightness(1.12)
+  }
+}

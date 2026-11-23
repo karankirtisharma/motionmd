@@ -30,6 +30,7 @@ export interface LoungeInterfaceProps {
   onRetry?: () => void;
   onMenu?: () => void;
   onInteract?: () => void;
+  onExpandScreen?: () => void;
   onLeaveSeat?: () => void;
   interactionLabel?: string | null;
   seatedChair?: string | number;
@@ -128,7 +129,7 @@ function TouchControls({ onMove, onLook, onSprint, onInteract, interactionLabel 
 }
 
 export function LoungeInterface(props: LoungeInterfaceProps) {
-  const { mode, loading, progress = 0, onExplore, onExploreDirect, onGoBack, onResume, onRestart, onRetry, onMenu, onInteract, onLeaveSeat, interactionLabel, seatedChair, error, qualityLabel, quality = 'auto', onQualityChange, reducedMotion = false, onReducedMotionChange, onToggleFullscreen, onTouchMove, onTouchLook, onTouchSprint } = props;
+  const { mode, loading, progress = 0, onExplore, onExploreDirect, onGoBack, onResume, onRestart, onRetry, onMenu, onInteract, onLeaveSeat, onExpandScreen, interactionLabel, seatedChair, error, qualityLabel, quality = 'auto', onQualityChange, reducedMotion = false, onReducedMotionChange, onToggleFullscreen, onTouchMove, onTouchLook, onTouchSprint } = props;
   const { playing = false, duration = 58, onCinematic, onTogglePlayback, cameraView = 'thirdPerson', onToggleCameraView, onTogglePointerLock } = props;
   const [isTouch, setIsTouch] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -166,6 +167,7 @@ export function LoungeInterface(props: LoungeInterfaceProps) {
       {!isTouch && mode === 'explore' && <div className="aim-point" aria-hidden="true" />}
       {!isTouch && !usingComputer && interactionLabel && <button type="button" className={`interaction-prompt${mode === 'seated' ? ' interaction-prompt-seated' : ''}`} onClick={onInteract}><Key>E</Key><span>{interactionLabel.replace(/^E\s*[—–-]\s*/i, '')}</span></button>}
       {mode === 'seated' && onLeaveSeat && <button type="button" className="leave-seat button button-small button-quiet" onClick={onLeaveSeat}><Icon name="back" size={16} />Stand up</button>}
+      {mode === 'seated' && onExpandScreen && !usingComputer && seatedChair !== 'founder-desk' && <button type="button" className="expand-screen icon-button" aria-label="Expand the screen" title="Expand the screen (Enter)" onClick={onExpandScreen}><Icon name="fullscreen" size={16} /></button>}
       {!isTouch && <div className="explore-help"><button type="button" className="help-toggle" onClick={() => setHelpOpen(open => !open)} aria-expanded={helpOpen} aria-controls="movement-help">{helpOpen ? 'Hide controls' : 'Controls'}<span>?</span></button>{helpOpen && <div className="controls-popover" id="movement-help"><ControlInstructions /></div>}</div>}
       {isTouch && mode === 'explore' && <TouchControls onMove={onTouchMove} onLook={onTouchLook} onSprint={onTouchSprint} onInteract={onInteract} interactionLabel={interactionLabel} />}
     </>}

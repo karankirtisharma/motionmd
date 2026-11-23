@@ -1,0 +1,57 @@
+{
+  "note": "Interface sounds. Sources and licences; confirm each licence covers use on a public website before publishing.",
+  "format": "PCM WAV, mono, 44.1 kHz, 16-bit",
+  "files": [
+    {
+      "file": "tick.wav",
+      "role": "tick",
+      "source": "Single Tap 04.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "press.wav",
+      "role": "press",
+      "source": "Wineglass Clang 04.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "select.wav",
+      "role": "select",
+      "source": "Wineglass Clang 03.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "switch.wav",
+      "role": "switch",
+      "source": "Mechanical Keyboard Click 17.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "shutter.wav",
+      "role": "shutter",
+      "source": "Camera Shutter Click 01.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "save.wav",
+      "role": "save",
+      "source": "Wineglass Clang 02.wav",
+      "library": "misterhorse",
+      "licence": "Mister Horse free SFX licence"
+    },
+    {
+      "file": "whoosh.wav",
+      "role": "whoosh",
+      "source": "sx-whoosh-gentle-pass.wav",
+      "library": "curated-v4",
+      "licence": "CC0 1.0 (Freesound)",
+      "creator": "Kinoton",
+      "source_url": "https://freesound.org/people/Kinoton/sounds/427823/"
+    }
+  ]
+}

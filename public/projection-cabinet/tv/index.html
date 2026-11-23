@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Projection Cabinet · MotionDesign.ad</title>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/screen.css">
+  <link rel="stylesheet" href="css/edition.css">
+  <link rel="stylesheet" href="css/integrations.css">
+  <link rel="stylesheet" href="css/fx.css">
+  <link rel="stylesheet" href="css/glass.css">
+  <script>
+    // Hold the first paint for the motion layer, unless this is a proof capture or the visitor chose Lite.
+    try {
+      if (!new URLSearchParams(location.search).has('proof') && !(JSON.parse(localStorage.getItem('md.glass.cabinet.settings')) || {}).lite) {
+        document.documentElement.classList.add('fx-boot');
+        setTimeout(function () { document.documentElement.classList.remove('fx-boot'); }, 2500);
+      }
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <div id="app"></div>
+  <div id="notice" role="status"></div>
+  <dialog id="zoom"></dialog>
+  <script src="vendor/gsap.min.js"></script>
+  <script src="vendor/CustomEase.min.js"></script>
+  <script src="vendor/SplitText.min.js"></script>
+  <script src="js/content.generated.js"></script>
+  <script src="js/cabinet.js"></script>
+  <script src="js/sound.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/integrations.js"></script>
+  <script src="js/optics.js"></script>
+  <script src="js/start.js"></script>
+  <script type="module" src="js/fx/main.js" onerror="document.documentElement.classList.remove('fx-boot')"></script>
+</body>
+</html>

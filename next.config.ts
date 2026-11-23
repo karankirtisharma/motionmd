@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: { qualities: [75, 90] },
+  // Lite Version: every entry point (intro choice, menu, Android phones, old links) uses
+  // /studio?entry=direct. It now opens the Projection Cabinet's responsive edition, a static
+  // copy in public/projection-cabinet/web/. Remove this entry to restore the React Studio.
+  async redirects() {
+    return [{ source: '/studio', has: [{ type: 'query', key: 'entry', value: 'direct' }], destination: '/projection-cabinet/web/index.html', permanent: false }];
+  },
   async headers() {
     return [
       { source: '/assets/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }] },

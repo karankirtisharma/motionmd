@@ -65,7 +65,11 @@ export async function createInteractionController(options: Options) {
       if (!physics.hasLineOfSight(camera.position, point, 0.08)) return false;
       const characterHit = avatar.root.visible ? ray.intersectObject(avatar.root, true)[0] : undefined;
       return !characterHit || characterHit.distance >= camera.position.distanceTo(point);
-    }, onOpen: bounds => { if (enabled && (mode === 'explore' || (mode === 'seated' && !selected?.workstation))) options.onStudioOpen?.(bounds); } }) : undefined;
+    }, onOpen: bounds => {
+      if (!enabled) return;
+      if (display?.glidesToExpand && mode === 'seated' && !selected?.workstation && !selected?.computer) { focusScreen(bounds); return; }
+      if (mode === 'explore' || (mode === 'seated' && !selected?.workstation)) options.onStudioOpen?.(bounds);
+    } }) : undefined;
   if (display) physics.configurePresentationPanel(display.collision.vertices, display.collision.indices);
   const chairs: Chair[] = (manifest.chairs as ExtendedChair[]).map((item) => {
     const position = new THREE.Vector3().fromArray(item.position);
@@ -133,6 +137,10 @@ export async function createInteractionController(options: Options) {
   let actualSpeed = 0;
   const approachRoute: THREE.Vector3[] = [];
   let computerLeaving = false, founderFocused = false;
+  // Expand glide: the camera travels from the seat to face the TV, then the full page fades in.
+  let screenFocus = false, focusReturn = false, focusOpen: ScreenBounds | undefined, focusHidAvatar = false;
+  const focusPosition = new THREE.Vector3(), focusTarget = new THREE.Vector3(), focusOffset = new THREE.Vector3(), towardScreen = new THREE.Vector3();
+  const reducedMotion = () => document.documentElement.classList.contains('reduced-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches;
   let deskCameraView: CameraView | undefined;
   let deskStage: 'entry-turn' | 'grip' | 'open' | 'ungrip' | 'seat-turn' | 'lower' | 'swivel-in' | 'reach' | 'work' | 'release' | 'swivel-out' | 'rise' | undefined;
   let deskTime = 0, handWeight = 0, stanceWeight = 0, balanceLean = 0;
@@ -348,8 +356,28 @@ export async function createInteractionController(options: Options) {
     crm?.setFocused(true);
     prompt({ text: 'Use the CRM - Stand up to leave', target: selected.id });
   }
+  function focusScreen(bounds: ScreenBounds) {
+    if (screenFocus) return;
+    screenFocus = true; focusOpen = bounds; display?.prepareExpanded(); resetInput(); releaseCursor(true); announceGlide(true);
+    cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion);
+    cameraBlend = 0; cameraBlendDuration = reducedMotion() ? .01 : .85;
+  }
+  // The lounge hides its HUD for the whole move, from leaving the seat until landing back on it.
+  function announceGlide(active: boolean) { window.dispatchEvent(new CustomEvent('md-studio:glide', { detail: { active } })); }
+  function releaseScreenFocus(glide: boolean) {
+    if (!screenFocus) return;
+    screenFocus = false; focusOpen = undefined; focusReturn = glide;
+    if (!glide) announceGlide(false);
+    if (glide) { cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion); cameraBlend = 0; cameraBlendDuration = reducedMotion() ? .01 : .8; }
+  }
+  function layoutComplete(event: Event) {
+    // The full page has faded away from the close-up: glide back to the seat.
+    if ((event as CustomEvent<{ open: boolean }>).detail?.open === false) releaseScreenFocus(true);
+  }
+  window.addEventListener('md-studio:layout-complete', layoutComplete);
   function leaveSeat() {
     if (!enabled || mode !== 'seated' || !selected) return;
+    releaseScreenFocus(false);
     founderFocused = false; crm?.setSeated(false); desktop?.close(); resetInput();
     cameraStart.copy(camera.position); cameraStartQuaternion.copy(camera.quaternion); cameraBlend = 0; cameraBlendDuration = .65; canvas.focus({ preventScroll: true });
     mode = 'standing'; transition = 0; transitionStart.copy(feet);
@@ -550,7 +578,12 @@ export async function createInteractionController(options: Options) {
       desiredCamera.copy(eyePosition).addScaledVector(selected!.forward, .12);
       lookTarget.copy(computerView.center);
     }
-    if (!firstPerson) {
+    const focused = screenFocus && seatedView && !!display && !!selected && !selected.workstation && !selected.computer;
+    if (focused) { display!.focusPose(camera, focusPosition, focusTarget); desiredCamera.copy(focusPosition); lookTarget.copy(focusTarget); }
+    // Returning from the screen also travels freely; the boom resumes once the glide lands.
+    if (focusReturn && cameraBlend >= 1) { focusReturn = false; announceGlide(false); }
+    const gliding = focused || focusReturn;
+    if (!firstPerson && !gliding) {
       // Seated cameras are authored around their chair and desk; only the walking boom
       // also stops at drawn walls that have no collider.
       const cameraDistance = physics.cameraDistance(pivot, desiredCamera, undefined, !seatedView);
@@ -586,14 +619,20 @@ export async function createInteractionController(options: Options) {
       camera.position.copy(desiredCamera);
       camera.quaternion.slerp(desiredQuaternion, damping(firstPerson ? 24 : 14, dt));
     }
+    // The camera passes the seated visitor's head on its way to the screen: hide them while it is that close.
+    focusOffset.copy(camera.position).sub(pivot);
+    const behindHead = !!display && focusOffset.dot(display.getWorldCenter(towardScreen).sub(pivot)) < 0 && focusOffset.length() > .9;
+    const hideAvatar = gliding && !behindHead;
+    if (hideAvatar !== focusHidAvatar) { focusHidAvatar = hideAvatar; avatar.root.visible = !hideAvatar; }
+    if (focused && focusOpen && cameraBlend >= 1) { const bounds = focusOpen; focusOpen = undefined; options.onStudioOpen?.(bounds); }
     // Clamp the *smoothed* camera too, avoiding lag that slips behind furniture.
     // Collision retracts immediately; normal extension remains damped.
-    if (!firstPerson || cameraBlend < 1) {
+    if (!gliding && (!firstPerson || cameraBlend < 1)) {
       const safeDistance = physics.cameraDistance(pivot, camera.position, undefined, !seatedView);
       const offset = camera.position.clone().sub(pivot);
       if (offset.length() > safeDistance) camera.position.copy(pivot).addScaledVector(offset.normalize(), safeDistance);
     }
-    if (!firstPerson && cameraBlend >= 1) {
+    if (!firstPerson && cameraBlend >= 1 && !focused) {
       // Aim from the final collision-corrected position, not the unclipped boom.
       camera.lookAt(lookTarget);
     }
@@ -827,6 +866,7 @@ export async function createInteractionController(options: Options) {
     canvas.tabIndex = 0; canvas.focus({ preventScroll: true });
   }
   function exitExplore() {
+    releaseScreenFocus(false); if (focusReturn) { focusReturn = false; announceGlide(false); } focusHidAvatar = false;
     founderFocused = false; deskCameraView = undefined; crm?.setSeated(false); crm?.setEnabled(false); desktop?.close(); desktop?.setEnabled(false); physics.setDeskClearance(false); enabled = false; releaseCursor(true); avatar.root.visible = false; lift?.reset();
     avatar.setBodyView(false);
     display?.setActive(false); options.onScreenMode?.(false); prompt(null);
@@ -861,14 +901,14 @@ export async function createInteractionController(options: Options) {
       if (value) canvas.focus({ preventScroll: true });
     },
     inspectFounderCRM(visible: boolean) { crm?.setInspectionVisible(visible); },
-    updatePresentation() { display?.setSeated(enabled && mode === 'seated' && !selected?.workstation && !selected?.computer); const screenChanged = display?.update() ?? false; const crmChanged = crm?.update() ?? false; return (desktop?.update() ?? false) || crmChanged || screenChanged; },
+    updatePresentation() { display?.setSeated((enabled || screenFocus) && mode === 'seated' && !selected?.workstation && !selected?.computer); const screenChanged = display?.update() ?? false; const crmChanged = crm?.update() ?? false; return (desktop?.update() ?? false) || crmChanged || screenChanged; },
     setScreenAction(action: string) { display?.setAction(action); },
     setVirtualInput(moveX: number, moveY: number, lookX = 0, lookY = 0, sprint = false) {
       virtual.x = THREE.MathUtils.clamp(moveX, -1, 1); virtual.y = THREE.MathUtils.clamp(moveY, -1, 1); virtual.sprint = sprint; look(lookX, lookY);
     },
     diagnostics: { get state() { return { mode, founderFocused, selectedChair: selected?.id, approachTarget: selected?.approach.toArray(), locomotion: 'locomotion' in avatar ? avatar.locomotion : undefined, deskStage, deskTime, feet: feet.toArray(), footContacts: deskStage ? plantedFeet.map(p => p.toArray()) : undefined, bodyYaw, seatWeight, handWeight, chairAngle, gripWeight, chairPosition: workstation?.group.position.toArray() }; }, get lift() { return lift?.state; }, collisionMeshes: physics.meshCount, collisionTriangles: physics.triangleCount, characterAnimations: avatar.animations, screenMeshes: display?.meshes.length ?? 0, chairs: chairs.length, chairApproaches: chairs.map((chair) => ({ id: chair.id, position: chair.approach.toArray(), clear: physics.canStandAt(chair.approach) })) },
     dispose() {
-      if (disposed) return; exitExplore(); disposed = true;
+      if (disposed) return; exitExplore(); disposed = true; window.removeEventListener('md-studio:layout-complete', layoutComplete);
       window.removeEventListener('keydown', keyDown); window.removeEventListener('keyup', keyUp); window.removeEventListener('blur', blur);
       canvas.removeEventListener('pointerdown', pointerDown); window.removeEventListener('pointerup', pointerUp); window.removeEventListener('pointermove', pointerMove);
       document.removeEventListener('pointerlockerror', pointerLockFallback);

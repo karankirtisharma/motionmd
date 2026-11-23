@@ -1,0 +1,33 @@
+/* Web edition. The TV edition (../site) is composed for one 1728x608 display and is letterboxed in a
+   browser window. Here every page fills the window instead: the header stays at its designed height and
+   each page takes the rest of the viewport, scrolling when its content is taller. Proportions, materials,
+   motion and glass are unchanged. Phone layouts (760px and below) are the same as the TV edition's. */
+@media (min-width:761px) {
+  .liveframe {
+    display:block;
+    min-height:100svh
+  }
+  .ui {
+    min-height:100svh;
+    grid-template-rows:3.85cqw auto
+  }
+  .ui>section {
+    min-height:calc(100svh - 3.85cqw)
+  }
+  /* Content pages: the breadcrumb stays at the top, the content sits in the middle of the space below it. */
+  .ui>section.inner {
+    display:flex;
+    flex-direction:column
+  }
+  .ui>section.inner>.crumb+*,
+  .ui>section.inner>:first-child:not(.crumb) {
+    margin-top:auto
+  }
+  .ui>section.inner>:last-child {
+    margin-bottom:auto
+  }
+  .ui>section.inner>.split,
+  .ui>section.inner>.wizard {
+    width:100%
+  }
+}

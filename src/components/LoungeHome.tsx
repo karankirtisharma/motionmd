@@ -36,6 +36,12 @@ export default function LoungeHome() {
   const welcomeRef = useRef(true);
   const touch = useRef({ x: 0, y: 0, sprint: false });
   const [studioOpen, setStudioOpen] = useState(false);
+  const [screenGlide, setScreenGlide] = useState(false);
+  useEffect(() => {
+    const glide = (event: Event) => setScreenGlide(!!(event as CustomEvent<{ active: boolean }>).detail?.active);
+    window.addEventListener('md-studio:glide', glide);
+    return () => window.removeEventListener('md-studio:glide', glide);
+  }, []);
   const [studioBounds, setStudioBounds] = useState<StudioBounds | null>(null);
   const studioOpenRef = useRef(false);
   const studioOpener = useRef<HTMLElement | null>(null);
@@ -219,14 +225,14 @@ export default function LoungeHome() {
       setIntroOpen(false); dismissWelcome();
       runtime.current?.setStudioCovered(false); resume();
     }} /> : null)}
-    <div ref={hud} hidden={introOpen || transitioning || studioOpen || arrival === 'arriving'} style={arrival === 'revealing' ? { position: 'relative', zIndex: 2 } : undefined}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
+    <div ref={hud} hidden={introOpen || transitioning || studioOpen || screenGlide || arrival === 'arriving'} style={arrival === 'revealing' ? { position: 'relative', zIndex: 2 } : undefined}><LoungeInterface mode={uiMode} loading={loading} progressStore={tourProgress} playing={playing} duration={duration}
       onCinematic={tour} onTogglePlayback={() => runtime.current?.toggleCinematicPlayback()}
       cameraView={cameraView} onToggleCameraView={() => runtime.current?.toggleCameraView()} onTogglePointerLock={() => runtime.current?.togglePointerLock()}
       onExplore={explore} onGoBack={tour} onMenu={openMenu} onResume={resume}
       onRestart={tour}
       onExploreDirect={exploreDirect}
       onRetry={() => { loadingPublisher.current?.dispose(); resume(); setGeneration(value => value + 1); }}
-      onInteract={() => runtime.current?.interact()} onLeaveSeat={() => runtime.current?.stand()}
+      onInteract={() => runtime.current?.interact()} onLeaveSeat={() => runtime.current?.stand()} onExpandScreen={() => runtime.current?.setScreenAction('studio')}
       interactionLabel={hint?.text} seatedChair={mode === 'seated' ? hint?.target : undefined}
       error={error} quality={quality} qualityLabel={qualityLabel} onQualityChange={changeQuality}
       reducedMotion={reducedMotion} onReducedMotionChange={value => { setReducedMotion(value); runtime.current?.setReducedMotion(value); }}

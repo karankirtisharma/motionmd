@@ -3,6 +3,7 @@ import { createLiveStudioSurface } from './LiveStudioSurface.ts';
 import { projectScreenPlane } from './projection.ts';
 import { installFlatPanel } from './flatPanel.ts';
 import { createScreenAperture } from './screenTexture.ts';
+import { projectionCabinetSource, tvShowsStudio } from './projectionCabinet.ts';
 
 export { findScreenCorners as screenCorners } from './flatPanel.ts';
 export type ScreenBounds = { x: number; y: number; width: number; height: number };
@@ -44,10 +45,13 @@ export function createPresentationScreen(options: Options) {
     return { u: hit.uv.x, v: hit.uv.y };
   }
   function open() { if (active && visible && !disposed) options.onOpen?.(bounds); }
+  const source = tvShowsStudio() ? undefined : projectionCabinetSource;
   const surface = createLiveStudioSurface({
     canvas: options.canvas, aspect, sampleSurface, onExpand: open,
     onFocus: () => options.onFocus?.(), onAperture: aperture.setLive,
+    source,
   });
+  const screenWidth = corners[0].distanceTo(corners[1]), screenHeight = corners[0].distanceTo(corners[3]);
   return {
     meshes: [panel.face], collision: panel.collision,
     setSeated(value: boolean) { if (seated !== value) { seated = value; surface.setEngaged(value); } },
@@ -74,6 +78,18 @@ export function createPresentationScreen(options: Options) {
       return changed || aperture.takeDirty() || visible !== wasVisible;
     },
     getWorldCenter(target = new THREE.Vector3()) { return target.copy(center); },
+    /** The static app expands by gliding the room camera onto the screen; the React Studio keeps its own transition. */
+    glidesToExpand: !!source,
+    /** Start loading the full-window page while the camera glides in. */
+    prepareExpanded() { surface.prepareExpanded(); },
+    /** Camera pose square to the screen that just contains it in a viewport of this aspect. */
+    focusPose(camera: THREE.PerspectiveCamera, position: THREE.Vector3, target: THREE.Vector3) {
+      const vertical = THREE.MathUtils.degToRad(camera.fov) / 2;
+      const horizontal = Math.atan(Math.tan(vertical) * camera.aspect);
+      const distance = Math.max(screenWidth / 2 / Math.tan(horizontal), screenHeight / 2 / Math.tan(vertical));
+      position.copy(center).addScaledVector(normal, distance);
+      target.copy(center);
+    },
     dispose() {
       if (disposed) return;
       disposed = true; surface.dispose(); aperture.dispose(); panel.dispose();

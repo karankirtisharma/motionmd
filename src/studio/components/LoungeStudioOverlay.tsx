@@ -12,8 +12,9 @@ export default function LoungeStudioOverlay({ open, reducedMotion, onCovered, on
   const coveredRef = useRef(onCovered); coveredRef.current = onCovered;
   useEffect(() => {
     const receive = (event: MessageEvent) => {
-      const frame = document.querySelector<HTMLIFrameElement>('iframe[data-live-studio-frame]');
-      if (event.origin !== location.origin || event.source !== frame?.contentWindow) return;
+      // The TV page, or the full-window page a static source expands into.
+      const frames = Array.from(document.querySelectorAll<HTMLIFrameElement>('iframe[data-live-studio-frame]'));
+      if (event.origin !== location.origin || !frames.some(frame => frame.contentWindow === event.source)) return;
       if (event.data?.type === 'md-studio:exit' && openRef.current) closeRef.current();
     };
     const completed = (event: Event) => {
