@@ -107,7 +107,7 @@
     {
       "id": "studio",
       "url": "/assets/architecture-v16/studio.glb",
-      "bytes": 300537632,
+      "bytes": 300485980,
       "objects": 1,
       "textureURLs": [
         "/assets/v2/textures/studio-hero-normal.ktx2",
@@ -121,7 +121,7 @@
         "/assets/v2/textures/studio-detail-orm.ktx2"
       ],
       "textureBytes": 46744061,
-      "sha256": "9ace9b8189d937fb2dd8cd592530ef05741ecbc18fa4aca933dfe5899a2efb29"
+      "sha256": "cdc8eba83fc6b0e20358c0e7465a72cb390328f01b6347c20d3e2e22e0e6f766"
     },
     {
       "id": "founder-lift",
