@@ -49,7 +49,7 @@ export function createMonitorReturns(_screens: THREE.Mesh[], planes: DisplayPlan
     housing.setMatrixAt(planes.length + i, mount);
   });
   housing.computeBoundingSphere();
-  housing.name = 'md. desktop | slim closed monitor housings';
+  housing.name = 'mg. desktop | slim closed monitor housings';
   housing.userData.castShadow = false;
   return housing;
 }

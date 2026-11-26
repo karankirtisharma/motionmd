@@ -32,7 +32,7 @@ function tickSound(kind='tick'){
 }
 function head(r){
   const n=(id, label, on)=>link(id, label, 'navitem'+(on?' active':''));
-  return '<header class="bar"><a href="#ui/home" class="signature">Motiondesign.ad</a><span class="cabinetword">Projection Cabinet</span><nav class="navgroup" aria-label="Main">'+n('work', 'Work', !['studio', 'brief', 'shared', 'saved', 'controls'].includes(r.kind)&&r.group!=='Studio')+n('studio', 'Studio', r.group==='Studio')+n('saved', 'Shortlist'+(shortlist.length?' ('+shortlist.length+')':''), r.kind==='saved'||r.kind==='shared')+
+  return '<header class="bar"><a href="#ui/home" class="signature">motiongraphics.agency</a><span class="cabinetword">Projection Cabinet</span><nav class="navgroup" aria-label="Main">'+n('work', 'Work', !['studio', 'brief', 'shared', 'saved', 'controls'].includes(r.kind)&&r.group!=='Studio')+n('studio', 'Studio', r.group==='Studio')+n('saved', 'Shortlist'+(shortlist.length?' ('+shortlist.length+')':''), r.kind==='saved'||r.kind==='shared')+
     '</nav><div class="bartools"><a aria-label="Search collection" class="tool" href="#ui/search">'+icon('search')+
     '</a>'+link('controls', 'Controls', 'bare')+link('brief/format', 'Start a brief', 'act small', 'arrow')+
     '</div></header>'

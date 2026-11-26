@@ -11,9 +11,9 @@ import { Segmented } from "./Segmented";
 
 export function Wordmark() {
   return (
-    <p className="wordmark" aria-label="motiondesign.ad">
+    <p className="wordmark" aria-label="motiongraphics.agency">
       <span className="wordmark__light">motion</span>
-      <span className="wordmark__bold">design.ad</span>
+      <span className="wordmark__bold">graphics.agency</span>
     </p>
   );
 }

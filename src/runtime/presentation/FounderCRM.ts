@@ -83,7 +83,7 @@ export function createFounderCRM(options: {
   });
   function ensureFrame() {
     if (frame) return;
-    frame = doc.createElement('iframe'); frame.title = "MotionDesign.ad Founder's Room CRM";
+    frame = doc.createElement('iframe'); frame.title = "motiongraphics.agency Founder's Room CRM";
     Object.assign(frame.style,{width:size.width+'px',height:size.height+'px',border:'0',display:'block',background:'#000'});
     frame.addEventListener('load', () => { host.dataset.crmLoaded = 'true'; readiness.loaded(); });
     // Navigate before insertion: avoid an about:blank load starting the boot deadline.

@@ -1,4 +1,4 @@
-// Blender (fictional): launcher + 3D workspace with a real Three.js viewport showing the md. text object.
+// Blender (fictional): launcher + 3D workspace with a real Three.js viewport showing the mg. text object.
 // The viewport stays neutral charcoal; orange belongs only to the surrounding UI.
 import { h, $, $$, ic, icons, launcher, swap, seg, scrub, toast, esc, showMenu, reduceMotion } from '../ui.js';
 
@@ -18,7 +18,7 @@ async function three() {
   return lib;
 }
 function mdGeometry({ THREE, TextGeometry, font }) {
-  const g = new TextGeometry('md.', { font, size: 1, height: 0.36, curveSegments: 8, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.03, bevelSegments: 3 });
+  const g = new TextGeometry('mg.', { font, size: 1, height: 0.36, curveSegments: 8, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.03, bevelSegments: 3 });
   g.computeBoundingBox();
   const b = g.boundingBox;
   g.translate(-(b.max.x + b.min.x) / 2, -b.min.y, -(b.max.z + b.min.z) / 2); // centred, sitting on the floor
@@ -74,7 +74,7 @@ export const blender = {
       shell.refreshMenus();
     }
 
-    // launcher hero: an orange wireframe md. turning slowly (UI decoration, so orange is allowed here)
+    // launcher hero: an orange wireframe mg. turning slowly (UI decoration, so orange is allowed here)
     async function startHero(canvas) {
       stopHero?.();
       let alive = true; stopHero = () => { alive = false; };
@@ -233,7 +233,7 @@ export const blender = {
         scene.add(mesh); objects.push(o);
         return o;
       }
-      const md = addObject('md_logo', new THREE.Mesh(mdGeometry(L), mats.solid));
+      const md = addObject('mg_logo', new THREE.Mesh(mdGeometry(L), mats.solid));
       // default turntable animation so the timeline has something to play
       md.keys = [{ f: 1, p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] }, { f: 250, p: [0, 0, 0], r: [0, Math.PI * 2, 0], s: [1, 1, 1] }];
 

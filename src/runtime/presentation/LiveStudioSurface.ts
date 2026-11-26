@@ -195,7 +195,7 @@ export function createLiveStudioSurface(options: Options) {
       return;
     frame = doc.createElement('iframe');
     frame.dataset.liveStudioFrame = '';
-    frame.title = source?.title ?? 'Interactive Motion Design Studio';
+    frame.title = source?.title ?? 'Interactive Motion Graphics Agency Studio';
     frame.allowFullscreen = true;
     Object.assign(frame.style, { width: '100%', height: '100%', display: 'block', border: '0', background: '#241b13' });
     frame.addEventListener('load', () => { if (source && frame) source.onLoad(frame); readiness.loaded(); input.refreshFrame(); post('md-studio:display', { expanded }); });
@@ -257,7 +257,7 @@ export function createLiveStudioSurface(options: Options) {
     host.style.height = height + 'px';
     host.style.clipPath = 'none';
     host.setAttribute('role', expanded ? 'dialog' : 'region');
-    host.setAttribute('aria-label', expanded ? 'Motion Design Studio' : 'Interactive presentation screen');
+    host.setAttribute('aria-label', expanded ? 'Motion Graphics Agency Studio' : 'Interactive presentation screen');
     if (expanded)
       host.setAttribute('aria-modal', 'true');
     else

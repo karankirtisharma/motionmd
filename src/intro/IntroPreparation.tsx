@@ -27,6 +27,6 @@ export function IntroPreparationBoundary({ children }: { children: ReactNode }) 
 export default function IntroPreparation({ leaving = false, onFinished }: { leaving?: boolean; onFinished?: () => void }) {
   return <section className={styles.screen} data-leaving={leaving} role="status" aria-label="Preparing your visit"
     onAnimationEnd={event => { if (leaving && event.target === event.currentTarget) onFinished?.(); }}>
-    <span className={styles.brand}>motiondesign.ad</span>
+    <span className={styles.brand}>motiongraphics.agency</span>
   </section>;
 }

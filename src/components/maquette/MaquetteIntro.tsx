@@ -45,10 +45,10 @@ export default function MaquetteIntro({ state, choices, error, onRetry }: Maquet
   const detail = failed ? (error || 'The connection was interrupted. Your visit can still continue in the light version.')
 
     : state === 'choose' ? 'Choose the full 3D environment or open the light version.' : 'Explore a little while the studio prepares.';
-  return <main className={styles.intro} data-state={state} data-light={light} data-reduced-motion={reduced || undefined} aria-label="Motion Design arrival">
+  return <main className={styles.intro} data-state={state} data-light={light} data-reduced-motion={reduced || undefined} aria-label="Motion Graphics Agency arrival">
     <div className={styles.inner}>
       <header className={styles.header}>
-        <a className={styles.brand} href="/" aria-label="Motion Design home">motiondesign<span>.ad</span></a>
+        <a className={styles.brand} href="/" aria-label="Motion Graphics Agency home">motiongraphics<span>.agency</span></a>
 
       </header>
       <section className={styles.hero}>

@@ -66,7 +66,7 @@ const BRIDGE = `(function () {
 
 export const projectionCabinetSource: ScreenSource = {
   width: 1728, height: 608,
-  title: 'MotionDesign.ad Projection Cabinet',
+  title: 'motiongraphics.agency Projection Cabinet',
   loading: 'Opening the cabinet...',
   url: attempt => `/projection-cabinet/tv/index.html?attempt=${attempt}`,
   // The TV edition only letterboxes in a browser window; the expanded view uses the

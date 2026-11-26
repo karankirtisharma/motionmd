@@ -423,9 +423,9 @@ export const afterEffects = {
       function paint(L, lt, W, H) {
         if (L.type === 'text') {
           ctx.font = `700 ${H * .24}px Inter, sans-serif`; ctx.textBaseline = 'middle';
-          const wMd = ctx.measureText('md').width, wDot = ctx.measureText('.').width, x0 = -(wMd + wDot) / 2;
-          ctx.fillStyle = '#fff8f2'; ctx.fillText('md', x0, 0);
-          ctx.fillStyle = '#ffb067'; ctx.fillText('.', x0 + wMd, 0);
+          const wMg = ctx.measureText('mg').width, wDot = ctx.measureText('.').width, x0 = -(wMg + wDot) / 2;
+          ctx.fillStyle = '#fff8f2'; ctx.fillText('mg', x0, 0);
+          ctx.fillStyle = '#ffb067'; ctx.fillText('.', x0 + wMg, 0);
         } else if (L.type === 'gradient') {
           const g = ctx.createLinearGradient(-W / 2, -H / 2, W / 2, H / 2);
           g.addColorStop(0, '#4d1805'); g.addColorStop(.5, '#e8670f'); g.addColorStop(1, '#2e0d03');

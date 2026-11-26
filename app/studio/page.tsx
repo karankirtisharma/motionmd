@@ -13,8 +13,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const params = await searchParams;
   const embedded = first(params.embed) === "lounge";
   return {
-    title: "Motion Design — Studio",
-    description: "Explore Motion Design's films, formats, industries and creative studio.",
+    title: "Motion Graphics Agency — Studio",
+    description: "Explore Motion Graphics Agency's films, formats, industries and creative studio.",
     robots: { index: !embedded, follow: !embedded },
   };
 }

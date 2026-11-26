@@ -92,8 +92,8 @@ export function Splash({ onDone }: { onDone: () => void }) {
 
   return (
     <div ref={root} className="splash" data-leaving={leaving || undefined} onClick={enter} role="presentation">
-      <h1 className="splash__word at" style={at(200, 190, 1600, 230, "center", "ledge")} aria-label="motiondesign.ad">
-        motiondesign.ad
+      <h1 className="splash__word at" style={at(200, 190, 1600, 230, "center", "ledge")} aria-label="motiongraphics.agency">
+        motiongraphics.agency
       </h1>
       <p className="splash__meta at" style={at(400, 440, 1200, 40, "center", "ledge")}>
         50 Films <span aria-hidden>•</span> 10 Formats <span aria-hidden>•</span> 5 Industries

@@ -29,7 +29,7 @@ function icon(k){
     '"/></svg>'
 }
 function mark(){
-  return '<span class="mark"><svg viewBox="0 0 34 26" aria-hidden="true"><path d="M0 23 10 3h6L6 23zm11 0L21 3h6L17 23zm11 0 8-16 4 8-4 8z"/></svg><span>motiondesign<span class="ad">.ad</span></span></span>'
+  return '<span class="mark"><svg viewBox="0 0 34 26" aria-hidden="true"><path d="M0 23 10 3h6L6 23zm11 0L21 3h6L17 23zm11 0 8-16 4 8-4 8z"/></svg><span>motiongraphics<span class="ad">.agency</span></span></span>'
 }
 function link(id, label, cls='glassbtn', ic=''){
   return '<a class="'+cls+'" href="#ui/'+id+'">'+label+(ic?icon(ic):'')+'</a>'
@@ -291,7 +291,7 @@ function libraryPage(r){
     '</section>';
 }
 function studio(){
-  return '<section class="inner">'+crumb(['home'])+'<div class="split">'+intro('MotionDesign.ad / Studio', 'Motion,<br><em>by design.</em>', 'Explore how the studio turns product stories into films, campaign edits and motion identities.', link('brief/format', 'Start a brief', 'act', 'arrow'))+
+  return '<section class="inner">'+crumb(['home'])+'<div class="split">'+intro('motiongraphics.agency / Studio', 'Motion,<br><em>by design.</em>', 'Explore how the studio turns product stories into films, campaign edits and motion identities.', link('brief/format', 'Start a brief', 'act', 'arrow'))+
     '<div class="collection"><div class="samplehead"><b>Explore the studio</b></div><div class="tilegrid three featurecards">'+tile('offers', 'hero-beauty-fragrance', 'Project packages', 'Choose a project shape')+tile('services', 'cgi-product.automotive', 'Capabilities', 'Explore five disciplines')+tile('process', 'beauty-fragrance-storyboard', 'Production process', 'Follow the six stages')+
     '</div></div></div></section>'
 }
@@ -450,7 +450,7 @@ function togglePlay(){
   drawPlayer()
 }
 function view(r){
-  document.title=r.name+' — MotionDesign.ad';
+  document.title=r.name+' — motiongraphics.agency';
   const ui='<div data-kind="'+r.kind+'" class="ui '+(r.kind==='brief'?'light':'')+'">'+head(r)+content(r)+'</div>';
   // The motion layer (js/fx) keeps the shell alive and swaps content in place. Without it, render as before.
   if(!window.FX?.swap(r, ui)){
@@ -572,11 +572,11 @@ function exportBrief(){
     toast('Complete the brief before downloading.');
     return
   }
-  const lines=['# MotionDesign.ad project brief', '', ...steps.slice(0, 4).map(k=>k[0].toUpperCase()+k.slice(1)+' — '+draft[k]), '', 'Contact — '+person.name, 'Email — '+person.email, '', 'Project notes', person.note||'—', '', 'Selected references', ...shortlist.map(s=>films.find(f=>f.slug===s)?.title||'').filter(Boolean)];
+  const lines=['# motiongraphics.agency project brief', '', ...steps.slice(0, 4).map(k=>k[0].toUpperCase()+k.slice(1)+' — '+draft[k]), '', 'Contact — '+person.name, 'Email — '+person.email, '', 'Project notes', person.note||'—', '', 'Selected references', ...shortlist.map(s=>films.find(f=>f.slug===s)?.title||'').filter(Boolean)];
   const url=URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/markdown;charset=utf-8'}));
   const a=document.createElement('a');
   a.href=url;
-  a.download='MotionDesign_Project_Brief.md';
+  a.download='MotionGraphicsAgency_Project_Brief.md';
   a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 6000);
   toast('Project file prepared.')
